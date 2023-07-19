@@ -17,7 +17,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@azure/ms-rest-js": "^2.6.4",
+    "@azure/ms-rest-js": "^2.7.0",
     "@azure/msal-browser": "^2.32.1",
     "@azure/msal-react": "^1.5.1",
     "@fluentui/react-components": "^9.13.0",
