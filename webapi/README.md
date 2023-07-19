@@ -39,7 +39,7 @@ You can start the WebApi service using the command-line, Visual Studio Code, or 
 1. Open a terminal
 2. Change directory to the Copilot Chat webapi project directory.
    ```
-   cd semantic-kernel/samples/apps/copilot-chat-app/webapi
+   cd webapi/
    ```
 3. (Optional) Build the service and verify there are no errors.
    ```
@@ -63,10 +63,9 @@ You can start the WebApi service using the command-line, Visual Studio Code, or 
 
 ## Visual Studio (2022 or newer)
 
-1. Open the solution file in Visual Studio 2022 or newer (`semantic-kernel/dotnet/SK-dotnet.sln`).
-2. In the solution explorer expand the `samples` folder.
-3. Right-click on the `CopilotChatWebApi` and select `Set as Startup Project`.
-4. Start debugging by pressing `F5` or selecting the menu item `Debug`->`Start Debugging`.
+1. Open the solution file in Visual Studio 2022 or newer (`CopilotChat.sln`).
+2. In Solution Explorer, right-click on `CopilotChatWebApi` and select `Set as Startup Project`.
+3. Start debugging by pressing `F5` or selecting the menu item `Debug`->`Start Debugging`.
 
 # Enabling Sequential Planner
 If you want to use SequentialPlanner (multi-step) instead ActionPlanner (single-step), we recommend using `gpt-4` or `gpt-3.5-turbo` as the planner model. Using `gpt-3.5-turbo` will require with a relevancy filter. 
@@ -110,7 +109,6 @@ Before you get started, make sure you have the following additional requirements
     Then start the Qdrant container on port `6333` using the `./data/qdrant` folder as the persistent storage location.
 
     ```bash
-    cd /src/semantic-kernel
     mkdir ./data/qdrant
     docker run --name copilotchat -p 6333:6333 -v "$(pwd)/data/qdrant:/qdrant/storage" qdrant/qdrant
     ```

@@ -1,0 +1,3 @@
+# Add 'documentation' label to any '.md' files
+documentation:
+  - '**/*.md'

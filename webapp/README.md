@@ -20,7 +20,7 @@ If you want to run Copilot Chat with HTTPS, you need to create a certificate and
 
 Option 1: Reusuing the [dotnet dev-certs](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs) generated for the webapi app.
 
-1. Open a terminal and navigate to `samples/apps/copilot-chat-app/webapi`.
+1. Open a terminal and navigate to `webapi`.
 1. Run
 
     ```
@@ -121,7 +121,7 @@ Learn more about it here: https://learn.microsoft.com/en-us/azure/active-directo
 
 Aside from debugging within browsers, you can launch a debug session in Visual Studio.
 
-1. Open the webapp folder (i.e.`/samples/apps/copilot-chat-app/webapp`) in Visual Studio Code.
+1. Open the webapp folder (i.e.`webapp/`) in Visual Studio Code.
 2. Go to "Run and Debug" and select on the "Launch Edge against localhost".
     > Go [here](https://code.visualstudio.com/docs/typescript/typescript-debugging) to learn more about debugging client-code in Visual Studio Code.
 

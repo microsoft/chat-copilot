@@ -43,9 +43,9 @@ chmod +x ./deploy-azure.sh
 ## Azure Portal
 You can also deploy the infrastructure directly from the Azure Portal by clicking the button below:
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fsemantic-kernel%2Fmain%2Fsamples%2Fapps%2Fcopilot-chat-app%2Fdeploy%2Fmain.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fcopilot-chat%2Fmain%2Fdeploy%2Fmain.json)
 
-> This will automatically deploy the most recent release of CopilotChat backend binaries ([link](https://github.com/microsoft/semantic-kernel/releases?q=copilotchat)).
+> This will automatically deploy the most recent release of CopilotChat backend binaries ([link](https://github.com/microsoft/copilot-chat/releases)).
 
 > To find the deployment name when using `Deploy to Azure`, look for a deployment in your resource group that starts with `Microsoft.Template`.
 

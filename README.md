@@ -42,7 +42,7 @@ First, let’s set up and verify the back-end API server is running.
    - For Linux run `dotnet dev-certs https`
    > **Note:** It is recommended you close all instances of your web browser after installing the developer certificates.
 
-2. Navigate to `samples/apps/copilot-chat-app/webapi` and open `appsettings.json`
+2. Navigate to `webapi/` and open `appsettings.json`
    - Update the `AIService` configuration section:
      - Update `Type` to the AI service you will be using (i.e., `AzureOpenAI` or `OpenAI`).
      - If your are using Azure OpenAI, update `Endpoint` to your Azure OpenAI resource Endpoint address (e.g.,
@@ -50,7 +50,7 @@ First, let’s set up and verify the back-end API server is running.
         > If you are using OpenAI, this property will be ignored.
      - Set your Azure OpenAI or OpenAI key by opening a terminal in the webapi project directory and using `dotnet user-secrets`
        ```bash
-       cd semantic-kernel/samples/apps/copilot-chat-app/webapi
+       cd webapi
        dotnet user-secrets set "AIService:Key" "MY_AZUREOPENAI_OR_OPENAI_KEY"
        ```
      - **(Optional)** Update `Models` to the Azure OpenAI deployment or OpenAI models you want to use. 
@@ -70,7 +70,7 @@ First, let’s set up and verify the back-end API server is running.
        ```
 
 3. Build and run the back-end API server
-    1. Open a terminal and navigate to `samples/apps/copilot-chat-app/webapi`
+    1. Open a terminal and navigate to `webapi/`
     
     2. Run `dotnet build` to build the project.
     
@@ -92,7 +92,7 @@ First, let’s set up and verify the back-end API server is running.
       - Select `Accounts in any organizational directory and personal Microsoft Accounts` as supported account types for this sample.
       - Make a note of the `Application (client) ID` from the Azure Portal, we will use of it later.
 
-   2. Open a terminal and navigate to `samples/apps/copilot-chat-app/webapp` Copy `.env.example` into a new
+   2. Open a terminal and navigate to `webapp/` Copy `.env.example` into a new
       file `.env` and update the `REACT_APP_AAD_CLIENT_ID` with the AAD application (Client) ID created above.
       For example:
       ```bash
@@ -107,7 +107,7 @@ First, let’s set up and verify the back-end API server is running.
       REACT_APP_SK_API_KEY={Your API Key, should be the same as Authorization:ApiKey from appsettings.json}
       ```
 
-   3. To build and run the front-end application, open a terminal and navigate to `samples/apps/copilot-chat-app/webapp` if not already, then run:
+   3. To build and run the front-end application, open a terminal and navigate to `webapp/` if not already, then run:
       ```bash
       yarn install
       yarn start

@@ -24,7 +24,7 @@
                 "group": "buildTasks"
             },
             "options": {
-                "cwd": "${workspaceFolder}/samples/apps/copilot-chat-app/webapp"
+                "cwd": "${workspaceFolder}/webapp"
             },
             "problemMatcher": []
         },
@@ -42,7 +42,7 @@
             "type": "process",
             "args": ["user-secrets", "set", "AIService:Key", "${input:aiServiceSecret}"],
             "options": {
-                "cwd": "${workspaceFolder}/samples/apps/copilot-chat-app/webapi"
+                "cwd": "${workspaceFolder}/webapi"
             }
         },
         // Copilot Chat App
@@ -58,7 +58,7 @@
                 "group": "buildTasks"
             },
             "options": {
-                "cwd": "${workspaceFolder}/samples/apps/copilot-chat-app/webapp"
+                "cwd": "${workspaceFolder}/webapp"
             },
             "problemMatcher": []
         },
@@ -73,7 +73,7 @@
                 "group": "copilot"
             },
             "options": {
-                "cwd": "${workspaceFolder}/samples/apps/copilot-chat-app/webapp"
+                "cwd": "${workspaceFolder}/webapp"
             }
         },
         // Copilot Chat Api
@@ -83,7 +83,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/samples/apps/copilot-chat-app/webapi/CopilotChatWebApi.csproj",
+                "${workspaceFolder}/CopilotChatWebApi.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary",
                 "/property:DebugType=portable"
@@ -98,7 +98,7 @@
             "args": [
                 "run",
                 "--project",
-                "${workspaceFolder}/samples/apps/copilot-chat-app/webapi/CopilotChatWebApi.csproj"
+                "${workspaceFolder}/webapi/CopilotChatWebApi.csproj"
             ],
             "problemMatcher": "$msCompile",
             "group": "test",
@@ -116,7 +116,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/samples/apps/copilot-chat-app/webapi/CopilotChatWebApi.csproj"
+                "${workspaceFolder}/webapi/CopilotChatWebApi.csproj"
             ],
             "problemMatcher": "$msCompile",
             "group": "build"
