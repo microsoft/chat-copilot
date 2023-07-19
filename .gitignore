@@ -476,5 +476,5 @@ playwright-report/
 
 # Static Web App deployment config
 swa-cli.config.json
-webapp/build
-webapp/node_modules
+webapp/build/
+webapp/node_modules/
