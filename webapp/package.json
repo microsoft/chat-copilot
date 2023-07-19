@@ -23,7 +23,7 @@
     "@fluentui/react-components": "^9.13.0",
     "@fluentui/react-icons": "^2.0.193",
     "@fluentui/react-northstar": "^0.66.4",
-    "@microsoft/signalr": "^7.0.5",
+    "@microsoft/signalr": "^7.0.9",
     "@playwright/test": "^1.35.1",
     "@reduxjs/toolkit": "^1.9.1",
     "debug": "^4.3.4",
