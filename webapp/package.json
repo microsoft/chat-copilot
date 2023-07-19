@@ -48,7 +48,7 @@
     "serve": "^14.2.0",
     "typescript": "5.0.4",
     "vsts-npm-auth": "^0.42.1",
-    "workbox-window": "^6.5.4"
+    "workbox-window": "^7.0.0"
   },
   "eslintConfig": {
     "extends": [
