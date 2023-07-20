@@ -2,9 +2,9 @@
 
 > This sample is for educational purposes only and is not recommended for production deployments.
 
-# About Copilot Chat
+# About Chat Copilot
 
-This sample allows you to build your own integrated large language model chat copilot.
+This sample allows you to build your own integrated large language model chat copilot that is powered by [semantic-kernel](https://github.com/microsoft/semantic-kernel).
 This is an enriched intelligence app, with multiple dynamic components including
 command messages, user intent, and memories.
 
@@ -153,7 +153,7 @@ to the back end while waiting for your permission to connect. To resolve this, t
 2. If your browser asks you to acknowledge the risks of visiting an insecure website, you must acknowledge the
    message before the front end will be allowed to connect to the back-end server. 
    - Acknowledge, continue, and navigate until you see the message `Healthy`.
-3. Navigate to `http://localhost:3000` or refresh the page to use the Copilot Chat application.
+3. Navigate to `http://localhost:3000` or refresh the page to use the Chat Copilot application.
 
 ## 4. Have Yarn version 2.x or 3.x
 
