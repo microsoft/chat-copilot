@@ -20,5 +20,6 @@ jobs:
 
   stable:
     uses: ./.github/workflows/copilot-deploy-environment.yml
+    needs: int
     with:
       ENVIRONMENT: stable
