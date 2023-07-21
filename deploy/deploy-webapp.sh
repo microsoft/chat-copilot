@@ -14,7 +14,7 @@ usage() {
     echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
-    echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified. 
+    echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified."
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
 }
 
