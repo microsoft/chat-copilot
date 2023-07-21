@@ -14,6 +14,7 @@ usage() {
     echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
+    echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified. 
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
 }
 
@@ -41,6 +42,11 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
+        -au|--authority)
+        AUTHORITY="$2"
+        shift
+        shift
+        ;;
         -nr|--no-redirect)
         NO_REDIRECT=true
         shift
@@ -65,6 +71,10 @@ if [ $? -ne 0 ]; then
     az login --use-device-code
 fi
 
+if [[-z "$AUTHORITY" ]]; then
+    AUTHORITY="https://login.microsoftonline.com/common"
+fi
+
 az account set -s "$SUBSCRIPTION"
 
 echo "Getting deployment outputs..."
@@ -84,7 +94,7 @@ eval WEB_API_KEY=$(az webapp config appsettings list --name $WEB_API_NAME --reso
 ENV_FILE_PATH="$SCRIPT_ROOT/../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
 echo "REACT_APP_BACKEND_URI=https://$WEB_API_URL/" > $ENV_FILE_PATH
-echo "REACT_APP_AAD_AUTHORITY=https://login.microsoftonline.com/common" >> $ENV_FILE_PATH
+echo "REACT_APP_AAD_AUTHORITY=$AUTHORITY" >> $ENV_FILE_PATH
 echo "REACT_APP_AAD_CLIENT_ID=$APPLICATION_ID" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_API_KEY=$WEB_API_KEY" >> $ENV_FILE_PATH
 
