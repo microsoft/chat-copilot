@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.19.5.34762",
-      "templateHash": "11698093919386067036"
+      "templateHash": "5601121958092657135"
     }
   },
   "parameters": {
@@ -435,8 +435,7 @@
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]",
-        "[resourceId('Microsoft.Web/sites/extensions', format('app-{0}-webapi', variables('uniqueName')), 'MSDeploy')]"
+        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
       ]
     },
     {
