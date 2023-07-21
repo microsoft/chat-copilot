@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.16.2.56959",
-      "templateHash": "18037485528098010448"
+      "version": "0.19.5.34762",
+      "templateHash": "11698093919386067036"
     }
   },
   "parameters": {
@@ -119,6 +119,13 @@
       "defaultValue": true,
       "metadata": {
         "description": "Whether to deploy Azure Speech Services to enable input by voice"
+      }
+    },
+    "deployWebApiPackage": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Whether to deploy the backend Web API package"
       }
     },
     "location": {
@@ -392,6 +399,7 @@
       ]
     },
     {
+      "condition": "[parameters('deployWebApiPackage')]",
       "type": "Microsoft.Web/sites/extensions",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'MSDeploy')]",
@@ -427,6 +435,7 @@
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]",
         "[resourceId('Microsoft.Web/sites/extensions', format('app-{0}-webapi', variables('uniqueName')), 'MSDeploy')]"
       ]
     },

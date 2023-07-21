@@ -57,7 +57,7 @@ done
 # Set defaults
 : "${CONFIGURATION:="Release"}"
 : "${DOTNET:="net6.0"}"
-: "${RUNTIME:="win-x64"}"
+: "${RUNTIME:="linux-x64"}"
 : "${OUTPUT_DIRECTORY:="$SCRIPT_ROOT"}"
 
 PUBLISH_OUTPUT_DIRECTORY="$OUTPUT_DIRECTORY/publish"

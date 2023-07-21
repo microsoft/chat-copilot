@@ -1,0 +1,52 @@
+name: copilot-deploy-environment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["copilot-pipeline-win"]
+    paths:
+      - "**"
+      - ".github/workflows/copilot-deploy*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/copilot-build.yml
+
+  deploy-infra:
+    needs: build
+    uses: ./.github/workflows/copilot-deploy-infra.yml
+    with:
+      ENVIRONMENT: int
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+
+  deploy-backend:
+    needs: [build, deploy-infra]
+    uses: ./.github/workflows/copilot-deploy-backend.yml
+    with:
+      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+      DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
+      ENVIRONMENT: int
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+  deploy-frontend:
+    needs: [deploy-infra]
+    uses: ./.github/workflows/copilot-deploy-frontend.yml
+    with:
+      DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
+      ENVIRONMENT: int
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}

@@ -11,9 +11,10 @@ usage() {
     echo ""
     echo "Arguments:"
     echo "  -s, --subscription SUBSCRIPTION        Subscription to which to make the deployment (mandatory)"
-    echo "  -rg, --resource-group RESOURCE_GROUP    Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
+    echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
-    echo "  -a, --application-id                   Client application ID (mandatory)"
+    echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
+    echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
 }
 
 # Parse arguments
@@ -38,6 +39,10 @@ while [[ $# -gt 0 ]]; do
         -a|--application-id)
         APPLICATION_ID="$2"
         shift
+        shift
+        ;;
+        -nr|--no-redirect)
+        NO_REDIRECT=true
         shift
         ;;
         *)
@@ -85,8 +90,13 @@ echo "REACT_APP_SK_API_KEY=$WEB_API_KEY" >> $ENV_FILE_PATH
 
 echo "Writing swa-cli.config.json..."
 SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../webapp/swa-cli.config.json"
-sed "s/{{appDevserverUrl}}/https:\/\/${WEB_APP_URL}/g" $SCRIPT_ROOT/../webapp/template.swa-cli.config.json > $SWA_CONFIG_FILE_PATH
-cat $SWA_CONFIG_FILE_PATH
+SWA_CONFIG_TEMPLATE_FILE_PATH="$SCRIPT_ROOT/../webapp/template.swa-cli.config.json"
+swaConfig=`cat $SWA_CONFIG_TEMPLATE_FILE_PATH`
+swaConfig=$(echo $swaConfig | sed "s/{{appDevserverUrl}}/https:\/\/${WEB_APP_URL}/")
+swaConfig=$(echo $swaConfig | sed "s/{{appName}}/$WEB_API_NAME/")
+swaConfig=$(echo $swaConfig | sed "s/{{resourceGroup}}/$RESOURCE_GROUP/")
+swaConfig=$(echo $swaConfig | sed "s/{{subscription-id}}/$SUBSCRIPTION/")
+echo $swaConfig > $SWA_CONFIG_FILE_PATH
 
 pushd "$SCRIPT_ROOT/../webapp"
 
@@ -122,21 +132,23 @@ fi
 echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
 eval OBJECT_ID=$(az ad app show --id $APPLICATION_ID | jq -r '.id')
 
-REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
-if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
-    BODY="{spa:{redirectUris:['"
-    eval BODY+=$(echo $REDIRECT_URIS | jq $'join("\',\'")')
-    BODY+="','$ORIGIN']}}"
+if [ "$NO_REDIRECT" != true ]; then
+    REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
+    if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
+        BODY="{spa:{redirectUris:['"
+        eval BODY+=$(echo $REDIRECT_URIS | jq $'join("\',\'")')
+        BODY+="','$ORIGIN']}}"
 
-    az rest \
-    --method PATCH \
-    --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
-    --headers 'Content-Type=application/json' \
-    --body $BODY
-fi
-if [ $? -ne 0 ]; then
-    echo "Failed to update app registration"
-    exit 1
+        az rest \
+        --method PATCH \
+        --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
+        --headers 'Content-Type=application/json' \
+        --body $BODY
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Failed to update app registration"
+        exit 1
+    fi
 fi
 
 popd

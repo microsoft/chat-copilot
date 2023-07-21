@@ -15,7 +15,7 @@ param(
     $Subscription,
 
     [Parameter(Mandatory)]
-    [ValidateSet("AzureOpenAI","OpenAI")]
+    [ValidateSet("AzureOpenAI", "OpenAI")]
     [string]
     # AI service to use
     $AIService,
@@ -84,7 +84,6 @@ if ($AIService -eq "OpenAI" -and !$AIApiKey) {
 
 $jsonConfig = "
 {
-    `\`"name`\`": { `\`"value`\`": `\`"$DeploymentName`\`" },
     `\`"webAppServiceSku`\`": { `\`"value`\`": `\`"$WebAppServiceSku`\`" },
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
@@ -96,14 +95,13 @@ $jsonConfig = "
 }
 "
 
-$jsonConfig = $jsonConfig -replace '\s',''
+$jsonConfig = $jsonConfig -replace '\s', ''
 
 $ErrorActionPreference = "Stop"
 
 $templateFile = "$($PSScriptRoot)/main.bicep"
 
-if (!$ResourceGroup)
-{
+if (!$ResourceGroup) {
     $ResourceGroup = "rg-" + $DeploymentName
 }
 
@@ -115,13 +113,13 @@ if ($LASTEXITCODE -ne 0) {
 
 az account set -s $Subscription
 if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
+    exit $LASTEXITCODE
 }
 
 Write-Host "Ensuring resource group '$ResourceGroup' exists..."
 az group create --location $Region --name $ResourceGroup --tags Creator=$env:UserName
 if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
+    exit $LASTEXITCODE
 }
 
 Write-Host "Validating template file..."
