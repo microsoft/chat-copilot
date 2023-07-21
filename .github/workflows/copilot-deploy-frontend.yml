@@ -16,6 +16,8 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      APPLICATION_AUTHORITY:
+        required: true
 
 permissions:
   contents: read
@@ -57,7 +59,7 @@ jobs:
           subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
           enable-AzPSSession: false
 
-      - name: "Get SWA Deployment Token"
+      - name: "Get and Mask SWA Deployment Token"
         uses: azure/CLI@v1
         with:
           azcliversion: 2.30.0
@@ -69,4 +71,4 @@ jobs:
 
       - name: Deploy SWA
         run: |
-          deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{vars.APPLICATION_AUTHORITY}} --no-redirect
+          deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect

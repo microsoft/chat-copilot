@@ -28,6 +28,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
       WEB_API_KEY: ${{secrets.WEB_API_KEY}}
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
 
   stable:
     uses: ./.github/workflows/copilot-deploy-environment.yml
@@ -41,3 +42,4 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
       WEB_API_KEY: ${{secrets.WEB_API_KEY}}
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
