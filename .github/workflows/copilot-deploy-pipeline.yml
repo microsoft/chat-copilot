@@ -1,4 +1,4 @@
-name: copilot-deploy-environment
+name: copilot-deploy-pipeline
 
 on:
   workflow_dispatch:
