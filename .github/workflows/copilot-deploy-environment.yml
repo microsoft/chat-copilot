@@ -6,6 +6,17 @@ on:
       ENVIRONMENT:
         required: true
         type: string
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      WEB_API_KEY:
+        required: true
+      AZURE_OPENAI_ENDPOINT:
+        required: true
 
 permissions:
   contents: read
