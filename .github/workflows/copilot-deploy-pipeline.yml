@@ -1,0 +1,24 @@
+name: copilot-deploy-environment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["copilot-pipeline-win"]
+    paths:
+      - "**"
+      - ".github/workflows/copilot-deploy*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  int:
+    uses: ./.github/workflows/copilot-deploy-environment.yml
+    with:
+      ENVIRONMENT: int
+
+  stable:
+    uses: ./.github/workflows/copilot-deploy-environment.yml
+    with:
+      ENVIRONMENT: stable

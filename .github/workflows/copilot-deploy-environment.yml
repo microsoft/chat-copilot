@@ -1,12 +1,11 @@
 name: copilot-deploy-environment
 
 on:
-  workflow_dispatch:
-  push:
-    branches: ["copilot-pipeline-win"]
-    paths:
-      - "**"
-      - ".github/workflows/copilot-deploy*"
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,7 +19,7 @@ jobs:
     needs: build
     uses: ./.github/workflows/copilot-deploy-infra.yml
     with:
-      ENVIRONMENT: int
+      ENVIRONMENT: ${{inputs.ENVIRONMENT}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
@@ -34,7 +33,7 @@ jobs:
     with:
       ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
-      ENVIRONMENT: int
+      ENVIRONMENT: ${{inputs.ENVIRONMENT}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
@@ -45,7 +44,7 @@ jobs:
     uses: ./.github/workflows/copilot-deploy-frontend.yml
     with:
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
-      ENVIRONMENT: int
+      ENVIRONMENT: ${{inputs.ENVIRONMENT}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
