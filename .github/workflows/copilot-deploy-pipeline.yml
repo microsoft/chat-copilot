@@ -3,10 +3,7 @@ name: copilot-deploy-pipeline
 on:
   workflow_dispatch:
   push:
-    branches: ["copilot-pipeline-win"]
-    paths:
-      - "**"
-      - ".github/workflows/copilot-deploy*"
+    branches: ["main"]
 
 permissions:
   contents: read
