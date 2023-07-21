@@ -13,10 +13,15 @@ permissions:
   id-token: write
 
 jobs:
+  build:
+    uses: ./.github/workflows/copilot-build.yml
+
   int:
+    needs: build
     uses: ./.github/workflows/copilot-deploy-environment.yml
     with:
       ENVIRONMENT: int
+      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
@@ -26,9 +31,10 @@ jobs:
 
   stable:
     uses: ./.github/workflows/copilot-deploy-environment.yml
-    needs: int
+    needs: [build, int]
     with:
       ENVIRONMENT: stable
+      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}

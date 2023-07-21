@@ -6,6 +6,9 @@ on:
       ENVIRONMENT:
         required: true
         type: string
+      ARTIFACT_NAME:
+        required: true
+        type: string
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -23,11 +26,7 @@ permissions:
   id-token: write
 
 jobs:
-  build:
-    uses: ./.github/workflows/copilot-build.yml
-
   deploy-infra:
-    needs: build
     uses: ./.github/workflows/copilot-deploy-infra.yml
     with:
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
@@ -39,10 +38,10 @@ jobs:
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
 
   deploy-backend:
-    needs: [build, deploy-infra]
+    needs: [deploy-infra]
     uses: ./.github/workflows/copilot-deploy-backend.yml
     with:
-      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+      ARTIFACT_NAME: ${{inputs.ARTIFACT_NAME}}
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
     secrets:
