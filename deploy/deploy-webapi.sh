@@ -70,14 +70,14 @@ fi
 az account set -s "$SUBSCRIPTION"
 
 echo "Getting Azure WebApp resource name..."
-eval WEB_APP_NAME=$(az deployment group show --name $DEPLOYMENT_NAME --resource-group $RESOURCE_GROUP --output json | jq '.properties.outputs.webapiName.value')
+eval WEB_APP_NAME=$(az deployment group show --name $DEPLOYMENT_NAME --resource-group $RESOURCE_GROUP --output json | jq -r '.properties.outputs.webapiName.value')
 # Ensure $WEB_APP_NAME is set
 if [[ -z "$WEB_APP_NAME" ]]; then
     echo "Could not get Azure WebApp resource name from deployment output."
     exit 1
 fi
 
-echo "Azure WebApp name: $webappName"
+echo "Azure WebApp name: $WEB_APP_NAME"
 
 echo "Configuring Azure WebApp to run from package..."
 az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1"
@@ -86,12 +86,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Deploying '$PackageFilePath' to Azure WebApp '$webappName'..."
-az webapp deployment source config-zip --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src $PACKAGE_FILE_PATH
+echo "Deploying '$PACKAGE_FILE_PATH' to Azure WebApp '$WEB_APP_NAME'..."
+az webapp deployment source config-zip --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src $PACKAGE_FILE_PATH --debug
 if [ $? -ne 0 ]; then
-    echo "Could not deploy '$PackageFilePath' to Azure WebApp '$webappName'."
+    echo "Could not deploy '$PACKAGE_FILE_PATH' to Azure WebApp '$WEB_APP_NAME'."
     exit 1
 fi
 
-eval WEB_APP_URL=$(az deployment group show --name $DEPLOYMENT_NAME --resource-group $RESOURCE_GROUP --output json | jq '.properties.outputs.webapiUrl.value')
+eval WEB_APP_URL=$(az deployment group show --name $DEPLOYMENT_NAME --resource-group $RESOURCE_GROUP --output json | jq -r '.properties.outputs.webapiUrl.value')
 echo "To verify your deployment, go to 'https://$WEB_APP_URL/healthz' in your browser."

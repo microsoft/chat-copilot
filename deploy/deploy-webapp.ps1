@@ -22,7 +22,12 @@ param(
     [Parameter(Mandatory)]
     [string]
     # Client application id 
-    $ApplicationClientId
+    $ApplicationClientId,
+
+    [Parameter(Mandatory=$false)]
+    [string]
+    # Authority for client applications that are not configured as multi-tenant.
+    $Authority="https://login.microsoftonline.com/common"
 )
 
 Write-Host "Setting up Azure credentials..."
@@ -56,7 +61,7 @@ $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
 $envFilePath = "$PSScriptRoot/../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
-"REACT_APP_AAD_AUTHORITY=https://login.microsoftonline.com/common" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_AUTHORITY=$Authority" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_CLIENT_ID=$ApplicationClientId" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_API_KEY=$webapiApiKey" | Out-File -FilePath $envFilePath -Append
 
