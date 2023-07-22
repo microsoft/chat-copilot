@@ -10,6 +10,7 @@ usage() {
     echo "Arguments:"
     echo "  -d, --deployment-name DEPLOYMENT_NAME      Name for the deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION            Subscription to which to make the deployment (mandatory)"
+    echo "  -wk, --web-api-key WEB_API_KEY             The API key for the backend web service"
     echo "  -ai, --ai-service AI_SERVICE_TYPE          Type of AI service to use (i.e., OpenAI or AzureOpenAI)"
     echo "  -aikey, --ai-service-key AI_SERVICE_KEY    API key for existing Azure OpenAI resource or OpenAI account"
     echo "  -aiend, --ai-endpoint AI_ENDPOINT          Endpoint for existing Azure OpenAI resource"
@@ -20,6 +21,7 @@ usage() {
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
     echo "  -dd, --debug-deployment                    Switches on verbose template deployment output"
+    echo "  -ndp, --no-deploy-package                  Skips deploying the Web API package when set."
 }
 
 # Parse arguments
@@ -33,6 +35,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         -s|--subscription)
         SUBSCRIPTION="$2"
+        shift
+        shift
+        ;;
+        -wk|--web-api-key)
+        WEB_API_KEY="$2"
         shift
         shift
         ;;
@@ -82,6 +89,10 @@ while [[ $# -gt 0 ]]; do
         DEBUG_DEPLOYMENT=true
         shift
         ;;
+        -ndp|--no-deploy-package)
+        NO_DEPLOY_PACKAGE=true
+        shift
+        ;;
         *)
         echo "Unknown option $1"
         usage
@@ -94,6 +105,11 @@ done
 if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$AI_SERVICE_TYPE" ]]; then
     usage
     exit 1
+fi
+
+# Check if WEB_API_KEY is provided or not
+if [[ -z "$WEB_API_KEY" ]]; then
+    WEB_API_KEY=$(uuidgen -r)
 fi
 
 # Check if AI_SERVICE_TYPE is either OpenAI or AzureOpenAI
@@ -154,11 +170,12 @@ az account set -s "$SUBSCRIPTION"
 # Create JSON config
 JSON_CONFIG=$(cat << EOF
 {
-    "name": { "value": "$DEPLOYMENT_NAME" },
+    "webApiKey": { "value" : "$WEB_API_KEY" },
     "webAppServiceSku": { "value": "$WEB_APP_SVC_SKU" },
     "aiService": { "value": "$AI_SERVICE_TYPE" },
     "aiApiKey": { "value": "$AI_SERVICE_KEY" },
-    "aiEndpoint": { "value": "$([ -z "$AI_ENDPOINT" ] && echo "$AI_ENDPOINT")" },
+    "deployWebApiPackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
+    "aiEndpoint": { "value": "$([ ! -z "$AI_ENDPOINT" ] && echo "$AI_ENDPOINT")" },
     "deployNewAzureOpenAI": { "value": $([ "$NO_NEW_AZURE_OPENAI" = true ] && echo "false" || echo "true") },
     "deployQdrant": { "value": $([ "$NO_QDRANT" = true ] && echo "false" || echo "true") },
     "deployCosmosDB": { "value": $([ "$NO_COSMOS_DB" = true ] && echo "false" || echo "true") },

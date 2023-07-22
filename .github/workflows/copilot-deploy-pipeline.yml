@@ -1,0 +1,42 @@
+name: copilot-deploy-pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/copilot-build.yml
+
+  int:
+    needs: build
+    uses: ./.github/workflows/copilot-deploy-environment.yml
+    with:
+      ENVIRONMENT: int
+      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
+
+  stable:
+    uses: ./.github/workflows/copilot-deploy-environment.yml
+    needs: [build, int]
+    with:
+      ENVIRONMENT: stable
+      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
