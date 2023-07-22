@@ -17,7 +17,7 @@ usage() {
     echo "  -rg, --resource-group RESOURCE_GROUP       Resource group to which to make the deployment (default: \"rg-\$DEPLOYMENT_NAME\")"
     echo "  -r, --region REGION                        Region to which to make the deployment (default: \"South Central US\")"
     echo "  -a, --app-service-sku WEB_APP_SVC_SKU      SKU for the Azure App Service plan (default: \"B1\")"
-    echo "  -nq, --no-qdrant                           Don't deploy Qdrant for memory storage - Use volatile memory instead"
+    echo "  -ms, --memory-store                        Method to use to persist embeddings (default: \"AzureCognitiveSearch\")"
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
     echo "  -dd, --debug-deployment                    Switches on verbose template deployment output"
@@ -73,8 +73,8 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-        -nq|--no-qdrant)
-        NO_QDRANT=true
+        -ms|--memory-store)
+        MEMORY_STORE=="$2"
         shift
         ;;
         -nc|--no-cosmos-db)
@@ -163,7 +163,7 @@ az account set -s "$SUBSCRIPTION"
 # Set defaults
 : "${REGION:="centralus"}"
 : "${WEB_APP_SVC_SKU:="B1"}"
-: "${NO_QDRANT:=false}"
+: "${MEMORY_STORE:="AzureCognitiveSearch"}"
 : "${NO_COSMOS_DB:=false}"
 : "${NO_SPEECH_SERVICES:=false}"
 
@@ -177,7 +177,7 @@ JSON_CONFIG=$(cat << EOF
     "deployWebApiPackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
     "aiEndpoint": { "value": "$([ ! -z "$AI_ENDPOINT" ] && echo "$AI_ENDPOINT")" },
     "deployNewAzureOpenAI": { "value": $([ "$NO_NEW_AZURE_OPENAI" = true ] && echo "false" || echo "true") },
-    "deployQdrant": { "value": $([ "$NO_QDRANT" = true ] && echo "false" || echo "true") },
+    "memoryStore": { "value": "$MEMORY_STORE" },
     "deployCosmosDB": { "value": $([ "$NO_COSMOS_DB" = true ] && echo "false" || echo "true") },
     "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") }
 }
