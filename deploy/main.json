@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.19.5.34762",
-      "templateHash": "5601121958092657135"
+      "templateHash": "12182074692341112389"
     }
   },
   "parameters": {
@@ -107,11 +107,16 @@
         "description": "Whether to deploy Cosmos DB for persistent chat storage"
       }
     },
-    "deployQdrant": {
-      "type": "bool",
-      "defaultValue": true,
+    "memoryStore": {
+      "type": "string",
+      "defaultValue": "Volatile",
+      "allowedValues": [
+        "Volatile",
+        "AzureCognitiveSearch",
+        "Qdrant"
+      ],
       "metadata": {
-        "description": "Whether to deploy Qdrant (in a container) for persistent memory storage"
+        "description": "What method to use to persist embeddings"
       }
     },
     "deploySpeechServices": {
@@ -150,7 +155,7 @@
   },
   "resources": [
     {
-      "condition": "[parameters('deployQdrant')]",
+      "condition": "[equals(parameters('memoryStore'), 'Qdrant')]",
       "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}/{2}', format('st{0}', variables('rgIdHash')), 'default', variables('storageFileShareName'))]",
@@ -159,7 +164,7 @@
       ]
     },
     {
-      "condition": "[parameters('deployQdrant')]",
+      "condition": "[equals(parameters('memoryStore'), 'Qdrant')]",
       "type": "Microsoft.Storage/storageAccounts/fileServices",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('st{0}', variables('rgIdHash')), 'default')]",
@@ -240,7 +245,10 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
         "httpsOnly": true,
-        "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]"
+        "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
+        "siteConfig": {
+          "healthCheckPath": "/healthz"
+        }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
@@ -252,7 +260,7 @@
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'web')]",
       "properties": {
-        "alwaysOn": true,
+        "alwaysOn": false,
         "cors": {
           "allowedOrigins": [
             "http://localhost:3000",
@@ -329,15 +337,27 @@
           },
           {
             "name": "MemoriesStore:Type",
-            "value": "[if(parameters('deployQdrant'), 'Qdrant', 'Volatile')]"
+            "value": "[parameters('memoryStore')]"
           },
           {
             "name": "MemoriesStore:Qdrant:Host",
-            "value": "[if(parameters('deployQdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
+            "value": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
           },
           {
             "name": "MemoriesStore:Qdrant:Port",
             "value": "443"
+          },
+          {
+            "name": "MemoriesStore:AzureCognitiveSearch:UseVectorSearch",
+            "value": "true"
+          },
+          {
+            "name": "MemoriesStore:AzureCognitiveSearch:Endpoint",
+            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
+          },
+          {
+            "name": "MemoriesStore:AzureCognitiveSearch:Key",
+            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
             "name": "AzureSpeech:Region",
@@ -393,6 +413,7 @@
         "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]"
@@ -459,7 +480,7 @@
       }
     },
     {
-      "condition": "[parameters('deployQdrant')]",
+      "condition": "[equals(parameters('memoryStore'), 'Qdrant')]",
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2022-09-01",
       "name": "[format('st{0}', variables('rgIdHash'))]",
@@ -474,7 +495,7 @@
       }
     },
     {
-      "condition": "[parameters('deployQdrant')]",
+      "condition": "[equals(parameters('memoryStore'), 'Qdrant')]",
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2022-03-01",
       "name": "[format('asp-{0}-qdrant', variables('uniqueName'))]",
@@ -488,7 +509,7 @@
       }
     },
     {
-      "condition": "[parameters('deployQdrant')]",
+      "condition": "[equals(parameters('memoryStore'), 'Qdrant')]",
       "type": "Microsoft.Web/sites",
       "apiVersion": "2022-09-01",
       "name": "[format('app-{0}-qdrant', variables('uniqueName'))]",
@@ -522,10 +543,10 @@
           "azureStorageAccounts": {
             "aciqdrantshare": {
               "type": "AzureFiles",
-              "accountName": "[if(parameters('deployQdrant'), format('st{0}', variables('rgIdHash')), 'notdeployed')]",
+              "accountName": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('st{0}', variables('rgIdHash')), 'notdeployed')]",
               "shareName": "[variables('storageFileShareName')]",
               "mountPath": "/qdrant/storage",
-              "accessKey": "[if(parameters('deployQdrant'), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[0].value, '')]"
+              "accessKey": "[if(equals(parameters('memoryStore'), 'Qdrant'), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[0].value, '')]"
             }
           }
         }
@@ -535,6 +556,20 @@
         "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]",
         "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
+    },
+    {
+      "condition": "[equals(parameters('memoryStore'), 'AzureCognitiveSearch')]",
+      "type": "Microsoft.Search/searchServices",
+      "apiVersion": "2022-09-01",
+      "name": "[format('acs-{0}', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "basic"
+      },
+      "properties": {
+        "replicaCount": 1,
+        "partitionCount": 1
+      }
     },
     {
       "type": "Microsoft.Network/virtualNetworks",
@@ -655,7 +690,7 @@
       ]
     },
     {
-      "condition": "[parameters('deployQdrant')]",
+      "condition": "[equals(parameters('memoryStore'), 'Qdrant')]",
       "type": "Microsoft.Web/sites/virtualNetworkConnections",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('app-{0}-qdrant', variables('uniqueName')), 'qdrantSubnetConnection')]",

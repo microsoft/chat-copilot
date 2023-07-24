@@ -4,7 +4,8 @@
 
 # About Chat Copilot
 
-This sample allows you to build your own integrated large language model chat copilot that is powered by [semantic-kernel](https://github.com/microsoft/semantic-kernel).
+This sample allows you to build your own integrated large language model chat copilot that is
+powered by [Semantic Kernel](https://github.com/microsoft/semantic-kernel).
 This is an enriched intelligence app, with multiple dynamic components including
 command messages, user intent, and memories.
 
