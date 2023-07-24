@@ -20,7 +20,7 @@
     "@azure/ms-rest-js": "^2.6.4",
     "@azure/msal-browser": "^2.32.1",
     "@azure/msal-react": "^1.5.1",
-    "@fluentui/react-components": "^9.13.0",
+    "@fluentui/react-components": "^9.26.2",
     "@fluentui/react-icons": "^2.0.193",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^7.0.5",
@@ -46,7 +46,7 @@
     "http-server": "^14.1.1",
     "prettier": "^2.8.1",
     "serve": "^14.2.0",
-    "typescript": "5.0.4",
+    "typescript": "5.1.6",
     "vsts-npm-auth": "^0.42.1",
     "workbox-window": "^7.0.0"
   },
