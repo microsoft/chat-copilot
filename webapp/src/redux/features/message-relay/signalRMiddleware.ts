@@ -5,21 +5,18 @@ import { AnyAction, Dispatch } from '@reduxjs/toolkit';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
-import { IAskResult } from '../../../libs/semantic-kernel/model/AskResult';
 import { addAlert } from '../app/appSlice';
-import { ChatState } from '../conversations/ChatState';
 import { AuthorRoles, ChatMessageType, IChatMessage } from './../../../libs/models/ChatMessage';
 import { Store, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store';
 
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
     ReceiveMessage = 'ReceiveMessage',
-    ReceiveResponse = 'ReceiveResponse',
+    ReceiveMessageContent = 'ReceiveMessageContent',
     UserJoined = 'UserJoined',
     ReceiveUserTypingState = 'ReceiveUserTypingState',
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
     GlobalDocumentUploaded = 'GlobalDocumentUploaded',
-    ChatDocumentUploaded = 'ChatDocumentUploaded',
     ChatEdited = 'ChatEdited',
 }
 
@@ -112,10 +109,13 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
 
         // The following actions will be captured by the SignalR middleware and broadcasted to all clients.
         switch (action.type) {
-            case 'conversations/updateConversationFromUser':
-                hubConnection
-                    .invoke('SendMessageAsync', getSelectedChatID(), action.payload.message)
-                    .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
+            case 'conversations/addMessageToConversation':
+                // Broadcast local user messages to other clients. Bot messages are already broadcasted by the server.
+                if (action.payload.message?.authorRole !== AuthorRoles.Bot) {
+                    hubConnection
+                        .invoke('SendMessageAsync', getSelectedChatID(), action.payload.message)
+                        .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
+                }
                 break;
             case 'conversations/updateUserIsTyping':
                 hubConnection
@@ -146,33 +146,28 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
 };
 
 export const registerSignalREvents = (store: Store) => {
-    hubConnection.on(SignalRCallbackMethods.ReceiveMessage, (message: IChatMessage, chatId: string) => {
-        store.dispatch({ type: 'conversations/updateConversationFromServer', payload: { message, chatId } });
-    });
-
-    hubConnection.on(SignalRCallbackMethods.ReceiveResponse, (askResult: IAskResult, chatId: string) => {
-        const loggedInUserId = store.getState().app.activeUserInfo?.id;
-        const originalMessageUserId: string | undefined = askResult.variables.find((v) => v.key === 'userId')?.value;
-        const isPlanForLoggedInUser = loggedInUserId === originalMessageUserId;
-        const messageType = Number(askResult.variables.find((v) => v.key === 'messageType')?.value) as ChatMessageType;
-
-        const message = {
-            type: messageType,
-            timestamp: new Date().getTime(),
-            userName: 'bot',
-            userId: 'bot',
-            content: askResult.value,
-            prompt: askResult.variables.find((v) => v.key === 'prompt')?.value,
-            authorRole: AuthorRoles.Bot,
-            id: askResult.variables.find((v) => v.key === 'messageId')?.value,
-            state:
-                messageType === ChatMessageType.Plan && isPlanForLoggedInUser
+    hubConnection.on(SignalRCallbackMethods.ReceiveMessage, (chatId: string, userId: string, message: IChatMessage) => {
+        if (message.authorRole === AuthorRoles.Bot) {
+            const loggedInUserId = store.getState().app.activeUserInfo?.id;
+            const responseToLoggedInUser = loggedInUserId === userId;
+            message.planState =
+                message.type === ChatMessageType.Plan && responseToLoggedInUser
                     ? PlanState.PlanApprovalRequired
-                    : PlanState.Disabled,
-        } as IChatMessage;
+                    : PlanState.Disabled;
+        }
 
-        store.dispatch({ type: 'conversations/updateConversationFromServer', payload: { message, chatId } });
+        store.dispatch({ type: 'conversations/addMessageToConversation', payload: { chatId, message } });
     });
+
+    hubConnection.on(
+        SignalRCallbackMethods.ReceiveMessageContent,
+        (chatId: string, messageId: string, content: string) => {
+            store.dispatch({
+                type: 'conversations/updateMessageProperty',
+                payload: { chatId, messageIdOrIndex: messageId, property: 'content', value: content, frontLoad: true },
+            });
+        },
+    );
 
     hubConnection.on(SignalRCallbackMethods.UserJoined, (chatId: string, userId: string) => {
         const user: IChatUser = {
@@ -190,34 +185,17 @@ export const registerSignalREvents = (store: Store) => {
         SignalRCallbackMethods.ReceiveUserTypingState,
         (chatId: string, userId: string, isTyping: boolean) => {
             store.dispatch({
-                type: 'conversations/updateUserIsTypingFromServer',
+                type: 'conversations/updateUserIsTyping',
                 payload: { chatId, userId, isTyping },
             });
         },
     );
 
     hubConnection.on(SignalRCallbackMethods.ReceiveBotResponseStatus, (chatId: string, status: string) => {
-        store.dispatch({ type: 'conversations/updateBotResponseStatusFromServer', payload: { chatId, status } });
+        store.dispatch({ type: 'conversations/updateBotResponseStatus', payload: { chatId, status } });
     });
 
     hubConnection.on(SignalRCallbackMethods.GlobalDocumentUploaded, (fileNames: string, userName: string) => {
         store.dispatch(addAlert({ message: `${userName} uploaded ${fileNames} to all chats`, type: AlertType.Info }));
-    });
-
-    hubConnection.on(SignalRCallbackMethods.ChatDocumentUploaded, (message: IChatMessage, chatId: string) => {
-        store.dispatch({ type: 'conversations/updateConversationFromServer', payload: { message, chatId } });
-    });
-
-    hubConnection.on(SignalRCallbackMethods.ChatEdited, (chat: ChatState) => {
-        const { id, title } = chat;
-        if (!(id in store.getState().conversations.conversations)) {
-            store.dispatch(
-                addAlert({
-                    message: `Chat ${id} not found in store. Chat edited signal from server is not processed.`,
-                    type: AlertType.Error,
-                }),
-            );
-        }
-        store.dispatch({ type: 'conversations/editConversationTitle', payload: { id, newTitle: title } });
     });
 };

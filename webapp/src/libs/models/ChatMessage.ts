@@ -40,5 +40,5 @@ export interface IChatMessage {
     prompt?: string;
     authorRole: AuthorRoles;
     debug?: string;
-    state?: PlanState;
+    planState?: PlanState;
 }
