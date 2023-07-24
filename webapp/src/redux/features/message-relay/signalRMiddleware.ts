@@ -8,6 +8,7 @@ import { PlanState } from '../../../libs/models/Plan';
 import { addAlert } from '../app/appSlice';
 import { AuthorRoles, ChatMessageType, IChatMessage } from './../../../libs/models/ChatMessage';
 import { Store, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store';
+import { ChatState } from '../conversations/ChatState';
 
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
@@ -197,5 +198,18 @@ export const registerSignalREvents = (store: Store) => {
 
     hubConnection.on(SignalRCallbackMethods.GlobalDocumentUploaded, (fileNames: string, userName: string) => {
         store.dispatch(addAlert({ message: `${userName} uploaded ${fileNames} to all chats`, type: AlertType.Info }));
+    });
+
+    hubConnection.on(SignalRCallbackMethods.ChatEdited, (chat: ChatState) => {
+        const { id, title } = chat;
+        if (!(id in store.getState().conversations.conversations)) {
+            store.dispatch(
+                addAlert({
+                    message: `Chat ${id} not found in store. Chat edited signal from server is not processed.`,
+                    type: AlertType.Error,
+                }),
+            );
+        }
+        store.dispatch({ type: 'conversations/editConversationTitle', payload: { id, newTitle: title } });
     });
 };
