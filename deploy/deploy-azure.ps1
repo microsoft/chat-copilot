@@ -34,15 +34,16 @@ param(
 
     [string]
     # Region to which to make the deployment (ignored when deploying to an existing resource group)
-    $Region = "centralus",
+    $Region = "southcentralus",
 
     [string]
     # SKU for the Azure App Service plan
     $WebAppServiceSku = "B1",
 
-    [switch]
-    # Don't deploy Qdrant for memory storage - Use volatile memory instead
-    $NoQdrant,
+    [ValidateSet("Volatile", "AzureCognitiveSearch", "Qdrant")]
+    [string]
+    # What method to use to persist embeddings
+    $MemoryStore = "AzureCognitiveSearch",
 
     [switch]
     # Don't deploy Cosmos DB for chat storage - Use volatile memory instead
@@ -89,7 +90,7 @@ $jsonConfig = "
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
-    `\`"deployQdrant`\`": { `\`"value`\`": $(If (!($NoQdrant)) {"true"} Else {"false"}) },
+    `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },
     `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) }
 }
