@@ -17,7 +17,8 @@ usage() {
     echo "  -rg, --resource-group RESOURCE_GROUP       Resource group to which to make the deployment (default: \"rg-\$DEPLOYMENT_NAME\")"
     echo "  -r, --region REGION                        Region to which to make the deployment (default: \"South Central US\")"
     echo "  -a, --app-service-sku WEB_APP_SVC_SKU      SKU for the Azure App Service plan (default: \"B1\")"
-    echo "  -ms, --memory-store                        Method to use to persist embeddings (default: \"AzureCognitiveSearch\")"
+    echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
+    echo "                                             \"AzureCognitiveSearch\" (default), \"Qdrant\" and \"Volatile\""
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
     echo "  -dd, --debug-deployment                    Switches on verbose template deployment output"
@@ -161,7 +162,7 @@ fi
 az account set -s "$SUBSCRIPTION"
 
 # Set defaults
-: "${REGION:="centralus"}"
+: "${REGION:="southcentralus"}"
 : "${WEB_APP_SVC_SKU:="B1"}"
 : "${MEMORY_STORE:="AzureCognitiveSearch"}"
 : "${NO_COSMOS_DB:=false}"
