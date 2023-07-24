@@ -20,7 +20,7 @@
     "@azure/ms-rest-js": "^2.6.4",
     "@azure/msal-browser": "^2.32.1",
     "@azure/msal-react": "^1.5.1",
-    "@fluentui/react-components": "^9.13.0",
+    "@fluentui/react-components": "^9.26.2",
     "@fluentui/react-icons": "^2.0.193",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^7.0.5",
