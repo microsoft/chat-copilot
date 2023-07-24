@@ -62,7 +62,10 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             action: PayloadAction<{ userId: string; chatId: string; isTyping: boolean }>,
         ) => {
             const { userId, chatId, isTyping } = action.payload;
-            updateUserTypingState(state, userId, chatId, isTyping);
+            const user = state.conversations[chatId].users.find((u) => u.id === userId);
+            if (user) {
+                user.isTyping = isTyping;
+            }
         },
         updateBotResponseStatus: (
             state: ConversationsState,
@@ -99,6 +102,12 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
     },
 });
 
+const frontLoadChat = (state: ConversationsState, id: string) => {
+    const conversation = state.conversations[id];
+    const { [id]: _, ...rest } = state.conversations;
+    state.conversations = { [id]: conversation, ...rest };
+};
+
 export const {
     setConversations,
     editConversationTitle,
@@ -115,17 +124,3 @@ export const {
 } = conversationsSlice.actions;
 
 export default conversationsSlice.reducer;
-
-const frontLoadChat = (state: ConversationsState, id: string) => {
-    const conversation = state.conversations[id];
-    const { [id]: _, ...rest } = state.conversations;
-    state.conversations = { [id]: conversation, ...rest };
-};
-
-const updateUserTypingState = (state: ConversationsState, userId: string, chatId: string, isTyping: boolean) => {
-    const conversation = state.conversations[chatId];
-    const user = conversation.users.find((u) => u.id === userId);
-    if (user) {
-        user.isTyping = isTyping;
-    }
-};
