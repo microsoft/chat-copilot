@@ -8,7 +8,7 @@ import { AuthorRoles, IChatMessage } from '../../libs/models/ChatMessage';
 import { GetResponseOptions, useChat } from '../../libs/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addMessageToConversation } from '../../redux/features/conversations/conversationsSlice';
+import { addMessageToConversationFromUser } from '../../redux/features/conversations/conversationsSlice';
 import { SharedStyles } from '../../styles';
 import { ChatInput } from './ChatInput';
 import { ChatHistory } from './chat-history/ChatHistory';
@@ -97,7 +97,7 @@ export const ChatRoom: React.FC = () => {
             authorRole: AuthorRoles.User,
         };
 
-        dispatch(addMessageToConversation({ message: chatInput, chatId: selectedId }));
+        dispatch(addMessageToConversationFromUser({ message: chatInput, chatId: selectedId }));
 
         await chat.getResponse(options);
 

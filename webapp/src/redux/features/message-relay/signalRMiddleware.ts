@@ -110,13 +110,10 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
 
         // The following actions will be captured by the SignalR middleware and broadcasted to all clients.
         switch (action.type) {
-            case 'conversations/addMessageToConversation':
-                // Broadcast local user messages to other clients. Bot messages are already broadcasted by the server.
-                if (action.payload.message?.authorRole !== AuthorRoles.Bot) {
-                    hubConnection
-                        .invoke('SendMessageAsync', getSelectedChatID(), action.payload.message)
-                        .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
-                }
+            case 'conversations/addMessageToConversationFromUser':
+                hubConnection
+                    .invoke('SendMessageAsync', getSelectedChatID(), store.getState().app.activeUserInfo?.id, action.payload.message)
+                    .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
             case 'conversations/updateUserIsTyping':
                 hubConnection
@@ -157,7 +154,7 @@ export const registerSignalREvents = (store: Store) => {
                     : PlanState.Disabled;
         }
 
-        store.dispatch({ type: 'conversations/addMessageToConversation', payload: { chatId, message } });
+        store.dispatch({ type: 'conversations/addMessageToConversationFromServer', payload: { chatId, message } });
     });
 
     hubConnection.on(
@@ -186,7 +183,7 @@ export const registerSignalREvents = (store: Store) => {
         SignalRCallbackMethods.ReceiveUserTypingState,
         (chatId: string, userId: string, isTyping: boolean) => {
             store.dispatch({
-                type: 'conversations/updateUserIsTyping',
+                type: 'conversations/updateUserIsTypingFromServer',
                 payload: { chatId, userId, isTyping },
             });
         },

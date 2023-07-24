@@ -49,23 +49,49 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
         setUsersLoaded: (state: ConversationsState, action: PayloadAction<string>) => {
             state.conversations[action.payload].userDataLoaded = true;
         },
-        addMessageToConversation: (
+                /*
+         * addMessageToConversationFromUser() and addMessageToConversationFromServer() both update the conversations state.
+         * However they are for different purposes. The former action is for updating the conversation from the
+         * webapp and will be captured by the SignalR middleware and the payload will be broadcasted to all clients
+         * in the same group.
+         * The addMessageToConversationFromServer() action is triggered by the SignalR middleware when a response is received
+         * from the webapi.
+         */
+        addMessageToConversationFromUser: (
+            state: ConversationsState,
+            action: PayloadAction<{ message: IChatMessage;  chatId: string; }>,
+        ) => {
+            const { message, chatId } = action.payload;
+            updateConversation(state, chatId, message);
+        },
+        addMessageToConversationFromServer: (
             state: ConversationsState,
             action: PayloadAction<{ message: IChatMessage; chatId: string }>,
         ) => {
             const { message, chatId } = action.payload;
-            state.conversations[chatId].messages.push(message);
-            frontLoadChat(state, chatId);
+            updateConversation(state, chatId, message);
         },
+        /*
+         * updateUserIsTyping() and updateUserIsTypingFromServer() both update a user's typing state.
+         * However they are for different purposes. The former action is for updating an user's typing state from
+         * the webapp and will be captured by the SignalR middleware and the payload will be broadcasted to all clients
+         * in the same group.
+         * The updateUserIsTypingFromServer() action is triggered by the SignalR middleware when a state is received
+         * from the webapi.
+         */
         updateUserIsTyping: (
             state: ConversationsState,
             action: PayloadAction<{ userId: string; chatId: string; isTyping: boolean }>,
         ) => {
             const { userId, chatId, isTyping } = action.payload;
-            const user = state.conversations[chatId].users.find((u) => u.id === userId);
-            if (user) {
-                user.isTyping = isTyping;
-            }
+            updateUserTypingState(state, userId, chatId, isTyping);
+        },
+        updateUserIsTypingFromServer: (
+            state: ConversationsState,
+            action: PayloadAction<{ userId: string; chatId: string; isTyping: boolean }>,
+        ) => {
+            const { userId, chatId, isTyping } = action.payload;
+            updateUserTypingState(state, userId, chatId, isTyping);
         },
         updateBotResponseStatus: (
             state: ConversationsState,
@@ -108,14 +134,27 @@ const frontLoadChat = (state: ConversationsState, id: string) => {
     state.conversations = { [id]: conversation, ...rest };
 };
 
+const updateConversation = (state: ConversationsState, chatId: string, message: IChatMessage) => {
+    state.conversations[chatId].messages.push(message);
+    frontLoadChat(state, chatId);
+};
+
+const updateUserTypingState = (state: ConversationsState, userId: string, chatId: string, isTyping: boolean) => {
+    const conversation = state.conversations[chatId];
+    const user = conversation.users.find((u) => u.id === userId);
+    if (user) {
+        user.isTyping = isTyping;
+    }
+};
+
 export const {
     setConversations,
     editConversationTitle,
     editConversationInput,
     setSelectedConversation,
     addConversation,
-    addMessageToConversation,
-    updateConversationFromServer,
+    addMessageToConversationFromUser,
+    addMessageToConversationFromServer,
     updateMessageProperty,
     updateUserIsTyping,
     updateUserIsTypingFromServer,
