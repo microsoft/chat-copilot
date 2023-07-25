@@ -276,7 +276,8 @@ public class ChatSkill
         }
 
         // Save hardcoded response if user cancelled plan
-        if (chatContext.Variables.ContainsKey("userCancelledPlan")) {
+        if (chatContext.Variables.ContainsKey("userCancelledPlan"))
+        {
             await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId);
             return context;
         }
@@ -351,12 +352,15 @@ public class ChatSkill
         var chatMemoriesTokenLimit = (int)(remainingToken * this._promptOptions.MemoriesResponseContextWeight);
         var documentContextTokenLimit = (int)(remainingToken * this._promptOptions.DocumentContextWeight);
         string[] tasks;
-        try {
+        try
+        {
             tasks = await Task.WhenAll<string>(
                 this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, chatContext.Memory),
                 this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, chatContext.Memory)
             );
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             chatContext.Fail(ex.Message, ex);
             return null;
         }
@@ -396,11 +400,11 @@ public class ChatSkill
         }
 
         // Stream the response to the client
-        await this.UpdateBotResponseStatusOnClient(chatId, "Invoking the AI model");
+        await this.UpdateBotResponseStatusOnClient(chatId, "Generating bot response");
         var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt);
 
         // Extract semantic chat memory
-        await this.UpdateBotResponseStatusOnClient(chatId, "Extracting semantic chat memory");
+        await this.UpdateBotResponseStatusOnClient(chatId, "Generating semantic chat memory");
         await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
             chatId,
             this._kernel,
@@ -703,7 +707,7 @@ public class ChatSkill
     /// <param name="message">The message</param>
     private async Task UpdateMessageContentOnClient(string chatId, ChatMessage message)
     {
-        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessageContent", chatId, message.Id, message.Content);
+        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessageStream", chatId, message.Id, message.Content);
     }
 
     /// <summary>

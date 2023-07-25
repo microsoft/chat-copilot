@@ -13,7 +13,7 @@ import { ChatState } from '../conversations/ChatState';
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
     ReceiveMessage = 'ReceiveMessage',
-    ReceiveMessageContent = 'ReceiveMessageContent',
+    ReceiveMessageStream = 'ReceiveMessageStream',
     UserJoined = 'UserJoined',
     ReceiveUserTypingState = 'ReceiveUserTypingState',
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
@@ -158,7 +158,7 @@ export const registerSignalREvents = (store: Store) => {
     });
 
     hubConnection.on(
-        SignalRCallbackMethods.ReceiveMessageContent,
+        SignalRCallbackMethods.ReceiveMessageStream,
         (chatId: string, messageId: string, content: string) => {
             store.dispatch({
                 type: 'conversations/updateMessageProperty',

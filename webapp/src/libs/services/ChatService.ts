@@ -92,7 +92,7 @@ export class ChatService extends BaseService {
         ask: IAsk,
         accessToken: string,
         enabledPlugins?: Plugin[],
-    ): Promise<void> => {
+    ): Promise<IChatMessage> => {
         // If skill requires any additional api properties, append to context
         if (enabledPlugins && enabledPlugins.length > 0) {
             const openApiSkillVariables: IAskVariables[] = [];
@@ -121,7 +121,7 @@ export class ChatService extends BaseService {
             ask.variables = ask.variables ? ask.variables.concat(openApiSkillVariables) : openApiSkillVariables;
         }
 
-        await this.getResponseAsync<IChatMessage>(
+        const result = await this.getResponseAsync<IChatMessage>(
             {
                 commandPath: 'chat',
                 method: 'POST',
@@ -130,6 +130,8 @@ export class ChatService extends BaseService {
             accessToken,
             enabledPlugins,
         );
+
+        return result;
     };
 
     public joinChatAsync = async (userId: string, chatId: string, accessToken: string): Promise<IChatSession> => {
