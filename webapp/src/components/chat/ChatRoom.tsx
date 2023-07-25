@@ -5,7 +5,7 @@ import debug from 'debug';
 import React from 'react';
 import { Constants } from '../../Constants';
 import { AuthorRoles, IChatMessage } from '../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../libs/useChat';
+import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addMessageToConversationFromUser } from '../../redux/features/conversations/conversationsSlice';

@@ -12,7 +12,7 @@ import { ChatView } from './components/views/ChatView';
 import Loading from './components/views/Loading';
 import { Login } from './components/views/Login';
 import { AlertType } from './libs/models/AlertType';
-import { useChat } from './libs/useChat';
+import { useChat } from './libs/hooks';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { addAlert, setActiveUserInfo } from './redux/features/app/appSlice';
