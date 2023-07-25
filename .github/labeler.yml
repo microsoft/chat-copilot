@@ -1,3 +1,19 @@
-# Add 'documentation' label to any '.md' files
+# Add 'webapp' label to any change within the 'webapp' directory
+webapp:
+  - webapp/**/*
+
+# Add 'webapi' label to any change within the 'webapi' directory
+webapi:
+  - webapi/**/*
+
+# Add 'deployment' label to any change within the 'deploy' directory
+deployment:
+  - deploy/**/*
+
+# Add 'documentation' label to any change of '.md' files
 documentation:
   - '**/*.md'
+
+# Add 'github actions' label to any change within the '.github/workflows' directory
+'github actions':
+  - .github/workflows/**/*
