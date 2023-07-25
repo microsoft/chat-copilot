@@ -135,7 +135,7 @@ export const ValidateManifestStep: React.FC<IValidateManifestStepProps> = ({
                         <AccordionPanel className={classes.details}>
                             {
                                 status === ValidationState.Failed && <Body1 color="red">{errorMessage}</Body1>
-                                // TODO: Add Manifest details
+                                // TODO: [Issue #1973] Add Manifest details
                             }
                             {status === ValidationState.Success &&
                                 (type === FileType.Manifest ? (

@@ -77,7 +77,7 @@ export const PluginWizard: React.FC = () => {
             setActiveStep(CreatePluginSteps.Confirmation);
         } else {
             setPluginValidated(false);
-            // TODO: add error handling
+            // TODO: [Issue #1973] add error handling
         }
     }, [pluginManifest, manifestDomain, plugins]);
 
