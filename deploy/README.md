@@ -51,7 +51,7 @@ You can also deploy the infrastructure directly from the Azure Portal by clickin
 
 
 # Deploy Backend (WebAPI)
-> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The `deploywebapipackage = true` setting in main.bicep ensures that the latest copilot chat api is deployed.
+> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The `deployWebApiPackage = true` setting in main.bicep ensures that the latest copilot chat api is deployed.
  
 To deploy the backend, build the deployment package first and deploy it to the Azure resources created above.
 
