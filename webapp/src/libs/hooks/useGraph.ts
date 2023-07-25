@@ -1,13 +1,13 @@
 import { useMsal } from '@azure/msal-react';
-import { Constants } from '../Constants';
-import { useAppDispatch, useAppSelector } from '../redux/app/hooks';
-import { RootState } from '../redux/app/store';
-import { addAlert } from '../redux/features/app/appSlice';
-import { UserData } from '../redux/features/users/UsersState';
-import { setUsers } from '../redux/features/users/usersSlice';
-import { TokenHelper } from './auth/TokenHelper';
-import { AlertType } from './models/AlertType';
-import { BatchRequest, BatchResponse, GraphService } from './services/GraphService';
+import { Constants } from '../../Constants';
+import { useAppSelector, useAppDispatch } from '../../redux/app/hooks';
+import { RootState } from '../../redux/app/store';
+import { addAlert } from '../../redux/features/app/appSlice';
+import { UserData } from '../../redux/features/users/UsersState';
+import { setUsers } from '../../redux/features/users/usersSlice';
+import { TokenHelper } from '../auth/TokenHelper';
+import { AlertType } from '../models/AlertType';
+import { GraphService, BatchResponse, BatchRequest } from '../services/GraphService';
 
 export const useGraph = () => {
     const { instance, inProgress } = useMsal();
