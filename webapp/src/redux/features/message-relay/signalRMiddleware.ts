@@ -112,7 +112,12 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
         switch (action.type) {
             case 'conversations/addMessageToConversationFromUser':
                 hubConnection
-                    .invoke('SendMessageAsync', getSelectedChatID(), action.payload.message)
+                    .invoke(
+                        'SendMessageAsync',
+                        getSelectedChatID(),
+                        store.getState().app.activeUserInfo?.id,
+                        action.payload.message,
+                    )
                     .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
             case 'conversations/updateUserIsTyping':
@@ -144,18 +149,21 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
 };
 
 export const registerSignalREvents = (store: Store) => {
-    hubConnection.on(SignalRCallbackMethods.ReceiveMessage, (chatId: string, message: IChatMessage) => {
-        if (message.authorRole === AuthorRoles.Bot) {
-            const loggedInUserId = store.getState().app.activeUserInfo?.id;
-            const responseToLoggedInUser = loggedInUserId === message.userId;
-            message.planState =
-                message.type === ChatMessageType.Plan && responseToLoggedInUser
-                    ? PlanState.PlanApprovalRequired
-                    : PlanState.Disabled;
-        }
+    hubConnection.on(
+        SignalRCallbackMethods.ReceiveMessage,
+        (chatId: string, senderId: string, message: IChatMessage) => {
+            if (message.authorRole === AuthorRoles.Bot) {
+                const loggedInUserId = store.getState().app.activeUserInfo?.id;
+                const responseToLoggedInUser = loggedInUserId === senderId;
+                message.planState =
+                    message.type === ChatMessageType.Plan && responseToLoggedInUser
+                        ? PlanState.PlanApprovalRequired
+                        : PlanState.Disabled;
+            }
 
-        store.dispatch({ type: 'conversations/addMessageToConversationFromServer', payload: { chatId, message } });
-    });
+            store.dispatch({ type: 'conversations/addMessageToConversationFromServer', payload: { chatId, message } });
+        },
+    );
 
     hubConnection.on(
         SignalRCallbackMethods.ReceiveMessageStream,

@@ -40,10 +40,11 @@ public class MessageRelayHub : Hub
     /// Sends a message to all users except the sender.
     /// </summary>
     /// <param name="chatId">The chat ID used as group id for SignalR.</param>
+    /// <param name="senderId">The user ID of the user that sent the message.</param>
     /// <param name="message">The message to send.</param>
-    public async Task SendMessageAsync(string chatId, object message)
+    public async Task SendMessageAsync(string chatId, string senderId, object message)
     {
-        await this.Clients.OthersInGroup(chatId).SendAsync(ReceiveMessageClientCall, chatId, message);
+        await this.Clients.OthersInGroup(chatId).SendAsync(ReceiveMessageClientCall, chatId, senderId, message);
     }
 
     /// <summary>
