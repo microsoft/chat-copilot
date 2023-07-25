@@ -12,7 +12,8 @@ module.exports = {
     ],
     ignorePatterns: ['build', '.*.js', 'node_modules'],
     parserOptions: {
-        project: './tsconfig.json',
+        project: 'tsconfig.json',
+        tsconfigRootDir: 'webapp',
         ecmaVersion: 'latest',
         sourceType: 'module',
     },
