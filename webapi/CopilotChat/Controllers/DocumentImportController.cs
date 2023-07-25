@@ -259,7 +259,8 @@ public class DocumentImportController : ControllerBase
             }
 
             // Make sure the file type is supported.
-            _ = this.GetFileType(Path.GetFileName(formFile.FileName));
+            // GetFileType throws ArgumentOutOfRangeException if the file type is not supported.
+            this.GetFileType(Path.GetFileName(formFile.FileName));
         }
     }
 

@@ -90,7 +90,6 @@ export const ChatResourceList: React.FC = () => {
     const { importingDocuments } = conversations[selectedId];
 
     const [resources, setResources] = React.useState<ChatMemorySource[]>([]);
-    const [documentImporting, setDocumentImporting] = React.useState(false);
     const documentFileRef = useRef<HTMLInputElement | null>(null);
 
     React.useEffect(() => {
@@ -107,16 +106,15 @@ export const ChatResourceList: React.FC = () => {
                 } as ChatMemorySource;
             })
             : [];
-
-        setDocumentImporting(importingResources.length > 0);
         setResources(importingResources);
 
         void chat.getChatMemorySources(selectedId).then((sources) => {
             setResources([...importingResources, ...sources]);
         });
 
+        // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedId, importingDocuments]);
+    }, [importingDocuments, selectedId]);
 
     const handleImport = () => {
         const files = documentFileRef.current?.files;
@@ -126,14 +124,12 @@ export const ChatResourceList: React.FC = () => {
             // maintains a list of files to import before the import is complete.
             const filesArray = Array.from(files);
 
-            setDocumentImporting(true);
             dispatch(setImportingDocumentsToConversation({
                 importingDocuments: filesArray.map((file) => file.name),
                 chatId: selectedId
             }));
 
             chat.importDocument(selectedId, filesArray).finally(() => {
-                setDocumentImporting(false);
                 dispatch(setImportingDocumentsToConversation({
                     importingDocuments: [],
                     chatId: selectedId
@@ -160,22 +156,20 @@ export const ChatResourceList: React.FC = () => {
                     style={{ display: 'none' }}
                     accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
                     multiple={true}
-                    onChange={() => {
-                        handleImport();
-                    }}
+                    onChange={handleImport}
                 />
                 <Tooltip content="Embed file into chat session" relationship="label">
                     <Button
                         className={classes.uploadButton}
                         icon={<DocumentArrowUp20Regular />}
-                        disabled={documentImporting}
+                        disabled={importingDocuments && importingDocuments.length > 0}
                         onClick={() => documentFileRef.current?.click()}
                     >
                         Upload
                     </Button>
                 </Tooltip>
-                {documentImporting && <Spinner size="tiny" />}
-                {/* Hack: Hardcode vector database. */}
+                {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
+                {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
                     <Label size='large'>Vector Database</Label>
                     <RadioGroup defaultValue="Qdrant" layout="horizontal">
