@@ -19,7 +19,7 @@ import {
     tokens,
     Tooltip
 } from '@fluentui/react-components';
-import { Edit24Filled, EditRegular } from '@fluentui/react-icons';
+import { Edit24Filled, EditRegular, Person16Regular } from '@fluentui/react-icons';
 import React, { useEffect, useState } from 'react';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { AlertType } from '../../libs/models/AlertType';
@@ -29,6 +29,7 @@ import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
 import { editConversationTitle } from '../../redux/features/conversations/conversationsSlice';
 import { Alerts } from '../shared/Alerts';
+import { ChatPersona } from './ChatPersona';
 import { ChatResourceList } from './ChatResourceList';
 import { ChatRoom } from './ChatRoom';
 import { ParticipantsList } from './controls/ParticipantsList';
@@ -109,6 +110,7 @@ export const ChatWindow: React.FC = () => {
             await chatService.editChatAsync(
                 conversations[selectedId].id,
                 title,
+                conversations[selectedId].systemDescription,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
 
@@ -204,6 +206,9 @@ export const ChatWindow: React.FC = () => {
                         <Tab data-testid="documentsTab" id="documents" value="documents">
                             Documents
                         </Tab>
+                        <Tab data-testid="personaTab" id="persona" value="persona" icon={<Person16Regular />}>
+                            Persona
+                        </Tab>
                     </TabList>
                 </div>
                 <div className={classes.controls}>
@@ -215,6 +220,7 @@ export const ChatWindow: React.FC = () => {
             </div>
             {selectedTab === 'chat' && <ChatRoom />}
             {selectedTab === 'documents' && <ChatResourceList />}
+            {selectedTab === 'persona' && <ChatPersona />}
             {selectedTab !== 'chat' && <div className={classes.alerts}>
                 <Alerts />
             </div>}
