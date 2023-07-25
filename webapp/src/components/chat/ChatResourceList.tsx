@@ -21,7 +21,7 @@ import {
 import { DocumentPdfRegular, DocumentTextRegular, FluentIconsProps } from '@fluentui/react-icons';
 import * as React from 'react';
 import { ChatMemorySource } from '../../libs/models/ChatMemorySource';
-import { useChat } from '../../libs/useChat';
+import { useChat } from '../../libs/hooks';
 import { SharedStyles } from '../../styles';
 import { timestampToDateString } from '../utils/TextUtils';
 

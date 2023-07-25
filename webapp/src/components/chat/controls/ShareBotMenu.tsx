@@ -4,8 +4,7 @@ import React, { FC, useCallback } from 'react';
 
 import { Button, Menu, MenuItem, MenuList, MenuPopover, MenuTrigger, Tooltip } from '@fluentui/react-components';
 import { ArrowDownloadRegular, PeopleTeamAddRegular, ShareRegular } from '@fluentui/react-icons';
-import { useChat } from '../../../libs/useChat';
-import { useFile } from '../../../libs/useFile';
+import { useChat, useFile } from '../../../libs/hooks';
 import { InvitationCreateDialog } from '../invitation-dialog/InvitationCreateDialog';
 
 interface ShareBotMenuProps {
