@@ -93,7 +93,8 @@ public class ChatSkill
         this._promptOptions = promptOptions.Value.Copy();
 
         this._semanticChatMemorySkill = new SemanticChatMemorySkill(
-            promptOptions);
+            promptOptions,
+            chatSessionRepository);
         this._documentMemorySkill = new DocumentMemorySkill(
             promptOptions,
             documentImportOptions);
