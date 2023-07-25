@@ -2,17 +2,19 @@
 
 import { Persona, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import React from 'react';
-import { AuthorRoles, ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
+import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { GetResponseOptions, useChat } from '../../../libs/useChat';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { Breakpoints } from '../../../styles';
+import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
 import { PromptDetails } from '../prompt-details/PromptDetails';
 import { ChatHistoryDocumentContent } from './ChatHistoryDocumentContent';
 import { ChatHistoryTextContent } from './ChatHistoryTextContent';
 import * as utils from './../../utils/TextUtils';
+import { ThumbLike16Filled, ThumbDislike24Filled } from '@fluentui/react-icons';
+import { UserFeedbackActions } from './UserFeedbackActions';
 
 const useClasses = makeStyles({
     root: {
@@ -23,6 +25,7 @@ const useClasses = makeStyles({
         ...Breakpoints.small({
             maxWidth: '100%',
         }),
+        ...shorthands.gap(customTokens.spacingHorizontalXS),
     },
     debug: {
         position: 'absolute',
@@ -91,6 +94,13 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
         content = <ChatHistoryTextContent message={message} />;
     }
 
+    // TODO: hookup to backend
+    // Currently for demonstration purposes only, no feedback is actually sent to kernel / model
+    const showShowRLHFMessage =
+        message.userFeedback === UserFeedback.Requested &&
+        messageIndex === conversations[selectedId].messages.length - 1 &&
+        message.userId === 'bot';
+
     return (
         <div
             className={isMe ? mergeClasses(classes.root, classes.alignEnd) : classes.root}
@@ -107,7 +117,10 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
                     {isBot && <PromptDetails message={message} />}
                 </div>
                 {content}
+                {showShowRLHFMessage && <UserFeedbackActions messageIndex={messageIndex} />}
             </div>
+            {message.userFeedback === UserFeedback.Positive && <ThumbLike16Filled color="gray" />}
+            {message.userFeedback === UserFeedback.Negative && <ThumbDislike24Filled color="gray" />}
         </div>
     );
 };
