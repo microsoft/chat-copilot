@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
-import { IChatMessage } from '../../../libs/models/ChatMessage';
+import { ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { ChatState } from './ChatState';
 import {
@@ -59,7 +59,7 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
          */
         addMessageToConversationFromUser: (
             state: ConversationsState,
-            action: PayloadAction<{ message: IChatMessage;  chatId: string; }>,
+            action: PayloadAction<{ message: IChatMessage; chatId: string }>,
         ) => {
             const { message, chatId } = action.payload;
             updateConversation(state, chatId, message);
@@ -135,7 +135,11 @@ const frontLoadChat = (state: ConversationsState, id: string) => {
 };
 
 const updateConversation = (state: ConversationsState, chatId: string, message: IChatMessage) => {
-    state.conversations[chatId].messages.push(message);
+    const requestUserFeedback = message.userId === 'bot' && message.type === ChatMessageType.Message;
+    state.conversations[chatId].messages.push({
+        ...message,
+        userFeedback: requestUserFeedback ? UserFeedback.Requested : undefined,
+    });
     frontLoadChat(state, chatId);
 };
 

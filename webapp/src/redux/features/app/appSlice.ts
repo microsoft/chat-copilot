@@ -8,7 +8,7 @@ const initialState: AppState = {
     alerts: [
         {
             message:
-                'Copilot chat is designed for internal use only. By using this chat bot, you agree to not to share confidential or customer information or store sensitive information in chat history. Further, you agree that Copilot chat can collect and retain your chat history for service improvement.',
+                'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
             type: AlertType.Info,
         },
     ],
