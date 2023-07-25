@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { IPlanInput, PlanState, PlanType } from '../../../libs/models/Plan';
 import { IAskVariables } from '../../../libs/semantic-kernel/model/Ask';
-import { GetResponseOptions } from '../../../libs/useChat';
+import { GetResponseOptions } from '../../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { updateMessageState } from '../../../redux/features/conversations/conversationsSlice';
+import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
 import { PlanStepCard } from './PlanStepCard';
 
 const useClasses = makeStyles({
@@ -61,7 +61,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
     const parsedContent: Plan = JSON.parse(message.content);
     const originalPlan = parsedContent.proposedPlan;
 
-    const planState = message.state ?? parsedContent.state;
+    const planState = message.planState ?? parsedContent.state;
 
     // If plan came from ActionPlanner, use parameters from top-level of plan
     if (parsedContent.type === PlanType.Action) {
@@ -79,10 +79,12 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
 
     const onPlanAction = async (planState: PlanState.PlanApproved | PlanState.PlanRejected) => {
         dispatch(
-            updateMessageState({
-                newMessageState: planState,
-                messageIndex,
+            updateMessageProperty({
+                messageIdOrIndex: messageIndex,
                 chatId: selectedId,
+                property: 'planState',
+                value: planState,
+                frontLoad: true,
             }),
         );
 

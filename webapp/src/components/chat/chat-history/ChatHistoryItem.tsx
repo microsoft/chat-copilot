@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { Persona, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
+import { ThumbDislike24Filled, ThumbLike16Filled } from '@fluentui/react-icons';
 import React from 'react';
+import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../../libs/useChat';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
 import { PromptDetails } from '../prompt-details/PromptDetails';
+import * as utils from './../../utils/TextUtils';
 import { ChatHistoryDocumentContent } from './ChatHistoryDocumentContent';
 import { ChatHistoryTextContent } from './ChatHistoryTextContent';
-import * as utils from './../../utils/TextUtils';
-import { ThumbLike16Filled, ThumbDislike24Filled } from '@fluentui/react-icons';
 import { UserFeedbackActions } from './UserFeedbackActions';
 
 const useClasses = makeStyles({
@@ -44,7 +44,7 @@ const useClasses = makeStyles({
         ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalL),
     },
     me: {
-        backgroundColor: "#e8ebf9",
+        backgroundColor: '#e8ebf9',
     },
     time: {
         color: tokens.colorNeutralForeground3,
