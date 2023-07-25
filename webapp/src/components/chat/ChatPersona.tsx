@@ -1,14 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { useMsal } from '@azure/msal-react';
 import {
     makeStyles,
     shorthands,
     tokens
 } from '@fluentui/react-components';
 import * as React from 'react';
-import { AuthHelper } from '../../libs/auth/AuthHelper';
-import { ChatService } from '../../libs/services/ChatService';
+import { useChat } from '../../libs/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { editConversationSystemDescription } from '../../redux/features/conversations/conversationsSlice';
@@ -24,47 +22,66 @@ const useClasses = makeStyles({
 });
 
 export const ChatPersona: React.FC = () => {
-    const { instance, inProgress } = useMsal();
+    const chat = useChat();
     const classes = useClasses();
     const dispatch = useAppDispatch();
 
-    const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
-    const chat = conversations[selectedId];
+    const chatState = conversations[selectedId];
+
+    const [shortTermMemory, setShortTermMemory] = React.useState<string>('');
+    const [longTermMemory, setLongTermMemory] = React.useState<string>('');
+
+    React.useEffect(() => {
+        chat.getSemanticMemories(
+            selectedId,
+            "WorkingMemory",
+        ).then((memories) => {
+            setShortTermMemory(memories.join('\n'));
+        }).catch(() => { });
+
+        chat.getSemanticMemories(
+            selectedId,
+            "LongTermMemory",
+        ).then((memories) => {
+            setLongTermMemory(memories.join('\n'));
+        }).catch(() => { });
+    }, [chat, selectedId]);
 
     return (
         <div className={classes.root}>
             <h2>Persona</h2>
             <PromptEditor
                 title="Meta Prompt"
-                prompt={chat.systemDescription}
+                prompt={chatState.systemDescription}
                 isEditable={true}
                 info="The prompt that defines the chat bot's persona."
                 modificationHandler={async (newSystemDescription: string) => {
-                    chatService.editChatAsync(
-                        chat.id,
-                        chat.title,
+                    await chat.editChat(
+                        selectedId,
+                        chatState.title,
                         newSystemDescription,
-                        await AuthHelper.getSKaaSAccessToken(instance, inProgress)
                     ).finally(() => {
-                        dispatch(editConversationSystemDescription({
-                            id: chat.id,
-                            newSystemDescription: newSystemDescription
-                        }));
+                        dispatch(
+                            editConversationSystemDescription({
+                                id: selectedId,
+                                newSystemDescription: newSystemDescription,
+                            }),
+                        );
                     });
                 }}
             />
             <PromptEditor
                 title="Short Term Memory"
-                prompt="Extract information for a short period of time, such as a few seconds or minutes. It should be useful for performing complex cognitive tasks that require attention, concentration, or mental calculation."
+                prompt={`<label>: <details>\n${shortTermMemory}`}
                 isEditable={false}
-                info="We maintain a summary of the most recent N chat exchanges."
+                info="Extract information for a short period of time, such as a few seconds or minutes. It should be useful for performing complex cognitive tasks that require attention, concentration, or mental calculation."
             />
             <PromptEditor
                 title="Long Term Memory"
-                prompt="Extract information that is encoded and consolidated from other memory types, such as working memory or sensory memory. It should be useful for maintaining and recalling one's personal identity, history, and knowledge over time."
+                prompt={`<label>: <details>\n${longTermMemory}`}
                 isEditable={false}
-                info="We maintain a summary of the least recent N chat exchanges."
+                info="Extract information that is encoded and consolidated from other memory types, such as working memory or sensory memory. It should be useful for maintaining and recalling one's personal identity, history, and knowledge over time."
             />
             <MemoryBiasSlider />
         </div>
