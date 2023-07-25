@@ -275,11 +275,14 @@ public class ChatSkill
             await this.UpdateChatMessageContentAsync(planJson, messageId);
         }
 
-        // Get the chat response
-        ChatMessage? chatMessage = await (chatContext.Variables.ContainsKey("userCancelledPlan")
-            ? this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId)
-            : this.GetChatResponseAsync(chatId, userId, chatContext));
+        // Save hardcoded response if user cancelled plan
+        if (chatContext.Variables.ContainsKey("userCancelledPlan")) {
+            await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId);
+            return context;
+        }
 
+        // Get the chat response
+        var chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
         if (chatMessage == null)
         {
             context.Fail(chatContext.LastErrorDescription);
@@ -567,7 +570,7 @@ public class ChatSkill
     /// <param name="chatId">The chat ID</param>
     /// <param name="userId">The user ID</param>
     /// <returns>The created chat message.</returns>
-    private async Task<ChatMessage?> SaveNewResponseAsync(string response, string prompt, string chatId, string userId)
+    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId)
     {
         // Make sure the chat exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))

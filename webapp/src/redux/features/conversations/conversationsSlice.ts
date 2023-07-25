@@ -49,7 +49,7 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
         setUsersLoaded: (state: ConversationsState, action: PayloadAction<string>) => {
             state.conversations[action.payload].userDataLoaded = true;
         },
-                /*
+        /*
          * addMessageToConversationFromUser() and addMessageToConversationFromServer() both update the conversations state.
          * However they are for different purposes. The former action is for updating the conversation from the
          * webapp and will be captured by the SignalR middleware and the payload will be broadcasted to all clients
