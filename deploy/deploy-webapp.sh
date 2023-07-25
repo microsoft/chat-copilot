@@ -71,7 +71,7 @@ if [ $? -ne 0 ]; then
     az login --use-device-code
 fi
 
-if [[-z "$AUTHORITY" ]]; then
+if [[ -z "$AUTHORITY" ]]; then
     AUTHORITY="https://login.microsoftonline.com/common"
 fi
 
