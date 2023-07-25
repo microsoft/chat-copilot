@@ -50,7 +50,7 @@ export interface IChatMessage {
     prompt?: string;
     authorRole: AuthorRoles;
     debug?: string;
-    state?: PlanState;
+    planState?: PlanState;
     // TODO: Persistent RLHF, view only right now
     userFeedback?: UserFeedback;
 }

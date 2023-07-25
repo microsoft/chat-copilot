@@ -14,10 +14,7 @@ import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
-import {
-    editConversationInput,
-    updateBotResponseStatusFromServer,
-} from '../../redux/features/conversations/conversationsSlice';
+import { editConversationInput, updateBotResponseStatus } from '../../redux/features/conversations/conversationsSlice';
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';
 import { ChatStatus } from './ChatStatus';
@@ -153,7 +150,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
         setValue('');
         dispatch(editConversationInput({ id: selectedId, newInput: '' }));
-        dispatch(updateBotResponseStatusFromServer({ chatId: selectedId, status: 'Calling the kernel' }));
+        dispatch(updateBotResponseStatus({ chatId: selectedId, status: 'Calling the kernel' }));
         onSubmit({ value, messageType, chatId: selectedId }).catch((error) => {
             const message = `Error submitting chat input: ${(error as Error).message}`;
             log(message);

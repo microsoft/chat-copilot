@@ -8,7 +8,7 @@ import { AuthorRoles, IChatMessage } from '../../libs/models/ChatMessage';
 import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { updateConversationFromUser } from '../../redux/features/conversations/conversationsSlice';
+import { addMessageToConversationFromUser } from '../../redux/features/conversations/conversationsSlice';
 import { SharedStyles } from '../../styles';
 import { ChatInput } from './ChatInput';
 import { ChatHistory } from './chat-history/ChatHistory';
@@ -48,7 +48,6 @@ export const ChatRoom: React.FC = () => {
 
     const dispatch = useAppDispatch();
     const scrollViewTargetRef = React.useRef<HTMLDivElement>(null);
-    const scrollTargetRef = React.useRef<HTMLDivElement>(null);
     const [shouldAutoScroll, setShouldAutoScroll] = React.useState(true);
 
     const [isDraggingOver, setIsDraggingOver] = React.useState(false);
@@ -65,7 +64,7 @@ export const ChatRoom: React.FC = () => {
 
     React.useEffect(() => {
         if (!shouldAutoScroll) return;
-        scrollToTarget(scrollTargetRef.current);
+        scrollViewTargetRef.current?.scrollTo(0, scrollViewTargetRef.current.scrollHeight);
     }, [messages, shouldAutoScroll]);
 
     React.useEffect(() => {
@@ -98,7 +97,7 @@ export const ChatRoom: React.FC = () => {
             authorRole: AuthorRoles.User,
         };
 
-        dispatch(updateConversationFromUser({ message: chatInput }));
+        dispatch(addMessageToConversationFromUser({ message: chatInput, chatId: selectedId }));
 
         await chat.getResponse(options);
 
@@ -108,11 +107,8 @@ export const ChatRoom: React.FC = () => {
     return (
         <div className={classes.root} onDragEnter={onDragEnter} onDragOver={onDragEnter} onDragLeave={onDragLeave}>
             <div ref={scrollViewTargetRef} className={classes.scroll}>
-                <div ref={scrollViewTargetRef} className={classes.history}>
+                <div className={classes.history}>
                     <ChatHistory messages={messages} onGetResponse={handleSubmit} />
-                </div>
-                <div>
-                    <div ref={scrollTargetRef} />
                 </div>
             </div>
             <div className={classes.input}>
@@ -120,9 +116,4 @@ export const ChatRoom: React.FC = () => {
             </div>
         </div>
     );
-};
-
-const scrollToTarget = (element: HTMLElement | null) => {
-    if (!element) return;
-    element.scrollIntoView({ block: 'start', behavior: 'smooth' });
 };

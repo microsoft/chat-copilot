@@ -7,7 +7,6 @@ import { IChatParticipant } from '../models/ChatParticipant';
 import { IChatSession } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
-import { IAskResult } from '../semantic-kernel/model/AskResult';
 import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
 import { BaseService } from './BaseService';
 
@@ -94,8 +93,8 @@ export class ChatService extends BaseService {
         ask: IAsk,
         accessToken: string,
         enabledPlugins?: Plugin[],
-    ): Promise<IAskResult> => {
-
+    ): Promise<IChatMessage> => {
+        // If skill requires any additional api properties, append to context
         if (enabledPlugins && enabledPlugins.length > 0) {
             const openApiSkillVariables: IAskVariables[] = [];
 
@@ -146,7 +145,7 @@ export class ChatService extends BaseService {
             ask.variables = ask.variables ? ask.variables.concat(openApiSkillVariables) : openApiSkillVariables;
         }
 
-        const result = await this.getResponseAsync<IAskResult>(
+        const result = await this.getResponseAsync<IChatMessage>(
             {
                 commandPath: 'chat',
                 method: 'POST',

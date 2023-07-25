@@ -43,7 +43,6 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ITelemetryService _telemetryService;
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
-    private const string ReceiveResponseClientCall = "ReceiveResponse";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
     public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService)
@@ -131,7 +130,6 @@ public class ChatController : ControllerBase, IDisposable
         if (ask.Variables.Where(v => v.Key == "chatId").Any())
         {
             var chatId = ask.Variables.Where(v => v.Key == "chatId").First().Value;
-            await messageRelayHubContext.Clients.Group(chatId).SendAsync(ReceiveResponseClientCall, chatSkillAskResult, chatId);
             await messageRelayHubContext.Clients.Group(chatId).SendAsync(GeneratingResponseClientCall, chatId, null);
         }
 
