@@ -54,7 +54,7 @@
     "extends": [
       "react-app",
       "react-app/jest",
-      "../.eslintrc.js"
+      ".eslintrc.cjs"
     ]
   },
   "browserslist": {
