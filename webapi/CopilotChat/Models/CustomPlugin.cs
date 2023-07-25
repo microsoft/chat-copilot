@@ -28,7 +28,7 @@ public class CustomPlugin
     public string AuthHeaderTag { get; set; } = string.Empty;
 
     /// <summary>
-    /// Auth type. Currently limited to either 'none' 
+    /// Auth type. Currently limited to either 'none'
     /// or user PAT (https://platform.openai.com/docs/plugins/authentication/user-level)
     /// </summary>
     [JsonPropertyName("authType")]

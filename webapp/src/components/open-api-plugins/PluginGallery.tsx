@@ -69,7 +69,7 @@ export const PluginGallery: React.FC = () => {
             }}
         >
             <DialogTrigger>
-                <Button style={{ color: 'white' }} appearance="transparent" icon={<AppsAddIn24 color="white" />}>
+                <Button  data-testid="pluginButton" style={{ color: 'white' }} appearance="transparent" icon={<AppsAddIn24 color="white" />}>
                     Plugins
                 </Button>
             </DialogTrigger>

@@ -15,11 +15,11 @@ import {
 import { CheckmarkCircle48Regular, Dismiss24Regular } from '@fluentui/react-icons';
 import React, { ReactElement, useCallback, useState } from 'react';
 import AddPluginIcon from '../../../assets/plugin-icons/add-plugin.png';
-import { PluginManifest } from '../../../libs/models/PluginManifest';
-import { EnterManifestStep } from './steps/EnterManifestStep';
 import { usePlugins } from '../../../libs/hooks';
-import { ValidateManifestStep } from './steps/ValidateManifestStep';
+import { PluginManifest } from '../../../libs/models/PluginManifest';
 import { useDialogClasses } from '../../../styles';
+import { EnterManifestStep } from './steps/EnterManifestStep';
+import { ValidateManifestStep } from './steps/ValidateManifestStep';
 
 export const useClasses = makeStyles({
     root: {
@@ -196,7 +196,7 @@ export const PluginWizard: React.FC = () => {
             modalType="alert"
         >
             <DialogTrigger>
-                <Button data-testid="add-ustom-plugin" aria-label="Add Custom Plugin" appearance="primary">
+                <Button data-testid="add-custom-plugin" aria-label="Add Custom Plugin" appearance="primary">
                     Add
                 </Button>
             </DialogTrigger>

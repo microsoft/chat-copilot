@@ -243,13 +243,20 @@ public class ChatController : ControllerBase, IDisposable
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
-                        await planner.Kernel.ImportChatGptPluginSkillFromUrlAsync($"{plugin.NameForModel}Plugin", uriBuilder.Uri,
+                        await planner.Kernel.ImportChatGptPluginSkillFromUrlAsync(
+                            $"{plugin.NameForModel}Plugin",
+                            uriBuilder.Uri,
                             new OpenApiSkillExecutionParameters
                             {
+                                IgnoreNonCompliantErrors = true,
                                 AuthCallback = requiresAuth ? authenticationProvider.AuthenticateRequestAsync : null
                             });
                     }
                 }
+            }
+            else
+            {
+                this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
             }
         }
     }

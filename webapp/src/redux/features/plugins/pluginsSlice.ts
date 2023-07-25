@@ -30,11 +30,10 @@ export const pluginsState = createSlice({
             const plugin = state.plugins[action.payload];
             plugin.enabled = false;
             plugin.authData = undefined;
-            if (plugin.apiProperties) {
-                Object.keys(plugin.apiProperties).forEach((key) => {
-                    // Falsey lint check, just checked above
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    plugin.apiProperties![key].value = undefined;
+            const apiProperties = plugin.apiProperties;
+            if (apiProperties) {
+                Object.keys(apiProperties).forEach((key) => {
+                    apiProperties[key].value = undefined;
                 });
             }
         },
