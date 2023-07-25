@@ -35,6 +35,7 @@ public class AzureFormRecognizerOcrEngine : IOcrEngine
         await using (var imgStream = new MemoryStream())
         {
             await imageFile.CopyToAsync(imgStream);
+            imgStream.Position = 0;
 
             // Start the OCR operation
             RecognizeContentOperation operation = await this.FormRecognizerClient.StartRecognizeContentAsync(imgStream);
