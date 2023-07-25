@@ -7,17 +7,20 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Label,
+    Link,
     Subtitle1,
     Subtitle2,
     makeStyles,
     shorthands,
     tokens,
 } from '@fluentui/react-components';
-import { AppsAddIn24Regular, Dismiss24Regular } from '@fluentui/react-icons';
 import { useState } from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { PluginCard } from './PluginCard';
+import { AppsAddIn24, Dismiss24 } from '../shared/BundledIcons';
+import { AddPluginCard } from './cards/AddPluginCard';
+import { PluginCard } from './cards/PluginCard';
 
 const useClasses = makeStyles({
     root: {
@@ -55,40 +58,60 @@ const useClasses = makeStyles({
 export const PluginGallery: React.FC = () => {
     const classes = useClasses();
 
-    const plugins = useAppSelector((state: RootState) => state.plugins);
+    const { plugins } = useAppSelector((state: RootState) => state.plugins);
     const [open, setOpen] = useState(false);
 
     return (
-        <Dialog open={open} onOpenChange={(_event, data) => { setOpen(data.open); }}>
+        <Dialog
+            open={open}
+            onOpenChange={(_event, data) => {
+                setOpen(data.open);
+            }}
+        >
             <DialogTrigger>
-                <Button data-testid="pluginButton" appearance="transparent" icon={<AppsAddIn24Regular color="white" />} />
+                <Button style={{ color: 'white' }} appearance="transparent" icon={<AppsAddIn24 color="white" />}>
+                    Plugins
+                </Button>
             </DialogTrigger>
             <DialogSurface className={classes.root}>
                 <DialogBody>
                     <DialogTitle
                         action={
                             <DialogTrigger action="close">
-                                <Button data-testid="closeEnableCCPluginsPopUp" appearance="subtle" aria-label="close" icon={<Dismiss24Regular />} />
+                                <Button
+                                    data-testid="closeEnableCCPluginsPopUp"
+                                    appearance="subtle"
+                                    aria-label="close"
+                                    icon={<Dismiss24 />}
+                                />
                             </DialogTrigger>
                         }
                     >
                         <Subtitle1 block className={classes.title}>
-                            Enable Copilot Chat Plugins
+                            Enable Chat Copilot Plugins
                         </Subtitle1>
                         <Body1 as="p" block className={classes.description}>
                             Authorize plugins and have more powerful bots!
                         </Body1>
                     </DialogTitle>
                     <DialogContent className={classes.dialogContent}>
+                        <AddPluginCard />
                         <Subtitle2 block className={classes.title}>
                             Available Plugins
-                        </Subtitle2>{' '}
+                        </Subtitle2>
                         <div className={classes.content}>
                             {Object.entries(plugins).map((entry) => {
                                 const plugin = entry[1];
                                 return <PluginCard key={plugin.name} plugin={plugin} />;
                             })}
                         </div>
+                        <Label size="small" color="brand">
+                            Want to learn more about plugins? Click{' '}
+                            <Link href="https://aka.ms/sk-plugins-howto" target="_blank" rel="noreferrer">
+                                here
+                            </Link>
+                            .
+                        </Label>
                     </DialogContent>
                 </DialogBody>
             </DialogSurface>

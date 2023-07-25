@@ -3,7 +3,7 @@
 import { Persona, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import React from 'react';
 import { AuthorRoles, ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../../libs/useChat';
+import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { Breakpoints } from '../../../styles';

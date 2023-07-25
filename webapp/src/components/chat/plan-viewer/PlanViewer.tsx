@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { IPlanInput, PlanState, PlanType } from '../../../libs/models/Plan';
 import { IAskVariables } from '../../../libs/semantic-kernel/model/Ask';
-import { GetResponseOptions } from '../../../libs/useChat';
+import { GetResponseOptions } from '../../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageState } from '../../../redux/features/conversations/conversationsSlice';

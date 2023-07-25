@@ -1,34 +1,34 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { useMsal } from '@azure/msal-react';
-import { Constants } from '../Constants';
-import { useAppDispatch, useAppSelector } from '../redux/app/hooks';
-import { RootState } from '../redux/app/store';
-import { addAlert } from '../redux/features/app/appSlice';
-import { ChatState } from '../redux/features/conversations/ChatState';
-import { Conversations } from '../redux/features/conversations/ConversationsState';
+import { Constants } from '../../Constants';
+import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
+import { RootState } from '../../redux/app/store';
+import { addAlert } from '../../redux/features/app/appSlice';
+import { ChatState } from '../../redux/features/conversations/ChatState';
+import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
     addConversation,
     setConversations,
     setSelectedConversation,
-} from '../redux/features/conversations/conversationsSlice';
-import { Plugin } from '../redux/features/plugins/PluginsState';
-import { AuthHelper } from './auth/AuthHelper';
-import { AlertType } from './models/AlertType';
-import { Bot } from './models/Bot';
-import { ChatMessageType } from './models/ChatMessage';
-import { IChatSession } from './models/ChatSession';
-import { IChatUser } from './models/ChatUser';
-import { IAskVariables } from './semantic-kernel/model/Ask';
-import { BotService } from './services/BotService';
-import { ChatService } from './services/ChatService';
-import { DocumentImportService } from './services/DocumentImportService';
+} from '../../redux/features/conversations/conversationsSlice';
+import { Plugin } from '../../redux/features/plugins/PluginsState';
+import { AuthHelper } from '../auth/AuthHelper';
+import { AlertType } from '../models/AlertType';
+import { Bot } from '../models/Bot';
+import { ChatMessageType } from '../models/ChatMessage';
+import { IChatSession } from '../models/ChatSession';
+import { IChatUser } from '../models/ChatUser';
+import { IAskVariables } from '../semantic-kernel/model/Ask';
+import { BotService } from '../services/BotService';
+import { ChatService } from '../services/ChatService';
+import { DocumentImportService } from '../services/DocumentImportService';
 
-import botIcon1 from '../assets/bot-icons/bot-icon-1.png';
-import botIcon2 from '../assets/bot-icons/bot-icon-2.png';
-import botIcon3 from '../assets/bot-icons/bot-icon-3.png';
-import botIcon4 from '../assets/bot-icons/bot-icon-4.png';
-import botIcon5 from '../assets/bot-icons/bot-icon-5.png';
+import botIcon1 from '../../assets/bot-icons/bot-icon-1.png'
+import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
+import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
+import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
+import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -61,7 +61,7 @@ export const useChat = () => {
         isTyping: false,
     };
 
-    const plugins = useAppSelector((state: RootState) => state.plugins);
+    const { plugins } = useAppSelector((state: RootState) => state.plugins);
 
     const getChatUserById = (id: string, chatId: string, users: IChatUser[]) => {
         if (id === `${chatId}-bot` || id.toLocaleLowerCase() === 'bot') return Constants.bot.profile;

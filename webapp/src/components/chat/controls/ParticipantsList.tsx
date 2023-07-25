@@ -14,7 +14,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { IChatUser } from '../../../libs/models/ChatUser';
-import { useGraph } from '../../../libs/useGraph';
+import { useGraph } from '../../../libs/hooks';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { setUsersLoaded } from '../../../redux/features/conversations/conversationsSlice';
