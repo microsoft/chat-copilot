@@ -35,11 +35,10 @@ public class TesseractEngineWrapper : IOcrEngine
     ///<inheritdoc/>
     public async Task<string> ReadTextFromImageFileAsync(IFormFile imageFile)
     {
-        await using (var ms = new MemoryStream())
+        await using (var imgStream = new MemoryStream())
         {
-            await imageFile.CopyToAsync(ms);
-            var fileBytes = ms.ToArray();
-            await using var imgStream = new MemoryStream(fileBytes);
+            await imageFile.CopyToAsync(imgStream);
+            imgStream.Position = 0;
 
             using var img = Pix.LoadFromMemory(imgStream.ToArray());
 
