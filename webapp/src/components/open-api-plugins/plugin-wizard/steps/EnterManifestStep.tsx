@@ -1,6 +1,7 @@
 import { Body1, Input, InputOnChangeData, Subtitle1, Text, makeStyles, tokens } from '@fluentui/react-components';
 import { ErrorCircle16Regular } from '@fluentui/react-icons';
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { Constants } from '../../../../Constants';
 
 export const useClasses = makeStyles({
     error: {
@@ -23,19 +24,26 @@ export const EnterManifestStep: React.FC<IEnterManifestStepProps> = ({
     manifestDomainError,
 }) => {
     const classes = useClasses();
+    const [input, setInput] = useState<string>( manifestDomain ?? '');
+
+    const keyStrokeTimeout = useRef(-1);
 
     const onInputChange = useCallback(
         (ev: React.ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => {
             ev.preventDefault();
             setDomainUrl(data.value);
+            setInput(data.value);
 
-            // TODO: add debouncing or throttling to avoid excessive validation calls
-            try {
-                const validUrl = new URL(data.value);
-                setDomainUrl(validUrl.toString(), undefined);
-            } catch (e) {
-                setDomainUrl(data.value, 'Domain is an invalid URL.');
-            }
+            window.clearTimeout(keyStrokeTimeout.current);
+
+            keyStrokeTimeout.current = window.setTimeout(() => {
+                try {
+                    const validUrl = new URL(data.value);
+                    setDomainUrl(validUrl.toString(), undefined);
+                } catch (e) {
+                    setDomainUrl(data.value, 'Domain is an invalid URL.');
+                }
+            }, Constants.KEYSTROKE_DEBOUNCE_TIME_MS);
         },
         [setDomainUrl],
     );
@@ -62,7 +70,7 @@ export const EnterManifestStep: React.FC<IEnterManifestStepProps> = ({
                 required
                 type="text"
                 id={'plugin-domain-input'}
-                value={manifestDomain ?? ''}
+                value={input}
                 onChange={onInputChange}
                 placeholder={`yourdomain.com`}
                 autoFocus
