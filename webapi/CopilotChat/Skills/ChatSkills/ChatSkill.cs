@@ -301,7 +301,7 @@ public class ChatSkill
     /// <param name="chatId">The chat ID</param>
     /// <param name="userId">The user ID</param>
     /// <param name="chatContext">The SKContext.</param>
-    /// <returns>The created chat message.</returns>
+    /// <returns>The created chat message containing the model-generated response.</returns>
     private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext)
     {
         // Get the audience

@@ -6,9 +6,9 @@ import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
 import { addAlert } from '../app/appSlice';
+import { ChatState } from '../conversations/ChatState';
 import { AuthorRoles, ChatMessageType, IChatMessage } from './../../../libs/models/ChatMessage';
 import { Store, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store';
-import { ChatState } from '../conversations/ChatState';
 
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
@@ -112,7 +112,7 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
         switch (action.type) {
             case 'conversations/addMessageToConversationFromUser':
                 hubConnection
-                    .invoke('SendMessageAsync', getSelectedChatID(), store.getState().app.activeUserInfo?.id, action.payload.message)
+                    .invoke('SendMessageAsync', getSelectedChatID(), action.payload.message)
                     .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
             case 'conversations/updateUserIsTyping':
@@ -144,10 +144,10 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
 };
 
 export const registerSignalREvents = (store: Store) => {
-    hubConnection.on(SignalRCallbackMethods.ReceiveMessage, (chatId: string, userId: string, message: IChatMessage) => {
+    hubConnection.on(SignalRCallbackMethods.ReceiveMessage, (chatId: string, message: IChatMessage) => {
         if (message.authorRole === AuthorRoles.Bot) {
             const loggedInUserId = store.getState().app.activeUserInfo?.id;
-            const responseToLoggedInUser = loggedInUserId === userId;
+            const responseToLoggedInUser = loggedInUserId === message.userId;
             message.planState =
                 message.type === ChatMessageType.Plan && responseToLoggedInUser
                     ? PlanState.PlanApprovalRequired
