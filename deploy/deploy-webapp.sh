@@ -71,7 +71,7 @@ if [ $? -ne 0 ]; then
     az login --use-device-code
 fi
 
-if [[-z "$AUTHORITY" ]]; then
+if [[ -z "$AUTHORITY" ]]; then
     AUTHORITY="https://login.microsoftonline.com/common"
 fi
 
@@ -131,10 +131,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+popd
+
 ORIGIN="https://$WEB_APP_URL"
-echo "Ensuring CORS origin '$ORIGIN' to webapi '$WEB_API_NAME'..."
+echo "Ensuring origin '$ORIGIN' is included in CORS origins for webapi '$WEB_API_NAME'..."
 CORS_RESULT=$(az webapp cors show --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
-if [[ "$CORS_RESULT" == "null" ]]; then 
+if [[ "$CORS_RESULT" == "null" ]]; then
     echo "Adding CORS origin '$ORIGIN' to webapi '$WEB_API_NAME'..."
     az webapp cors add --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
 fi
@@ -160,7 +162,5 @@ if [ "$NO_REDIRECT" != true ]; then
         exit 1
     fi
 fi
-
-popd
 
 echo "To verify your deployment, go to 'https://$WEB_APP_URL' in your browser."
