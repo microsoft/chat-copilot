@@ -59,6 +59,6 @@ export const isValidPluginManifest = (manifest: PluginManifest) => {
 };
 
 export const isValidOpenAPISpec = (_specPath: string) => {
-    // TODO: Implement validation of OpenAPI spec
+    // TODO: [Issue #1973] Implement validation of OpenAPI spec
     return true;
 };
