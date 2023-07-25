@@ -14,7 +14,10 @@ import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
-import { editConversationInput, updateBotResponseStatus } from '../../redux/features/conversations/conversationsSlice';
+import {
+    editConversationInput, updateBotResponseStatus
+} from '../../redux/features/conversations/conversationsSlice';
+import { Alerts } from '../shared/Alerts';
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';
 import { ChatStatus } from './ChatStatus';
@@ -173,6 +176,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             <div className={classes.typingIndicator}>
                 <ChatStatus />
             </div>
+            <Alerts />
             <div className={classes.content}>
                 <Textarea
                     id="chat-input"
