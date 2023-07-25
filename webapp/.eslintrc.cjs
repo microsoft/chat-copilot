@@ -25,6 +25,14 @@ module.exports = {
         '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-vars': [
+            'error',
+            {
+                argsIgnorePattern: '^_',
+                varsIgnorePattern: '^_',
+                caughtErrorsIgnorePattern: '^_',
+            },
+        ],
         'react/react-in-jsx-scope': 'off',
         'react/prop-types': 'off',
         'react/jsx-props-no-spreading': 'off',

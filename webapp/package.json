@@ -37,14 +37,14 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/debug": "^4.1.7",
-    "@types/node": "^18.11.9",
+    "@types/node": "^20.4.4",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "better-vsts-npm-auth": "^7.0.0",
     "depcheck": "^1.4.3",
     "eslint": "^8.42.0",
     "http-server": "^14.1.1",
-    "prettier": "^2.8.1",
+    "prettier": "^3.0.0",
     "serve": "^14.2.0",
     "typescript": "5.1.6",
     "vsts-npm-auth": "^0.42.1",
@@ -54,7 +54,7 @@
     "extends": [
       "react-app",
       "react-app/jest",
-      "../.eslintrc.js"
+      ".eslintrc.cjs"
     ]
   },
   "browserslist": {

@@ -49,8 +49,13 @@ param deployNewAzureOpenAI bool = false
 @description('Whether to deploy Cosmos DB for persistent chat storage')
 param deployCosmosDB bool = true
 
-@description('Whether to deploy Qdrant (in a container) for persistent memory storage')
-param deployQdrant bool = true
+@description('What method to use to persist embeddings')
+@allowed([
+  'Volatile'
+  'AzureCognitiveSearch'
+  'Qdrant'
+])
+param memoryStore string = 'Volatile'
 
 @description('Whether to deploy Azure Speech Services to enable input by voice')
 param deploySpeechServices bool = true
@@ -223,15 +228,27 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'MemoriesStore:Type'
-        value: deployQdrant ? 'Qdrant' : 'Volatile'
+        value: memoryStore
       }
       {
         name: 'MemoriesStore:Qdrant:Host'
-        value: deployQdrant ? 'https://${appServiceQdrant.properties.defaultHostName}' : ''
+        value: memoryStore == 'Qdrant' ? 'https://${appServiceQdrant.properties.defaultHostName}' : ''
       }
       {
         name: 'MemoriesStore:Qdrant:Port'
         value: '443'
+      }
+      {
+        name: 'MemoriesStore:AzureCognitiveSearch:UseVectorSearch'
+        value: 'true'
+      }
+      {
+        name: 'MemoriesStore:AzureCognitiveSearch:Endpoint'
+        value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
+      }
+      {
+        name: 'MemoriesStore:AzureCognitiveSearch:Key'
+        value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
       }
       {
         name: 'AzureSpeech:Region'
@@ -335,7 +352,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   }
 }
 
-resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (deployQdrant) {
+resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (memoryStore == 'Qdrant') {
   name: 'st${rgIdHash}' // Not using full unique name to avoid hitting 24 char limit
   location: location
   kind: 'StorageV2'
@@ -354,7 +371,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (deployQdra
   }
 }
 
-resource appServicePlanQdrant 'Microsoft.Web/serverfarms@2022-03-01' = if (deployQdrant) {
+resource appServicePlanQdrant 'Microsoft.Web/serverfarms@2022-03-01' = if (memoryStore == 'Qdrant') {
   name: 'asp-${uniqueName}-qdrant'
   location: location
   kind: 'linux'
@@ -366,7 +383,7 @@ resource appServicePlanQdrant 'Microsoft.Web/serverfarms@2022-03-01' = if (deplo
   }
 }
 
-resource appServiceQdrant 'Microsoft.Web/sites@2022-09-01' = if (deployQdrant) {
+resource appServiceQdrant 'Microsoft.Web/sites@2022-09-01' = if (memoryStore == 'Qdrant') {
   name: 'app-${uniqueName}-qdrant'
   location: location
   kind: 'app,linux,container'
@@ -398,13 +415,25 @@ resource appServiceQdrant 'Microsoft.Web/sites@2022-09-01' = if (deployQdrant) {
       azureStorageAccounts: {
         aciqdrantshare: {
           type: 'AzureFiles'
-          accountName: deployQdrant ? storage.name : 'notdeployed'
+          accountName: memoryStore == 'Qdrant' ? storage.name : 'notdeployed'
           shareName: storageFileShareName
           mountPath: '/qdrant/storage'
-          accessKey: deployQdrant ? storage.listKeys().keys[0].value : ''
+          accessKey: memoryStore == 'Qdrant' ? storage.listKeys().keys[0].value : ''
         }
       }
     }
+  }
+}
+
+resource azureCognitiveSearch 'Microsoft.Search/searchServices@2022-09-01' = if (memoryStore == 'AzureCognitiveSearch') {
+  name: 'acs-${uniqueName}'
+  location: location
+  sku: {
+    name: 'basic'
+  }
+  properties: {
+    replicaCount: 1
+    partitionCount: 1
   }
 }
 
@@ -515,7 +544,7 @@ resource webSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022
   }
 }
 
-resource qdrantSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = if (deployQdrant) {
+resource qdrantSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = if (memoryStore == 'Qdrant') {
   parent: appServiceQdrant
   name: 'qdrantSubnetConnection'
   properties: {
