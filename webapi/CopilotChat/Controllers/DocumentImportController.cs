@@ -70,7 +70,7 @@ public class DocumentImportController : ControllerBase
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
-    private const string ChatDocumentUploadedClientCall = "ChatDocumentUploaded";
+    private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly ITesseractEngine _tesseractEngine;
 
     /// <summary>
@@ -148,7 +148,7 @@ public class DocumentImportController : ControllerBase
 
             var chatId = documentImportForm.ChatId.ToString();
             await messageRelayHubContext.Clients.Group(chatId)
-                .SendAsync(ChatDocumentUploadedClientCall, chatMessage, chatId);
+                .SendAsync(ReceiveMessageClientCall, chatMessage, chatId);
 
             return this.Ok(chatMessage);
         }
