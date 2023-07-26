@@ -769,7 +769,7 @@ public class ChatSkill
     /// <param name="message">The message</param>
     private async Task UpdateMessageOnClient(string chatId, ChatMessage message)
     {
-        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("RecieveMessageUpdate", chatId, message.Id, message.Content, message.TokenUsage ?? null);
+        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessageUpdate", chatId, message.Id, message.Content, message.TokenUsage ?? null);
     }
 
     /// <summary>
