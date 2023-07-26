@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState, TokenUsages } from './AppState';
+import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
 export const appSlice = createSlice({
     name: 'app',
@@ -52,23 +52,10 @@ export const appSlice = createSlice({
                 },
             };
         },
-        updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsages>) => {
-            state.tokenUsage = {
-                prompt: state.tokenUsage.prompt + action.payload.prompt,
-                dependency: state.tokenUsage.dependency + action.payload.dependency,
-            };
-        },
     },
 });
 
-export const {
-    addAlert,
-    removeAlert,
-    setAlerts,
-    setActiveUserInfo,
-    toggleFeatureFlag,
-    toggleFeatureState,
-    updateTokenUsage,
-} = appSlice.actions;
+export const { addAlert, removeAlert, setAlerts, setActiveUserInfo, toggleFeatureFlag, toggleFeatureState } =
+    appSlice.actions;
 
 export default appSlice.reducer;
