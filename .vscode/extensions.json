@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "ms-dotnettools.csharp",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-semantic-kernel.semantic-kernel",
+  ]
+}

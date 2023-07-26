@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
-import { IChatMessage } from '../../../libs/models/ChatMessage';
+import { ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
-import { PlanState } from '../../../libs/models/Plan';
 import { ChatState } from './ChatState';
 import {
     ConversationInputChange,
@@ -51,36 +50,26 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             state.conversations[action.payload].userDataLoaded = true;
         },
         /*
-         * updateConversationFromUser() and updateConversationFromServer() both update the conversations state.
+         * addMessageToConversationFromUser() and addMessageToConversationFromServer() both update the conversations state.
          * However they are for different purposes. The former action is for updating the conversation from the
          * webapp and will be captured by the SignalR middleware and the payload will be broadcasted to all clients
          * in the same group.
-         * The updateConversationFromServer() action is triggered by the SignalR middleware when a response is received
+         * The addMessageToConversationFromServer() action is triggered by the SignalR middleware when a response is received
          * from the webapi.
          */
-        updateConversationFromUser: (
-            state: ConversationsState,
-            action: PayloadAction<{ message: IChatMessage; chatId?: string }>,
-        ) => {
-            const { message, chatId } = action.payload;
-            const id = chatId ?? state.selectedId;
-            updateConversation(state, id, message);
-        },
-        updateConversationFromServer: (
+        addMessageToConversationFromUser: (
             state: ConversationsState,
             action: PayloadAction<{ message: IChatMessage; chatId: string }>,
         ) => {
             const { message, chatId } = action.payload;
             updateConversation(state, chatId, message);
         },
-        updateMessageState: (
+        addMessageToConversationFromServer: (
             state: ConversationsState,
-            action: PayloadAction<{ newMessageState: PlanState; messageIndex: number; chatId?: string }>,
+            action: PayloadAction<{ message: IChatMessage; chatId: string }>,
         ) => {
-            const { newMessageState, messageIndex, chatId } = action.payload;
-            const id = chatId ?? state.selectedId;
-            state.conversations[id].messages[messageIndex].state = newMessageState;
-            frontLoadChat(state, id);
+            const { message, chatId } = action.payload;
+            updateConversation(state, chatId, message);
         },
         /*
          * updateUserIsTyping() and updateUserIsTypingFromServer() both update a user's typing state.
@@ -104,7 +93,7 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             const { userId, chatId, isTyping } = action.payload;
             updateUserTypingState(state, userId, chatId, isTyping);
         },
-        updateBotResponseStatusFromServer: (
+        updateBotResponseStatus: (
             state: ConversationsState,
             action: PayloadAction<{ chatId: string; status: string }>,
         ) => {
@@ -112,25 +101,32 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             const conversation = state.conversations[chatId];
             conversation.botResponseStatus = status;
         },
+        updateMessageProperty: <K extends keyof IChatMessage, V extends IChatMessage[K]>(
+            state: ConversationsState,
+            action: PayloadAction<{
+                property: K;
+                value: V;
+                chatId: string;
+                messageIdOrIndex: string | number;
+                frontLoad?: boolean;
+            }>,
+        ) => {
+            const { property, value, messageIdOrIndex, chatId, frontLoad } = action.payload;
+            const conversation = state.conversations[chatId];
+            const conversationMessage =
+                typeof messageIdOrIndex === 'number'
+                    ? conversation.messages[messageIdOrIndex]
+                    : conversation.messages.find((m) => m.id === messageIdOrIndex);
+
+            if (conversationMessage) {
+                conversationMessage[property] = value;
+            }
+            if (frontLoad) {
+                frontLoadChat(state, chatId);
+            }
+        },
     },
 });
-
-export const {
-    setConversations,
-    editConversationTitle,
-    editConversationInput,
-    setSelectedConversation,
-    addConversation,
-    updateConversationFromUser,
-    updateConversationFromServer,
-    updateMessageState,
-    updateUserIsTyping,
-    updateUserIsTypingFromServer,
-    updateBotResponseStatusFromServer,
-    setUsersLoaded,
-} = conversationsSlice.actions;
-
-export default conversationsSlice.reducer;
 
 const frontLoadChat = (state: ConversationsState, id: string) => {
     const conversation = state.conversations[id];
@@ -139,7 +135,11 @@ const frontLoadChat = (state: ConversationsState, id: string) => {
 };
 
 const updateConversation = (state: ConversationsState, chatId: string, message: IChatMessage) => {
-    state.conversations[chatId].messages.push(message);
+    const requestUserFeedback = message.userId === 'bot' && message.type === ChatMessageType.Message;
+    state.conversations[chatId].messages.push({
+        ...message,
+        userFeedback: requestUserFeedback ? UserFeedback.Requested : undefined,
+    });
     frontLoadChat(state, chatId);
 };
 
@@ -150,3 +150,20 @@ const updateUserTypingState = (state: ConversationsState, userId: string, chatId
         user.isTyping = isTyping;
     }
 };
+
+export const {
+    setConversations,
+    editConversationTitle,
+    editConversationInput,
+    setSelectedConversation,
+    addConversation,
+    addMessageToConversationFromUser,
+    addMessageToConversationFromServer,
+    updateMessageProperty,
+    updateUserIsTyping,
+    updateUserIsTypingFromServer,
+    updateBotResponseStatus,
+    setUsersLoaded,
+} = conversationsSlice.actions;
+
+export default conversationsSlice.reducer;

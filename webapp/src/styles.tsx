@@ -1,4 +1,13 @@
-import { BrandVariants, GriffelStyle, createLightTheme, tokens } from '@fluentui/react-components';
+import {
+    BrandVariants,
+    GriffelStyle,
+    Theme,
+    createDarkTheme,
+    createLightTheme,
+    makeStyles,
+    themeToTokensObject,
+    tokens,
+} from '@fluentui/react-components';
 
 const semanticKernelBrandRamp: BrandVariants = {
     10: '#060103',
@@ -19,7 +28,17 @@ const semanticKernelBrandRamp: BrandVariants = {
     160: '#EFCFD6',
 };
 
-export const semanticKernelLightTheme = createLightTheme(semanticKernelBrandRamp);
+export const semanticKernelLightTheme: Theme & { colorMeBackground: string } = {
+    ...createLightTheme(semanticKernelBrandRamp),
+    colorMeBackground: '#e8ebf9',
+};
+
+export const semanticKernelDarkTheme: Theme & { colorMeBackground: string } = {
+    ...createDarkTheme(semanticKernelBrandRamp),
+    colorMeBackground: '#2b2b3e',
+};
+
+export const customTokens = themeToTokensObject(semanticKernelLightTheme);
 
 export const Breakpoints = {
     small: (style: GriffelStyle): Record<string, GriffelStyle> => {
@@ -48,3 +67,35 @@ export const SharedStyles: Record<string, GriffelStyle> = {
         ...ScrollBarStyles,
     },
 };
+
+export const useDialogClasses = makeStyles({
+    root: {
+        height: '515px',
+    },
+    content: {
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: '10px',
+    },
+    scopes: {
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: '5px',
+        paddingLeft: '20px',
+    },
+    error: {
+        color: '#d13438',
+    },
+    section: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        rowGap: '10px',
+    },
+    footer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        minWidth: '175px',
+    },
+});

@@ -19,7 +19,6 @@ using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Storage;
 using SemanticKernel.Service.Services;
-using Tesseract;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using static SemanticKernel.Service.CopilotChat.Models.MemorySource;
@@ -71,7 +70,7 @@ public class DocumentImportController : ControllerBase
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
-    private const string ChatDocumentUploadedClientCall = "ChatDocumentUploaded";
+    private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
 
     /// <summary>
@@ -151,7 +150,7 @@ public class DocumentImportController : ControllerBase
 
             var chatId = documentImportForm.ChatId.ToString();
             await messageRelayHubContext.Clients.Group(chatId)
-                .SendAsync(ChatDocumentUploadedClientCall, chatMessage, chatId);
+                .SendAsync(ReceiveMessageClientCall, chatMessage, chatId);
 
             return this.Ok(chatMessage);
         }

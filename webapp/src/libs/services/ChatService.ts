@@ -7,7 +7,7 @@ import { IChatParticipant } from '../models/ChatParticipant';
 import { IChatSession } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
-import { IAskResult } from '../semantic-kernel/model/AskResult';
+import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
 import { BaseService } from './BaseService';
 
 export class ChatService extends BaseService {
@@ -93,12 +93,28 @@ export class ChatService extends BaseService {
         ask: IAsk,
         accessToken: string,
         enabledPlugins?: Plugin[],
-    ): Promise<IAskResult> => {
+    ): Promise<IChatMessage> => {
         // If skill requires any additional api properties, append to context
         if (enabledPlugins && enabledPlugins.length > 0) {
             const openApiSkillVariables: IAskVariables[] = [];
 
+            // List of custom plugins to append to context variables
+            const customPlugins: ICustomPlugin[] = [];
+
             for (const plugin of enabledPlugins) {
+
+                // If user imported a manifest domain, add custom plugin
+                if (plugin.manifestDomain) {
+                    customPlugins.push({
+                        nameForHuman: plugin.name,
+                        nameForModel: plugin.nameForModel as string,
+                        authHeaderTag: plugin.headerTag,
+                        authType: plugin.authRequirements.personalAccessToken ? 'user_http' : 'none',
+                        manifestDomain: plugin.manifestDomain,
+                    });
+                }
+
+                // If skill requires any additional api properties, append to context variables
                 if (plugin.apiProperties) {
                     const apiProperties = plugin.apiProperties;
 
@@ -119,10 +135,17 @@ export class ChatService extends BaseService {
                 }
             }
 
+            if (customPlugins.length > 0) {
+                openApiSkillVariables.push({
+                    key: `customPlugins`,
+                    value: JSON.stringify(customPlugins),
+                });
+            }
+
             ask.variables = ask.variables ? ask.variables.concat(openApiSkillVariables) : openApiSkillVariables;
         }
 
-        const result = await this.getResponseAsync<IAskResult>(
+        const result = await this.getResponseAsync<IChatMessage>(
             {
                 commandPath: 'chat',
                 method: 'POST',
