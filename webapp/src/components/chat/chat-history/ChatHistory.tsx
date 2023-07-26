@@ -2,8 +2,8 @@
 
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import React from 'react';
-import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { GetResponseOptions } from '../../../libs/hooks/useChat';
+import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { ChatHistoryItem } from './ChatHistoryItem';
 
 const useClasses = makeStyles({

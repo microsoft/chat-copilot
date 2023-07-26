@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { Persona, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
+import { Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
 import { ThumbDislike24Filled, ThumbLike16Filled } from '@fluentui/react-icons';
 import React from 'react';
 import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
+import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
@@ -21,7 +22,7 @@ const useClasses = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         maxWidth: '75%',
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.borderRadius(customTokens.borderRadiusMedium),
         ...Breakpoints.small({
             maxWidth: '100%',
         }),
@@ -36,30 +37,36 @@ const useClasses = makeStyles({
         alignSelf: 'flex-end',
     },
     persona: {
-        paddingTop: tokens.spacingVerticalS,
+        paddingTop: customTokens.spacingVerticalS,
     },
     item: {
-        backgroundColor: tokens.colorNeutralBackground1,
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalL),
+        backgroundColor: customTokens.colorNeutralBackground1,
+        ...shorthands.borderRadius(customTokens.borderRadiusMedium),
+        ...shorthands.padding(customTokens.spacingVerticalS, customTokens.spacingHorizontalL),
     },
     me: {
-        backgroundColor: '#e8ebf9',
+        backgroundColor: customTokens.colorMeBackground,
     },
     time: {
-        color: tokens.colorNeutralForeground3,
-        fontSize: tokens.fontSizeBase200,
+        color: customTokens.colorNeutralForeground3,
+        fontSize: customTokens.fontSizeBase200,
         fontWeight: 400,
     },
     header: {
         position: 'relative',
         display: 'flex',
         flexDirection: 'row',
-        ...shorthands.gap(tokens.spacingHorizontalL),
+        ...shorthands.gap(customTokens.spacingHorizontalL),
     },
     canvas: {
         width: '100%',
         textAlign: 'center',
+    },
+    image: {
+        maxWidth: '250px',
+    },
+    blur: {
+        filter: 'blur(5px)',
     },
 });
 
@@ -74,7 +81,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
 
     const chat = useChat();
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
-    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
     const isMe = message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id;
     const isBot = message.authorRole === AuthorRoles.Bot;
@@ -94,9 +101,10 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
         content = <ChatHistoryTextContent message={message} />;
     }
 
-    // TODO: hookup to backend
+    // TODO: Persistent RLHF, hook up to model
     // Currently for demonstration purposes only, no feedback is actually sent to kernel / model
     const showShowRLHFMessage =
+        features[FeatureKeys.RLHF].enabled &&
         message.userFeedback === UserFeedback.Requested &&
         messageIndex === conversations[selectedId].messages.length - 1 &&
         message.userId === 'bot';
@@ -109,7 +117,17 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
             data-username={fullName}
             data-content={utils.formatChatTextContent(message.content)}
         >
-            {!isMe && <Persona className={classes.persona} avatar={avatar} presence={{ status: 'available' }} />}
+            {
+                <Persona
+                    className={classes.persona}
+                    avatar={avatar}
+                    presence={
+                        !features[FeatureKeys.SimplifiedExperience].enabled && !isMe
+                            ? { status: 'available' }
+                            : undefined
+                    }
+                />
+            }
             <div className={isMe ? mergeClasses(classes.item, classes.me) : classes.item}>
                 <div className={classes.header}>
                     {!isMe && <Text weight="semibold">{fullName}</Text>}
@@ -119,8 +137,12 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
                 {content}
                 {showShowRLHFMessage && <UserFeedbackActions messageIndex={messageIndex} />}
             </div>
-            {message.userFeedback === UserFeedback.Positive && <ThumbLike16Filled color="gray" />}
-            {message.userFeedback === UserFeedback.Negative && <ThumbDislike24Filled color="gray" />}
+            {showShowRLHFMessage && message.userFeedback === UserFeedback.Positive && (
+                <ThumbLike16Filled color="gray" />
+            )}
+            {showShowRLHFMessage && message.userFeedback === UserFeedback.Negative && (
+                <ThumbDislike24Filled color="gray" />
+            )}
         </div>
     );
 };

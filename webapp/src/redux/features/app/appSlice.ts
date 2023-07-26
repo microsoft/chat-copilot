@@ -1,18 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AlertType } from '../../../libs/models/AlertType';
-import { ActiveUserInfo, Alert, AppState } from './AppState';
-
-const initialState: AppState = {
-    alerts: [
-        {
-            message:
-                'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
-            type: AlertType.Info,
-        },
-    ],
-};
+import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState, TokenUsages } from './AppState';
 
 export const appSlice = createSlice({
     name: 'app',
@@ -33,9 +22,53 @@ export const appSlice = createSlice({
         setActiveUserInfo: (state: AppState, action: PayloadAction<ActiveUserInfo>) => {
             state.activeUserInfo = action.payload;
         },
+        // This sets the feature flag
+        toggleFeatureFlag: (state: AppState, action: PayloadAction<FeatureKeys>) => {
+            const feature = state.features[action.payload];
+            state.features = {
+                ...state.features,
+                [action.payload]: {
+                    ...feature,
+                    enabled: !feature.enabled,
+                },
+            };
+        },
+        // This controls feature availability based on the state of backend support
+        toggleFeatureState: (
+            state: AppState,
+            action: PayloadAction<{
+                feature: FeatureKeys;
+                deactivate: boolean;
+                enable: boolean;
+            }>,
+        ) => {
+            const feature = state.features[action.payload.feature];
+            state.features = {
+                ...state.features,
+                [action.payload.feature]: {
+                    ...feature,
+                    enabled: action.payload.deactivate ? false : action.payload.enable,
+                    inactive: action.payload.deactivate,
+                },
+            };
+        },
+        updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsages>) => {
+            state.tokenUsage = {
+                prompt: state.tokenUsage.prompt + action.payload.prompt,
+                dependency: state.tokenUsage.dependency + action.payload.dependency,
+            };
+        },
     },
 });
 
-export const { addAlert, removeAlert, setAlerts, setActiveUserInfo } = appSlice.actions;
+export const {
+    addAlert,
+    removeAlert,
+    setAlerts,
+    setActiveUserInfo,
+    toggleFeatureFlag,
+    toggleFeatureState,
+    updateTokenUsage,
+} = appSlice.actions;
 
 export default appSlice.reducer;
