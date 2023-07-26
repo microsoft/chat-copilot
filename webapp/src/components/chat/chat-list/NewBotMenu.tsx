@@ -10,7 +10,7 @@ import {
     PeopleTeamAddRegular,
     bundleIcon,
 } from '@fluentui/react-icons';
-import { useChat } from '../../../libs/useChat';
+import { useChat } from '../../../libs/hooks';
 import { InvitationJoinDialog } from '../invitation-dialog/InvitationJoinDialog';
 
 interface NewBotMenuProps {

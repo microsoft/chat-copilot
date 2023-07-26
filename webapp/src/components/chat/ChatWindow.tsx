@@ -7,7 +7,6 @@ import {
     InputOnChangeData,
     Label,
     makeStyles,
-    mergeClasses,
     Persona,
     Popover,
     PopoverSurface,
@@ -18,18 +17,18 @@ import {
     TabList,
     TabValue,
     tokens,
-    Tooltip,
+    Tooltip
 } from '@fluentui/react-components';
-import { Alert } from '@fluentui/react-components/unstable';
-import { Dismiss16Regular, Edit24Filled, EditRegular } from '@fluentui/react-icons';
+import { Edit24Filled, EditRegular } from '@fluentui/react-icons';
 import React, { useEffect, useState } from 'react';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { AlertType } from '../../libs/models/AlertType';
 import { ChatService } from '../../libs/services/ChatService';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addAlert, removeAlert } from '../../redux/features/app/appSlice';
+import { addAlert } from '../../redux/features/app/appSlice';
 import { editConversationTitle } from '../../redux/features/conversations/conversationsSlice';
+import { Alerts } from '../shared/Alerts';
 import { ChatResourceList } from './ChatResourceList';
 import { ChatRoom } from './ChatRoom';
 import { ParticipantsList } from './controls/ParticipantsList';
@@ -81,22 +80,15 @@ const useClasses = makeStyles({
     input: {
         width: '100%',
     },
-    alert: {
-        ...shorthands.borderRadius(0),
-    },
-    infoAlert: {
-        fontWeight: tokens.fontWeightRegular,
-        color: tokens.colorNeutralForeground1,
-        backgroundColor: tokens.colorNeutralBackground6,
-        ...shorthands.borderRadius(0),
-        fontSize: tokens.fontSizeBase200,
-        lineHeight: tokens.lineHeightBase200,
-        ...shorthands.borderBottom(tokens.strokeWidthThin, 'solid', tokens.colorNeutralStroke1),
-    },
     buttons: {
         display: 'flex',
         alignSelf: 'end',
         ...shorthands.gap(tokens.spacingVerticalS),
+    },
+    alerts: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.margin(0, '72px'),
     },
 });
 
@@ -105,7 +97,6 @@ export const ChatWindow: React.FC = () => {
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
     const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
-    const { alerts } = useAppSelector((state: RootState) => state.app);
 
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const chatName = conversations[selectedId].title;
@@ -129,10 +120,6 @@ export const ChatWindow: React.FC = () => {
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('chat');
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
-    };
-
-    const onDismissAlert = (index: number) => {
-        dispatch(removeAlert(index));
     };
 
     const onClose = () => {
@@ -167,28 +154,6 @@ export const ChatWindow: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            {alerts.map(({ type, message }, index) => {
-                return (
-                    <Alert
-                        intent={type}
-                        action={{
-                            icon: (
-                                <Dismiss16Regular
-                                    aria-label="dismiss message"
-                                    onClick={() => {
-                                        onDismissAlert(index);
-                                    }}
-                                    color="black"
-                                />
-                            ),
-                        }}
-                        key={`${index}-${type}`}
-                        className={mergeClasses(classes.alert, classes.infoAlert)}
-                    >
-                        {message}
-                    </Alert>
-                );
-            })}
             <div className={classes.header}>
                 <div className={classes.title}>
                     <Persona
@@ -236,8 +201,8 @@ export const ChatWindow: React.FC = () => {
                         <Tab data-testid="chatTab" id="chat" value="chat">
                             Chat
                         </Tab>
-                        <Tab data-testid="filesTab" id="files" value="files">
-                            Files
+                        <Tab data-testid="documentsTab" id="documents" value="documents">
+                            Documents
                         </Tab>
                     </TabList>
                 </div>
@@ -249,7 +214,10 @@ export const ChatWindow: React.FC = () => {
                 </div>
             </div>
             {selectedTab === 'chat' && <ChatRoom />}
-            {selectedTab === 'files' && <ChatResourceList chatId={selectedId} />}
+            {selectedTab === 'documents' && <ChatResourceList />}
+            {selectedTab !== 'chat' && <div className={classes.alerts}>
+                <Alerts />
+            </div>}
         </div>
     );
 };

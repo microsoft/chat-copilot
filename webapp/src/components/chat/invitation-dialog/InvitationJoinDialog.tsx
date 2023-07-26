@@ -14,7 +14,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import React from 'react';
-import { useChat } from '../../../libs/useChat';
+import { useChat } from '../../../libs/hooks';
 
 const useStyles = makeStyles({
     content: {
