@@ -100,7 +100,7 @@ const App: FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [instance, inProgress, isAuthenticated, appState]);
 
-    // TODO: handle error case of missing account information
+    // TODO: [Issue #41] handle error case of missing account information
     return (
         <FluentProvider
             className="app-container"

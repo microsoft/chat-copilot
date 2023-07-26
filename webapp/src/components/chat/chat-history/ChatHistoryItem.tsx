@@ -101,7 +101,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
         content = <ChatHistoryTextContent message={message} />;
     }
 
-    // TODO: Persistent RLHF, hook up to model
+    // TODO: [Issue #42] Persistent RLHF, hook up to model
     // Currently for demonstration purposes only, no feedback is actually sent to kernel / model
     const showShowRLHFMessage =
         features[FeatureKeys.RLHF].enabled &&

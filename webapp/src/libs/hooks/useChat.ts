@@ -56,7 +56,7 @@ export const useChat = () => {
         id: userId,
         fullName,
         emailAddress,
-        photo: undefined, // TODO: Make call to Graph /me endpoint to load photo
+        photo: undefined, // TODO: [Issue #45] Make call to Graph /me endpoint to load photo
         online: true,
         isTyping: false,
     };

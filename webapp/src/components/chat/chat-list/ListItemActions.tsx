@@ -35,7 +35,7 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
     const [isGettingInvitationId, setIsGettingInvitationId] = useState(false);
 
     const onDownloadBotClick = useCallback(() => {
-        // TODO: Add a loading indicator
+        // TODO: [Issue #47] Add a loading indicator
         void chat.downloadBot(chatId).then((content) => {
             downloadFile(
                 `chat-history-${chatName}-${new Date().toISOString()}.json`,

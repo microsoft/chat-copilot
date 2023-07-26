@@ -49,7 +49,7 @@ export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatName }) => 
                         <DialogTrigger action="close" disableButtonEnhancement>
                             <Button
                                 appearance="primary"
-                                // onClick={ TODO: Handle delete chat }
+                                // onClick={ TODO:  [sk Issue #1642] Handle delete chat }
                             >
                                 Delete
                             </Button>
