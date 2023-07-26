@@ -1,6 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import {
+    Button,
+    Label,
+    ProgressBar,
+    Radio,
+    RadioGroup,
+    Spinner,
     Table,
     TableBody,
     TableCell,
@@ -11,6 +17,7 @@ import {
     TableHeaderCell,
     TableHeaderCellProps,
     TableRow,
+    Tooltip,
     createTableColumn,
     makeStyles,
     shorthands,
@@ -18,10 +25,15 @@ import {
     useTableFeatures,
     useTableSort,
 } from '@fluentui/react-components';
-import { DocumentPdfRegular, DocumentTextRegular, FluentIconsProps } from '@fluentui/react-icons';
+import { DocumentArrowUp20Regular, DocumentPdfRegular, DocumentTextRegular, FluentIconsProps } from '@fluentui/react-icons';
 import * as React from 'react';
-import { ChatMemorySource } from '../../libs/models/ChatMemorySource';
+import { useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import { useChat } from '../../libs/hooks';
+import { ChatMemorySource } from '../../libs/models/ChatMemorySource';
+import { useAppSelector } from '../../redux/app/hooks';
+import { RootState } from '../../redux/app/store';
+import { setImportingDocumentsToConversation } from '../../redux/features/conversations/conversationsSlice';
 import { SharedStyles } from '../../styles';
 import { timestampToDateString } from '../utils/TextUtils';
 
@@ -32,6 +44,21 @@ const useClasses = makeStyles({
         ...shorthands.margin(tokens.spacingVerticalM, tokens.spacingHorizontalM),
         ...SharedStyles.scroll,
     },
+    functional: {
+        display: 'flex',
+        flexDirection: 'row',
+        ...shorthands.margin('0', '0', tokens.spacingVerticalS, '0'),
+    },
+    uploadButton: {
+        ...shorthands.margin('0', tokens.spacingHorizontalS, '0', '0'),
+    },
+    vectorDatabase: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        marginLeft: 'auto',
+        ...shorthands.gap(tokens.spacingHorizontalSNudge),
+    },
     table: {
         backgroundColor: tokens.colorNeutralBackground1,
     },
@@ -39,10 +66,6 @@ const useClasses = makeStyles({
         fontWeight: tokens.fontSizeBase600,
     },
 });
-
-interface ChatResourceListProps {
-    chatId: string;
-}
 
 interface TableItem {
     id: string;
@@ -56,24 +79,111 @@ interface TableItem {
         label: string;
         timestamp: number;
     };
+    tokens: number;
 }
 
-export const ChatResourceList: React.FC<ChatResourceListProps> = ({ chatId }) => {
+export const ChatResourceList: React.FC = () => {
     const classes = useClasses();
     const chat = useChat();
+    const dispatch = useDispatch();
+    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const { importingDocuments } = conversations[selectedId];
+
     const [resources, setResources] = React.useState<ChatMemorySource[]>([]);
+    const documentFileRef = useRef<HTMLInputElement | null>(null);
 
     React.useEffect(() => {
-        void chat.getChatMemorySources(chatId).then((sources) => {
-            setResources(sources);
+        const importingResources = importingDocuments
+            ? importingDocuments.map((document, index) => {
+                return {
+                    id: `in-progress-${index}`,
+                    chatId: selectedId,
+                    sourceType: "N/A",
+                    name: document,
+                    sharedBy: "N/A",
+                    createdOn: 0,
+                    tokens: 0,
+                } as ChatMemorySource;
+            })
+            : [];
+        setResources(importingResources);
+
+        void chat.getChatMemorySources(selectedId).then((sources) => {
+            setResources([...importingResources, ...sources]);
         });
+
+        // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chatId]);
+    }, [importingDocuments, selectedId]);
+
+    const handleImport = () => {
+        const files = documentFileRef.current?.files;
+
+        if (files && files.length > 0) {
+            // Deep copy the FileList into an array so that the function
+            // maintains a list of files to import before the import is complete.
+            const filesArray = Array.from(files);
+
+            dispatch(setImportingDocumentsToConversation({
+                importingDocuments: filesArray.map((file) => file.name),
+                chatId: selectedId
+            }));
+
+            chat.importDocument(selectedId, filesArray).finally(() => {
+                dispatch(setImportingDocumentsToConversation({
+                    importingDocuments: [],
+                    chatId: selectedId
+                }));
+            });
+        }
+
+        // Reset the file input so that the onChange event will
+        // be triggered even if the same file is selected again.
+        if (documentFileRef.current?.value) {
+            documentFileRef.current.value = '';
+        }
+    };
 
     const { columns, rows } = useTable(resources);
     return (
         <div className={classes.root}>
-            <Table aria-label="External resource table" className={classes.table}>
+            <h2>Documents</h2>
+            <div className={classes.functional}>
+                {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
+                <input
+                    type="file"
+                    ref={documentFileRef}
+                    style={{ display: 'none' }}
+                    accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
+                    multiple={true}
+                    onChange={handleImport}
+                />
+                <Tooltip content="Embed file into chat session" relationship="label">
+                    <Button
+                        className={classes.uploadButton}
+                        icon={<DocumentArrowUp20Regular />}
+                        disabled={importingDocuments && importingDocuments.length > 0}
+                        onClick={() => documentFileRef.current?.click()}
+                    >
+                        Upload
+                    </Button>
+                </Tooltip>
+                {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
+                {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
+                <div className={classes.vectorDatabase}>
+                    <Label size='large'>Vector Database</Label>
+                    <RadioGroup defaultValue="Qdrant" layout="horizontal">
+                        <Radio value="Qdrant" label="Qdrant" />
+                        <Radio value="Azure" label="Azure Cognitive Search" disabled />
+                        <Radio value="Pinecone" label="Pinecone" disabled />
+                        <Radio value="Milvus" label="Milvus" disabled />
+                    </RadioGroup>
+                </div>
+            </div>
+            <Table
+                aria-label="External resource table"
+                className={classes.table}
+            >
                 <TableHeader>
                     <TableRow>{columns.map((column) => column.renderHeaderCell())}</TableRow>
                 </TableHeader>
@@ -83,6 +193,9 @@ export const ChatResourceList: React.FC<ChatResourceListProps> = ({ chatId }) =>
                     ))}
                 </TableBody>
             </Table>
+            <Label size='small' color='brand'>
+                Want to learn more about document embeddings? Click <a href="https://aka.ms/sk-docs-vectordb" target="_blank" rel="noreferrer">here</a>.
+            </Label>
         </div>
     );
 };
@@ -133,6 +246,25 @@ function useTable(resources: ChatMemorySource[]) {
             },
         }),
         createTableColumn<TableItem>({
+            columnId: 'tokenCounts',
+            renderHeaderCell: () => (
+                <TableHeaderCell key="tokenCounts" {...headerSortProps('tokenCounts')}>
+                    Token Count
+                </TableHeaderCell>
+            ),
+            renderCell: (item) => (
+                <TableCell key={`${item.id}-tokens`}>
+                    {item.id.startsWith('in-progress') ? 'N/A' : item.tokens}
+                </TableCell>
+            ),
+            compare: (a, b) => {
+                const aAccess = getAccessString(a.chatId);
+                const bAccess = getAccessString(b.chatId);
+                const comparison = aAccess.localeCompare(bAccess);
+                return getSortDirection('tokenCounts') === 'ascending' ? comparison : comparison * -1;
+            },
+        }),
+        createTableColumn<TableItem>({
             columnId: 'access',
             renderHeaderCell: () => (
                 <TableHeaderCell key="access" {...headerSortProps('access')}>
@@ -149,6 +281,31 @@ function useTable(resources: ChatMemorySource[]) {
                 return getSortDirection('access') === 'ascending' ? comparison : comparison * -1;
             },
         }),
+        createTableColumn<TableItem>({
+            columnId: 'progress',
+            renderHeaderCell: () => (
+                <TableHeaderCell key="progress" {...headerSortProps('progress')}>
+                    Progress
+                </TableHeaderCell>
+            ),
+            renderCell: (item) => (
+                <TableCell key={`${item.id}-progress`}>
+                    <ProgressBar
+                        max={1}
+                        value={item.id.startsWith('in-progress') ? undefined : 1}   // Hack: tokens stores the progress bar percentage.
+                        shape='rounded'
+                        thickness='large'
+                        color={item.id.startsWith('in-progress') ? 'brand' : 'success'}
+                    />
+                </TableCell>
+            ),
+            compare: (a, b) => {
+                const aAccess = getAccessString(a.chatId);
+                const bAccess = getAccessString(b.chatId);
+                const comparison = aAccess.localeCompare(bAccess);
+                return getSortDirection('progress') === 'ascending' ? comparison : comparison * -1;
+            },
+        }),
     ];
 
     const items = resources.map((item) => ({
@@ -163,6 +320,7 @@ function useTable(resources: ChatMemorySource[]) {
             label: timestampToDateString(item.createdOn),
             timestamp: item.createdOn,
         },
+        tokens: item.tokens,
     }));
 
     const {
@@ -174,7 +332,7 @@ function useTable(resources: ChatMemorySource[]) {
         },
         [
             useTableSort({
-                defaultSortState: { sortColumn: 'name', sortDirection: 'ascending' },
+                defaultSortState: { sortColumn: 'createdOn', sortDirection: 'descending' },
             }),
         ],
     );
