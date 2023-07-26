@@ -111,6 +111,7 @@ export const ChatWindow: React.FC = () => {
                 conversations[selectedId].id,
                 title,
                 conversations[selectedId].systemDescription,
+                conversations[selectedId].memoryBalance,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
 

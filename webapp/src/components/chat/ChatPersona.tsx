@@ -61,6 +61,7 @@ export const ChatPersona: React.FC = () => {
                         selectedId,
                         chatState.title,
                         newSystemDescription,
+                        chatState.memoryBalance,
                     ).finally(() => {
                         dispatch(
                             editConversationSystemDescription({

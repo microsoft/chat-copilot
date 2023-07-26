@@ -36,6 +36,14 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             const newSystemDescription = action.payload.newSystemDescription;
             state.conversations[id].systemDescription = newSystemDescription;
         },
+        editConversationMemoryBalance: (
+            state: ConversationsState,
+            action: PayloadAction<{id: string, memoryBalance: number}>,
+        ) => {
+            const id = action.payload.id;
+            const newMemoryBalance = action.payload.memoryBalance;
+            state.conversations[id].memoryBalance = newMemoryBalance;
+        },
         setSelectedConversation: (state: ConversationsState, action: PayloadAction<string>) => {
             state.selectedId = action.payload;
         },
@@ -169,6 +177,7 @@ export const {
     editConversationTitle,
     editConversationInput,
     editConversationSystemDescription,
+    editConversationMemoryBalance,
     setSelectedConversation,
     addConversation,
     setImportingDocumentsToConversation,

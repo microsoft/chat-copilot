@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -81,8 +80,6 @@ public class ChatMemoryController : ControllerBase
         {
             memories.Add(memory.Metadata.Text);
         }
-
-        Console.WriteLine($"Found {memories.Count} memories for {memoryName}.");
 
         return this.Ok(memories);
     }

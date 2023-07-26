@@ -79,6 +79,7 @@ export const useChat = () => {
                     id: result.id,
                     title: result.title,
                     systemDescription: result.systemDescription,
+                    memoryBalance: result.memoryBalance,
                     messages: chatMessages,
                     users: [loggedInUser],
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
@@ -151,6 +152,7 @@ export const useChat = () => {
                         id: chatSession.id,
                         title: chatSession.title,
                         systemDescription: chatSession.systemDescription,
+                        memoryBalance: chatSession.memoryBalance,
                         users: chatUsers,
                         messages: chatMessages,
                         botProfilePicture: getBotProfilePicture(Object.keys(loadedConversations).length),
@@ -282,6 +284,7 @@ export const useChat = () => {
                     id: result.id,
                     title: result.title,
                     systemDescription: result.systemDescription,
+                    memoryBalance: result.memoryBalance,
                     messages: chatMessages,
                     users: chatUsers,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
@@ -300,10 +303,15 @@ export const useChat = () => {
         return { success: true, message: '' };
     };
 
-    const editChat = async (chatId: string, title: string, syetemDescription: string) => {
+    const editChat = async (
+        chatId: string,
+        title: string,
+        syetemDescription: string,
+        memoryBalance: number,
+    ) => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            await chatService.editChatAsync(chatId, title, syetemDescription, accessToken);
+            await chatService.editChatAsync(chatId, title, syetemDescription, memoryBalance, accessToken);
         } catch (e: any) {
             const errorMessage = `Error editing chat ${chatId}. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
