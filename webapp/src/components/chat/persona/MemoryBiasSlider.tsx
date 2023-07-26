@@ -9,7 +9,7 @@ import {
     Slider,
     makeStyles,
     shorthands,
-    tokens
+    tokens,
 } from '@fluentui/react-components';
 import React from 'react';
 import { useChat } from '../../../libs/hooks/useChat';
@@ -42,7 +42,6 @@ const useClasses = makeStyles({
     },
 });
 
-
 export const MemoryBiasSlider: React.FC = () => {
     const chat = useChat();
     const classes = useClasses();
@@ -58,41 +57,33 @@ export const MemoryBiasSlider: React.FC = () => {
     }, [chatState]);
 
     const sliderValueChange = (value: number) => {
-        chat.editChat(
-            selectedId,
-            chatState.title,
-            chatState.systemDescription,
-            value / 100
-        ).then(() => {
+        chat.editChat(selectedId, chatState.title, chatState.systemDescription, value / 100).finally(() => {
             setBalance(value);
-            dispatch(editConversationMemoryBalance({
-                id: selectedId,
-                memoryBalance: value / 100,
-            }));
-        }).catch(() => { });
-    }
+            dispatch(
+                editConversationMemoryBalance({
+                    id: selectedId,
+                    memoryBalance: value / 100,
+                }),
+            );
+        });
+    };
 
     return (
         <div className={classes.root}>
             <div className={classes.horizontal}>
                 <h3>Memory Bias</h3>
                 <Popover withArrow>
-                        <PopoverTrigger disableButtonEnhancement>
-                            <Button icon={<Info16 />} appearance="transparent" />
-                        </PopoverTrigger>
-                        <PopoverSurface>
-                            This is a slider that allows the user to bias the chat bot towards short or long term memory.
-                        </PopoverSurface>
-                    </Popover>
+                    <PopoverTrigger disableButtonEnhancement>
+                        <Button icon={<Info16 />} appearance="transparent" />
+                    </PopoverTrigger>
+                    <PopoverSurface>
+                        This is a slider that allows the user to bias the chat bot towards short or long term memory.
+                    </PopoverSurface>
+                </Popover>
             </div>
             <div>
                 <Label>Short Term</Label>
-                <Slider
-                    min={0}
-                    max={100}
-                    value={balance}
-                    onChange={(_, data) => sliderValueChange(data.value)}
-                />
+                <Slider min={0} max={100} value={balance} onChange={(_, data) => sliderValueChange(data.value)} />
                 <Label>Long Term</Label>
             </div>
         </div>

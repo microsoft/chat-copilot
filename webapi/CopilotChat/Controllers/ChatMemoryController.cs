@@ -32,7 +32,7 @@ public class ChatMemoryController : ControllerBase
     /// </summary>
     /// <param name="logger">The logger.</param>
     /// <param name="promptsOptions">The prompts options.</param>
-    /// <param name="chatParticipantRepository">The chat participant repository.</param>
+    /// <param name="chatSessionRepository">The chat session repository.</param>
     public ChatMemoryController(
         ILogger<ChatMemoryController> logger,
         IOptions<PromptsOptions> promptsOptions,

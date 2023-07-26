@@ -100,6 +100,15 @@ public class SemanticChatMemorySkill
 
     /// <summary>
     /// Calculates the relevance threshold for the memory.
+    /// The relevance threshold is a function of the memory balance.
+    /// The memory balance is a value between 0 and 1, where 0 means maximum focus on
+    /// working term memory (by minimizing the relevance threshold for working memory
+    /// and maximizing the relevance threshold for long term memory), and 1 means
+    /// maximum focus on long term memory (by minimizing the relevance threshold for
+    /// long term memory and maximizing the relevance threshold for working memory).
+    /// The memory balance controls two 1st degree polynomials defined by the lower
+    /// and upper bounds, one for long term memory and one for working memory.
+    /// The relevance threshold is the value of the polynomial at the memory balance.
     /// </summary>
     /// <param name="memoryName">The name of the memory.</param>
     /// <param name="memoryBalance">The balance between long term memory and working term memory.</param>
@@ -109,6 +118,11 @@ public class SemanticChatMemorySkill
     {
         var upper = this._promptOptions.SemanticMemoryRelevanceUpper;
         var lower = this._promptOptions.SemanticMemoryRelevanceLower;
+
+        if (memoryBalance < 0.0 || memoryBalance > 1.0)
+        {
+            throw new ArgumentException($"Invalid memory balance: {memoryBalance}");
+        }
 
         if (memoryName == this._promptOptions.LongTermMemoryName)
         {

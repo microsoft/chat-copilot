@@ -20,19 +20,17 @@ export const PersonaTab: React.FC = () => {
     const [longTermMemory, setLongTermMemory] = React.useState<string>('');
 
     React.useEffect(() => {
-        chat.getSemanticMemories(
-            selectedId,
-            "WorkingMemory",
-        ).then((memories) => {
-            setShortTermMemory(memories.join('\n'));
-        }).catch(() => { });
+        chat.getSemanticMemories(selectedId, 'WorkingMemory')
+            .then((memories) => {
+                setShortTermMemory(memories.join('\n'));
+            })
+            .catch(() => {});
 
-        chat.getSemanticMemories(
-            selectedId,
-            "LongTermMemory",
-        ).then((memories) => {
-            setLongTermMemory(memories.join('\n'));
-        }).catch(() => { });
+        chat.getSemanticMemories(selectedId, 'LongTermMemory')
+            .then((memories) => {
+                setLongTermMemory(memories.join('\n'));
+            })
+            .catch(() => {});
 
         // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -46,19 +44,16 @@ export const PersonaTab: React.FC = () => {
                 isEditable={true}
                 info="The prompt that defines the chat bot's persona."
                 modificationHandler={async (newSystemDescription: string) => {
-                    await chat.editChat(
-                        selectedId,
-                        chatState.title,
-                        newSystemDescription,
-                        chatState.memoryBalance,
-                    ).finally(() => {
-                        dispatch(
-                            editConversationSystemDescription({
-                                id: selectedId,
-                                newSystemDescription: newSystemDescription,
-                            }),
-                        );
-                    });
+                    await chat
+                        .editChat(selectedId, chatState.title, newSystemDescription, chatState.memoryBalance)
+                        .finally(() => {
+                            dispatch(
+                                editConversationSystemDescription({
+                                    id: selectedId,
+                                    newSystemDescription: newSystemDescription,
+                                }),
+                            );
+                        });
                 }}
             />
             <PromptEditor
