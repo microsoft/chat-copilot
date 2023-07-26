@@ -15,7 +15,7 @@ using SemanticKernel.Service.CopilotChat.Storage;
 namespace SemanticKernel.Service.CopilotChat.Controllers;
 
 /// <summary>
-/// Controller for getting chat session semantic memory data.
+/// Controller for retrieving semantic memory data of chat sessions.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -46,7 +46,7 @@ public class ChatMemoryController : ControllerBase
     /// <summary>
     /// Gets the semantic memory for the chat session.
     /// </summary>
-    /// <param name="semanticTextMemory">The semantic text memory.</param>
+    /// <param name="semanticTextMemory">The semantic text memory instance.</param>
     /// <param name="chatId">The chat id.</param>
     /// <param name="memoryName">Name of the memory type.</param>
     [HttpGet]
@@ -73,10 +73,13 @@ public class ChatMemoryController : ControllerBase
         }
 
         // Gather the requested semantic memory.
+        // ISemanticTextMemory doesn't support retrieving all memories.
+        // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
+        // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
         var results = semanticTextMemory.SearchAsync(
             SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName),
-            "abc", // dummy query since we don't care about relevance. An empty string will cause exception.
+            "abc",
             limit: 100,
             minRelevanceScore: 0.0);
         await foreach (var memory in results)
