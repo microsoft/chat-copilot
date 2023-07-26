@@ -129,7 +129,7 @@ export const ChatResourceList: React.FC = () => {
                 chatId: selectedId
             }));
 
-            chat.importDocument(selectedId, filesArray).finally(() => {
+            void chat.importDocument(selectedId, filesArray).finally(() => {
                 dispatch(setImportingDocumentsToConversation({
                     importingDocuments: [],
                     chatId: selectedId
