@@ -5,6 +5,7 @@ import { AnyAction, Dispatch } from '@reduxjs/toolkit';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
+import { TokenUsage } from '../../../libs/models/TokenUsage';
 import { addAlert } from '../app/appSlice';
 import { ChatState } from '../conversations/ChatState';
 import { AuthorRoles, ChatMessageType, IChatMessage } from './../../../libs/models/ChatMessage';
@@ -13,7 +14,7 @@ import { Store, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store'
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
     ReceiveMessage = 'ReceiveMessage',
-    ReceiveMessageStream = 'ReceiveMessageStream',
+    RecieveMessageUpdate = 'RecieveMessageUpdate',
     UserJoined = 'UserJoined',
     ReceiveUserTypingState = 'ReceiveUserTypingState',
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
@@ -166,11 +167,18 @@ export const registerSignalREvents = (store: Store) => {
     );
 
     hubConnection.on(
-        SignalRCallbackMethods.ReceiveMessageStream,
-        (chatId: string, messageId: string, content: string) => {
+        SignalRCallbackMethods.RecieveMessageUpdate,
+        (chatId: string, messageId: string, content: string, tokenUsage?: TokenUsage) => {
+            // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
             store.dispatch({
                 type: 'conversations/updateMessageProperty',
-                payload: { chatId, messageIdOrIndex: messageId, property: 'content', value: content, frontLoad: true },
+                payload: {
+                    chatId,
+                    messageIdOrIndex: messageId,
+                    property: tokenUsage ? 'tokenUsage' : 'content',
+                    value: tokenUsage ?? content,
+                    frontLoad: true,
+                },
             });
         },
     );

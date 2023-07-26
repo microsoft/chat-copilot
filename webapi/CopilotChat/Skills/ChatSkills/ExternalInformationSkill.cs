@@ -72,6 +72,7 @@ public class ExternalInformationSkill
         [Description("The intent to whether external information is needed")] string userIntent,
         SKContext context)
     {
+        // TODO: [Issue #2106] Calculate planner and plan token usage
         FunctionsView functions = this._planner.Kernel.Skills.GetFunctionsView(true, true);
         if (functions.NativeFunctions.IsEmpty && functions.SemanticFunctions.IsEmpty)
         {
