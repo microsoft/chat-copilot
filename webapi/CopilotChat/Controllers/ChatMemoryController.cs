@@ -61,14 +61,14 @@ public class ChatMemoryController : ControllerBase
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
         {
-            this._logger.LogDebug("Chat session: {0} does not exist.", chatId);
+            this._logger.LogWarning("Chat session: {0} does not exist.", chatId);
             return this.BadRequest($"Chat session: {chatId} does not exist.");
         }
 
         // Make sure the memory name is valid.
         if (!this.ValidateMemoryName(memoryName))
         {
-            this._logger.LogDebug("Memory name: {0} is invalid.", memoryName);
+            this._logger.LogWarning("Memory name: {0} is invalid.", memoryName);
             return this.BadRequest($"Memory name: {memoryName} is invalid.");
         }
 
