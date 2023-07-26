@@ -49,7 +49,9 @@ export const ShareBotMenu: FC<ShareBotMenuProps> = ({ chatId, chatTitle }) => {
                         <MenuItem
                             data-testid="inviteOthersMenuItem"
                             icon={<PeopleTeamAddRegular />}
-                            onClick={() => setIsGettingInvitationId(true)}
+                            onClick={() => {
+                                setIsGettingInvitationId(true);
+                            }}
                         >
                             Invite others to your Bot
                         </MenuItem>
