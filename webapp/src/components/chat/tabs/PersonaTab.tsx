@@ -1,29 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import {
-    makeStyles,
-    shorthands,
-    tokens
-} from '@fluentui/react-components';
 import * as React from 'react';
-import { useChat } from '../../libs/hooks/useChat';
-import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
-import { RootState } from '../../redux/app/store';
-import { editConversationSystemDescription } from '../../redux/features/conversations/conversationsSlice';
-import { SharedStyles } from '../../styles';
-import { MemoryBiasSlider } from './persona/MemoryBiasSlider';
-import { PromptEditor } from './persona/PromptEditor';
+import { useChat } from '../../../libs/hooks/useChat';
+import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
+import { RootState } from '../../../redux/app/store';
+import { editConversationSystemDescription } from '../../../redux/features/conversations/conversationsSlice';
+import { MemoryBiasSlider } from '../persona/MemoryBiasSlider';
+import { PromptEditor } from '../persona/PromptEditor';
+import { TabView } from './TabView';
 
-const useClasses = makeStyles({
-    root: {
-        ...shorthands.margin(tokens.spacingVerticalM, tokens.spacingHorizontalM),
-        ...SharedStyles.scroll,
-    },
-});
-
-export const ChatPersona: React.FC = () => {
+export const PersonaTab: React.FC = () => {
     const chat = useChat();
-    const classes = useClasses();
     const dispatch = useAppDispatch();
 
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
@@ -46,11 +33,13 @@ export const ChatPersona: React.FC = () => {
         ).then((memories) => {
             setLongTermMemory(memories.join('\n'));
         }).catch(() => { });
-    }, [chat, selectedId]);
+
+        // We don't want to have chat as one of the dependencies as it will cause infinite loop.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedId]);
 
     return (
-        <div className={classes.root}>
-            <h2>Persona</h2>
+        <TabView title="Persona" learnMoreDescription="personas" learnMoreLink=" https://aka.ms/sk-intro-to-personas ">
             <PromptEditor
                 title="Meta Prompt"
                 prompt={chatState.systemDescription}
@@ -85,6 +74,6 @@ export const ChatPersona: React.FC = () => {
                 info="Extract information that is encoded and consolidated from other memory types, such as working memory or sensory memory. It should be useful for maintaining and recalling one's personal identity, history, and knowledge over time."
             />
             <MemoryBiasSlider />
-        </div>
+        </TabView>
     );
 };

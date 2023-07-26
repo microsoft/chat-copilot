@@ -29,11 +29,11 @@ import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
 import { editConversationTitle } from '../../redux/features/conversations/conversationsSlice';
 import { Alerts } from '../shared/Alerts';
-import { ChatPersona } from './ChatPersona';
-import { ChatResourceList } from './ChatResourceList';
 import { ChatRoom } from './ChatRoom';
 import { ParticipantsList } from './controls/ParticipantsList';
 import { ShareBotMenu } from './controls/ShareBotMenu';
+import { DocumentsTab } from './tabs/DocumentsTab';
+import { PersonaTab } from './tabs/PersonaTab';
 
 const useClasses = makeStyles({
     root: {
@@ -220,8 +220,8 @@ export const ChatWindow: React.FC = () => {
                 </div>
             </div>
             {selectedTab === 'chat' && <ChatRoom />}
-            {selectedTab === 'documents' && <ChatResourceList />}
-            {selectedTab === 'persona' && <ChatPersona />}
+            {selectedTab === 'documents' && <DocumentsTab />}
+            {selectedTab === 'persona' && <PersonaTab />}
             {selectedTab !== 'chat' && <div className={classes.alerts}>
                 <Alerts />
             </div>}

@@ -54,7 +54,6 @@ export const MemoryBiasSlider: React.FC = () => {
 
     React.useEffect(() => {
         const balance = chatState.memoryBalance * 100;
-        console.log(`MemoryBiasSlider: ${balance}`);
         setBalance(balance);
     }, [chatState]);
 
