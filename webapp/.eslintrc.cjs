@@ -1,16 +1,20 @@
 module.exports = {
     env: {
-        es2021: true,
+        es2023: true,
+        browser: true,
+        commonjs: true,
+        jest: true,
+        node: true,
     },
     extends: [
-        'eslint:recommended',
+        'react-app/jest',
         'plugin:react/recommended',
         'plugin:react-hooks/recommended',
-        'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking',
-        'plugin:@typescript-eslint/strict',
+        'plugin:@typescript-eslint/strict-type-checked',
+        'plugin:@typescript-eslint/stylistic-type-checked',
     ],
-    ignorePatterns: ['build', '.*.js', 'node_modules'],
+    ignorePatterns: ['build', '.*js', 'node_modules'],
+    parser: '@typescript-eslint/parser',
     parserOptions: {
         project: './tsconfig.json',
         ecmaVersion: 'latest',
