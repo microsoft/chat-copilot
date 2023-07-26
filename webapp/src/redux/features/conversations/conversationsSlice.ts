@@ -46,6 +46,13 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             state.conversations[chatId].users.push(user);
             state.conversations[chatId].userDataLoaded = false;
         },
+        setImportingDocumentsToConversation: (
+            state: ConversationsState,
+            action: PayloadAction<{ importingDocuments: string[]; chatId: string }>,
+        ) => {
+            const { importingDocuments, chatId } = action.payload;
+            state.conversations[chatId].importingDocuments = importingDocuments;
+        },
         setUsersLoaded: (state: ConversationsState, action: PayloadAction<string>) => {
             state.conversations[action.payload].userDataLoaded = true;
         },
@@ -157,6 +164,7 @@ export const {
     editConversationInput,
     setSelectedConversation,
     addConversation,
+    setImportingDocumentsToConversation,
     addMessageToConversationFromUser,
     addMessageToConversationFromServer,
     updateMessageProperty,
