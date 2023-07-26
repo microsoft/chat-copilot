@@ -6,7 +6,7 @@ import {
     tokens
 } from '@fluentui/react-components';
 import * as React from 'react';
-import { useChat } from '../../libs/useChat';
+import { useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { editConversationSystemDescription } from '../../redux/features/conversations/conversationsSlice';

@@ -12,7 +12,7 @@ import {
     tokens
 } from '@fluentui/react-components';
 import React from 'react';
-import { useChat } from '../../../libs/useChat';
+import { useChat } from '../../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { editConversationMemoryBalance } from '../../../redux/features/conversations/conversationsSlice';
