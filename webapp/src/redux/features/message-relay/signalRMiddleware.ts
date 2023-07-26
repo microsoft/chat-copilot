@@ -14,7 +14,7 @@ import { Store, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store'
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
     ReceiveMessage = 'ReceiveMessage',
-    RecieveMessageUpdate = 'RecieveMessageUpdate',
+    ReceiveMessageUpdate = 'ReceiveMessageUpdate',
     UserJoined = 'UserJoined',
     ReceiveUserTypingState = 'ReceiveUserTypingState',
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
@@ -167,7 +167,7 @@ export const registerSignalREvents = (store: Store) => {
     );
 
     hubConnection.on(
-        SignalRCallbackMethods.RecieveMessageUpdate,
+        SignalRCallbackMethods.ReceiveMessageUpdate,
         (chatId: string, messageId: string, content: string, tokenUsage?: TokenUsage) => {
             // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
             store.dispatch({
