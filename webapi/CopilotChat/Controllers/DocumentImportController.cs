@@ -17,6 +17,7 @@ using Microsoft.SemanticKernel.Text;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
+using SemanticKernel.Service.CopilotChat.Skills;
 using SemanticKernel.Service.CopilotChat.Storage;
 using SemanticKernel.Service.Services;
 using UglyToad.PdfPig;
@@ -45,6 +46,11 @@ public class DocumentImportController : ControllerBase
         /// .pdf
         /// </summary>
         Pdf,
+
+        /// <summary>
+        /// .md
+        /// </summary>
+        Md,
 
         /// <summary>
         /// .jpg
@@ -187,6 +193,11 @@ public class DocumentImportController : ControllerBase
         public IEnumerable<string> Keys { get; set; } = new List<string>();
 
         /// <summary>
+        /// The number of tokens in the document.
+        /// </summary>
+        public long Tokens { get; set; } = 0;
+
+        /// <summary>
         /// Create a new instance of the <see cref="ImportResult"/> class.
         /// </summary>
         /// <param name="collectionName">The name of the collection that the document is inserted to.</param>
@@ -289,6 +300,7 @@ public class DocumentImportController : ControllerBase
         switch (fileType)
         {
             case SupportedFileType.Txt:
+            case SupportedFileType.Md:
                 documentContent = await this.ReadTxtFileAsync(formFile);
                 break;
             case SupportedFileType.Pdf:
@@ -310,11 +322,7 @@ public class DocumentImportController : ControllerBase
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
         // Create memory source
-        var memorySource = await this.TryCreateAndUpsertMemorySourceAsync(formFile, documentImportForm);
-        if (memorySource == null)
-        {
-            return ImportResult.Fail();
-        }
+        var memorySource = this.CreateMemorySourceAsync(formFile, documentImportForm);
 
         // Parse document content to memory
         ImportResult importResult = ImportResult.Fail();
@@ -330,7 +338,15 @@ public class DocumentImportController : ControllerBase
         }
         catch (Exception ex) when (!ex.IsCriticalException())
         {
-            await this._sourceRepository.DeleteAsync(memorySource);
+            this._logger.LogDebug(ex, "Failed to parse {0} document content to memory.", formFile.FileName);
+            return ImportResult.Fail();
+        }
+
+        // Upsert memory source
+        memorySource.Tokens = importResult.Tokens;
+        if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
+        {
+            this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
             await this.RemoveMemoriesAsync(kernel, importResult);
             return ImportResult.Fail();
         }
@@ -339,33 +355,43 @@ public class DocumentImportController : ControllerBase
     }
 
     /// <summary>
-    /// Try to create and upsert a memory source.
+    /// Create a memory source.
     /// </summary>
     /// <param name="formFile">The file to be uploaded</param>
     /// <param name="documentImportForm">The document upload form that contains additional necessary info</param>
-    /// <returns>A MemorySource object if successful, null otherwise</returns>
-    private async Task<MemorySource?> TryCreateAndUpsertMemorySourceAsync(
+    /// <returns>A MemorySource object.</returns>
+    private MemorySource CreateMemorySourceAsync(
         IFormFile formFile,
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
         var userId = documentImportForm.UserId;
-        var memorySource = new MemorySource(
+
+        return new MemorySource(
             chatId,
             formFile.FileName,
             userId,
             MemorySourceType.File,
             formFile.Length,
-            null);
+            null
+        );
+    }
 
+    /// <summary>
+    /// Try to upsert a memory source.
+    /// </summary>
+    /// <param name="memorySource">The memory source to be uploaded</param>
+    /// <returns>True if upsert is successful. False otherwise.</returns>
+    private async Task<bool> TryUpsertMemorySourceAsync(MemorySource memorySource)
+    {
         try
         {
             await this._sourceRepository.UpsertAsync(memorySource);
-            return memorySource;
+            return true;
         }
         catch (Exception ex) when (ex is ArgumentOutOfRangeException)
         {
-            return null;
+            return false;
         }
     }
 
@@ -429,16 +455,17 @@ public class DocumentImportController : ControllerBase
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     private SupportedFileType GetFileType(string fileName)
     {
-        string extension = Path.GetExtension(fileName);
+        string extension = Path.GetExtension(fileName).ToUpperInvariant();
         return extension switch
         {
-            ".txt" => SupportedFileType.Txt,
-            ".pdf" => SupportedFileType.Pdf,
-            ".jpg" => SupportedFileType.Jpg,
-            ".jpeg" => SupportedFileType.Jpg,
-            ".png" => SupportedFileType.Png,
-            ".tif" => SupportedFileType.Tiff,
-            ".tiff" => SupportedFileType.Tiff,
+            ".TXT" => SupportedFileType.Txt,
+            ".MD" => SupportedFileType.Md,
+            ".PDF" => SupportedFileType.Pdf,
+            ".JPG" => SupportedFileType.Jpg,
+            ".JPEG" => SupportedFileType.Jpg,
+            ".PNG" => SupportedFileType.Png,
+            ".TIF" => SupportedFileType.Tiff,
+            ".TIFF" => SupportedFileType.Tiff,
             _ => throw new ArgumentOutOfRangeException($"Unsupported file type: {extension}"),
         };
     }
@@ -520,6 +547,7 @@ public class DocumentImportController : ControllerBase
                 id: key,
                 description: $"Document: {documentName}");
             importResult.AddKey(key);
+            importResult.Tokens += Utilities.TokenCount(paragraph);
         }
 
         this._logger.LogInformation(
