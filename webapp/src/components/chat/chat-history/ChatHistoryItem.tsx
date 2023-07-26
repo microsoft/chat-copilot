@@ -10,7 +10,7 @@ import { RootState } from '../../../redux/app/store';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
-import { PromptDetails } from '../prompt-details/PromptDetails';
+import { PromptDialog } from '../prompt-dialog/PromptDialog';
 import * as utils from './../../utils/TextUtils';
 import { ChatHistoryDocumentContent } from './ChatHistoryDocumentContent';
 import { ChatHistoryTextContent } from './ChatHistoryTextContent';
@@ -114,7 +114,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
                 <div className={classes.header}>
                     {!isMe && <Text weight="semibold">{fullName}</Text>}
                     <Text className={classes.time}>{timestampToDateString(message.timestamp, true)}</Text>
-                    {isBot && <PromptDetails message={message} />}
+                    {isBot && <PromptDialog message={message} />}
                 </div>
                 {content}
                 {showShowRLHFMessage && <UserFeedbackActions messageIndex={messageIndex} />}

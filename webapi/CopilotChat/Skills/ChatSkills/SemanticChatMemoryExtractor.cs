@@ -101,6 +101,10 @@ internal static class SemanticChatMemoryExtractor
             settings: CreateMemoryExtractionSettings(options)
         );
 
+        // Since there are multiple memory types, the same variable is used to store cumulative token usage
+        int tokenUsage = context.Variables.TryGetValue("memoryExtractionTokenUsage", out string? memoryExtractionTokenUsage) ? int.Parse(memoryExtractionTokenUsage, CultureInfo.CurrentCulture) : 0;
+        context.Variables.Set("memoryExtractionTokenUsage", (Utilities.GetTokenUsage(result) + tokenUsage).ToString(CultureInfo.CurrentCulture));
+
         SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
         return memory;
     }

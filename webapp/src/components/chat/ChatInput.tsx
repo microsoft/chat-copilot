@@ -8,15 +8,13 @@ import * as speechSdk from 'microsoft-cognitiveservices-speech-sdk';
 import React, { useRef } from 'react';
 import { Constants } from '../../Constants';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
+import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { AlertType } from '../../libs/models/AlertType';
 import { ChatMessageType } from '../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
-import {
-    editConversationInput, updateBotResponseStatus
-} from '../../redux/features/conversations/conversationsSlice';
+import { editConversationInput, updateBotResponseStatus } from '../../redux/features/conversations/conversationsSlice';
 import { Alerts } from '../shared/Alerts';
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';

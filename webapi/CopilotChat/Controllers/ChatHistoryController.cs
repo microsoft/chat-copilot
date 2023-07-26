@@ -80,13 +80,14 @@ public class ChatHistoryController : ControllerBase
         var newChat = new ChatSession(chatParameter.Title);
         await this._sessionRepository.CreateAsync(newChat);
 
-        var initialBotMessage = this._promptOptions.InitialBotMessage;
-        // The initial bot message doesn't need a prompt.
+        // Create initial bot message
         var chatMessage = ChatMessage.CreateBotResponseMessage(
             newChat.Id,
-            initialBotMessage,
-            string.Empty);
+            this._promptOptions.InitialBotMessage,
+            string.Empty, // The initial bot message doesn't need a prompt.
+            new TokenUsage(0, 0));
         await this._messageRepository.CreateAsync(chatMessage);
+        newChat.InitialBotMessage = chatMessage;
 
         // Add the user to the chat session
         await this._participantRepository.CreateAsync(new ChatParticipant(chatParameter.UserId, newChat.Id));
