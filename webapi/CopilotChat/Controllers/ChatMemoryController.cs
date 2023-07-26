@@ -44,10 +44,11 @@ public class ChatMemoryController : ControllerBase
     }
 
     /// <summary>
-    /// Join a use to a chat session given a chat id and a user id.
+    /// Gets the semantic memory for the chat session.
     /// </summary>
-    /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
-    /// <param name="chatParticipantParam">Contains the user id and chat id.</param>
+    /// <param name="semanticTextMemory">The semantic text memory.</param>
+    /// <param name="chatId">The chat id.</param>
+    /// <param name="memoryName">Name of the memory type.</param>
     [HttpGet]
     [Route("chatMemory/{chatId:guid}/{memoryName}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -60,13 +61,15 @@ public class ChatMemoryController : ControllerBase
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
         {
-            return this.BadRequest("Chat session does not exist.");
+            this._logger.LogDebug("Chat session: {0} does not exist.", chatId);
+            return this.BadRequest($"Chat session: {chatId} does not exist.");
         }
 
         // Make sure the memory name is valid.
         if (!this.ValidateMemoryName(memoryName))
         {
-            return this.BadRequest("Memory name is invalid.");
+            this._logger.LogDebug("Memory name: {0} is invalid.", memoryName);
+            return this.BadRequest($"Memory name: {memoryName} is invalid.");
         }
 
         // Gather the requested semantic memory.
