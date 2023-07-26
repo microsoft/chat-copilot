@@ -5,7 +5,6 @@ import {
     AccordionHeader,
     AccordionItem,
     AccordionPanel,
-    Body1,
     Button,
     Dialog,
     DialogActions,
@@ -25,6 +24,7 @@ import React from 'react';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { SharedStyles, useDialogClasses } from '../../../styles';
+import { TokenUsageGraph } from '../../shared/TokenUsageGraph';
 import { SettingSection } from './SettingSection';
 
 const useClasses = makeStyles({
@@ -55,7 +55,7 @@ interface ISettingsDialogProps {
 export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDialog }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
-    const { settings } = useAppSelector((state: RootState) => state.app);
+    const { settings, tokenUsage } = useAppSelector((state: RootState) => state.app);
 
     return (
         <Dialog
@@ -68,6 +68,7 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                 <DialogBody className={classes.root}>
                     <DialogTitle>Settings</DialogTitle>
                     <DialogContent className={classes.content}>
+                        <TokenUsageGraph promptUsage={tokenUsage.prompt} dependencyUsage={tokenUsage.dependency} />
                         <Accordion collapsible multiple defaultOpenItems={['basic']}>
                             <AccordionItem value="basic">
                                 <AccordionHeader expandIconPosition="end">
@@ -83,9 +84,6 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                                     <h3>Advanced</h3>
                                 </AccordionHeader>
                                 <AccordionPanel>
-                                    <Body1 color={tokens.colorNeutralForeground3}>
-                                        Some settings are disabled by default as they are not fully supported yet.
-                                    </Body1>
                                     {settings.slice(1).map((setting) => {
                                         return <SettingSection key={setting.title} setting={setting} />;
                                     })}

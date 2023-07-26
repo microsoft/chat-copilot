@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { PlanState } from './Plan';
+import { TokenUsage } from './TokenUsage';
 
 /**
  * Role of the author of a chat message. It's a copy of AuthorRoles in the API C# code.
@@ -53,4 +54,5 @@ export interface IChatMessage {
     planState?: PlanState;
     // TODO: Persistent RLHF, view only right now
     userFeedback?: UserFeedback;
+    tokenUsage?: TokenUsage;
 }

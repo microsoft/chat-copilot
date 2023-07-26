@@ -8,9 +8,9 @@ import * as speechSdk from 'microsoft-cognitiveservices-speech-sdk';
 import React, { useRef } from 'react';
 import { Constants } from '../../Constants';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
+import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { AlertType } from '../../libs/models/AlertType';
 import { ChatMessageType } from '../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
@@ -18,6 +18,7 @@ import { editConversationInput, updateBotResponseStatus } from '../../redux/feat
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';
 import { ChatStatus } from './ChatStatus';
+import { Alerts } from './shared/Alerts';
 
 const log = debug(Constants.debug.root).extend('chat-input');
 
@@ -173,6 +174,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             <div className={classes.typingIndicator}>
                 <ChatStatus />
             </div>
+            <Alerts />
             <div className={classes.content}>
                 <Textarea
                     id="chat-input"

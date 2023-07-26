@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { AlertType } from '../../../libs/models/AlertType';
+import { TokenUsage } from '../../../libs/models/TokenUsage';
 
 export interface ActiveUserInfo {
     id: string;
@@ -28,18 +29,13 @@ export interface Setting {
     learnMoreLink?: string;
 }
 
-export interface TokenUsages {
-    prompt: number;
-    dependency: number;
-}
-
 export interface AppState {
     alerts: Alert[];
     activeUserInfo?: ActiveUserInfo;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
     // Total usage across all chats by app session
-    tokenUsage: TokenUsages;
+    tokenUsage: TokenUsage;
 }
 
 export enum FeatureKeys {

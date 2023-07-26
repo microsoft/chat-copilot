@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState, TokenUsages } from './AppState';
+import { TokenUsage } from '../../../libs/models/TokenUsage';
+import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
 export const appSlice = createSlice({
     name: 'app',
@@ -52,7 +53,7 @@ export const appSlice = createSlice({
                 },
             };
         },
-        updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsages>) => {
+        updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsage>) => {
             state.tokenUsage = {
                 prompt: state.tokenUsage.prompt + action.payload.prompt,
                 dependency: state.tokenUsage.dependency + action.payload.dependency,
