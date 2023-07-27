@@ -6,6 +6,7 @@ import { BaseService } from './BaseService';
 
 export class BotService extends BaseService {
     public downloadAsync = async (chatId: string, accessToken: string) => {
+        // TODO: [Issue #47] Add type for result. See Bot.cs
         const result = await this.getResponseAsync<object>(
             {
                 commandPath: `bot/download/${chatId}`,
@@ -18,7 +19,6 @@ export class BotService extends BaseService {
     };
 
     public uploadAsync = async (bot: Bot, userId: string, accessToken: string) => {
-        // TODO: return type
         const result = await this.getResponseAsync<IChatSession>(
             {
                 commandPath: `bot/upload?userId=${userId}`,

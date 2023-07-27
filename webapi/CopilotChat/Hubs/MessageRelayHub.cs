@@ -27,7 +27,7 @@ public class MessageRelayHub : Hub
     /// <summary>
     /// Adds the user to the groups that they are a member of.
     /// Groups are identified by the chat ID.
-    /// TODO: Retrieve the user ID from the claims and call this method
+    /// TODO: [Issue #50] Retrieve the user ID from the claims and call this method
     /// from the OnConnectedAsync method instead of the frontend.
     /// </summary>
     /// <param name="chatId">The chat ID used as group id for SignalR.</param>
