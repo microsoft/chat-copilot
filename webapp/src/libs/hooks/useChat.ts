@@ -30,6 +30,7 @@ import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
 import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
 import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
+import { TokenUsageKeys } from '../models/TokenUsage';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -133,8 +134,12 @@ export const useChat = () => {
                 });
 
             // Update token usage of current session
-            const promptTokenUsage = askResult.variables.find((v) => v.key === 'promptTokenUsage')?.value;
-            const dependencyTokenUsage = askResult.variables.find((v) => v.key === 'dependencyTokenUsage')?.value;
+            const promptTokenUsage = askResult.variables.find(
+                (v) => v.key === (TokenUsageKeys.prompt as string),
+            )?.value;
+            const dependencyTokenUsage = askResult.variables.find(
+                (v) => v.key === (TokenUsageKeys.prompt as string),
+            )?.value;
 
             dispatch(
                 updateTokenUsage({

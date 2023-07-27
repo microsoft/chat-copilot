@@ -5,3 +5,8 @@ export interface TokenUsage {
     /// Total token usage across all semantic dependencies used to generate prompt.
     dependency: number;
 }
+
+export enum TokenUsageKeys {
+    prompt = 'promptTokenUsage',
+    dependency = 'dependencyTokenUsage',
+}

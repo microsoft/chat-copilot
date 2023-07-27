@@ -137,7 +137,8 @@ public class ChatSkill
             settings: this.CreateIntentCompletionSettings()
         );
 
-        context.Variables.Set("userIntentExtractionTokenUsage", Utilities.GetTokenUsage(result).ToString(CultureInfo.InvariantCulture));
+        // Get token usage from ChatCompletion result and add to context
+        TokenUsage.CalculateChatCompletionTokenUsage(result, context, "ExtractUserIntentAsync");
 
         if (result.ErrorOccurred)
         {
@@ -182,7 +183,8 @@ public class ChatSkill
             settings: this.CreateIntentCompletionSettings()
         );
 
-        context.Variables.Set("audienceExtractionTokenUsage", Utilities.GetTokenUsage(result).ToString(CultureInfo.InvariantCulture));
+        // Get token usage from ChatCompletion result and add to context
+        TokenUsage.CalculateChatCompletionTokenUsage(result, context, "ExtractAudienceAsync");
 
         if (result.ErrorOccurred)
         {
@@ -455,9 +457,10 @@ public class ChatSkill
         var audience = await this.ExtractAudienceAsync(audienceContext);
 
         // Copy token usage into original chat context
-        if (audienceContext.Variables.TryGetValue("audienceExtractionTokenUsage", out string? tokenUsage))
+        TokenUsage.TryGetFunctionKey(context, "ExtractAudienceAsync", out string? functionKey);
+        if (audienceContext.Variables.TryGetValue(functionKey!, out string? tokenUsage))
         {
-            context.Variables.Set("audienceExtractionTokenUsage", tokenUsage);
+            context.Variables.Set(functionKey!, tokenUsage);
         }
 
         // Propagate the error
@@ -493,9 +496,10 @@ public class ChatSkill
             userIntent = await this.ExtractUserIntentAsync(intentContext);
 
             // Copy token usage into original chat context
-            if (intentContext.Variables.TryGetValue("userIntentExtractionTokenUsage", out string? tokenUsage))
+            TokenUsage.TryGetFunctionKey(context, "ExtractUserIntentAsync", out string? functionKey);
+            if (intentContext.Variables.TryGetValue(functionKey!, out string? tokenUsage))
             {
-                context.Variables.Set("userIntentExtractionTokenUsage", tokenUsage);
+                context.Variables.Set(functionKey!, tokenUsage);
             }
 
             // Propagate the error
@@ -709,7 +713,7 @@ public class ChatSkill
 
         // Total token usage of each dependency semantic function
         int dependencyTokenUsage = 0;
-        foreach (string function in TokenUsage.semanticDependencies)
+        foreach (string function in TokenUsage.semanticDependencies.Values)
         {
             if (chatContext.Variables.TryGetValue($"{function}TokenUsage", out string? tokenUsage))
             {

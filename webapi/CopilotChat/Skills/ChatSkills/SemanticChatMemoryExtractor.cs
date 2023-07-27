@@ -9,6 +9,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using SemanticKernel.Service.CopilotChat.Extensions;
+using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
 
 namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
@@ -101,9 +102,9 @@ internal static class SemanticChatMemoryExtractor
             settings: CreateMemoryExtractionSettings(options)
         );
 
-        // Since there are multiple memory types, the same variable is used to store cumulative token usage
-        int tokenUsage = context.Variables.TryGetValue("memoryExtractionTokenUsage", out string? memoryExtractionTokenUsage) ? int.Parse(memoryExtractionTokenUsage, CultureInfo.CurrentCulture) : 0;
-        context.Variables.Set("memoryExtractionTokenUsage", (Utilities.GetTokenUsage(result) + tokenUsage).ToString(CultureInfo.CurrentCulture));
+        // Get token usage from ChatCompletion result and add to context
+        // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
+        TokenUsage.CalculateChatCompletionTokenUsage(result, context, "ExtractCognitiveMemoryAsync", true);
 
         SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
         return memory;
