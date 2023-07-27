@@ -17,7 +17,7 @@ import {
     TabList,
     TabValue,
     tokens,
-    Tooltip
+    Tooltip,
 } from '@fluentui/react-components';
 import { Edit24Filled, EditRegular } from '@fluentui/react-icons';
 import React, { useEffect, useState } from 'react';
@@ -97,6 +97,8 @@ export const ChatWindow: React.FC = () => {
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
     const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
+
+    console.log('fake change to test github workflow');
 
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const chatName = conversations[selectedId].title;
@@ -207,17 +209,22 @@ export const ChatWindow: React.FC = () => {
                     </TabList>
                 </div>
                 <div className={classes.controls}>
-                    <div data-testid='chatParticipantsView'> 
+                    <div data-testid="chatParticipantsView">
                         <ParticipantsList participants={conversations[selectedId].users} />
                     </div>
-                    <div> <ShareBotMenu chatId={selectedId} chatTitle={title} /></div>
+                    <div>
+                        {' '}
+                        <ShareBotMenu chatId={selectedId} chatTitle={title} />
+                    </div>
                 </div>
             </div>
             {selectedTab === 'chat' && <ChatRoom />}
             {selectedTab === 'documents' && <ChatResourceList />}
-            {selectedTab !== 'chat' && <div className={classes.alerts}>
-                <Alerts />
-            </div>}
+            {selectedTab !== 'chat' && (
+                <div className={classes.alerts}>
+                    <Alerts />
+                </div>
+            )}
         </div>
     );
 };
