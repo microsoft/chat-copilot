@@ -4,8 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "auth": "vsts-npm-auth -config .npmrc",
-    "auth:mac": "better-vsts-npm-auth -config .npmrc",
     "depcheck": "depcheck --ignores=\"@types/*,typescript\" --ignore-dirs=\".vscode,.vs,.git,node_modules\" --skip-missing",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
@@ -39,7 +37,6 @@
     "@types/node": "^20.4.4",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
-    "better-vsts-npm-auth": "^7.0.0",
     "depcheck": "^1.4.3",
     "eslint": "^8.42.0",
     "http-server": "^14.1.1",
@@ -47,7 +44,6 @@
     "react-scripts": "^5.0.1",
     "serve": "^14.2.0",
     "typescript": "5.1.6",
-    "vsts-npm-auth": "^0.42.1",
     "workbox-window": "^7.0.0"
   },
   "eslintConfig": {
