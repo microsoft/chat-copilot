@@ -9,6 +9,7 @@ import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
     addConversation,
+    editConversationTitle,
     setConversations,
     setSelectedConversation,
 } from '../../redux/features/conversations/conversationsSlice';
@@ -130,6 +131,16 @@ export const useChat = () => {
             );
         } catch (e: any) {
             const errorMessage = `Unable to generate bot response. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+        }
+    };
+
+    const editChatName = async (chatId: string, title: string) => {
+        try {
+            await chatService.editChatAsync(chatId, title, await AuthHelper.getSKaaSAccessToken(instance, inProgress));
+            dispatch(editConversationTitle({ id: chatId, newTitle: title }));
+        } catch (e: any) {
+            const errorMessage = `Failed to submit title edit. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };
@@ -285,6 +296,7 @@ export const useChat = () => {
     return {
         getChatUserById,
         createChat,
+        editChatName,
         loadChats,
         getResponse,
         downloadBot,

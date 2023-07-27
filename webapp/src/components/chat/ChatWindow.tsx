@@ -21,10 +21,10 @@ import React, { useState } from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { FeatureKeys } from '../../redux/features/app/AppState';
+import { Alerts } from '../shared/Alerts';
 import { ChatRoom } from './ChatRoom';
 import { ParticipantsList } from './controls/ParticipantsList';
 import { ShareBotMenu } from './controls/ShareBotMenu';
-import { Alerts } from './shared/Alerts';
 import { EditChatName } from './shared/EditChatName';
 import { DocumentsTab } from './tabs/DocumentsTab';
 import { PersonaTab } from './tabs/PersonaTab';
@@ -126,7 +126,9 @@ export const ChatWindow: React.FC = () => {
                                             data-testid="editChatTitleButton"
                                             icon={isEditing ? <Edit24Filled /> : <EditRegular />}
                                             appearance="transparent"
-                                            onClick={() => setIsEditing(true)}
+                                            onClick={() => {
+                                                setIsEditing(true);
+                                            }}
                                             disabled={!chatName}
                                             aria-label="Edit conversation name"
                                         />
@@ -137,7 +139,9 @@ export const ChatWindow: React.FC = () => {
                                     <EditChatName
                                         name={chatName}
                                         chatId={selectedId}
-                                        exitEdits={() => setIsEditing(false)}
+                                        exitEdits={() => {
+                                            setIsEditing(false);
+                                        }}
                                         textButtons
                                     />
                                 </PopoverSurface>

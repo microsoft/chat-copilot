@@ -7,7 +7,7 @@ import {
     makeStyles,
     mergeClasses,
     shorthands,
-    Text,
+    Subtitle2Stronger,
     tokens,
 } from '@fluentui/react-components';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
@@ -70,6 +70,7 @@ const useClasses = makeStyles({
         ...Breakpoints.small({
             display: 'none',
         }),
+        fontSize: tokens.fontSizeBase500,
     },
     input: {
         flexGrow: 1,
@@ -186,14 +187,12 @@ export const ChatList: FC = () => {
                     <>
                         {!isFiltering && (
                             <>
-                                <Text weight="bold" size={500} className={classes.title} as="h2">
-                                    Conversations
-                                </Text>
+                                <Subtitle2Stronger className={classes.title}>Conversations</Subtitle2Stronger>
                                 <Button icon={<Filter20 />} appearance="transparent" onClick={onFilterClick} />
                                 <NewBotMenu onFileUpload={() => fileUploaderRef.current?.click()} />
                                 <FileUploader
                                     ref={fileUploaderRef}
-                                    acceptedExtensions={['.txt', '.json']}
+                                    acceptedExtensions={['.json']}
                                     onSelectedFile={onUpload}
                                 />
                             </>

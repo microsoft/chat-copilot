@@ -1,15 +1,12 @@
-import { useMsal } from '@azure/msal-react';
 import { Button } from '@fluentui/react-button';
 import { makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import { Input, InputOnChangeData } from '@fluentui/react-input';
 import { useEffect, useState } from 'react';
-import { AuthHelper } from '../../../libs/auth/AuthHelper';
+import { useChat } from '../../../libs/hooks';
 import { AlertType } from '../../../libs/models/AlertType';
-import { ChatService } from '../../../libs/services/ChatService';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { addAlert } from '../../../redux/features/app/appSlice';
-import { editConversationTitle } from '../../../redux/features/conversations/conversationsSlice';
 import { Breakpoints } from '../../../styles';
 import { Checkmark20, Dismiss20 } from '../../shared/BundledIcons';
 
@@ -39,9 +36,8 @@ interface IEditChatNameProps {
 export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitEdits, textButtons }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
-    const { instance, inProgress } = useMsal();
-    const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const chat = useChat();
 
     const [title = '', setTitle] = useState<string | undefined>(name);
 
@@ -51,8 +47,7 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
 
     const onSaveTitleChange = async () => {
         if (name !== title) {
-            await chatService.editChatAsync(chatId, title, await AuthHelper.getSKaaSAccessToken(instance, inProgress));
-            dispatch(editConversationTitle({ id: chatId, newTitle: title }));
+            await chat.editChatName(chatId, title);
         }
         exitEdits();
     };

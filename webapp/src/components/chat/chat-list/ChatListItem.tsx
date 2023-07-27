@@ -143,7 +143,7 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                         }
                     />
                     {editingTitle ? (
-                        <EditChatName name={header} chatId={id} exitEdits={() => setEditingTitle(false)} />
+                        <EditChatName name={header} chatId={id} exitEdits={() => { setEditingTitle(false) }} />
                     ) : (
                         <>
                             <div className={classes.body}>
@@ -178,7 +178,7 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                                 <ListItemActions
                                     chatId={id}
                                     chatName={header}
-                                    onEditTitleClick={() => setEditingTitle(true)}
+                                    onEditTitleClick={() => { setEditingTitle(true); }}
                                 />
                             )}
                         </>
