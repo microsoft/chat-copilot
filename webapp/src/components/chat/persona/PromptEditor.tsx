@@ -8,7 +8,7 @@ import {
     Textarea,
     makeStyles,
     shorthands,
-    tokens
+    tokens,
 } from '@fluentui/react-components';
 import React from 'react';
 import { AlertType } from '../../../libs/models/AlertType';
@@ -41,13 +41,7 @@ interface PromptEditorProps {
     modificationHandler?: (value: string) => Promise<void>;
 }
 
-export const PromptEditor: React.FC<PromptEditorProps> = ({
-    title,
-    prompt,
-    isEditable,
-    info,
-    modificationHandler,
-}) => {
+export const PromptEditor: React.FC<PromptEditorProps> = ({ title, prompt, isEditable, info, modificationHandler }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const [value, setValue] = React.useState<string>(prompt);
@@ -76,13 +70,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             <div className={classes.horizontal}>
                 <h3>{title}</h3>
                 <Popover withArrow>
-                        <PopoverTrigger disableButtonEnhancement>
-                            <Button icon={<Info16 />} appearance="transparent" />
-                        </PopoverTrigger>
-                        <PopoverSurface>
-                            {info}
-                        </PopoverSurface>
-                    </Popover>
+                    <PopoverTrigger disableButtonEnhancement>
+                        <Button icon={<Info16 />} appearance="transparent" />
+                    </PopoverTrigger>
+                    <PopoverSurface>{info}</PopoverSurface>
+                </Popover>
             </div>
             <Textarea
                 resize="vertical"
@@ -92,13 +84,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
                     setValue(data.value);
                 }}
             />
-            {isEditable &&
+            {isEditable && (
                 <div className={classes.controls}>
-                    <Button onClick={() => onSaveButtonClick()}>
-                        Save
-                    </Button>
+                    <Button onClick={onSaveButtonClick}>Save</Button>
                 </div>
-            }
+            )}
         </div>
     );
 };
