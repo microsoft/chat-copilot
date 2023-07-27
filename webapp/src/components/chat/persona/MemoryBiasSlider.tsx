@@ -57,7 +57,7 @@ export const MemoryBiasSlider: React.FC = () => {
     }, [chatState]);
 
     const sliderValueChange = (value: number) => {
-        chat.editChat(selectedId, chatState.title, chatState.systemDescription, value / 100).finally(() => {
+        void chat.editChat(selectedId, chatState.title, chatState.systemDescription, value / 100).finally(() => {
             setBalance(value);
             dispatch(
                 editConversationMemoryBalance({
@@ -83,7 +83,14 @@ export const MemoryBiasSlider: React.FC = () => {
             </div>
             <div>
                 <Label>Short Term</Label>
-                <Slider min={0} max={100} value={balance} onChange={(_, data) => sliderValueChange(data.value)} />
+                <Slider
+                    min={0}
+                    max={100}
+                    value={balance}
+                    onChange={(_, data) => {
+                        sliderValueChange(data.value);
+                    }}
+                />
                 <Label>Long Term</Label>
             </div>
         </div>
