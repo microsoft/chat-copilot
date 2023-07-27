@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -7,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
+using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
+using SemanticKernel.Service.CopilotChat.Storage;
 
 namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
 
@@ -16,18 +19,19 @@ namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
 /// </summary>
 public class SemanticChatMemorySkill
 {
-    /// <summary>
-    /// Prompt settings.
-    /// </summary>
     private readonly PromptsOptions _promptOptions;
+
+    private readonly ChatSessionRepository _chatSessionRepository;
 
     /// <summary>
     /// Create a new instance of SemanticChatMemorySkill.
     /// </summary>
     public SemanticChatMemorySkill(
-        IOptions<PromptsOptions> promptOptions)
+        IOptions<PromptsOptions> promptOptions,
+        ChatSessionRepository chatSessionRepository)
     {
         this._promptOptions = promptOptions.Value;
+        this._chatSessionRepository = chatSessionRepository;
     }
 
     /// <summary>
@@ -43,6 +47,12 @@ public class SemanticChatMemorySkill
         [Description("Maximum number of tokens")] int tokenLimit,
         ISemanticTextMemory textMemory)
     {
+        ChatSession? chatSession = null;
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
+        {
+            throw new ArgumentException($"Chat session {chatId} not found.");
+        }
+
         var remainingToken = tokenLimit;
 
         // Search for relevant memories.
@@ -53,7 +63,7 @@ public class SemanticChatMemorySkill
                 SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName),
                 query,
                 limit: 100,
-                minRelevanceScore: this._promptOptions.SemanticMemoryMinRelevance);
+                minRelevanceScore: this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance));
             await foreach (var memory in results)
             {
                 relevantMemories.Add(memory);
@@ -85,4 +95,48 @@ public class SemanticChatMemorySkill
 
         return $"Past memories (format: [memory type] <label>: <details>):\n{memoryText.Trim()}";
     }
+
+    #region Private
+
+    /// <summary>
+    /// Calculates the relevance threshold for the memory.
+    /// The relevance threshold is a function of the memory balance.
+    /// The memory balance is a value between 0 and 1, where 0 means maximum focus on
+    /// working term memory (by minimizing the relevance threshold for working memory
+    /// and maximizing the relevance threshold for long term memory), and 1 means
+    /// maximum focus on long term memory (by minimizing the relevance threshold for
+    /// long term memory and maximizing the relevance threshold for working memory).
+    /// The memory balance controls two 1st degree polynomials defined by the lower
+    /// and upper bounds, one for long term memory and one for working memory.
+    /// The relevance threshold is the value of the polynomial at the memory balance.
+    /// </summary>
+    /// <param name="memoryName">The name of the memory.</param>
+    /// <param name="memoryBalance">The balance between long term memory and working term memory.</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">Thrown when the memory name is invalid.</exception>
+    private double CalculateRelevanceThreshold(string memoryName, double memoryBalance)
+    {
+        var upper = this._promptOptions.SemanticMemoryRelevanceUpper;
+        var lower = this._promptOptions.SemanticMemoryRelevanceLower;
+
+        if (memoryBalance < 0.0 || memoryBalance > 1.0)
+        {
+            throw new ArgumentException($"Invalid memory balance: {memoryBalance}");
+        }
+
+        if (memoryName == this._promptOptions.LongTermMemoryName)
+        {
+            return (lower - upper) * memoryBalance + upper;
+        }
+        else if (memoryName == this._promptOptions.WorkingMemoryName)
+        {
+            return (upper - lower) * memoryBalance + lower;
+        }
+        else
+        {
+            throw new ArgumentException($"Invalid memory name: {memoryName}");
+        }
+    }
+
+    # endregion
 }

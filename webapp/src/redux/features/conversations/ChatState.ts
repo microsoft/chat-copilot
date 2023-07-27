@@ -6,6 +6,8 @@ import { IChatUser } from '../../../libs/models/ChatUser';
 export interface ChatState {
     id: string;
     title: string;
+    systemDescription: string;
+    memoryBalance: number;
     users: IChatUser[];
     messages: IChatMessage[];
     botProfilePicture: string;
