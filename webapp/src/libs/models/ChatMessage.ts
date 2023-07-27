@@ -52,7 +52,7 @@ export interface IChatMessage {
     authorRole: AuthorRoles;
     debug?: string;
     planState?: PlanState;
-    // TODO: Persistent RLHF, view only right now
+    // TODO: [Issue #42] Persistent RLHF
     userFeedback?: UserFeedback;
     tokenUsage?: TokenUsage;
 }

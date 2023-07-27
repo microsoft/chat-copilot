@@ -130,8 +130,6 @@ public class ExternalInformationSkill
                 // Parameters stored in plan's top level
                 this.MergeContextIntoPlan(context.Variables, plan.Parameters);
 
-                // TODO: Improve Kernel to give developers option to skip this override 
-                // (i.e., keep functions regardless of whether they're available in the planner's context or not)
                 Plan sanitizedPlan = this.SanitizePlan(plan, context);
                 sanitizedPlan.Parameters.Update(plan.Parameters);
 

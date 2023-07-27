@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, useMsal } from '@azure/msal-react';
-import { Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
+import { FluentProvider, Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 import * as React from 'react';
 import { FC, useEffect } from 'react';
-import { UserSettings } from './components/header/UserSettings';
+import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
 import BackendProbe from './components/views/BackendProbe';
 import { ChatView } from './components/views/ChatView';
@@ -15,7 +15,9 @@ import { useChat } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
+import { FeatureKeys } from './redux/features/app/AppState';
 import { addAlert, setActiveUserInfo } from './redux/features/app/appSlice';
+import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
 
 export const useClasses = makeStyles({
     container: {
@@ -61,7 +63,7 @@ const App: FC = () => {
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
@@ -98,13 +100,16 @@ const App: FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [instance, inProgress, isAuthenticated, appState]);
 
-    // TODO: handle error case of missing account information
+    // TODO: [Issue #41] handle error case of missing account information
     return (
-        <div>
+        <FluentProvider
+            className="app-container"
+            theme={features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme}
+        >
             <UnauthenticatedTemplate>
                 <div className={classes.container}>
                     <div className={classes.header}>
-                        <Subtitle1 as="h1">Copilot Chat</Subtitle1>
+                        <Subtitle1 as="h1">Chat Copilot</Subtitle1>
                     </div>
                     {appState === AppState.SigningOut && <Loading text="Signing you out..." />}
                     {appState !== AppState.SigningOut && <Login />}
@@ -113,14 +118,16 @@ const App: FC = () => {
             <AuthenticatedTemplate>
                 <div className={classes.container}>
                     <div className={classes.header}>
-                        <Subtitle1 as="h1">Copilot Chat</Subtitle1>
-                        <div data-testid="logOutMenuList" className={classes.cornerItems}>
-                            <PluginGallery />
-                            <UserSettings
-                                setLoadingState={() => {
-                                    setAppState(AppState.SigningOut);
-                                }}
-                            />
+                        <Subtitle1 as="h1">Chat Copilot</Subtitle1>
+                        <div className={classes.cornerItems}>
+                            <div data-testid="logOutMenuList" className={classes.cornerItems}>
+                                <PluginGallery />
+                                <UserSettingsMenu
+                                    setLoadingState={() => {
+                                        setAppState(AppState.SigningOut);
+                                    }}
+                                />
+                            </div>
                         </div>
                     </div>
                     {appState === AppState.ProbeForBackend && (
@@ -135,7 +142,7 @@ const App: FC = () => {
                     {appState === AppState.Chat && <ChatView />}
                 </div>
             </AuthenticatedTemplate>
-        </div>
+        </FluentProvider>
     );
 };
 

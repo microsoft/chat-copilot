@@ -173,7 +173,7 @@ public class ChatHistoryController : ControllerBase
         [FromQuery] int startIdx = 0,
         [FromQuery] int count = -1)
     {
-        // TODO: the code mixes strings and Guid without being explicit about the serialization format
+        // TODO:  [Issue #48] the code mixes strings and Guid without being explicit about the serialization format
         var chatMessages = await this._messageRepository.FindByChatIdAsync(chatId.ToString());
         if (!chatMessages.Any())
         {
