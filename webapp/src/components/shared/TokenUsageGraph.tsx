@@ -72,9 +72,10 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, prompt
                     </PopoverTrigger>
                     <PopoverSurface className={classes.popover}>
                         <Body1>
-                            <Body1Strong>Prompt token usage</Body1Strong> is the number of tokens used in the bot
-                            generation prompt. <Body1Strong>Dependency token usage</Body1Strong> is the number of tokens
-                            used in dependency prompts called to construct the bot generation prompt.
+                            <Body1Strong>Prompt token usage</Body1Strong> is the total number of tokens used in
+                            completion of the bot generation prompt. <Body1Strong>Dependency token usage</Body1Strong>{' '}
+                            is the cumulative total of tokens used in completion of dependency prompts called to
+                            construct the bot generation prompt.
                         </Body1>
                     </PopoverSurface>
                 </Popover>

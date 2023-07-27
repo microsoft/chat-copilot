@@ -29,12 +29,6 @@ public class ChatSession : IStorageEntity
     [JsonPropertyName("createdOn")]
     public DateTimeOffset CreatedOn { get; set; }
 
-    /// <summary>
-    /// Initial bot message.
-    /// </summary>
-    [JsonPropertyName("initialBotMessage")]
-    public ChatMessage? InitialBotMessage { get; set; }
-
     public ChatSession(string title)
     {
         this.Id = Guid.NewGuid().ToString();
