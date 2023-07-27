@@ -54,13 +54,13 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, prompt
     dependencyUsage = Number(dependencyUsage);
 
     const classes = useClasses();
-    const maxWidth = 500;
+    const MAX_WIDTH = 500;
     const totalUsage = promptUsage + dependencyUsage;
     const promptPercentage = promptUsage / totalUsage;
     const dependencyPercentage = dependencyUsage / totalUsage;
 
-    const promptWidth = promptPercentage * maxWidth;
-    const dependencyWidth = dependencyPercentage * maxWidth;
+    const promptWidth = promptPercentage * MAX_WIDTH;
+    const dependencyWidth = dependencyPercentage * MAX_WIDTH;
 
     return (
         <>
