@@ -75,7 +75,7 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
                     setErrorMessage(`Could not authenticate to ${name}. Check your permissions and try again.`);
                 });
         } else if (oauthRequired) {
-            // TODO: implement OAuth Flow
+            // TODO: [Issue #44] implement OAuth Flow
         } else {
             // Basic Auth or PAT
             dispatch(
