@@ -20,7 +20,6 @@ using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Skills;
 using SemanticKernel.Service.CopilotChat.Storage;
 using SemanticKernel.Service.Services;
-using Tesseract;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using static SemanticKernel.Service.CopilotChat.Models.MemorySource;
@@ -71,13 +70,14 @@ public class DocumentImportController : ControllerBase
 
     private readonly ILogger<DocumentImportController> _logger;
     private readonly DocumentMemoryOptions _options;
+    private readonly OcrSupportOptions _ocrSupportOptions;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
-    private readonly ITesseractEngine _tesseractEngine;
+    private readonly IOcrEngine _ocrEngine;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -85,19 +85,21 @@ public class DocumentImportController : ControllerBase
     public DocumentImportController(
         ILogger<DocumentImportController> logger,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
+        IOptions<OcrSupportOptions> ocrSupportOptions,
         ChatSessionRepository sessionRepository,
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
-        ITesseractEngine tesseractEngine)
+        IOcrEngine ocrEngine)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
+        this._ocrSupportOptions = ocrSupportOptions.Value;
         this._sessionRepository = sessionRepository;
         this._sourceRepository = sourceRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
-        this._tesseractEngine = tesseractEngine;
+        this._ocrEngine = ocrEngine;
     }
 
     /// <summary>
@@ -259,8 +261,28 @@ public class DocumentImportController : ControllerBase
             }
 
             // Make sure the file type is supported.
-            // GetFileType throws ArgumentOutOfRangeException if the file type is not supported.
-            this.GetFileType(Path.GetFileName(formFile.FileName));
+            var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
+            switch (fileType)
+            {
+                case SupportedFileType.Txt:
+                case SupportedFileType.Pdf:
+                    break;
+                case SupportedFileType.Jpg:
+                case SupportedFileType.Png:
+                case SupportedFileType.Tiff:
+                {
+                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
+                    {
+                        break;
+                    }
+
+                    throw new ArgumentException($"Unsupported image file type: {fileType} when " +
+                        $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
+                        nameof(OcrSupportOptions.OcrSupportType.None));
+                }
+                default:
+                    throw new ArgumentException($"Unsupported file type: {fileType}");
+            }
         }
     }
 
@@ -455,17 +477,8 @@ public class DocumentImportController : ControllerBase
     /// <returns>A string of the content of the file.</returns>
     private async Task<string> ReadTextFromImageFileAsync(IFormFile file)
     {
-        await using (var ms = new MemoryStream())
-        {
-            await file.CopyToAsync(ms);
-            var fileBytes = ms.ToArray();
-            await using var imgStream = new MemoryStream(fileBytes);
-
-            using var img = Pix.LoadFromMemory(imgStream.ToArray());
-
-            using var page = this._tesseractEngine.Process(img);
-            return page.GetText();
-        }
+        var textFromFile = await this._ocrEngine.ReadTextFromImageFileAsync(file);
+        return textFromFile;
     }
 
     /// <summary>

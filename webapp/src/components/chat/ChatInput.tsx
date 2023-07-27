@@ -132,7 +132,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             // Deep copy the FileList into an array so that the function
             // maintains a list of files to import before the import is complete.
             const filesArray = Array.from(files);
-            chat.importDocument(selectedId, filesArray).finally(() => {
+            void chat.importDocument(selectedId, filesArray).finally(() => {
                 setDocumentImporting(false);
             });
         }
