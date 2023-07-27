@@ -96,16 +96,16 @@ export const DocumentsTab: React.FC = () => {
     React.useEffect(() => {
         const importingResources = importingDocuments
             ? importingDocuments.map((document, index) => {
-                return {
-                    id: `in-progress-${index}`,
-                    chatId: selectedId,
-                    sourceType: "N/A",
-                    name: document,
-                    sharedBy: "N/A",
-                    createdOn: 0,
-                    tokens: 0,
-                } as ChatMemorySource;
-            })
+                  return {
+                      id: `in-progress-${index}`,
+                      chatId: selectedId,
+                      sourceType: 'N/A',
+                      name: document,
+                      sharedBy: 'N/A',
+                      createdOn: 0,
+                      tokens: 0,
+                  } as ChatMemorySource;
+              })
             : [];
         setResources(importingResources);
 
@@ -125,16 +125,20 @@ export const DocumentsTab: React.FC = () => {
             // maintains a list of files to import before the import is complete.
             const filesArray = Array.from(files);
 
-            dispatch(setImportingDocumentsToConversation({
-                importingDocuments: filesArray.map((file) => file.name),
-                chatId: selectedId
-            }));
+            dispatch(
+                setImportingDocumentsToConversation({
+                    importingDocuments: filesArray.map((file) => file.name),
+                    chatId: selectedId,
+                }),
+            );
 
             void chat.importDocument(selectedId, filesArray).finally(() => {
-                dispatch(setImportingDocumentsToConversation({
-                    importingDocuments: [],
-                    chatId: selectedId
-                }));
+                dispatch(
+                    setImportingDocumentsToConversation({
+                        importingDocuments: [],
+                        chatId: selectedId,
+                    }),
+                );
             });
         }
 
@@ -290,7 +294,7 @@ function useTable(resources: ChatMemorySource[]) {
                 <TableCell key={`${item.id}-progress`}>
                     <ProgressBar
                         max={1}
-                        value={item.id.startsWith('in-progress') ? undefined : 1}   // Hack: tokens stores the progress bar percentage.
+                        value={item.id.startsWith('in-progress') ? undefined : 1} // Hack: tokens stores the progress bar percentage.
                         shape="rounded"
                         thickness="large"
                         color={item.id.startsWith('in-progress') ? 'brand' : 'success'}

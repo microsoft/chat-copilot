@@ -36,13 +36,13 @@ public class Bot
     /// </summary>
     public List<ChatMessage> ChatHistory { get; set; } = new List<ChatMessage>();
 
-    // TODO: Change from MemoryQueryResult to MemoryRecord
+    // TODO: [Issue #47] Change from MemoryQueryResult to MemoryRecord
     /// <summary>
     /// The embeddings of the bot.
     /// </summary>
     public List<KeyValuePair<string, List<MemoryQueryResult>>> Embeddings { get; set; } = new List<KeyValuePair<string, List<MemoryQueryResult>>>();
 
-    // TODO: Change from MemoryQueryResult to MemoryRecord
+    // TODO: [Issue #47] Change from MemoryQueryResult to MemoryRecord
     /// <summary>
     /// The embeddings of uploaded documents in Copilot Chat. It represents the document memory which is accessible to all chat sessions of a given user.
     /// </summary>

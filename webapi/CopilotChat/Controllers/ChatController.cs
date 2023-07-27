@@ -237,7 +237,7 @@ public class ChatController : ControllerBase, IDisposable
                         // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
                         uriBuilder.Path = "/.well-known/ai-plugin.json";
 
-                        // TODO: Support other forms of auth. Currently, we only support user PAT or no auth.
+                        // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
