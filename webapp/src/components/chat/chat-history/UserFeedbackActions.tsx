@@ -49,7 +49,9 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     icon={<ThumbLike16 />}
                     appearance="transparent"
                     aria-label="Edit"
-                    onClick={() => onUserFeedbackProvided(true)}
+                    onClick={() => {
+                        onUserFeedbackProvided(true);
+                    }}
                 />
             </Tooltip>
             <Tooltip content={'Dislike bot message'} relationship="label">
@@ -57,7 +59,9 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     icon={<ThumbDislike16 />}
                     appearance="transparent"
                     aria-label="Edit"
-                    onClick={() => onUserFeedbackProvided(false)}
+                    onClick={() => {
+                        onUserFeedbackProvided(false);
+                    }}
                 />
             </Tooltip>
         </div>
