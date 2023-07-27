@@ -49,7 +49,7 @@ test.describe('Copilot Chat App Test Suite', () => {
             await plannertests.jiraTest(page);
         });
 
-        // Todo: [Issue #46] Action Planner intermittently returns a 400 error
+        // TODO: [Issue #46] Action Planner intermittently returns a 400 error
         // skipping test for the time being
         test.skip('Github', async ({ page }) => {
             test.setTimeout(util.TestTimeout);

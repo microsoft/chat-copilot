@@ -147,7 +147,7 @@ export async function disablePluginAndEvaluateResponse(page, input, chatbotRespo
     // If a plugin has been enabled, the action planner is invoked to perform the evaluation.
     // This leads to a weird json exception and crash.
     // To workaround this im performing the evaluation after disabling the plugin.
-    // Todo: [Issue #46] Fix above issue
+    // TODO: [Issue #46] Fix above issue
     await disablePluginAndClosePopUp(page);
     // Start the evaluation in a new chat context, otherwise the LLM sometimes thinks that
     // there is circular logic involved and wont give you a useful response

@@ -41,7 +41,7 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
     return keys.length > 0 ? (
         <div className={classes.root}>
             <Text className={classes.header}>{header}</Text>
-            {Object.keys(conversations).map((id) => {
+            {keys.map((id) => {
                 const convo = conversations[id];
                 const messages = convo.messages;
                 const lastMessage = messages[convo.messages.length - 1];

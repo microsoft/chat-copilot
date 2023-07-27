@@ -24,7 +24,7 @@ import { SettingsDialog } from './settings-dialog/SettingsDialog';
 
 export const useClasses = makeStyles({
     root: {
-        marginRight: '20px',
+        marginRight: tokens.spacingHorizontalXL,
     },
     persona: {
         ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingVerticalMNudge),
