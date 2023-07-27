@@ -13,7 +13,7 @@ public class QdrantOptions
     /// Gets or sets the endpoint protocol and host (e.g. http://localhost).
     /// </summary>
     [Required, Url]
-    public string Host { get; set; } = string.Empty; // TODO update to use System.Uri
+    public string Host { get; set; } = string.Empty; // TODO: [Issue #48] update to use System.Uri
 
     /// <summary>
     /// Gets or sets the endpoint port.
