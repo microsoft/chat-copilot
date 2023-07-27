@@ -115,15 +115,15 @@ public class BotController : ControllerBase
 
         // Upload chat history into chat repository and embeddings into memory.
 
-        // 1. Create a new chat and get the chat id.
-        newChat = new ChatSession(chatTitle);
+        // Create a new chat and get the chat id.
+        newChat = new ChatSession(chatTitle, bot.SystemDescription);
         await this._chatRepository.CreateAsync(newChat);
         await this._chatParticipantRepository.CreateAsync(new ChatParticipant(userId, newChat.Id));
         chatId = newChat.Id;
 
         string oldChatId = bot.ChatHistory.First().ChatId;
 
-        // 2. Update the app's chat storage.
+        // Update the app's chat storage.
         foreach (var message in bot.ChatHistory)
         {
             var chatMessage = new ChatMessage(
@@ -139,7 +139,7 @@ public class BotController : ControllerBase
             await this._chatMessageRepository.CreateAsync(chatMessage);
         }
 
-        // 3. Update the memory.
+        // Update the memory.
         await this.BulkUpsertMemoryRecordsAsync(oldChatId, chatId, bot.Embeddings, cancellationToken);
 
         // TODO: [Issue #47] Revert changes if any of the actions failed
@@ -253,6 +253,9 @@ public class BotController : ControllerBase
         // get the chat title
         ChatSession chat = await this._chatRepository.FindByIdAsync(chatIdString);
         bot.ChatTitle = chat.Title;
+
+        // get the system description
+        bot.SystemDescription = chat.SystemDescription;
 
         // get the chat history
         bot.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);

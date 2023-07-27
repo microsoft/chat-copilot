@@ -155,8 +155,9 @@ public class DocumentImportController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
+            var userId = documentImportForm.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
-                .SendAsync(ReceiveMessageClientCall, chatMessage, chatId);
+                .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
             return this.Ok(chatMessage);
         }

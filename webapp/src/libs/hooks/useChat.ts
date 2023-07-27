@@ -9,7 +9,6 @@ import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
     addConversation,
-    editConversationTitle,
     setConversations,
     setSelectedConversation,
 } from '../../redux/features/conversations/conversationsSlice';
@@ -79,6 +78,8 @@ export const useChat = () => {
                 const newChat: ChatState = {
                     id: result.id,
                     title: result.title,
+                    systemDescription: result.systemDescription,
+                    memoryBalance: result.memoryBalance,
                     messages: chatMessages,
                     users: [loggedInUser],
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
@@ -135,16 +136,6 @@ export const useChat = () => {
         }
     };
 
-    const editChatName = async (chatId: string, title: string) => {
-        try {
-            await chatService.editChatAsync(chatId, title, await AuthHelper.getSKaaSAccessToken(instance, inProgress));
-            dispatch(editConversationTitle({ id: chatId, newTitle: title }));
-        } catch (e: any) {
-            const errorMessage = `Failed to submit title edit. Details: ${getErrorDetails(e)}`;
-            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
-        }
-    };
-
     const loadChats = async () => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
@@ -160,6 +151,8 @@ export const useChat = () => {
                     loadedConversations[chatSession.id] = {
                         id: chatSession.id,
                         title: chatSession.title,
+                        systemDescription: chatSession.systemDescription,
+                        memoryBalance: chatSession.memoryBalance,
                         users: chatUsers,
                         messages: chatMessages,
                         botProfilePicture: getBotProfilePicture(Object.keys(loadedConversations).length),
@@ -238,6 +231,21 @@ export const useChat = () => {
         return [];
     };
 
+    const getSemanticMemories = async (chatId: string, memoryName: string) => {
+        try {
+            return await chatService.getSemanticMemoriesAsync(
+                chatId,
+                memoryName,
+                await AuthHelper.getSKaaSAccessToken(instance, inProgress),
+            );
+        } catch (e: any) {
+            const errorMessage = `Unable to get semantic memories. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+        }
+
+        return [];
+    };
+
     const importDocument = async (chatId: string, files: File[]) => {
         try {
             await documentImportService.importDocumentAsync(
@@ -275,6 +283,8 @@ export const useChat = () => {
                 const newChat: ChatState = {
                     id: result.id,
                     title: result.title,
+                    systemDescription: result.systemDescription,
+                    memoryBalance: result.memoryBalance,
                     messages: chatMessages,
                     users: chatUsers,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
@@ -293,17 +303,28 @@ export const useChat = () => {
         return { success: true, message: '' };
     };
 
+    const editChat = async (chatId: string, title: string, syetemDescription: string, memoryBalance: number) => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        try {
+            await chatService.editChatAsync(chatId, title, syetemDescription, memoryBalance, accessToken);
+        } catch (e: any) {
+            const errorMessage = `Error editing chat ${chatId}. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+        }
+    };
+
     return {
         getChatUserById,
         createChat,
-        editChatName,
         loadChats,
         getResponse,
         downloadBot,
         uploadBot,
         getChatMemorySources,
+        getSemanticMemories,
         importDocument,
         joinChat,
+        editChat,
     };
 };
 
