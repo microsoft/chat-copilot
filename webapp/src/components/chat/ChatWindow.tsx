@@ -181,7 +181,7 @@ export const ChatWindow: React.FC = () => {
                 </div>
             </div>
             {selectedTab === 'chat' && <ChatRoom />}
-            {selectedTab === 'documents' && <DocumentsTab chatId={selectedId} />}
+            {selectedTab === 'documents' && <DocumentsTab />}
             {selectedTab === 'plans' && <PlansTab />}
             {selectedTab === 'persona' && <PersonaTab />}
             {selectedTab !== 'chat' && (
