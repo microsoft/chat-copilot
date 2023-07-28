@@ -114,7 +114,7 @@ public class ChatSkill
         var historyTokenBudget =
             tokenLimit -
             this._promptOptions.ResponseTokenLimit -
-            Utilities.TokenCount(string.Join("\n", new string[]
+            TokenUtilities.TokenCount(string.Join("\n", new string[]
                 {
                     this._promptOptions.SystemDescription,
                     this._promptOptions.SystemIntent,
@@ -138,7 +138,7 @@ public class ChatSkill
         );
 
         // Get token usage from ChatCompletion result and add to context
-        TokenUsage.CalculateChatCompletionTokenUsage(result, context, "ExtractUserIntentAsync");
+        TokenUtilities.GetFunctionTokenUsage(result, context, "SystemIntentExtraction");
 
         if (result.ErrorOccurred)
         {
@@ -162,7 +162,7 @@ public class ChatSkill
         var historyTokenBudget =
             tokenLimit -
             this._promptOptions.ResponseTokenLimit -
-            Utilities.TokenCount(string.Join("\n", new string[]
+            TokenUtilities.TokenCount(string.Join("\n", new string[]
                 {
                     this._promptOptions.SystemAudience,
                     this._promptOptions.SystemAudienceContinuation,
@@ -184,7 +184,7 @@ public class ChatSkill
         );
 
         // Get token usage from ChatCompletion result and add to context
-        TokenUsage.CalculateChatCompletionTokenUsage(result, context, "ExtractAudienceAsync");
+        TokenUtilities.GetFunctionTokenUsage(result, context, "SystemAudienceExtraction");
 
         if (result.ErrorOccurred)
         {
@@ -233,7 +233,7 @@ public class ChatSkill
                 }
             }
 
-            var tokenCount = Utilities.TokenCount(formattedMessage);
+            var tokenCount = TokenUtilities.TokenCount(formattedMessage);
 
             if (remainingToken - tokenCount >= 0)
             {
@@ -285,7 +285,7 @@ public class ChatSkill
         // Save hardcoded response if user cancelled plan
         if (chatContext.Variables.ContainsKey("userCancelledPlan"))
         {
-            await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId, new TokenUsage(0, 0));
+            await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId, TokenUtilities.EmptyTokenUsages());
             return context;
         }
 
@@ -297,9 +297,7 @@ public class ChatSkill
             return context;
         }
 
-        context.Variables.Set("promptTokenUsage", chatMessage.TokenUsage?.PromptTotal.ToString(CultureInfo.InvariantCulture));
-        context.Variables.Set("dependencyTokenUsage", chatMessage.TokenUsage?.DependencyTotal.ToString(CultureInfo.InvariantCulture));
-
+        context.Variables.Set("tokenUsage", JsonSerializer.Serialize(chatMessage.TokenUsage));
         return context;
     }
 
@@ -357,7 +355,7 @@ public class ChatSkill
             return await this.SaveNewResponseAsync(
                 JsonSerializer.Serialize<ProposedPlan>(proposedPlan), prompt, chatId, userId,
                 // TODO: [Issue #2106] Accommodate plan token usage differently
-                this.CalculateTokenUsage(chatId, userId, prompt, chatContext)
+                await this.GetTokenUsagesAsync(chatContext)
             );
         }
 
@@ -384,7 +382,7 @@ public class ChatSkill
         // Fill in the chat history if there is any token budget left
         var chatContextComponents = new List<string>() { chatMemories, documentMemories, planResult };
         var chatContextText = string.Join("\n\n", chatContextComponents.Where(c => !string.IsNullOrEmpty(c)));
-        var chatHistoryTokenLimit = remainingToken - Utilities.TokenCount(chatContextText);
+        var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText);
         if (chatHistoryTokenLimit > 0)
         {
             await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
@@ -413,9 +411,13 @@ public class ChatSkill
             return null;
         }
 
+        // Calculate total token usage for dependency functions and prompt template and send with chat stream to client
+        await this.UpdateBotResponseStatusOnClient(chatId, "Calculating token usage");
+        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
+
         // Stream the response to the client
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating bot response");
-        var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt);
+        var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt, await this.GetTokenUsagesAsync(chatContext));
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating semantic chat memory");
@@ -425,14 +427,10 @@ public class ChatSkill
             chatContext,
             this._promptOptions);
 
-        // Save the message
+        // Save the message with final completion token usage
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving message to chat history");
+        chatMessage.TokenUsage = await this.GetTokenUsagesAsync(chatContext, chatMessage);
         await this._chatMessageRepository.UpsertAsync(chatMessage);
-
-        // Calculate total token usage for dependency functions and chat completion and send updated response to client
-        await this.UpdateBotResponseStatusOnClient(chatId, "Calculating total token usage");
-        chatMessage.TokenUsage = this.CalculateTokenUsage(chatId, userId, chatMessage.Content, chatContext);
-        await this.UpdateMessageOnClient(chatId, chatMessage);
 
         return chatMessage;
     }
@@ -457,10 +455,10 @@ public class ChatSkill
         var audience = await this.ExtractAudienceAsync(audienceContext);
 
         // Copy token usage into original chat context
-        TokenUsage.TryGetFunctionKey(context, "ExtractAudienceAsync", out string? functionKey);
-        if (audienceContext.Variables.TryGetValue(functionKey!, out string? tokenUsage))
+        var functionKey = TokenUtilities.GetFunctionKey(context.Log, "SystemAudienceExtraction")!;
+        if (audienceContext.Variables.TryGetValue(functionKey, out string? tokenUsage))
         {
-            context.Variables.Set(functionKey!, tokenUsage);
+            context.Variables.Set(functionKey, tokenUsage);
         }
 
         // Propagate the error
@@ -496,7 +494,7 @@ public class ChatSkill
             userIntent = await this.ExtractUserIntentAsync(intentContext);
 
             // Copy token usage into original chat context
-            TokenUsage.TryGetFunctionKey(context, "ExtractUserIntentAsync", out string? functionKey);
+            var functionKey = TokenUtilities.GetFunctionKey(context.Log, "SystemIntentExtraction")!;
             if (intentContext.Variables.TryGetValue(functionKey!, out string? tokenUsage))
             {
                 context.Variables.Set(functionKey!, tokenUsage);
@@ -610,7 +608,7 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     ///  <param name="tokenUsage">Total token usage of response completion</param>
     /// <returns>The created chat message.</returns>
-    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId, TokenUsage tokenUsage)
+    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId, Dictionary<string, int>? tokenUsage)
     {
         // Make sure the chat exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
@@ -681,10 +679,10 @@ public class ChatSkill
         var tokenLimit = this._promptOptions.CompletionTokenLimit;
         var remainingToken =
             tokenLimit -
-            Utilities.TokenCount(audience) -
-            Utilities.TokenCount(userIntent) -
+            TokenUtilities.TokenCount(audience) -
+            TokenUtilities.TokenCount(userIntent) -
             this._promptOptions.ResponseTokenLimit -
-            Utilities.TokenCount(string.Join("\n", new string[]
+            TokenUtilities.TokenCount(string.Join("\n", new string[]
                 {
                             this._promptOptions.SystemDescription,
                             this._promptOptions.SystemResponse,
@@ -696,32 +694,32 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Calculates total token usage of prompt chat completion and dependencies
+    /// Gets token usage totals for each semantic function if not undefined.
     /// </summary>
-    /// <param name="chatId">The chat ID</param>
-    /// <param name="userId">The user ID</param>
-    /// <param name="response">Message result of chat completion</param>
     /// <param name="chatContext">Context maintained during response generation.</param>
-    private TokenUsage CalculateTokenUsage(string chatId, string userId, string response, SKContext chatContext)
+    /// <returns>Dictionary containing function to token usage mapping for each total that's defined.</returns>
+    private async Task<Dictionary<string, int>> GetTokenUsagesAsync(SKContext chatContext, ChatMessage? chatMessage = null)
     {
-        var prompt = chatContext.Variables.TryGetValue("prompt", out string? renderedPrompt)
-            ? renderedPrompt
-            : string.Empty;
+        var tokenUsageDict = new Dictionary<string, int>();
 
-        // Token usage of chat completion = prompt + completion
-        var chatCompletionTokenUsage = Utilities.TokenCount(prompt) + Utilities.TokenCount(response);
-
-        // Total token usage of each dependency semantic function
-        int dependencyTokenUsage = 0;
-        foreach (string function in TokenUsage.semanticDependencies.Values)
+        // Total token usage of each semantic function
+        foreach (string function in TokenUtilities.semanticFunctions.Values)
         {
             if (chatContext.Variables.TryGetValue($"{function}TokenUsage", out string? tokenUsage))
             {
-                dependencyTokenUsage += int.Parse(tokenUsage, CultureInfo.InvariantCulture);
+                tokenUsageDict.Add(function, int.Parse(tokenUsage, CultureInfo.InvariantCulture));
             }
         }
 
-        return new TokenUsage(chatCompletionTokenUsage, dependencyTokenUsage);
+        // If method was called with a message, that means response was fully generated.
+        // Add token usage of system completion and update message on client.
+        if (chatMessage != null)
+        {
+            tokenUsageDict.Add(TokenUtilities.semanticFunctions["SystemCompletion"]!, TokenUtilities.TokenCount(chatMessage.Content));
+            await this.UpdateMessageOnClient(chatMessage, tokenUsageDict);
+        }
+
+        return tokenUsageDict;
     }
 
     /// <summary>
@@ -731,20 +729,20 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="prompt">Prompt used to generate the response</param>
     /// <returns>The created chat message</returns>
-    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, string prompt)
+    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, string prompt, Dictionary<string, int>? tokenUsage)
     {
         // Create the stream
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
         var stream = chatCompletion.GenerateMessageStreamAsync(chatCompletion.CreateNewChat(prompt), this.CreateChatRequestSettings());
 
         // Create message on client
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, string.Empty);
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, string.Empty, tokenUsage);
 
         // Stream the message to the client
         await foreach (string contentPiece in stream)
         {
             chatMessage.Content += contentPiece;
-            await this.UpdateMessageOnClient(chatId, chatMessage);
+            await this.UpdateMessageOnClient(chatMessage);
         }
 
         return chatMessage;
@@ -759,7 +757,7 @@ public class ChatSkill
     /// <param name="content">Content of the message</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
     /// <returns>The created chat message</returns>
-    private async Task<ChatMessage> CreateBotMessageOnClient(string chatId, string userId, string prompt, string content, TokenUsage? tokenUsage = null)
+    private async Task<ChatMessage> CreateBotMessageOnClient(string chatId, string userId, string prompt, string content, Dictionary<string, int>? tokenUsage = null)
     {
         var chatMessage = ChatMessage.CreateBotResponseMessage(chatId, content, prompt, tokenUsage);
         await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, chatMessage);
@@ -771,9 +769,9 @@ public class ChatSkill
     /// </summary>
     /// <param name="chatId">The chat ID</param>
     /// <param name="message">The message</param>
-    private async Task UpdateMessageOnClient(string chatId, ChatMessage message)
+    private async Task UpdateMessageOnClient(ChatMessage message, Dictionary<string, int>? tokenUsage = null)
     {
-        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessageUpdate", chatId, message.Id, message.Content, message.TokenUsage ?? null);
+        await this._messageRelayHubContext.Clients.Group(message.ChatId).SendAsync("ReceiveMessageUpdate", message, tokenUsage);
     }
 
     /// <summary>

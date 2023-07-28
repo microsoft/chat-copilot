@@ -19,7 +19,7 @@ import { Info16Regular } from '@fluentui/react-icons';
 import React from 'react';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { useDialogClasses } from '../../../styles';
-import { TokenUsageGraph } from '../../shared/TokenUsageGraph';
+import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 
 const useClasses = makeStyles({
     infoButton: {
@@ -49,14 +49,10 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                 <DialogBody>
                     <DialogTitle>Prompt</DialogTitle>
                     <DialogContent>
-                        <TokenUsageGraph
-                            promptView
-                            promptUsage={message.tokenUsage?.prompt}
-                            dependencyUsage={message.tokenUsage?.dependency}
-                        />
-                        {message.prompt?.split('\n').map((paragraph, idx) => (
-                            <p key={`prompt-details-${idx}`}>{paragraph}</p>
-                        ))}
+                        <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
+                        {message.prompt
+                            ?.split('\n')
+                            .map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>)}
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">

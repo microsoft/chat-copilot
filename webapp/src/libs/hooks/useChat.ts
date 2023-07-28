@@ -21,6 +21,7 @@ import { Bot } from '../models/Bot';
 import { ChatMessageType, IChatMessage } from '../models/ChatMessage';
 import { IChatSession } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
+import { TokenUsage } from '../models/TokenUsage';
 import { IAskVariables } from '../semantic-kernel/model/Ask';
 import { BotService } from '../services/BotService';
 import { ChatService } from '../services/ChatService';
@@ -31,7 +32,6 @@ import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
 import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
 import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
-import { TokenUsage, TokenUsageKeys } from '../models/TokenUsage';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -135,18 +135,8 @@ export const useChat = () => {
                 });
 
             // Update token usage of current session
-            const promptTokenUsage = askResult.variables.find((v) => v.key === (TokenUsageKeys.prompt as string))
-                ?.value;
-            const dependencyTokenUsage = askResult.variables.find(
-                (v) => v.key === (TokenUsageKeys.dependency as string),
-            )?.value;
-
-            dispatch(
-                updateTokenUsage({
-                    prompt: promptTokenUsage ? parseInt(promptTokenUsage) : 0,
-                    dependency: dependencyTokenUsage ? parseInt(dependencyTokenUsage) : 0,
-                } as TokenUsage),
-            );
+            const responseTokenUsage = askResult.variables.find((v) => v.key === 'tokenUsage')?.value;
+            if (responseTokenUsage) dispatch(updateTokenUsage(JSON.parse(responseTokenUsage) as TokenUsage));
         } catch (e: any) {
             dispatch(updateBotResponseStatus({ chatId, status: undefined }));
             const errorMessage = `Unable to generate bot response. Details: ${getErrorDetails(e)}`;

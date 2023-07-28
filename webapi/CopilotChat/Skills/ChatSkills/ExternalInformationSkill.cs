@@ -101,8 +101,8 @@ public class ExternalInformationSkill
             newPlanContext = await plan.InvokeAsync(newPlanContext);
             int tokenLimit =
                 int.Parse(context["tokenLimit"], new NumberFormatInfo()) -
-                Utilities.TokenCount(PromptPreamble) -
-                Utilities.TokenCount(PromptPostamble);
+                TokenUtilities.TokenCount(PromptPreamble) -
+                TokenUtilities.TokenCount(PromptPostamble);
 
             // The result of the plan may be from an OpenAPI skill. Attempt to extract JSON from the response.
             bool extractJsonFromOpenApi =
@@ -239,7 +239,7 @@ public class ExternalInformationSkill
             document = JsonDocument.Parse(jsonContent);
         }
 
-        int jsonContentTokenCount = Utilities.TokenCount(jsonContent);
+        int jsonContentTokenCount = TokenUtilities.TokenCount(jsonContent);
 
         // Return the JSON content if it does not exceed the token limit
         if (jsonContentTokenCount < tokenLimit)
@@ -265,7 +265,7 @@ public class ExternalInformationSkill
             {
                 // Save property name for result interpolation
                 JsonProperty firstProperty = document.RootElement.EnumerateObject().First();
-                tokenLimit -= Utilities.TokenCount(firstProperty.Name);
+                tokenLimit -= TokenUtilities.TokenCount(firstProperty.Name);
                 resultsDescriptor = string.Format(CultureInfo.InvariantCulture, "{0}: ", firstProperty.Name);
 
                 // Extract object to be truncated
@@ -280,7 +280,7 @@ public class ExternalInformationSkill
         {
             foreach (JsonProperty property in document.RootElement.EnumerateObject())
             {
-                int propertyTokenCount = Utilities.TokenCount(property.ToString());
+                int propertyTokenCount = TokenUtilities.TokenCount(property.ToString());
 
                 if (tokenLimit - propertyTokenCount > 0)
                 {
@@ -300,7 +300,7 @@ public class ExternalInformationSkill
         {
             foreach (JsonElement item in document.RootElement.EnumerateArray())
             {
-                int itemTokenCount = Utilities.TokenCount(item.ToString());
+                int itemTokenCount = TokenUtilities.TokenCount(item.ToString());
 
                 if (tokenLimit - itemTokenCount > 0)
                 {

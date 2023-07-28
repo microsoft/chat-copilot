@@ -24,10 +24,10 @@ export const appSlice = createSlice({
             state.activeUserInfo = action.payload;
         },
         updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsage>) => {
-            state.tokenUsage = {
-                prompt: state.tokenUsage.prompt + action.payload.prompt,
-                dependency: state.tokenUsage.dependency + action.payload.dependency,
-            };
+            Object.entries(action.payload).forEach(([key, value]) => {
+                action.payload[key] = getTotalTokenUsage(state.tokenUsage[key], value);
+            });
+            state.tokenUsage = action.payload;
         },
         // This sets the feature flag based on end user input
         toggleFeatureFlag: (state: AppState, action: PayloadAction<FeatureKeys>) => {
@@ -73,3 +73,14 @@ export const {
 } = appSlice.actions;
 
 export default appSlice.reducer;
+
+const getTotalTokenUsage = (previousSum?: number, current?: number) => {
+    if (previousSum === undefined) {
+        return current;
+    }
+    if (current === undefined) {
+        return previousSum;
+    }
+
+    return previousSum + current;
+};

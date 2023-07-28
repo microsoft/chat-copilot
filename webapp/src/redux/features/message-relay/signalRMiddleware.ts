@@ -166,22 +166,20 @@ export const registerSignalREvents = (store: Store) => {
         },
     );
 
-    hubConnection.on(
-        SignalRCallbackMethods.ReceiveMessageUpdate,
-        (chatId: string, messageId: string, content: string, tokenUsage?: TokenUsage) => {
-            // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
-            store.dispatch({
-                type: 'conversations/updateMessageProperty',
-                payload: {
-                    chatId,
-                    messageIdOrIndex: messageId,
-                    property: tokenUsage ? 'tokenUsage' : 'content',
-                    value: tokenUsage ?? content,
-                    frontLoad: true,
-                },
-            });
-        },
-    );
+    hubConnection.on(SignalRCallbackMethods.ReceiveMessageUpdate, (message: IChatMessage, tokenUsage?: TokenUsage) => {
+        const { chatId, id: messageId, content } = message;
+        // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
+        store.dispatch({
+            type: 'conversations/updateMessageProperty',
+            payload: {
+                chatId,
+                messageIdOrIndex: messageId,
+                property: tokenUsage ? 'tokenUsage' : 'content',
+                value: tokenUsage ?? content,
+                frontLoad: true,
+            },
+        });
+    });
 
     hubConnection.on(SignalRCallbackMethods.UserJoined, (chatId: string, userId: string) => {
         const user: IChatUser = {

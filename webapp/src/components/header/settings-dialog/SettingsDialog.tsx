@@ -25,6 +25,7 @@ import React from 'react';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { SharedStyles, useDialogClasses } from '../../../styles';
+import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 import { SettingSection } from './SettingSection';
 
 const useClasses = makeStyles({
@@ -55,7 +56,7 @@ interface ISettingsDialogProps {
 export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDialog }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
-    const { settings } = useAppSelector((state: RootState) => state.app);
+    const { settings, tokenUsage } = useAppSelector((state: RootState) => state.app);
 
     return (
         <Dialog
@@ -68,6 +69,7 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                 <DialogBody className={classes.root}>
                     <DialogTitle>Settings</DialogTitle>
                     <DialogContent className={classes.content}>
+                        <TokenUsageGraph tokenUsage={tokenUsage} />
                         <Accordion collapsible multiple defaultOpenItems={['basic']}>
                             <AccordionItem value="basic">
                                 <AccordionHeader expandIconPosition="end">

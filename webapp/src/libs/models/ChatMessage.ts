@@ -42,6 +42,7 @@ export enum UserFeedback {
 }
 
 export interface IChatMessage {
+    chatId: string;
     type: ChatMessageType;
     timestamp: number;
     userName: string;

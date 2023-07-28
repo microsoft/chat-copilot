@@ -14,6 +14,7 @@ using Microsoft.SemanticKernel;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
+using SemanticKernel.Service.CopilotChat.Skills;
 using SemanticKernel.Service.CopilotChat.Storage;
 
 namespace SemanticKernel.Service.CopilotChat.Controllers;
@@ -85,7 +86,7 @@ public class ChatHistoryController : ControllerBase
             newChat.Id,
             this._promptOptions.InitialBotMessage,
             string.Empty, // The initial bot message doesn't need a prompt.
-            new TokenUsage(0, 0));
+            TokenUtilities.EmptyTokenUsages());
         await this._messageRepository.CreateAsync(chatMessage);
 
         // Add the user to the chat session

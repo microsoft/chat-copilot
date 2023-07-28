@@ -65,7 +65,7 @@ public class SemanticChatMemorySkill
         string memoryText = "";
         foreach (var memory in relevantMemories)
         {
-            var tokenCount = Utilities.TokenCount(memory.Metadata.Text);
+            var tokenCount = TokenUtilities.TokenCount(memory.Metadata.Text);
             if (remainingToken - tokenCount > 0)
             {
                 memoryText += $"\n[{memory.Metadata.Description}] {memory.Metadata.Text}";

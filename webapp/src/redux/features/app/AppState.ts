@@ -128,10 +128,7 @@ export const initialState: AppState = {
             type: AlertType.Info,
         },
     ],
-    tokenUsage: {
-        prompt: 0,
-        dependency: 0,
-    },
+    tokenUsage: {},
     features: Features,
     settings: Settings,
 };
