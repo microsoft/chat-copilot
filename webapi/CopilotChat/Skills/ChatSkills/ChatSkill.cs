@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
@@ -86,11 +88,13 @@ public class ChatSkill
         this._kernel = kernel;
         this._chatMessageRepository = chatMessageRepository;
         this._chatSessionRepository = chatSessionRepository;
-        this._promptOptions = promptOptions.Value;
         this._messageRelayHubContext = messageRelayHubContext;
+        // Clone the prompt options to avoid modifying the original prompt options.
+        this._promptOptions = promptOptions.Value.Copy();
 
         this._semanticChatMemorySkill = new SemanticChatMemorySkill(
-            promptOptions);
+            promptOptions,
+            chatSessionRepository);
         this._documentMemorySkill = new DocumentMemorySkill(
             promptOptions,
             documentImportOptions);
@@ -257,8 +261,11 @@ public class ChatSkill
         [Description("ID of the response message for planner"), DefaultValue(null), SKName("responseMessageId")] string? messageId,
         SKContext context)
     {
+        // Set the system description in the prompt options
+        await SetSystemDescriptionAsync(chatId);
+
         // Save this new message to memory such that subsequent chat responses can use it
-        await this.UpdateResponseStatusOnClient(chatId, "Saving user message to chat history");
+        await this.UpdateBotResponseStatusOnClient(chatId, "Saving user message to chat history");
         await this.SaveNewMessageAsync(message, userId, userName, chatId, messageType);
 
         // Clone the context to avoid modifying the original context variables.
@@ -271,40 +278,24 @@ public class ChatSkill
         if (!string.IsNullOrWhiteSpace(planJson) &&
             !string.IsNullOrEmpty(messageId))
         {
-            await this.UpdateResponseAsync(planJson, messageId);
+            await this.UpdateChatMessageContentAsync(planJson, messageId);
         }
 
-        var response = chatContext.Variables.ContainsKey("userCancelledPlan")
-            ? "I am sorry the plan did not meet your goals."
-            : await this.GetChatResponseAsync(chatId, chatContext);
+        // Save hardcoded response if user cancelled plan
+        if (chatContext.Variables.ContainsKey("userCancelledPlan"))
+        {
+            await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId);
+            return context;
+        }
 
-        if (chatContext.ErrorOccurred)
+        // Get the chat response
+        var chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
+        if (chatMessage == null)
         {
             context.Fail(chatContext.LastErrorDescription);
             return context;
         }
 
-        // Retrieve the prompt used to generate the response
-        // and return it to the caller via the context variables.
-        chatContext.Variables.TryGetValue("prompt", out string? prompt);
-        prompt ??= string.Empty;
-        context.Variables.Set("prompt", prompt);
-
-        // Save this response to memory such that subsequent chat responses can use it
-        await this.UpdateResponseStatusOnClient(chatId, "Saving bot message to chat history");
-        ChatMessage botMessage = await this.SaveNewResponseAsync(response, prompt, chatId);
-        context.Variables.Set("messageId", botMessage.Id);
-        context.Variables.Set("messageType", ((int)botMessage.Type).ToString(CultureInfo.InvariantCulture));
-
-        // Extract semantic chat memory
-        await this.UpdateResponseStatusOnClient(chatId, "Extracting semantic chat memory");
-        await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
-            chatId,
-            this._kernel,
-            chatContext,
-            this._promptOptions);
-
-        context.Variables.Update(response);
         return context;
     }
 
@@ -313,109 +304,123 @@ public class ChatSkill
     /// <summary>
     /// Generate the necessary chat context to create a prompt then invoke the model to get a response.
     /// </summary>
+    /// <param name="chatId">The chat ID</param>
+    /// <param name="userId">The user ID</param>
     /// <param name="chatContext">The SKContext.</param>
-    /// <returns>A response from the model.</returns>
-    private async Task<string> GetChatResponseAsync(string chatId, SKContext chatContext)
+    /// <returns>The created chat message containing the model-generated response.</returns>
+    private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext)
     {
-        // 0. Get the audience
-        await this.UpdateResponseStatusOnClient(chatId, "Extracting audience");
+        // Get the audience
+        await this.UpdateBotResponseStatusOnClient(chatId, "Extracting audience");
         var audience = await this.GetAudienceAsync(chatContext);
         if (chatContext.ErrorOccurred)
         {
-            return string.Empty;
+            return null;
         }
 
-        // 1. Extract user intent from the conversation history.
-        await this.UpdateResponseStatusOnClient(chatId, "Extracting user intent");
+        // Extract user intent from the conversation history.
+        await this.UpdateBotResponseStatusOnClient(chatId, "Extracting user intent");
         var userIntent = await this.GetUserIntentAsync(chatContext);
         if (chatContext.ErrorOccurred)
         {
-            return string.Empty;
+            return null;
         }
 
-        // 2. Calculate the remaining token budget.
-        await this.UpdateResponseStatusOnClient(chatId, "Calculating remaining token budget");
-        var remainingToken = this.GetChatContextTokenLimit(userIntent);
+        chatContext.Variables.Set("audience", audience);
+        chatContext.Variables.Set("userIntent", userIntent);
 
-        // 3. Acquire external information from planner
-        await this.UpdateResponseStatusOnClient(chatId, "Acquiring external information from planner");
+        // Calculate the remaining token budget.
+        await this.UpdateBotResponseStatusOnClient(chatId, "Calculating remaining token budget");
+        var remainingToken = this.GetChatContextTokenLimit(audience, userIntent);
+
+        // Acquire external information from planner
+        await this.UpdateBotResponseStatusOnClient(chatId, "Acquiring external information from planner");
         var externalInformationTokenLimit = (int)(remainingToken * this._promptOptions.ExternalInformationContextWeight);
         var planResult = await this.AcquireExternalInformationAsync(chatContext, userIntent, externalInformationTokenLimit);
         if (chatContext.ErrorOccurred)
         {
-            return string.Empty;
+            return null;
         }
 
         // If plan is suggested, send back to user for approval before running
-        if (this._externalInformationSkill.ProposedPlan != null)
+        var proposedPlan = this._externalInformationSkill.ProposedPlan;
+        if (proposedPlan != null)
         {
-            chatContext.Variables.Set("prompt", this._externalInformationSkill.ProposedPlan.Plan.Description);
-            return JsonSerializer.Serialize<ProposedPlan>(this._externalInformationSkill.ProposedPlan);
+            var prompt = proposedPlan.Plan.Description;
+            chatContext.Variables.Set("prompt", prompt);
+
+            // Save a new response to the chat history with the proposed plan content
+            return await this.SaveNewResponseAsync(JsonSerializer.Serialize<ProposedPlan>(proposedPlan), prompt, chatId, userId);
         }
 
-        // 4. Query relevant semantic memories
-        await this.UpdateResponseStatusOnClient(chatId, "Querying semantic memories");
+        // Query relevant semantic and document memories
+        await this.UpdateBotResponseStatusOnClient(chatId, "Extracting semantic and document memories");
         var chatMemoriesTokenLimit = (int)(remainingToken * this._promptOptions.MemoriesResponseContextWeight);
-        var chatMemories = await this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._kernel.Memory);
-        if (chatContext.ErrorOccurred)
-        {
-            return string.Empty;
-        }
-
-        // 5. Query relevant document memories
-        await this.UpdateResponseStatusOnClient(chatId, "Querying document memories");
         var documentContextTokenLimit = (int)(remainingToken * this._promptOptions.DocumentContextWeight);
-        var documentMemories = await this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory);
-        if (chatContext.ErrorOccurred)
+        string[] tasks;
+        try
         {
-            return string.Empty;
+            tasks = await Task.WhenAll<string>(
+                this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._kernel.Memory),
+                this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory)
+            );
         }
+        catch (SKException ex)
+        {
+            chatContext.Fail(ex.Message, ex);
+            return null;
+        }
+        var chatMemories = tasks[0];
+        var documentMemories = tasks[1];
 
-        // 6. Fill in the chat history if there is any token budget left
+        // Fill in the chat history if there is any token budget left
         var chatContextComponents = new List<string>() { chatMemories, documentMemories, planResult };
         var chatContextText = string.Join("\n\n", chatContextComponents.Where(c => !string.IsNullOrEmpty(c)));
-        var chatContextTextTokenCount = remainingToken - Utilities.TokenCount(chatContextText);
-        if (chatContextTextTokenCount > 0)
+        var chatHistoryTokenLimit = remainingToken - Utilities.TokenCount(chatContextText);
+        if (chatHistoryTokenLimit > 0)
         {
-            await this.UpdateResponseStatusOnClient(chatId, "Extracting chat history");
-            var chatHistory = await this.ExtractChatHistoryAsync(chatId, chatContextTextTokenCount);
+            await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
+            var chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
             if (chatContext.ErrorOccurred)
             {
-                return string.Empty;
+                return null;
             }
             chatContextText = $"{chatContextText}\n{chatHistory}";
         }
 
-        // Invoke the model
+        // Set variables needed in prompt
         chatContext.Variables.Set("audience", audience);
-        chatContext.Variables.Set("UserIntent", userIntent);
-        chatContext.Variables.Set("ChatContext", chatContextText);
+        chatContext.Variables.Set("userIntent", userIntent);
+        chatContext.Variables.Set("chatContext", chatContextText);
 
+        // Render the prompt
         var promptRenderer = new PromptTemplateEngine();
         var renderedPrompt = await promptRenderer.RenderAsync(
             this._promptOptions.SystemChatPrompt,
             chatContext);
-
-        var completionFunction = this._kernel.CreateSemanticFunction(
-            renderedPrompt,
-            skillName: nameof(ChatSkill),
-            description: "Complete the prompt.");
-
-        await this.UpdateResponseStatusOnClient(chatId, "Invoking the AI model");
-        chatContext = await completionFunction.InvokeAsync(
-            context: chatContext,
-            settings: this.CreateChatResponseCompletionSettings()
-        );
-
-        // Allow the caller to view the prompt used to generate the response
         chatContext.Variables.Set("prompt", renderedPrompt);
 
         if (chatContext.ErrorOccurred)
         {
-            return string.Empty;
+            return null;
         }
 
-        return chatContext.Result;
+        // Stream the response to the client
+        await this.UpdateBotResponseStatusOnClient(chatId, "Generating bot response");
+        var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt);
+
+        // Extract semantic chat memory
+        await this.UpdateBotResponseStatusOnClient(chatId, "Generating semantic chat memory");
+        await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
+            chatId,
+            this._kernel,
+            chatContext,
+            this._promptOptions);
+
+        // Save the message
+        await this.UpdateBotResponseStatusOnClient(chatId, "Saving message to chat history");
+        await this._chatMessageRepository.UpsertAsync(chatMessage);
+        return chatMessage;
     }
 
     /// <summary>
@@ -444,7 +449,7 @@ public class ChatSkill
     /// </summary>
     private async Task<string> GetUserIntentAsync(SKContext context)
     {
-        // TODO: Regenerate user intent if plan was modified
+        // TODO: [Issue #51] Regenerate user intent if plan was modified
         if (!context.Variables.TryGetValue("planUserIntent", out string? userIntent))
         {
             SKContext intentContext = context.Clone();
@@ -466,6 +471,10 @@ public class ChatSkill
     /// Helper function that creates the correct context variables to
     /// query chat memories from the chat memory store.
     /// </summary>
+    /// <returns>The chat memories.</returns>
+    /// <param name="context">The SKContext.</param>
+    /// <param name="userIntent">The user intent.</param>
+    /// <param name="tokenLimit">Maximum number of tokens.</param>
     private Task<string> QueryChatMemoriesAsync(SKContext context, string userIntent, int tokenLimit)
     {
         return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context["chatId"], tokenLimit, this._kernel.Memory);
@@ -475,6 +484,10 @@ public class ChatSkill
     /// Helper function that creates the correct context variables to
     /// query document memories from the document memory store.
     /// </summary>
+    /// <returns>The document memories.</returns>
+    /// <param name="context">The SKContext.</param>
+    /// <param name="userIntent">The user intent.</param>
+    /// <param name="tokenLimit">Maximum number of tokens.</param>
     private Task<string> QueryDocumentsAsync(SKContext context, string userIntent, int tokenLimit)
     {
         return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context["chatId"], tokenLimit, this._kernel.Memory);
@@ -483,6 +496,10 @@ public class ChatSkill
     /// <summary>
     /// Helper function that creates the correct context variables to acquire external information.
     /// </summary>
+    /// <returns>The plan.</returns>
+    /// <param name="context">The SKContext.</param>
+    /// <param name="userIntent">The user intent.</param>
+    /// <param name="tokenLimit">Maximum number of tokens.</param>
     private async Task<string> AcquireExternalInformationAsync(SKContext context, string userIntent, int tokenLimit)
     {
         SKContext planContext = context.Clone();
@@ -537,8 +554,9 @@ public class ChatSkill
     /// <param name="response">Response from the chat.</param>
     /// <param name="prompt">Prompt used to generate the response.</param>
     /// <param name="chatId">The chat ID</param>
+    /// <param name="userId">The user ID</param>
     /// <returns>The created chat message.</returns>
-    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId)
+    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId)
     {
         // Make sure the chat exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
@@ -546,9 +564,9 @@ public class ChatSkill
             throw new ArgumentException("Chat session does not exist.");
         }
 
-        var chatMessage = ChatMessage.CreateBotResponseMessage(chatId, response, prompt);
-        await this._chatMessageRepository.CreateAsync(chatMessage);
-
+        // Save message to chat history
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, response);
+        await this._chatMessageRepository.UpsertAsync(chatMessage);
         return chatMessage;
     }
 
@@ -557,7 +575,7 @@ public class ChatSkill
     /// </summary>
     /// <param name="updatedResponse">Updated response from the chat.</param>
     /// <param name="messageId">The chat message ID</param>
-    private async Task UpdateResponseAsync(string updatedResponse, string messageId)
+    private async Task UpdateChatMessageContentAsync(string updatedResponse, string messageId)
     {
         // Make sure the chat exists.
         var chatMessage = await this._chatMessageRepository.FindByIdAsync(messageId);
@@ -567,11 +585,11 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Create a completion settings object for chat response. Parameters are read from the PromptSettings class.
+    /// Create `ChatRequestSettings` for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private CompleteRequestSettings CreateChatResponseCompletionSettings()
+    private ChatRequestSettings CreateChatRequestSettings()
     {
-        var completionSettings = new CompleteRequestSettings
+        return new ChatRequestSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
             Temperature = this._promptOptions.ResponseTemperature,
@@ -579,16 +597,14 @@ public class ChatSkill
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty
         };
-
-        return completionSettings;
     }
 
     /// <summary>
-    /// Create a completion settings object for intent response. Parameters are read from the PromptSettings class.
+    /// Create `CompleteRequestSettings` for intent response. Parameters are read from the PromptSettings class.
     /// </summary>
     private CompleteRequestSettings CreateIntentCompletionSettings()
     {
-        var completionSettings = new CompleteRequestSettings
+        return new CompleteRequestSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
             Temperature = this._promptOptions.IntentTemperature,
@@ -597,21 +613,21 @@ public class ChatSkill
             PresencePenalty = this._promptOptions.IntentPresencePenalty,
             StopSequences = new string[] { "] bot:" }
         };
-
-        return completionSettings;
     }
 
     /// <summary>
     /// Calculate the remaining token budget for the chat response prompt.
     /// This is the token limit minus the token count of the user intent and the system commands.
     /// </summary>
+    /// <param name="audience">The audience returned by the model.</param>
     /// <param name="userIntent">The user intent returned by the model.</param>
     /// <returns>The remaining token limit.</returns>
-    private int GetChatContextTokenLimit(string userIntent)
+    private int GetChatContextTokenLimit(string audience, string userIntent)
     {
         var tokenLimit = this._promptOptions.CompletionTokenLimit;
         var remainingToken =
             tokenLimit -
+            Utilities.TokenCount(audience) -
             Utilities.TokenCount(userIntent) -
             this._promptOptions.ResponseTokenLimit -
             Utilities.TokenCount(string.Join("\n", new string[]
@@ -626,13 +642,80 @@ public class ChatSkill
     }
 
     /// <summary>
+    /// Stream the response to the client.
+    /// </summary>
+    /// <param name="chatId">The chat ID</param>
+    /// <param name="userId">The user ID</param>
+    /// <param name="prompt">Prompt used to generate the response</param>
+    /// <returns>The created chat message</returns>
+    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, string prompt)
+    {
+        // Create the stream
+        var chatCompletion = this._kernel.GetService<IChatCompletion>();
+        var stream = chatCompletion.GenerateMessageStreamAsync(chatCompletion.CreateNewChat(prompt), this.CreateChatRequestSettings());
+
+        // Create message on client
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, string.Empty);
+
+        // Stream the message to the client
+        await foreach (string contentPiece in stream)
+        {
+            chatMessage.Content += contentPiece;
+            await this.UpdateMessageContentOnClient(chatId, chatMessage);
+        }
+
+        return chatMessage;
+    }
+
+    /// <summary>
+    /// Create an empty message on the client to begin the response.
+    /// </summary>
+    /// <param name="chatId">The chat ID</param>
+    /// <param name="userId">The user ID</param>
+    /// <param name="prompt">Prompt used to generate the message</param>
+    /// <param name="content">Content of the message</param>
+    /// <returns>The created chat message</returns>
+    private async Task<ChatMessage> CreateBotMessageOnClient(string chatId, string userId, string prompt, string content)
+    {
+        var chatMessage = ChatMessage.CreateBotResponseMessage(chatId, content, prompt);
+        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, chatMessage);
+        return chatMessage;
+    }
+
+    /// <summary>
+    /// Update the response on the client.
+    /// </summary>
+    /// <param name="chatId">The chat ID</param>
+    /// <param name="message">The message</param>
+    private async Task UpdateMessageContentOnClient(string chatId, ChatMessage message)
+    {
+        await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessageStream", chatId, message.Id, message.Content);
+    }
+
+    /// <summary>
     /// Update the status of the response on the client.
     /// </summary>
-    /// <param name="chatId">Id of the chat session</param>
+    /// <param name="chatId">The chat ID</param>
     /// <param name="status">Current status of the response</param>
-    private async Task UpdateResponseStatusOnClient(string chatId, string status)
+    private async Task UpdateBotResponseStatusOnClient(string chatId, string status)
     {
         await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveBotResponseStatus", chatId, status);
+    }
+
+    /// <summary>
+    /// Set the system description in the prompt options.
+    /// </summary>
+    /// <param name="chatId">Id of the chat session</param>
+    /// <exception cref="ArgumentException">Throw if the chat session does not exist.</exception>
+    private async Task SetSystemDescriptionAsync(string chatId)
+    {
+        ChatSession? chatSession = null;
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
+        {
+            throw new ArgumentException("Chat session does not exist.");
+        }
+
+        this._promptOptions.SystemDescription = chatSession!.SystemDescription;
     }
 
     # endregion

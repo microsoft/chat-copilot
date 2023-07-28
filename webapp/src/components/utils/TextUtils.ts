@@ -5,7 +5,8 @@
 export function convertToAnchorTags(htmlString: string) {
     // Regular expression to match links, excluding any HTML tags at the end
     // Since response from bot is plain text, sometimes line breaks and other html tags are included in the response for readability.
-    const linkRegex = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?(?=(<br|<p|<div|<span)\s*\/>|$)/g;
+    const linkRegex =
+        /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?(?=(<br|<p|<div|<span)\s*\/>|$)/g;
 
     const result = htmlString.replace(linkRegex, function (link) {
         // Parse URL first -- URL class handles cybersecurity concerns related to URL parsing and manipulation
@@ -16,6 +17,13 @@ export function convertToAnchorTags(htmlString: string) {
     });
 
     return result;
+}
+
+/*
+ * Function to check if date is today.
+ */
+export function isToday(date: Date) {
+    return date.toDateString() !== new Date().toDateString();
 }
 
 /*
@@ -52,8 +60,9 @@ export function createCommandLink(command: string) {
  * Function to format chat text content to remove any html tags from it.
  */
 export function formatChatTextContent(messageContent: string) {
-    const contentAsString = messageContent.trim()
-                            .replace(/^sk:\/\/.*$/gm, (match: string) => createCommandLink(match))
-                            .replace(/^!sk:.*$/gm, (match: string) => createCommandLink(match));
+    const contentAsString = messageContent
+        .trim()
+        .replace(/^sk:\/\/.*$/gm, (match: string) => createCommandLink(match))
+        .replace(/^!sk:.*$/gm, (match: string) => createCommandLink(match));
     return contentAsString;
 }

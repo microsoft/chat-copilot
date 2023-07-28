@@ -43,14 +43,14 @@ export enum UserFeedback {
 export interface IChatMessage {
     type: ChatMessageType;
     timestamp: number;
-    userName: 'bot' | string;
+    userName: string;
     userId: string;
     content: string;
     id?: string;
     prompt?: string;
     authorRole: AuthorRoles;
     debug?: string;
-    state?: PlanState;
-    // TODO: Persistent RLHF, view only right now
+    planState?: PlanState;
+    // TODO: [Issue #42] Persistent RLHF
     userFeedback?: UserFeedback;
 }

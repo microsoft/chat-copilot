@@ -478,3 +478,6 @@ playwright-report/
 swa-cli.config.json
 webapp/build/
 webapp/node_modules/
+
+# Custom plugin files used in webapp for testing
+webapp/public/.well-known*

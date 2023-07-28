@@ -17,9 +17,9 @@ using Microsoft.SemanticKernel.Text;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
+using SemanticKernel.Service.CopilotChat.Skills;
 using SemanticKernel.Service.CopilotChat.Storage;
 using SemanticKernel.Service.Services;
-using Tesseract;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using static SemanticKernel.Service.CopilotChat.Models.MemorySource;
@@ -48,6 +48,11 @@ public class DocumentImportController : ControllerBase
         Pdf,
 
         /// <summary>
+        /// .md
+        /// </summary>
+        Md,
+
+        /// <summary>
         /// .jpg
         /// </summary>
         Jpg,
@@ -65,13 +70,14 @@ public class DocumentImportController : ControllerBase
 
     private readonly ILogger<DocumentImportController> _logger;
     private readonly DocumentMemoryOptions _options;
+    private readonly OcrSupportOptions _ocrSupportOptions;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
-    private const string ChatDocumentUploadedClientCall = "ChatDocumentUploaded";
-    private readonly ITesseractEngine _tesseractEngine;
+    private const string ReceiveMessageClientCall = "ReceiveMessage";
+    private readonly IOcrEngine _ocrEngine;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -79,19 +85,21 @@ public class DocumentImportController : ControllerBase
     public DocumentImportController(
         ILogger<DocumentImportController> logger,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
+        IOptions<OcrSupportOptions> ocrSupportOptions,
         ChatSessionRepository sessionRepository,
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
-        ITesseractEngine tesseractEngine)
+        IOcrEngine ocrEngine)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
+        this._ocrSupportOptions = ocrSupportOptions.Value;
         this._sessionRepository = sessionRepository;
         this._sourceRepository = sourceRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
-        this._tesseractEngine = tesseractEngine;
+        this._ocrEngine = ocrEngine;
     }
 
     /// <summary>
@@ -118,7 +126,7 @@ public class DocumentImportController : ControllerBase
 
         this._logger.LogInformation("Importing {0} document(s)...", documentImportForm.FormFiles.Count());
 
-        // TODO: Perform the import in parallel.
+        // TODO: [Issue #49] Perform the import in parallel.
         DocumentMessageContent documentMessageContent = new();
         IEnumerable<ImportResult> importResults = new List<ImportResult>();
         foreach (var formFile in documentImportForm.FormFiles)
@@ -147,8 +155,9 @@ public class DocumentImportController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
+            var userId = documentImportForm.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
-                .SendAsync(ChatDocumentUploadedClientCall, chatMessage, chatId);
+                .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
             return this.Ok(chatMessage);
         }
@@ -183,6 +192,11 @@ public class DocumentImportController : ControllerBase
         /// The keys of the inserted document chunks.
         /// </summary>
         public IEnumerable<string> Keys { get; set; } = new List<string>();
+
+        /// <summary>
+        /// The number of tokens in the document.
+        /// </summary>
+        public long Tokens { get; set; } = 0;
 
         /// <summary>
         /// Create a new instance of the <see cref="ImportResult"/> class.
@@ -254,6 +268,19 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Txt:
                 case SupportedFileType.Pdf:
                     break;
+                case SupportedFileType.Jpg:
+                case SupportedFileType.Png:
+                case SupportedFileType.Tiff:
+                {
+                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
+                    {
+                        break;
+                    }
+
+                    throw new ArgumentException($"Unsupported image file type: {fileType} when " +
+                        $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
+                        nameof(OcrSupportOptions.OcrSupportType.None));
+                }
                 default:
                     throw new ArgumentException($"Unsupported file type: {fileType}");
             }
@@ -274,6 +301,7 @@ public class DocumentImportController : ControllerBase
         switch (fileType)
         {
             case SupportedFileType.Txt:
+            case SupportedFileType.Md:
                 documentContent = await this.ReadTxtFileAsync(formFile);
                 break;
             case SupportedFileType.Pdf:
@@ -295,11 +323,7 @@ public class DocumentImportController : ControllerBase
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
         // Create memory source
-        var memorySource = await this.TryCreateAndUpsertMemorySourceAsync(formFile, documentImportForm);
-        if (memorySource == null)
-        {
-            return ImportResult.Fail();
-        }
+        var memorySource = this.CreateMemorySourceAsync(formFile, documentImportForm);
 
         // Parse document content to memory
         ImportResult importResult = ImportResult.Fail();
@@ -315,7 +339,15 @@ public class DocumentImportController : ControllerBase
         }
         catch (Exception ex) when (!ex.IsCriticalException())
         {
-            await this._sourceRepository.DeleteAsync(memorySource);
+            this._logger.LogDebug(ex, "Failed to parse {0} document content to memory.", formFile.FileName);
+            return ImportResult.Fail();
+        }
+
+        // Upsert memory source
+        memorySource.Tokens = importResult.Tokens;
+        if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
+        {
+            this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
             await this.RemoveMemoriesAsync(kernel, importResult);
             return ImportResult.Fail();
         }
@@ -324,33 +356,43 @@ public class DocumentImportController : ControllerBase
     }
 
     /// <summary>
-    /// Try to create and upsert a memory source.
+    /// Create a memory source.
     /// </summary>
     /// <param name="formFile">The file to be uploaded</param>
     /// <param name="documentImportForm">The document upload form that contains additional necessary info</param>
-    /// <returns>A MemorySource object if successful, null otherwise</returns>
-    private async Task<MemorySource?> TryCreateAndUpsertMemorySourceAsync(
+    /// <returns>A MemorySource object.</returns>
+    private MemorySource CreateMemorySourceAsync(
         IFormFile formFile,
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
         var userId = documentImportForm.UserId;
-        var memorySource = new MemorySource(
+
+        return new MemorySource(
             chatId,
             formFile.FileName,
             userId,
             MemorySourceType.File,
             formFile.Length,
-            null);
+            null
+        );
+    }
 
+    /// <summary>
+    /// Try to upsert a memory source.
+    /// </summary>
+    /// <param name="memorySource">The memory source to be uploaded</param>
+    /// <returns>True if upsert is successful. False otherwise.</returns>
+    private async Task<bool> TryUpsertMemorySourceAsync(MemorySource memorySource)
+    {
         try
         {
             await this._sourceRepository.UpsertAsync(memorySource);
-            return memorySource;
+            return true;
         }
         catch (Exception ex) when (ex is ArgumentOutOfRangeException)
         {
-            return null;
+            return false;
         }
     }
 
@@ -414,16 +456,17 @@ public class DocumentImportController : ControllerBase
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     private SupportedFileType GetFileType(string fileName)
     {
-        string extension = Path.GetExtension(fileName);
+        string extension = Path.GetExtension(fileName).ToUpperInvariant();
         return extension switch
         {
-            ".txt" => SupportedFileType.Txt,
-            ".pdf" => SupportedFileType.Pdf,
-            ".jpg" => SupportedFileType.Jpg,
-            ".jpeg" => SupportedFileType.Jpg,
-            ".png" => SupportedFileType.Png,
-            ".tif" => SupportedFileType.Tiff,
-            ".tiff" => SupportedFileType.Tiff,
+            ".TXT" => SupportedFileType.Txt,
+            ".MD" => SupportedFileType.Md,
+            ".PDF" => SupportedFileType.Pdf,
+            ".JPG" => SupportedFileType.Jpg,
+            ".JPEG" => SupportedFileType.Jpg,
+            ".PNG" => SupportedFileType.Png,
+            ".TIF" => SupportedFileType.Tiff,
+            ".TIFF" => SupportedFileType.Tiff,
             _ => throw new ArgumentOutOfRangeException($"Unsupported file type: {extension}"),
         };
     }
@@ -435,17 +478,8 @@ public class DocumentImportController : ControllerBase
     /// <returns>A string of the content of the file.</returns>
     private async Task<string> ReadTextFromImageFileAsync(IFormFile file)
     {
-        await using (var ms = new MemoryStream())
-        {
-            await file.CopyToAsync(ms);
-            var fileBytes = ms.ToArray();
-            await using var imgStream = new MemoryStream(fileBytes);
-
-            using var img = Pix.LoadFromMemory(imgStream.ToArray());
-
-            using var page = this._tesseractEngine.Process(img);
-            return page.GetText();
-        }
+        var textFromFile = await this._ocrEngine.ReadTextFromImageFileAsync(file);
+        return textFromFile;
     }
 
     /// <summary>
@@ -514,6 +548,7 @@ public class DocumentImportController : ControllerBase
                 id: key,
                 description: $"Document: {documentName}");
             importResult.AddKey(key);
+            importResult.Tokens += Utilities.TokenCount(paragraph);
         }
 
         this._logger.LogInformation(

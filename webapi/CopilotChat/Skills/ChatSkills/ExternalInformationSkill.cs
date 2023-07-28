@@ -117,15 +117,13 @@ public class ExternalInformationSkill
         {
             // Create a plan and set it in context for approval.
             var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
-            Plan plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:{contextString}\nUser Intent:{userIntent}");
+            Plan plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
 
             if (plan.Steps.Count > 0)
             {
                 // Parameters stored in plan's top level
                 this.MergeContextIntoPlan(context.Variables, plan.Parameters);
 
-                // TODO: Improve Kernel to give developers option to skip this override 
-                // (i.e., keep functions regardless of whether they're available in the planner's context or not)
                 Plan sanitizedPlan = this.SanitizePlan(plan, context);
                 sanitizedPlan.Parameters.Update(plan.Parameters);
 

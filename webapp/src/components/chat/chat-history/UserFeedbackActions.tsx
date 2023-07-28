@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { UserFeedback } from '../../../libs/models/ChatMessage';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { setUserFeedback } from '../../../redux/features/conversations/conversationsSlice';
+import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
 import { ThumbDislike16, ThumbLike16 } from '../../shared/BundledIcons';
 
 const useClasses = makeStyles({
@@ -27,10 +27,12 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
     const onUserFeedbackProvided = useCallback(
         (positive: boolean) => {
             dispatch(
-                setUserFeedback({
-                    userFeedback: positive ? UserFeedback.Positive : UserFeedback.Negative,
-                    messageIndex,
+                updateMessageProperty({
                     chatId: selectedId,
+                    messageIdOrIndex: messageIndex,
+                    property: 'userFeedback',
+                    value: positive ? UserFeedback.Positive : UserFeedback.Negative,
+                    frontLoad: true,
                 }),
             );
         },
@@ -47,7 +49,9 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     icon={<ThumbLike16 />}
                     appearance="transparent"
                     aria-label="Edit"
-                    onClick={() => onUserFeedbackProvided(true)}
+                    onClick={() => {
+                        onUserFeedbackProvided(true);
+                    }}
                 />
             </Tooltip>
             <Tooltip content={'Dislike bot message'} relationship="label">
@@ -55,7 +59,9 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     icon={<ThumbDislike16 />}
                     appearance="transparent"
                     aria-label="Edit"
-                    onClick={() => onUserFeedbackProvided(false)}
+                    onClick={() => {
+                        onUserFeedbackProvided(false);
+                    }}
                 />
             </Tooltip>
         </div>

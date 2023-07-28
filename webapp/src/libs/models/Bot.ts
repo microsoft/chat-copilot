@@ -7,5 +7,5 @@ export interface Bot {
     Configurations: { EmbeddingAIService: string; EmbeddingDeploymentOrModelId: string };
     ChatTitle: string;
     ChatHistory: IChatMessage[];
-    Embeddings: any[]; // TODO: type this
+    Embeddings: any[]; // TODO: [Issue #47] Add type. See Bot.cs
 }

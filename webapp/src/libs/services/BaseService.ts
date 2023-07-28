@@ -5,7 +5,7 @@ import { Plugin } from '../../redux/features/plugins/PluginsState';
 interface ServiceRequest {
     commandPath: string;
     method?: string;
-    body?: FormData | unknown;
+    body?: unknown;
 }
 const noResponseBodyStatusCodes = [202];
 

@@ -5,6 +5,6 @@ export interface IChatUser {
     online: boolean;
     fullName: string;
     emailAddress: string;
-    photo: string | undefined; // TODO: change this to required when we enable token / Graph support
+    photo?: string; // TODO: [Issue #45] change this to required when we enable token / Graph support
     isTyping: boolean;
 }

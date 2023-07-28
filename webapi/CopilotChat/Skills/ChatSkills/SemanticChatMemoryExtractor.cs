@@ -124,11 +124,12 @@ internal static class SemanticChatMemoryExtractor
     {
         var memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
 
-        var memories = await semanticTextMemory.SearchAsync(
+        // Search if there is already a memory item that has a high similarity score with the new item.
+        var memories = await context.Memory.SearchAsync(
                 collection: memoryCollectionName,
                 query: item.ToFormattedString(),
                 limit: 1,
-                minRelevanceScore: options.SemanticMemoryMinRelevance
+                minRelevanceScore: options.SemanticMemoryRelevanceUpper
             )
             .ToListAsync()
             .ConfigureAwait(false);

@@ -29,14 +29,15 @@ public static class CopilotChatSemanticKernelExtensions
         {
             IKernel plannerKernel = Kernel.Builder
                 .WithLogger(sp.GetRequiredService<ILogger<IKernel>>())
-                // TODO verify planner has AI service configured
+                // TODO: [sk Issue #2046] verify planner has AI service configured
                 .WithPlannerBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
                 .Build();
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value);
         });
 
         // Register Planner skills (AI plugins) here.
-        // TODO: Move planner skill registration from ChatController to this location.
+      
+        // TODO: [sk Issue #2046] Move planner skill registration from ChatController to here.
 
         return services;
     }

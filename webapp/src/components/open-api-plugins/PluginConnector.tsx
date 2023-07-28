@@ -13,43 +13,17 @@ import {
     Input,
     Persona,
     Text,
-    makeStyles,
 } from '@fluentui/react-components';
 import { Dismiss20Regular } from '@fluentui/react-icons';
 import { FormEvent, useState } from 'react';
 import { TokenHelper } from '../../libs/auth/TokenHelper';
 import { useAppDispatch } from '../../redux/app/hooks';
-import { AdditionalApiProperties, PluginAuthRequirements, Plugins } from '../../redux/features/plugins/PluginsState';
+import { AdditionalApiProperties, PluginAuthRequirements } from '../../redux/features/plugins/PluginsState';
 import { connectPlugin } from '../../redux/features/plugins/pluginsSlice';
-
-const useClasses = makeStyles({
-    root: {
-        height: '515px',
-    },
-    content: {
-        display: 'flex',
-        flexDirection: 'column',
-        rowGap: '10px',
-    },
-    scopes: {
-        display: 'flex',
-        flexDirection: 'column',
-        rowGap: '5px',
-        paddingLeft: '20px',
-    },
-    error: {
-        color: '#d13438',
-    },
-    section: {
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        rowGap: '10px',
-    },
-});
+import { useDialogClasses } from '../../styles';
 
 interface PluginConnectorProps {
-    name: Plugins;
+    name: string;
     icon: string;
     publisher: string;
     authRequirements: PluginAuthRequirements;
@@ -63,7 +37,7 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
     authRequirements,
     apiProperties,
 }) => {
-    const classes = useClasses();
+    const classes = useDialogClasses();
 
     const usernameRequired = !!authRequirements.username;
     const emailRequired = !!authRequirements.email;
@@ -101,7 +75,7 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
                     setErrorMessage(`Could not authenticate to ${name}. Check your permissions and try again.`);
                 });
         } else if (oauthRequired) {
-            // TODO: implement OAuth Flow
+            // TODO: [Issue #44] implement OAuth Flow
         } else {
             // Basic Auth or PAT
             dispatch(
@@ -287,7 +261,12 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
                             <DialogTrigger>
                                 <Button appearance="secondary">Cancel</Button>
                             </DialogTrigger>
-                            <Button data-testid="enablePluginButton" type="submit" appearance="primary" disabled={!!errorMessage}>
+                            <Button
+                                data-testid="enablePluginButton"
+                                type="submit"
+                                appearance="primary"
+                                disabled={!!errorMessage}
+                            >
                                 Enable
                             </Button>
                         </DialogActions>

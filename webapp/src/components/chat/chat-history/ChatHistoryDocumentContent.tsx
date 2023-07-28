@@ -13,7 +13,7 @@ import {
 } from '@fluentui/react-components';
 import React from 'react';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
-import { getFileIconByFileExtension } from '../ChatResourceList';
+import { getFileIconByFileExtension } from '../tabs/DocumentsTab';
 
 const useClasses = makeStyles({
     root: {

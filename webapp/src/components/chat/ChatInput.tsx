@@ -10,14 +10,14 @@ import { Constants } from '../../Constants';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { AlertType } from '../../libs/models/AlertType';
 import { ChatMessageType } from '../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../libs/useChat';
+import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
 import {
-    editConversationInput,
-    updateBotResponseStatusFromServer,
+    editConversationInput, updateBotResponseStatus
 } from '../../redux/features/conversations/conversationsSlice';
+import { Alerts } from '../shared/Alerts';
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';
 import { ChatStatus } from './ChatStatus';
@@ -134,7 +134,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             // Deep copy the FileList into an array so that the function
             // maintains a list of files to import before the import is complete.
             const filesArray = Array.from(files);
-            chat.importDocument(selectedId, filesArray).finally(() => {
+            void chat.importDocument(selectedId, filesArray).finally(() => {
                 setDocumentImporting(false);
             });
         }
@@ -153,7 +153,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
         setValue('');
         dispatch(editConversationInput({ id: selectedId, newInput: '' }));
-        dispatch(updateBotResponseStatusFromServer({ chatId: selectedId, status: 'Calling the kernel' }));
+        dispatch(updateBotResponseStatus({ chatId: selectedId, status: 'Calling the kernel' }));
         onSubmit({ value, messageType, chatId: selectedId }).catch((error) => {
             const message = `Error submitting chat input: ${(error as Error).message}`;
             log(message);
@@ -176,6 +176,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             <div className={classes.typingIndicator}>
                 <ChatStatus />
             </div>
+            <Alerts />
             <div className={classes.content}>
                 <Textarea
                     id="chat-input"
@@ -228,7 +229,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                         type="file"
                         ref={documentFileRef}
                         style={{ display: 'none' }}
-                        accept=".txt,.pdf,.jpg,.jpeg,.png,.tif,.tiff"
+                        accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
                         multiple={true}
                         onChange={() => {
                             handleImport();
