@@ -128,8 +128,8 @@ function useTable(planMessages: IChatMessage[]) {
         }),
     ];
 
+    // TODO: [Issue #63] Define a plan model
     /*
-    TODO: [Issue #63] Define a plan model
     eslint-disable
         @typescript-eslint/no-unsafe-assignment,
         @typescript-eslint/no-unsafe-member-access,
