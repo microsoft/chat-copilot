@@ -7,6 +7,7 @@ import { AlertType } from '../../../libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { addAlert } from '../../../redux/features/app/appSlice';
+import { editConversationTitle } from '../../../redux/features/conversations/conversationsSlice';
 import { Breakpoints } from '../../../styles';
 import { Checkmark20, Dismiss20 } from '../../shared/BundledIcons';
 
@@ -36,7 +37,7 @@ interface IEditChatNameProps {
 export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitEdits, textButtons }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
-    const { selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const chat = useChat();
 
     const [title = '', setTitle] = useState<string | undefined>(name);
@@ -47,7 +48,10 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
 
     const onSaveTitleChange = async () => {
         if (name !== title) {
-            await chat.editChatName(chatId, title);
+            const chatState = conversations[selectedId];
+            await chat.editChat(chatId, title, chatState.systemDescription, chatState.memoryBalance).then(() => {
+                dispatch(editConversationTitle({ id: chatId, newTitle: title }));
+            });
         }
         exitEdits();
     };
