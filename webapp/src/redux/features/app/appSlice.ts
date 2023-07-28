@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { TokenUsage } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
 export const appSlice = createSlice({
@@ -22,7 +23,13 @@ export const appSlice = createSlice({
         setActiveUserInfo: (state: AppState, action: PayloadAction<ActiveUserInfo>) => {
             state.activeUserInfo = action.payload;
         },
-        // This sets the feature flag
+        updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsage>) => {
+            Object.entries(action.payload).forEach(([key, value]) => {
+                action.payload[key] = getTotalTokenUsage(state.tokenUsage[key], value);
+            });
+            state.tokenUsage = action.payload;
+        },
+        // This sets the feature flag based on end user input
         toggleFeatureFlag: (state: AppState, action: PayloadAction<FeatureKeys>) => {
             const feature = state.features[action.payload];
             state.features = {
@@ -33,7 +40,7 @@ export const appSlice = createSlice({
                 },
             };
         },
-        // This controls feature availability based on the state of backend support
+        // This controls feature availability based on the state of backend
         toggleFeatureState: (
             state: AppState,
             action: PayloadAction<{
@@ -55,7 +62,25 @@ export const appSlice = createSlice({
     },
 });
 
-export const { addAlert, removeAlert, setAlerts, setActiveUserInfo, toggleFeatureFlag, toggleFeatureState } =
-    appSlice.actions;
+export const {
+    addAlert,
+    removeAlert,
+    setAlerts,
+    setActiveUserInfo,
+    toggleFeatureFlag,
+    toggleFeatureState,
+    updateTokenUsage,
+} = appSlice.actions;
 
 export default appSlice.reducer;
+
+const getTotalTokenUsage = (previousSum?: number, current?: number) => {
+    if (previousSum === undefined) {
+        return current;
+    }
+    if (current === undefined) {
+        return previousSum;
+    }
+
+    return previousSum + current;
+};

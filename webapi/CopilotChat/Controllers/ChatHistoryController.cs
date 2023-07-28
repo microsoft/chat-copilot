@@ -14,6 +14,7 @@ using Microsoft.SemanticKernel;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
+using SemanticKernel.Service.CopilotChat.Skills;
 using SemanticKernel.Service.CopilotChat.Storage;
 
 namespace SemanticKernel.Service.CopilotChat.Controllers;
@@ -80,19 +81,22 @@ public class ChatHistoryController : ControllerBase
         var newChat = new ChatSession(chatParameter.Title, this._promptOptions.SystemDescription);
         await this._sessionRepository.CreateAsync(newChat);
 
-        var initialBotMessage = this._promptOptions.InitialBotMessage;
-        // The initial bot message doesn't need a prompt.
+        // Create initial bot message
         var chatMessage = ChatMessage.CreateBotResponseMessage(
             newChat.Id,
-            initialBotMessage,
-            string.Empty);
+            this._promptOptions.InitialBotMessage,
+            string.Empty, // The initial bot message doesn't need a prompt.
+            TokenUtilities.EmptyTokenUsages());
         await this._messageRepository.CreateAsync(chatMessage);
 
         // Add the user to the chat session
         await this._participantRepository.CreateAsync(new ChatParticipant(chatParameter.UserId, newChat.Id));
 
         this._logger.LogDebug("Created chat session with id {0}.", newChat.Id);
-        return this.CreatedAtAction(nameof(this.GetChatSessionByIdAsync), new { chatId = newChat.Id }, newChat);
+        return this.CreatedAtAction(
+            nameof(this.GetChatSessionByIdAsync),
+            new { chatId = newChat.Id },
+            new CreateChatResponse(newChat, chatMessage));
     }
 
     /// <summary>

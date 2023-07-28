@@ -9,7 +9,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 
-const semanticKernelBrandRamp: BrandVariants = {
+export const semanticKernelBrandRamp: BrandVariants = {
     10: '#060103',
     20: '#261018',
     30: '#431426',

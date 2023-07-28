@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { AlertType } from '../../../libs/models/AlertType';
+import { TokenUsage } from '../../../libs/models/TokenUsage';
 
 export interface ActiveUserInfo {
     id: string;
@@ -31,6 +32,7 @@ export interface Setting {
 export interface AppState {
     alerts: Alert[];
     activeUserInfo?: ActiveUserInfo;
+    tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
 }
@@ -126,6 +128,7 @@ export const initialState: AppState = {
             type: AlertType.Info,
         },
     ],
+    tokenUsage: {},
     features: Features,
     settings: Settings,
 };

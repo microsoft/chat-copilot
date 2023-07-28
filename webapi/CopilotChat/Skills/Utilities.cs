@@ -1,6 +1,5 @@
 ﻿//Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using Microsoft.SemanticKernel.Orchestration;
 
 namespace SemanticKernel.Service.CopilotChat.Skills;
@@ -24,9 +23,4 @@ internal static class Utilities
             context.Skills,
             context.Log,
             context.CancellationToken);
-
-    /// <summary>
-    /// Calculate the number of tokens in a string.
-    /// </summary>
-    internal static int TokenCount(string text) => GPT3Tokenizer.Encode(text).Count;
 }
