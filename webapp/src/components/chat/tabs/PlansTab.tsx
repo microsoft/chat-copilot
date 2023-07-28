@@ -150,7 +150,7 @@ function useTable(planMessages: IChatMessage[]) {
                 label: timestampToDateString(message.timestamp),
                 timestamp: message.timestamp,
             },
-            tokens: 0,
+            tokens: 0, // TODO: [Issue #2106] Get token count from plan
             message: message,
         };
     });
