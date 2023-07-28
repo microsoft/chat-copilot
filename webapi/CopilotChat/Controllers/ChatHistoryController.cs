@@ -78,7 +78,7 @@ public class ChatHistoryController : ControllerBase
         }
 
         // Create a new chat session
-        var newChat = new ChatSession(chatParameter.Title);
+        var newChat = new ChatSession(chatParameter.Title, this._promptOptions.SystemDescription);
         await this._sessionRepository.CreateAsync(newChat);
 
         // Create initial bot message
@@ -205,6 +205,8 @@ public class ChatHistoryController : ControllerBase
         if (await this._sessionRepository.TryFindByIdAsync(chatId, v => chat = v))
         {
             chat!.Title = chatParameters.Title;
+            chat!.SystemDescription = chatParameters.SystemDescription;
+            chat!.MemoryBalance = chatParameters.MemoryBalance;
             await this._sessionRepository.UpsertAsync(chat);
             await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatEditedClientCall, chat);
             return this.Ok(chat);

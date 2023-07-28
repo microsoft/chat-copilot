@@ -72,10 +72,18 @@ export class ChatService extends BaseService {
         return result.reverse();
     };
 
-    public editChatAsync = async (chatId: string, title: string, accessToken: string): Promise<any> => {
+    public editChatAsync = async (
+        chatId: string,
+        title: string,
+        systemDescription: string,
+        memoryBalance: number,
+        accessToken: string
+    ): Promise<any> => {
         const body: IChatSession = {
             id: chatId,
             title,
+            systemDescription,
+            memoryBalance,
         };
 
         const result = await this.getResponseAsync<IChatSession>(
@@ -208,4 +216,16 @@ export class ChatService extends BaseService {
 
         return chatUsers;
     };
+
+    public getSemanticMemoriesAsync = async (chatId: string, memoryName: string, accessToken: string): Promise<string[]> => {
+        const result = await this.getResponseAsync<string[]>(
+            {
+                commandPath: `chatMemory/${chatId}/${memoryName}`,
+                method: 'GET',
+            },
+            accessToken,
+        );
+
+        return result;
+    }
 }

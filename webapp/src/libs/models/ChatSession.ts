@@ -6,4 +6,6 @@ export interface IChatSession {
     id: string;
     title: string;
     initialBotMessage?: IChatMessage;
+    systemDescription: string;
+    memoryBalance: number;
 }
