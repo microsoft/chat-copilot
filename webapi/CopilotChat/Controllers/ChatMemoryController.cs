@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -77,14 +78,23 @@ public class ChatMemoryController : ControllerBase
         // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
-        var results = semanticTextMemory.SearchAsync(
-            SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName),
-            "abc",
-            limit: 100,
-            minRelevanceScore: 0.0);
-        await foreach (var memory in results)
+        string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
+        try
         {
-            memories.Add(memory.Metadata.Text);
+            var results = semanticTextMemory.SearchAsync(
+                memoryCollectionName,
+                "abc",
+                limit: 100,
+                minRelevanceScore: 0.0);
+            await foreach (var memory in results)
+            {
+                memories.Add(memory.Metadata.Text);
+            }
+        }
+        catch (Exception connectorException)
+        {
+            // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
         }
 
         return this.Ok(memories);

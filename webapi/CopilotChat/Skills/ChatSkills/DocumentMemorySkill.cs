@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -16,6 +18,11 @@ namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
 /// </summary>
 public class DocumentMemorySkill
 {
+    /// <summary>
+    /// High level logger.
+    /// </summary>
+    private readonly ILogger _logger;
+
     /// <summary>
     /// Prompt settings.
     /// </summary>
@@ -31,8 +38,10 @@ public class DocumentMemorySkill
     /// </summary>
     public DocumentMemorySkill(
         IOptions<PromptsOptions> promptOptions,
-        IOptions<DocumentMemoryOptions> documentImportOptions)
+        IOptions<DocumentMemoryOptions> documentImportOptions,
+        Microsoft.Extensions.Logging.ILogger logger)
     {
+        this._logger = logger;
         this._promptOptions = promptOptions.Value;
         this._documentImportOptions = documentImportOptions.Value;
     }
@@ -61,14 +70,22 @@ public class DocumentMemorySkill
         List<MemoryQueryResult> relevantMemories = new();
         foreach (var documentCollection in documentCollections)
         {
-            var results = textMemory.SearchAsync(
-                documentCollection,
-                query,
-                limit: 100,
-                minRelevanceScore: this._promptOptions.DocumentMemoryMinRelevance);
-            await foreach (var memory in results)
+            try
             {
-                relevantMemories.Add(memory);
+                var results = textMemory.SearchAsync(
+                    documentCollection,
+                    query,
+                    limit: 100,
+                    minRelevanceScore: this._promptOptions.DocumentMemoryMinRelevance);
+                await foreach (var memory in results)
+                {
+                    relevantMemories.Add(memory);
+                }
+            }
+            catch (Exception connectorException)
+            {
+                // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+                this._logger.LogError(connectorException, "Cannot search collection {0}", documentCollection);
             }
         }
 

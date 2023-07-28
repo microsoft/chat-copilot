@@ -38,6 +38,11 @@ public class ChatSkill
     private readonly IKernel _kernel;
 
     /// <summary>
+    /// A logger instance to log events.
+    /// </summary>
+    private ILogger _logger;
+
+    /// <summary>
     /// A repository to save and retrieve chat messages.
     /// </summary>
     private readonly ChatMessageRepository _chatMessageRepository;
@@ -85,6 +90,7 @@ public class ChatSkill
         CopilotChatPlanner planner,
         ILogger logger)
     {
+        this._logger = logger;
         this._kernel = kernel;
         this._chatMessageRepository = chatMessageRepository;
         this._chatSessionRepository = chatSessionRepository;
@@ -94,10 +100,11 @@ public class ChatSkill
 
         this._semanticChatMemorySkill = new SemanticChatMemorySkill(
             promptOptions,
-            chatSessionRepository);
+            chatSessionRepository, logger);
         this._documentMemorySkill = new DocumentMemorySkill(
             promptOptions,
-            documentImportOptions);
+            documentImportOptions,
+            logger);
         this._externalInformationSkill = new ExternalInformationSkill(
             promptOptions,
             planner);
@@ -262,7 +269,7 @@ public class ChatSkill
         SKContext context)
     {
         // Set the system description in the prompt options
-        await SetSystemDescriptionAsync(chatId);
+        await this.SetSystemDescriptionAsync(chatId);
 
         // Save this new message to memory such that subsequent chat responses can use it
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving user message to chat history");
@@ -415,7 +422,7 @@ public class ChatSkill
             chatId,
             this._kernel,
             chatContext,
-            this._promptOptions);
+            this._promptOptions, this._logger);
 
         // Save the message
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving message to chat history");

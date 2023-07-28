@@ -32,11 +32,11 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="kernel">The semantic kernel.</param>
     /// <param name="context">The context containing the memory.</param>
     /// <param name="options">The prompts options.</param>
-    internal static async Task ExtractSemanticChatMemoryAsync(
-        string chatId,
+    /// <param name="logger"></param>
+    internal static async Task ExtractSemanticChatMemoryAsync(string chatId,
         IKernel kernel,
         SKContext context,
-        PromptsOptions options)
+        PromptsOptions options, ILogger logger)
     {
         foreach (var memoryName in options.MemoryMap.Keys)
         {
@@ -50,7 +50,7 @@ internal static class SemanticChatMemoryExtractor
                 );
                 foreach (var item in semanticMemory.Items)
                 {
-                    await CreateMemoryAsync(item, chatId, context, memoryName, options);
+                    await CreateMemoryAsync(item, chatId, context, memoryName, options, logger);
                 }
             }
             catch (Exception ex) when (!ex.IsCriticalException())
@@ -114,35 +114,43 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="context">The context that contains the memory</param>
     /// <param name="memoryName">Name of the memory</param>
     /// <param name="options">The prompts options.</param>
-    internal static async Task CreateMemoryAsync(
-        SemanticChatMemoryItem item,
+    /// <param name="logger"></param>
+    internal static async Task CreateMemoryAsync(SemanticChatMemoryItem item,
         string chatId,
         SKContext context,
         string memoryName,
-        PromptsOptions options)
+        PromptsOptions options, ILogger logger)
     {
         var memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
 
-        // Search if there is already a memory item that has a high similarity score with the new item.
-        var memories = await context.Memory.SearchAsync(
-                collection: memoryCollectionName,
-                query: item.ToFormattedString(),
-                limit: 1,
-                minRelevanceScore: options.SemanticMemoryRelevanceUpper,
-                cancellationToken: context.CancellationToken
-            )
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        if (memories.Count == 0)
+        try
         {
-            await context.Memory.SaveInformationAsync(
-                collection: memoryCollectionName,
-                text: item.ToFormattedString(),
-                id: Guid.NewGuid().ToString(),
-                description: memoryName,
-                cancellationToken: context.CancellationToken
-            );
+            // Search if there is already a memory item that has a high similarity score with the new item.
+            var memories = await context.Memory.SearchAsync(
+                    collection: memoryCollectionName,
+                    query: item.ToFormattedString(),
+                    limit: 1,
+                    minRelevanceScore: options.SemanticMemoryRelevanceUpper,
+                    cancellationToken: context.CancellationToken
+                )
+                .ToListAsync()
+                .ConfigureAwait(false);
+
+            if (memories.Count == 0)
+            {
+                await context.Memory.SaveInformationAsync(
+                    collection: memoryCollectionName,
+                    text: item.ToFormattedString(),
+                    id: Guid.NewGuid().ToString(),
+                    description: memoryName,
+                    cancellationToken: context.CancellationToken
+                );
+            }
+        }
+        catch (Exception connectorException)
+        {
+            // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+            logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
         }
     }
 
