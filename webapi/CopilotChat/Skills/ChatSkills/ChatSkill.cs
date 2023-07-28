@@ -262,7 +262,7 @@ public class ChatSkill
         SKContext context)
     {
         // Set the system description in the prompt options
-        await SetSystemDescriptionAsync(chatId);
+        await this.SetSystemDescriptionAsync(chatId);
 
         // Save this new message to memory such that subsequent chat responses can use it
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving user message to chat history");
@@ -430,7 +430,6 @@ public class ChatSkill
     private async Task<string> GetAudienceAsync(SKContext context)
     {
         SKContext audienceContext = context.Clone();
-        audienceContext.Variables.Set("chatId", context["chatId"]);
 
         var audience = await this.ExtractAudienceAsync(audienceContext);
 
@@ -453,8 +452,6 @@ public class ChatSkill
         if (!context.Variables.TryGetValue("planUserIntent", out string? userIntent))
         {
             SKContext intentContext = context.Clone();
-            intentContext.Variables.Set("chatId", context["chatId"]);
-            intentContext.Variables.Set("audience", context["userName"]);
 
             userIntent = await this.ExtractUserIntentAsync(intentContext);
             // Propagate the error
@@ -468,8 +465,7 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Helper function that creates the correct context variables to
-    /// query chat memories from the chat memory store.
+    /// Helper function that queries chat memories from the chat memory store.
     /// </summary>
     /// <returns>The chat memories.</returns>
     /// <param name="context">The SKContext.</param>
@@ -481,8 +477,7 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Helper function that creates the correct context variables to
-    /// query document memories from the document memory store.
+    /// Helper function that queries document memories from the document memory store.
     /// </summary>
     /// <returns>The document memories.</returns>
     /// <param name="context">The SKContext.</param>
