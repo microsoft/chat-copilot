@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { IChatMessage } from '../../models/ChatMessage';
+
 export interface IAskResult {
-    value: string;
-    variables: Variable[];
+    message: IChatMessage;
+    variables: ContextVariable[];
 }
 
-export interface Variable {
+export interface ContextVariable {
     key: string;
     value: string;
 }
