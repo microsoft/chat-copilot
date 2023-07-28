@@ -268,7 +268,7 @@ public class ChatSkill
         SKContext context)
     {
         // Set the system description in the prompt options
-        await SetSystemDescriptionAsync(chatId);
+        await this.SetSystemDescriptionAsync(chatId);
 
         // Save this new message to memory such that subsequent chat responses can use it
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving user message to chat history");
@@ -718,7 +718,10 @@ public class ChatSkill
             }
         }
 
-        if (content != null) tokenUsageDict.Add(TokenUtilities.semanticFunctions["SystemCompletion"]!, TokenUtilities.TokenCount(content));
+        if (content != null)
+        {
+            tokenUsageDict.Add(TokenUtilities.semanticFunctions["SystemCompletion"]!, TokenUtilities.TokenCount(content));
+        }
 
         return tokenUsageDict;
     }

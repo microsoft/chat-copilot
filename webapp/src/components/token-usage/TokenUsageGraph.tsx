@@ -54,7 +54,7 @@ interface ITokenUsageGraph {
     promptView?: boolean;
 }
 
-const constrastColors = [
+const contrastColors = [
     tokens.colorPaletteBlueBackground2,
     tokens.colorPaletteBlueForeground2,
     tokens.colorPaletteBlueBorderActive,
@@ -72,7 +72,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
     let responseGenerationUsage = 0;
     let brandColorIndex = 120 as Brands;
     const brandStep = 20;
-    let constrastColorIndex = 0;
+    let contrastColorsIndex = 0;
 
     Object.entries(tokenUsage).forEach(([key, value]) => {
         const viewDetails: TokenUsageViewDetails = {
@@ -83,7 +83,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
 
         if (key.toLocaleUpperCase().includes('MEMORY')) {
             memoryExtractionUsage += value ?? 0;
-            viewDetails.color = constrastColors[constrastColorIndex++];
+            viewDetails.color = contrastColors[contrastColorsIndex++];
             memoryExtractionView[key] = viewDetails;
         } else {
             responseGenerationUsage += value ?? 0;
@@ -146,7 +146,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                                         name={'Memory Extraction'}
                                         usageCount={memoryExtractionUsage}
                                         items={memoryExtractionView}
-                                        color={constrastColors[constrastColorIndex - 1]}
+                                        color={contrastColors[contrastColorsIndex - 1]}
                                     />
                                 </div>
                             </>
