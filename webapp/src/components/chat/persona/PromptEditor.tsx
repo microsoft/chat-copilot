@@ -33,7 +33,12 @@ const useClasses = makeStyles({
     },
 });
 
+// The number of rows in the textarea.
+// Specifies the height in average character heights.
+const Rows = 8;
+
 interface PromptEditorProps {
+    chatId: string;
     title: string;
     prompt: string;
     isEditable: boolean;
@@ -41,14 +46,25 @@ interface PromptEditorProps {
     modificationHandler?: (value: string) => Promise<void>;
 }
 
-export const PromptEditor: React.FC<PromptEditorProps> = ({ title, prompt, isEditable, info, modificationHandler }) => {
+export const PromptEditor: React.FC<PromptEditorProps> = ({
+    chatId,
+    title,
+    prompt,
+    isEditable,
+    info,
+    modificationHandler,
+}) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const [value, setValue] = React.useState<string>(prompt);
 
     React.useEffect(() => {
+        // Taking a dependency on the chatId because the value state needs
+        // to be reset when the chatId changes. Otherwise, the value may
+        // not be updated when the user switches between chats that has
+        // the same prompt.
         setValue(prompt);
-    }, [prompt]);
+    }, [chatId, prompt]);
 
     const onSaveButtonClick = () => {
         if (modificationHandler) {
@@ -79,6 +95,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({ title, prompt, isEdi
             <Textarea
                 resize="vertical"
                 value={value}
+                rows={Rows}
                 disabled={!isEditable}
                 onChange={(_event, data) => {
                     setValue(data.value);
