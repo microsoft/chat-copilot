@@ -5,7 +5,6 @@ import { AnyAction, Dispatch } from '@reduxjs/toolkit';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
-import { TokenUsage } from '../../../libs/models/TokenUsage';
 import { addAlert } from '../app/appSlice';
 import { ChatState } from '../conversations/ChatState';
 import { AuthorRoles, ChatMessageType, IChatMessage } from './../../../libs/models/ChatMessage';
@@ -166,7 +165,7 @@ export const registerSignalREvents = (store: Store) => {
         },
     );
 
-    hubConnection.on(SignalRCallbackMethods.ReceiveMessageUpdate, (message: IChatMessage, tokenUsage?: TokenUsage) => {
+    hubConnection.on(SignalRCallbackMethods.ReceiveMessageUpdate, (message: IChatMessage) => {
         const { chatId, id: messageId, content } = message;
         // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
         store.dispatch({
@@ -174,8 +173,8 @@ export const registerSignalREvents = (store: Store) => {
             payload: {
                 chatId,
                 messageIdOrIndex: messageId,
-                property: tokenUsage ? 'tokenUsage' : 'content',
-                value: tokenUsage ?? content,
+                property: message.tokenUsage ? 'tokenUsage' : 'content',
+                value: message.tokenUsage ?? content,
                 frontLoad: true,
             },
         });

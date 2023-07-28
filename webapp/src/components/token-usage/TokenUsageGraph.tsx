@@ -87,7 +87,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
             memoryExtractionView[key] = viewDetails;
         } else {
             responseGenerationUsage += value ?? 0;
-            brandColorIndex -= brandStep;
+            brandColorIndex = (brandColorIndex - brandStep < 0 ? 160 : brandColorIndex - brandStep) as Brands;
             responseGenerationView[key] = viewDetails;
         }
     });

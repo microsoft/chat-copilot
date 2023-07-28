@@ -49,5 +49,4 @@ export const Constants = {
         MANIFEST_PATH: '/.well-known/ai-plugin.json',
     },
     KEYSTROKE_DEBOUNCE_TIME_MS: 250,
-    MAX_BAR_GRAPH_WIDTH: 500,
 };

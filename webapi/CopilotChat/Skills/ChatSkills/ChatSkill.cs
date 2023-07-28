@@ -360,7 +360,7 @@ public class ChatSkill
             return await this.SaveNewResponseAsync(
                 JsonSerializer.Serialize<ProposedPlan>(proposedPlan), prompt, chatId, userId,
                 // TODO: [Issue #2106] Accommodate plan token usage differently
-                await this.GetTokenUsagesAsync(chatContext)
+                this.GetTokenUsagesAsync(chatContext)
             );
         }
 
@@ -410,19 +410,16 @@ public class ChatSkill
             this._promptOptions.SystemChatPrompt,
             chatContext);
         chatContext.Variables.Set("prompt", renderedPrompt);
+        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 
         if (chatContext.ErrorOccurred)
         {
             return null;
         }
 
-        // Calculate total token usage for dependency functions and prompt template and send with chat stream to client
-        await this.UpdateBotResponseStatusOnClient(chatId, "Calculating token usage");
-        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
-
         // Stream the response to the client
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating bot response");
-        var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt, await this.GetTokenUsagesAsync(chatContext));
+        var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt);
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating semantic chat memory");
@@ -432,9 +429,13 @@ public class ChatSkill
             chatContext,
             this._promptOptions);
 
+        // Calculate total token usage for dependency functions and prompt template and send to client
+        await this.UpdateBotResponseStatusOnClient(chatId, "Calculating token usage");
+        chatMessage.TokenUsage = this.GetTokenUsagesAsync(chatContext, chatMessage.Content);
+        await this.UpdateMessageOnClient(chatMessage);
+
         // Save the message with final completion token usage
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving message to chat history");
-        chatMessage.TokenUsage = await this.GetTokenUsagesAsync(chatContext, chatMessage);
         await this._chatMessageRepository.UpsertAsync(chatMessage);
 
         return chatMessage;
@@ -622,7 +623,7 @@ public class ChatSkill
         }
 
         // Save message to chat history
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, response, tokenUsage);
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, response);
         await this._chatMessageRepository.UpsertAsync(chatMessage);
         return chatMessage;
     }
@@ -702,10 +703,11 @@ public class ChatSkill
     /// Gets token usage totals for each semantic function if not undefined.
     /// </summary>
     /// <param name="chatContext">Context maintained during response generation.</param>
+    /// <param name="content">String representing bot response. If null, response is still being generated or was hardcoded.</param>
     /// <returns>Dictionary containing function to token usage mapping for each total that's defined.</returns>
-    private async Task<Dictionary<string, int>> GetTokenUsagesAsync(SKContext chatContext, ChatMessage? chatMessage = null)
+    private Dictionary<string, int> GetTokenUsagesAsync(SKContext chatContext, string? content = null)
     {
-        var tokenUsageDict = new Dictionary<string, int>();
+        var tokenUsageDict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         // Total token usage of each semantic function
         foreach (string function in TokenUtilities.semanticFunctions.Values)
@@ -716,13 +718,7 @@ public class ChatSkill
             }
         }
 
-        // If method was called with a message, that means response was fully generated.
-        // Add token usage of system completion and update message on client.
-        if (chatMessage != null)
-        {
-            tokenUsageDict.Add(TokenUtilities.semanticFunctions["SystemCompletion"]!, TokenUtilities.TokenCount(chatMessage.Content));
-            await this.UpdateMessageOnClient(chatMessage, tokenUsageDict);
-        }
+        if (content != null) tokenUsageDict.Add(TokenUtilities.semanticFunctions["SystemCompletion"]!, TokenUtilities.TokenCount(content));
 
         return tokenUsageDict;
     }
@@ -734,14 +730,14 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="prompt">Prompt used to generate the response</param>
     /// <returns>The created chat message</returns>
-    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, string prompt, Dictionary<string, int>? tokenUsage)
+    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, string prompt)
     {
         // Create the stream
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
         var stream = chatCompletion.GenerateMessageStreamAsync(chatCompletion.CreateNewChat(prompt), this.CreateChatRequestSettings());
 
         // Create message on client
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, string.Empty, tokenUsage);
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, string.Empty);
 
         // Stream the message to the client
         await foreach (string contentPiece in stream)
@@ -772,11 +768,10 @@ public class ChatSkill
     /// <summary>
     /// Update the response on the client.
     /// </summary>
-    /// <param name="chatId">The chat ID</param>
     /// <param name="message">The message</param>
-    private async Task UpdateMessageOnClient(ChatMessage message, Dictionary<string, int>? tokenUsage = null)
+    private async Task UpdateMessageOnClient(ChatMessage message)
     {
-        await this._messageRelayHubContext.Clients.Group(message.ChatId).SendAsync("ReceiveMessageUpdate", message, tokenUsage);
+        await this._messageRelayHubContext.Clients.Group(message.ChatId).SendAsync("ReceiveMessageUpdate", message);
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,26 +32,20 @@ public static class TokenUtilities
     };
 
     /// <summary>
-    /// Gets dictorary containing empty token usage totals.
+    /// Gets dictionary containing empty token usage totals.
     /// Use for responses that are hardcoded and/or do not have semantic (token) dependencies.
     /// </summary>
     internal static Dictionary<string, int> EmptyTokenUsages()
     {
-        var emptyTokenUsages = new Dictionary<string, int>();
-
-        foreach (var key in semanticFunctions.Values)
-        {
-            emptyTokenUsages.Add(key, 0);
-        }
-
-        return emptyTokenUsages;
+        return semanticFunctions.Values.ToDictionary(v => v, v => 0, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
     /// Gets key used to identify function token usage in context variables.
     /// </summary>
-    /// <param name="chatContext">Context maintained during response generation.</param>
+    /// <param name="logger">The logger instance to use for logging errors.</param>
     /// <param name="functionName">Name of semantic function.</param>
+    /// <returns>The key corresponding to the semantic function name, or null if the function name is unknown.</returns>
     internal static string? GetFunctionKey(ILogger logger, string? functionName)
     {
         if (functionName == null || !semanticFunctions.TryGetValue(functionName, out string? key))

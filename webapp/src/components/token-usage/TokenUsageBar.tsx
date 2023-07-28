@@ -1,5 +1,4 @@
 import { Popover, PopoverSurface, PopoverTrigger, tokens } from '@fluentui/react-components';
-import { Constants } from '../../Constants';
 import { TokenUsageViewDetails } from '../../libs/models/TokenUsage';
 
 interface ITokenUsageBar {
@@ -9,7 +8,7 @@ interface ITokenUsageBar {
 
 export const TokenUsageBar: React.FC<ITokenUsageBar> = ({ details, totalUsage }) => {
     const percentage = details.usageCount / totalUsage;
-    const barWidth = percentage * Constants.MAX_BAR_GRAPH_WIDTH;
+    const barWidth = percentage * 500;
 
     return (
         <Popover

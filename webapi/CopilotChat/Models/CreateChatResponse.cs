@@ -10,7 +10,7 @@ namespace SemanticKernel.Service.CopilotChat.Models;
 public class CreateChatResponse
 {
     /// <summary>
-    /// Chat ID that is persistent and unique to.
+    /// ID that is persistent and unique to new chat session.
     /// </summary>
     [JsonPropertyName("id")]
     public string Id { get; set; }
