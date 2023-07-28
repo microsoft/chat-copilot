@@ -129,10 +129,10 @@ function useTable(planMessages: IChatMessage[]) {
     ];
 
     /*
-    eslint-disable 
+    TODO: [Issue #63] Define a plan model
+    eslint-disable
         @typescript-eslint/no-unsafe-assignment,
         @typescript-eslint/no-unsafe-member-access,
-        @typescript-eslint/no-unsafe-call,
     */
     const items = planMessages.map((message, index) => {
         const plan = JSON.parse(message.content);

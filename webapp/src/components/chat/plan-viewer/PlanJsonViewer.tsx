@@ -26,7 +26,7 @@ export const PlanJsonViewer: React.FC<IPlanJsonViewerProps> = ({ goal, json }) =
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>Plan in Json format</DialogTitle>
+                    <DialogTitle>Plan in JSON format</DialogTitle>
                     <DialogContent>
                         <pre>
                             <code>{JSON.stringify(JSON.parse(json), null, 2)}</code>
