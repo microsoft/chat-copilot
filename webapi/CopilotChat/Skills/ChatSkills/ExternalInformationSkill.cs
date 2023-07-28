@@ -88,12 +88,7 @@ public class ExternalInformationSkill
             string planJson = JsonSerializer.Serialize(deserializedPlan.Plan);
             // Reload the plan with the planner's kernel so
             // it has full context to be executed
-            var newPlanContext = new SKContext(
-                null,
-                this._planner.Kernel.Memory,
-                this._planner.Kernel.Skills,
-                this._planner.Kernel.Log
-            );
+            var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.Log);
             var plan = Plan.FromJson(planJson, newPlanContext);
 
             // Invoke plan

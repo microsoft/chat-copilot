@@ -36,7 +36,7 @@ public static class CopilotChatSemanticKernelExtensions
         });
 
         // Register Planner skills (AI plugins) here.
-        // TODO: Move planner skill registration from ChatController to here.
+        // TODO: Move planner skill registration from ChatController to this location.
 
         return services;
     }

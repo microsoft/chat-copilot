@@ -11,13 +11,11 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using Microsoft.SemanticKernel.Connectors.Memory.AzureSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
 using SemanticKernel.Service.CopilotChat.Extensions;
-using SemanticKernel.Service.CopilotChat.Storage;
 using SemanticKernel.Service.Options;
 
 namespace SemanticKernel.Service;
@@ -143,34 +141,19 @@ internal static class SemanticKernelExtensions
                     throw new InvalidOperationException("MemoriesStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
                 }
 
-                // ACS's vector search where users provide their embeddings
-                if (config.AzureCognitiveSearch.UseVectorSearch)
+                services.AddSingleton<IMemoryStore>(sp =>
                 {
-                    services.AddSingleton<IMemoryStore>(sp =>
-                    {
-                        return new AzureSearchMemoryStore(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key);
-                    });
-                    services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-                        sp.GetRequiredService<IMemoryStore>(),
-                        sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                            .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
-                }
-                // ACS's semantic search where ACS calculates the embeddings
-                else
-                {
-                    services.AddSingleton<ISemanticTextMemory>(sp => new AzureCognitiveSearchMemory(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key));
-                }
+                    return new AzureCognitiveSearchMemoryStore(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key);
+                });
+                services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
+                    sp.GetRequiredService<IMemoryStore>(),
+                    sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
+                        .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
                 break;
 
             default:
                 throw new InvalidOperationException($"Invalid 'MemoriesStore' type '{config.Type}'.");
         }
-
-        // High level semantic memory implementations, such as Azure Cognitive Search's Semantic Search, do not allow for providing embeddings when storing memories.
-        // We wrap the memory store in an optional memory store to allow controllers to pass dependency injection validation and potentially optimize
-        // for a lower-level memory implementation (e.g. Qdrant). Lower level memory implementations (i.e., IMemoryStore) allow for reusing embeddings,
-        // whereas high level memory implementation (i.e., ISemanticTextMemory) assume embeddings get recalculated on every write.
-        services.AddSingleton<OptionalIMemoryStore>(sp => new OptionalIMemoryStore() { MemoryStore = sp.GetService<IMemoryStore>() });
     }
 
     /// <summary>

@@ -38,12 +38,7 @@ public class BotController : ControllerBase
     /// <summary>
     /// The constructor of BotController.
     /// </summary>
-    /// <param name="optionalIMemoryStore">Optional memory store.
-    ///     High level semantic memory implementations, such as Azure Cognitive Search, do not allow for providing embeddings when storing memories.
-    ///     We wrap the memory store in an optional memory store to allow controllers to pass dependency injection validation and potentially optimize
-    ///     for a lower-level memory implementation (e.g. Qdrant). Lower level memory implementations (i.e., IMemoryStore) allow for reusing embeddings,
-    ///     whereas high level memory implementation (i.e., ISemanticTextMemory) assume embeddings get recalculated on every write.
-    /// </param>
+    /// <param name="memoryStore">Memory store.</param>
     /// <param name="chatRepository">The chat session repository.</param>
     /// <param name="chatMessageRepository">The chat message repository.</param>
     /// <param name="chatParticipantRepository">The chat participant repository.</param>
@@ -52,7 +47,7 @@ public class BotController : ControllerBase
     /// <param name="documentMemoryOptions">The document memory options.</param>
     /// <param name="logger">The logger.</param>
     public BotController(
-        OptionalIMemoryStore optionalIMemoryStore,
+        IMemoryStore memoryStore,
         ISemanticTextMemory semanticMemory,
         ChatSessionRepository chatRepository,
         ChatMessageRepository chatMessageRepository,
@@ -62,7 +57,7 @@ public class BotController : ControllerBase
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
         ILogger<BotController> logger)
     {
-        this._memoryStore = optionalIMemoryStore.MemoryStore;
+        this._memoryStore = memoryStore;
         this._logger = logger;
         this._semanticMemory = semanticMemory;
         this._chatRepository = chatRepository;
