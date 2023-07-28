@@ -4,8 +4,8 @@ import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import debug from 'debug';
 import React from 'react';
 import { Constants } from '../../Constants';
-import { AuthorRoles, IChatMessage } from '../../libs/models/ChatMessage';
 import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
+import { AuthorRoles, IChatMessage } from '../../libs/models/ChatMessage';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addMessageToConversationFromUser } from '../../redux/features/conversations/conversationsSlice';
@@ -89,6 +89,7 @@ export const ChatRoom: React.FC = () => {
         log('submitting user chat message');
 
         const chatInput: IChatMessage = {
+            chatId: selectedId,
             timestamp: new Date().getTime(),
             userId: activeUserInfo?.id as string,
             userName: activeUserInfo?.username as string,
