@@ -126,7 +126,7 @@ public class DocumentImportController : ControllerBase
 
         this._logger.LogInformation("Importing {0} document(s)...", documentImportForm.FormFiles.Count());
 
-        // TODO: Perform the import in parallel.
+        // TODO: [Issue #49] Perform the import in parallel.
         DocumentMessageContent documentMessageContent = new();
         IEnumerable<ImportResult> importResults = new List<ImportResult>();
         foreach (var formFile in documentImportForm.FormFiles)
@@ -155,8 +155,9 @@ public class DocumentImportController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
+            var userId = documentImportForm.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
-                .SendAsync(ReceiveMessageClientCall, chatMessage, chatId);
+                .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
             return this.Ok(chatMessage);
         }

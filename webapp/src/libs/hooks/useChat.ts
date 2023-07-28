@@ -56,7 +56,7 @@ export const useChat = () => {
         id: userId,
         fullName,
         emailAddress,
-        photo: undefined, // TODO: Make call to Graph /me endpoint to load photo
+        photo: undefined, // TODO: [Issue #45] Make call to Graph /me endpoint to load photo
         online: true,
         isTyping: false,
     };
@@ -78,6 +78,8 @@ export const useChat = () => {
                 const newChat: ChatState = {
                     id: result.id,
                     title: result.title,
+                    systemDescription: result.systemDescription,
+                    memoryBalance: result.memoryBalance,
                     messages: chatMessages,
                     users: [loggedInUser],
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
@@ -149,6 +151,8 @@ export const useChat = () => {
                     loadedConversations[chatSession.id] = {
                         id: chatSession.id,
                         title: chatSession.title,
+                        systemDescription: chatSession.systemDescription,
+                        memoryBalance: chatSession.memoryBalance,
                         users: chatUsers,
                         messages: chatMessages,
                         botProfilePicture: getBotProfilePicture(Object.keys(loadedConversations).length),
@@ -227,6 +231,21 @@ export const useChat = () => {
         return [];
     };
 
+    const getSemanticMemories = async (chatId: string, memoryName: string) => {
+        try {
+            return await chatService.getSemanticMemoriesAsync(
+                chatId,
+                memoryName,
+                await AuthHelper.getSKaaSAccessToken(instance, inProgress),
+            );
+        } catch (e: any) {
+            const errorMessage = `Unable to get semantic memories. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+        }
+
+        return [];
+    };
+
     const importDocument = async (chatId: string, files: File[]) => {
         try {
             await documentImportService.importDocumentAsync(
@@ -264,6 +283,8 @@ export const useChat = () => {
                 const newChat: ChatState = {
                     id: result.id,
                     title: result.title,
+                    systemDescription: result.systemDescription,
+                    memoryBalance: result.memoryBalance,
                     messages: chatMessages,
                     users: chatUsers,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
@@ -282,6 +303,16 @@ export const useChat = () => {
         return { success: true, message: '' };
     };
 
+    const editChat = async (chatId: string, title: string, syetemDescription: string, memoryBalance: number) => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        try {
+            await chatService.editChatAsync(chatId, title, syetemDescription, memoryBalance, accessToken);
+        } catch (e: any) {
+            const errorMessage = `Error editing chat ${chatId}. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+        }
+    };
+
     return {
         getChatUserById,
         createChat,
@@ -290,8 +321,10 @@ export const useChat = () => {
         downloadBot,
         uploadBot,
         getChatMemorySources,
+        getSemanticMemories,
         importDocument,
         joinChat,
+        editChat,
     };
 };
 

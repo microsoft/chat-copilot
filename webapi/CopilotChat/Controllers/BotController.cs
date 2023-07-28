@@ -93,7 +93,7 @@ public class BotController : ControllerBase
         [FromBody] Bot bot,
         CancellationToken cancellationToken)
     {
-        // TODO: We should get userId from server context instead of from request for privacy/security reasons when support multiple users.
+        // TODO: [Issue #47] We should get userId from server context instead of from request for privacy/security reasons when support multiple users.
         this._logger.LogDebug("Received call to upload a bot");
 
         if (!IsBotCompatible(
@@ -115,15 +115,15 @@ public class BotController : ControllerBase
 
         // Upload chat history into chat repository and embeddings into memory.
 
-        // 1. Create a new chat and get the chat id.
-        newChat = new ChatSession(chatTitle);
+        // Create a new chat and get the chat id.
+        newChat = new ChatSession(chatTitle, bot.SystemDescription);
         await this._chatRepository.CreateAsync(newChat);
         await this._chatParticipantRepository.CreateAsync(new ChatParticipant(userId, newChat.Id));
         chatId = newChat.Id;
 
         string oldChatId = bot.ChatHistory.First().ChatId;
 
-        // 2. Update the app's chat storage.
+        // Update the app's chat storage.
         foreach (var message in bot.ChatHistory)
         {
             var chatMessage = new ChatMessage(
@@ -139,10 +139,10 @@ public class BotController : ControllerBase
             await this._chatMessageRepository.CreateAsync(chatMessage);
         }
 
-        // 3. Update the memory.
+        // Update the memory.
         await this.BulkUpsertMemoryRecordsAsync(oldChatId, chatId, bot.Embeddings, cancellationToken);
 
-        // TODO: Revert changes if any of the actions failed
+        // TODO: [Issue #47] Revert changes if any of the actions failed
 
         return this.CreatedAtAction(
             nameof(ChatHistoryController.GetChatSessionByIdAsync),
@@ -254,11 +254,14 @@ public class BotController : ControllerBase
         ChatSession chat = await this._chatRepository.FindByIdAsync(chatIdString);
         bot.ChatTitle = chat.Title;
 
+        // get the system description
+        bot.SystemDescription = chat.SystemDescription;
+
         // get the chat history
         bot.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);
 
         // get the memory collections associated with this chat
-        // TODO: filtering memory collections by name might be fragile.
+        // TODO: [Issue #47] filtering memory collections by name might be fragile.
         var chatCollections = (await kernel.Memory.GetCollectionsAsync())
             .Where(collection => collection.StartsWith(chatIdString, StringComparison.OrdinalIgnoreCase));
 
@@ -289,7 +292,7 @@ public class BotController : ControllerBase
     /// <returns>The list of chat messages in descending order of the timestamp</returns>
     private async Task<List<ChatMessage>> GetAllChatMessagesAsync(string chatId)
     {
-        // TODO: We might want to set limitation on the number of messages that are pulled from the storage.
+        // TODO: [Issue #47] We might want to set limitation on the number of messages that are pulled from the storage.
         return (await this._chatMessageRepository.FindByChatIdAsync(chatId))
             .OrderByDescending(m => m.Timestamp).ToList();
     }

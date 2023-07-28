@@ -25,25 +25,26 @@ import {
     useTableFeatures,
     useTableSort,
 } from '@fluentui/react-components';
-import { DocumentArrowUp20Regular, DocumentPdfRegular, DocumentTextRegular, FluentIconsProps } from '@fluentui/react-icons';
+import {
+    DocumentArrowUp20Regular,
+    DocumentPdfRegular,
+    DocumentTextRegular,
+    FluentIconsProps,
+} from '@fluentui/react-icons';
 import * as React from 'react';
 import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { useChat } from '../../libs/hooks';
-import { ChatMemorySource } from '../../libs/models/ChatMemorySource';
-import { useAppSelector } from '../../redux/app/hooks';
-import { RootState } from '../../redux/app/store';
-import { setImportingDocumentsToConversation } from '../../redux/features/conversations/conversationsSlice';
-import { SharedStyles } from '../../styles';
-import { timestampToDateString } from '../utils/TextUtils';
+import { useChat } from '../../../libs/hooks';
+import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
+import { useAppSelector } from '../../../redux/app/hooks';
+import { RootState } from '../../../redux/app/store';
+import { setImportingDocumentsToConversation } from '../../../redux/features/conversations/conversationsSlice';
+import { timestampToDateString } from '../../utils/TextUtils';
+import { TabView } from './TabView';
 
 const EmptyGuid = '00000000-0000-0000-0000-000000000000';
 
 const useClasses = makeStyles({
-    root: {
-        ...shorthands.margin(tokens.spacingVerticalM, tokens.spacingHorizontalM),
-        ...SharedStyles.scroll,
-    },
     functional: {
         display: 'flex',
         flexDirection: 'row',
@@ -82,7 +83,7 @@ interface TableItem {
     tokens: number;
 }
 
-export const ChatResourceList: React.FC = () => {
+export const DocumentsTab: React.FC = () => {
     const classes = useClasses();
     const chat = useChat();
     const dispatch = useDispatch();
@@ -95,16 +96,16 @@ export const ChatResourceList: React.FC = () => {
     React.useEffect(() => {
         const importingResources = importingDocuments
             ? importingDocuments.map((document, index) => {
-                return {
-                    id: `in-progress-${index}`,
-                    chatId: selectedId,
-                    sourceType: "N/A",
-                    name: document,
-                    sharedBy: "N/A",
-                    createdOn: 0,
-                    tokens: 0,
-                } as ChatMemorySource;
-            })
+                  return {
+                      id: `in-progress-${index}`,
+                      chatId: selectedId,
+                      sourceType: 'N/A',
+                      name: document,
+                      sharedBy: 'N/A',
+                      createdOn: 0,
+                      tokens: 0,
+                  } as ChatMemorySource;
+              })
             : [];
         setResources(importingResources);
 
@@ -124,16 +125,20 @@ export const ChatResourceList: React.FC = () => {
             // maintains a list of files to import before the import is complete.
             const filesArray = Array.from(files);
 
-            dispatch(setImportingDocumentsToConversation({
-                importingDocuments: filesArray.map((file) => file.name),
-                chatId: selectedId
-            }));
+            dispatch(
+                setImportingDocumentsToConversation({
+                    importingDocuments: filesArray.map((file) => file.name),
+                    chatId: selectedId,
+                }),
+            );
 
             void chat.importDocument(selectedId, filesArray).finally(() => {
-                dispatch(setImportingDocumentsToConversation({
-                    importingDocuments: [],
-                    chatId: selectedId
-                }));
+                dispatch(
+                    setImportingDocumentsToConversation({
+                        importingDocuments: [],
+                        chatId: selectedId,
+                    }),
+                );
             });
         }
 
@@ -146,8 +151,11 @@ export const ChatResourceList: React.FC = () => {
 
     const { columns, rows } = useTable(resources);
     return (
-        <div className={classes.root}>
-            <h2>Documents</h2>
+        <TabView
+            title="Documents"
+            learnMoreDescription="document embeddings"
+            learnMoreLink="https://aka.ms/sk-docs-vectordb"
+        >
             <div className={classes.functional}>
                 {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
                 <input
@@ -171,7 +179,7 @@ export const ChatResourceList: React.FC = () => {
                 {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
-                    <Label size='large'>Vector Database</Label>
+                    <Label size="large">Vector Database</Label>
                     <RadioGroup defaultValue="Qdrant" layout="horizontal">
                         <Radio value="Qdrant" label="Qdrant" />
                         <Radio value="Azure" label="Azure Cognitive Search" disabled />
@@ -180,10 +188,7 @@ export const ChatResourceList: React.FC = () => {
                     </RadioGroup>
                 </div>
             </div>
-            <Table
-                aria-label="External resource table"
-                className={classes.table}
-            >
+            <Table aria-label="External resource table" className={classes.table}>
                 <TableHeader>
                     <TableRow>{columns.map((column) => column.renderHeaderCell())}</TableRow>
                 </TableHeader>
@@ -193,10 +198,7 @@ export const ChatResourceList: React.FC = () => {
                     ))}
                 </TableBody>
             </Table>
-            <Label size='small' color='brand'>
-                Want to learn more about document embeddings? Click <a href="https://aka.ms/sk-docs-vectordb" target="_blank" rel="noreferrer">here</a>.
-            </Label>
-        </div>
+        </TabView>
     );
 };
 
@@ -237,7 +239,7 @@ function useTable(resources: ChatMemorySource[]) {
             ),
             renderCell: (item) => (
                 <TableCell key={item.createdOn.timestamp} title={new Date(item.createdOn.timestamp).toLocaleString()}>
-                    {item.createdOn.label}
+                    {item.id.startsWith('in-progress') ? 'N/A' : item.createdOn.label}
                 </TableCell>
             ),
             compare: (a, b) => {
@@ -292,9 +294,9 @@ function useTable(resources: ChatMemorySource[]) {
                 <TableCell key={`${item.id}-progress`}>
                     <ProgressBar
                         max={1}
-                        value={item.id.startsWith('in-progress') ? undefined : 1}   // Hack: tokens stores the progress bar percentage.
-                        shape='rounded'
-                        thickness='large'
+                        value={item.id.startsWith('in-progress') ? undefined : 1} // Hack: tokens stores the progress bar percentage.
+                        shape="rounded"
+                        thickness="large"
                         color={item.id.startsWith('in-progress') ? 'brand' : 'success'}
                     />
                 </TableCell>
