@@ -1,15 +1,14 @@
-import { Popover, PopoverSurface, PopoverTrigger } from '@fluentui/react-components';
+import { Popover, PopoverSurface, PopoverTrigger, tokens } from '@fluentui/react-components';
 import { Constants } from '../../Constants';
+import { TokenUsageViewDetails } from '../../libs/models/TokenUsage';
 
 interface ITokenUsageBar {
-    functionName: string;
-    functionUsage: number;
+    details: TokenUsageViewDetails;
     totalUsage: number;
-    color: string;
 }
 
-export const TokenUsageBar: React.FC<ITokenUsageBar> = ({ functionName, functionUsage, totalUsage, color }) => {
-    const percentage = functionUsage / totalUsage;
+export const TokenUsageBar: React.FC<ITokenUsageBar> = ({ details, totalUsage }) => {
+    const percentage = details.usageCount / totalUsage;
     const barWidth = percentage * Constants.MAX_BAR_GRAPH_WIDTH;
 
     return (
@@ -24,15 +23,15 @@ export const TokenUsageBar: React.FC<ITokenUsageBar> = ({ functionName, function
         >
             <PopoverTrigger>
                 <div
-                    key={functionName}
+                    key={details.legendLabel}
                     style={{
-                        backgroundColor: color,
-                        height: '10px',
+                        backgroundColor: details.color,
+                        height: tokens.spacingVerticalMNudge,
                         width: `${barWidth}px`,
                     }}
                 />
             </PopoverTrigger>
-            <PopoverSurface>{`${functionName} (${functionUsage})`}</PopoverSurface>
+            <PopoverSurface>{`${details.legendLabel} (${details.usageCount})`}</PopoverSurface>
         </Popover>
     );
 };

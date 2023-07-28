@@ -6,7 +6,6 @@ export type TokenUsageView = Record<string, TokenUsageViewDetails>;
 export interface TokenUsageViewDetails {
     usageCount: number;
     legendLabel: string;
-    dependency: boolean;
     color: string;
 }
 
@@ -20,7 +19,7 @@ export const TokenUsageFunctionNameMap: Record<string, string> = {
     audienceExtraction: 'Audience Extraction',
     userIntentExtraction: 'User Intent Extraction',
     metaPromptTemplate: 'Meta Prompt Template',
+    responseCompletion: 'Response Completion',
     workingMemoryExtraction: 'Working Memory Extraction',
     longTermMemoryExtraction: 'Long Term Memory Extraction',
-    responseCompletion: 'Response Completion',
 };

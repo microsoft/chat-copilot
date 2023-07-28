@@ -7,9 +7,10 @@ import {
     shorthands,
     tokens,
 } from '@fluentui/react-components';
-import { TokenUsageViewDetails } from '../../libs/models/TokenUsage';
+import { TokenUsageView } from '../../libs/models/TokenUsage';
+import { TokenUsageLegendLabel } from './TokenUsageLegendLabel';
 
-const useClasses = makeStyles({
+export const useClasses = makeStyles({
     root: {
         display: 'flex',
         ...shorthands.gap(tokens.spacingVerticalSNudge),
@@ -19,15 +20,20 @@ const useClasses = makeStyles({
         display: 'flex',
         ...shorthands.gap(tokens.spacingVerticalXXS),
     },
+    legendColor: {
+        height: tokens.spacingVerticalMNudge,
+        width: tokens.spacingHorizontalMNudge,
+    },
 });
 
 interface ITokenUsageLegendItem {
     name: string;
     usageCount: number;
-    items: TokenUsageViewDetails[];
+    items: TokenUsageView;
+    color: string;
 }
 
-export const TokenUsageLegendItem: React.FC<ITokenUsageLegendItem> = ({ name, usageCount, items }) => {
+export const TokenUsageLegendItem: React.FC<ITokenUsageLegendItem> = ({ name, usageCount, items, color }) => {
     const classes = useClasses();
     return (
         <div className={classes.root}>
@@ -42,35 +48,18 @@ export const TokenUsageLegendItem: React.FC<ITokenUsageLegendItem> = ({ name, us
                 appearance="inverted"
             >
                 <PopoverTrigger>
-                    <div className={classes.colors}>
-                        {items.map((item) => {
-                            return (
-                                <div
-                                    key={item.color}
-                                    style={{
-                                        backgroundColor: item.color,
-                                        height: tokens.spacingVerticalMNudge,
-                                        width: tokens.spacingHorizontalMNudge,
-                                    }}
-                                />
-                            );
-                        })}
-                    </div>
+                    <div
+                        key={color}
+                        style={{
+                            backgroundColor: color,
+                            height: tokens.spacingVerticalMNudge,
+                            width: tokens.spacingHorizontalMNudge,
+                        }}
+                    />
                 </PopoverTrigger>
                 <PopoverSurface>
-                    {items.map((item) => {
-                        return (
-                            <div key={item.legendLabel} className={classes.root}>
-                                <div
-                                    style={{
-                                        backgroundColor: item.color,
-                                        height: tokens.spacingVerticalMNudge,
-                                        width: tokens.spacingHorizontalMNudge,
-                                    }}
-                                />
-                                <Text>{`${item.legendLabel} (${item.usageCount})`}</Text>
-                            </div>
-                        );
+                    {Object.values(items).map((details) => {
+                        return <TokenUsageLegendLabel key={details.legendLabel} details={details} />;
                     })}
                 </PopoverSurface>
             </Popover>

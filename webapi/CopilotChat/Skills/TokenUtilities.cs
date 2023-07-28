@@ -25,9 +25,9 @@ public static class TokenUtilities
         { "SystemAudienceExtraction", "audienceExtraction" },
         { "SystemIntentExtraction", "userIntentExtraction" },
         { "SystemMetaPrompt", "metaPromptTemplate" },
+        { "SystemCompletion", "responseCompletion"},
         { "SystemCognitive_WorkingMemory", "workingMemoryExtraction" },
-        { "SystemCognitive_LongTermMemory", "longTermMemoryExtraction" },
-        { "SystemCompletion", "responseCompletion"}
+        { "SystemCognitive_LongTermMemory", "longTermMemoryExtraction" }
     };
 
     /// <summary>

@@ -54,37 +54,45 @@ interface ITokenUsageGraph {
     promptView?: boolean;
 }
 
+const constrastColors = [
+    tokens.colorPaletteBlueBackground2,
+    tokens.colorPaletteBlueForeground2,
+    tokens.colorPaletteBlueBorderActive,
+];
+
 export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenUsage }) => {
     const classes = useClasses();
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const loadingResponse = conversations[selectedId].botResponseStatus;
 
-    const tokenUsageView: TokenUsageView = {};
-    let dependencyUsage = 0;
+    const responseGenerationView: TokenUsageView = {};
+    const memoryExtractionView: TokenUsageView = {};
+
+    let memoryExtractionUsage = 0;
     let responseGenerationUsage = 0;
-    let color = 160 as Brands;
+    let brandColorIndex = 120 as Brands;
+    const brandStep = 20;
+    let constrastColorIndex = 0;
+
     Object.entries(tokenUsage).forEach(([key, value]) => {
         const viewDetails: TokenUsageViewDetails = {
             usageCount: value ?? 0,
             legendLabel: TokenUsageFunctionNameMap[key],
-            dependency: false,
-            color: semanticKernelBrandRamp[color],
+            color: semanticKernelBrandRamp[brandColorIndex],
         };
 
-        // Iterate through the color ramp
-        color -= 20;
-
-        if (key === 'responseCompletion' || key == 'metaPromptTemplate') {
-            responseGenerationUsage += value ?? 0;
-            viewDetails.dependency = false;
+        if (key.toLocaleUpperCase().includes('MEMORY')) {
+            memoryExtractionUsage += value ?? 0;
+            viewDetails.color = constrastColors[constrastColorIndex++];
+            memoryExtractionView[key] = viewDetails;
         } else {
-            dependencyUsage += value ?? 0;
-            viewDetails.dependency = true;
+            responseGenerationUsage += value ?? 0;
+            brandColorIndex -= brandStep;
+            responseGenerationView[key] = viewDetails;
         }
-        tokenUsageView[key] = viewDetails;
     });
 
-    const totalUsage = dependencyUsage + responseGenerationUsage;
+    const totalUsage = memoryExtractionUsage + responseGenerationUsage;
 
     return (
         <>
@@ -118,30 +126,27 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                             <>
                                 {!promptView && <Text>Total token usage for current session</Text>}
                                 <div className={classes.horizontal} style={{ gap: tokens.spacingHorizontalXXS }}>
-                                    {Object.entries(tokenUsageView).map(([key, details]) => {
-                                        return (
-                                            <TokenUsageBar
-                                                key={key}
-                                                functionName={details.legendLabel}
-                                                functionUsage={details.usageCount}
-                                                totalUsage={totalUsage}
-                                                color={details.color}
-                                            />
-                                        );
+                                    {Object.entries(responseGenerationView).map(([key, details]) => {
+                                        return <TokenUsageBar key={key} details={details} totalUsage={totalUsage} />;
+                                    })}
+                                    {Object.entries(memoryExtractionView).map(([key, details]) => {
+                                        return <TokenUsageBar key={key} details={details} totalUsage={totalUsage} />;
                                     })}
                                 </div>
                                 <div className={mergeClasses(classes.legend, classes.horizontal)}>
                                     <TokenUsageLegendItem
-                                        key={'Dependencies'}
-                                        name={'Dependencies'}
-                                        usageCount={dependencyUsage}
-                                        items={Object.values(tokenUsageView).filter((x) => x.dependency)}
-                                    />
-                                    <TokenUsageLegendItem
                                         key={'Response Generation'}
                                         name={'Response Generation'}
                                         usageCount={responseGenerationUsage}
-                                        items={Object.values(tokenUsageView).filter((x) => !x.dependency)}
+                                        items={responseGenerationView}
+                                        color={semanticKernelBrandRamp[(brandColorIndex + brandStep) as Brands]}
+                                    />
+                                    <TokenUsageLegendItem
+                                        key={'Memory Extraction'}
+                                        name={'Memory Extraction'}
+                                        usageCount={memoryExtractionUsage}
+                                        items={memoryExtractionView}
+                                        color={constrastColors[constrastColorIndex - 1]}
                                     />
                                 </div>
                             </>
