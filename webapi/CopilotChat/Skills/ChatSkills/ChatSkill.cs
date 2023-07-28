@@ -262,7 +262,7 @@ public class ChatSkill
         SKContext context)
     {
         // Set the system description in the prompt options
-        await SetSystemDescriptionAsync(chatId);
+        await this.SetSystemDescriptionAsync(chatId);
 
         // Save this new message to memory such that subsequent chat responses can use it
         await this.UpdateBotResponseStatusOnClient(chatId, "Saving user message to chat history");
@@ -281,21 +281,25 @@ public class ChatSkill
             await this.UpdateChatMessageContentAsync(planJson, messageId);
         }
 
-        // Save hardcoded response if user cancelled plan
+        ChatMessage? chatMessage;
         if (chatContext.Variables.ContainsKey("userCancelledPlan"))
         {
-            await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId);
-            return context;
+            // Save hardcoded response if user cancelled plan
+            chatMessage = await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId);
+        }
+        else
+        {
+            // Get the chat response
+            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
         }
 
-        // Get the chat response
-        var chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
         if (chatMessage == null)
         {
             context.Fail(chatContext.LastErrorDescription);
             return context;
         }
 
+        context.Variables.Update(chatMessage.Content);
         return context;
     }
 
