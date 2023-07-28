@@ -1,0 +1,44 @@
+name: copilot-format-frontend
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "webapp/**"
+
+jobs:
+  prettier-format-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check out PR branch
+        env:
+          NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr checkout $NUMBER
+
+      - name: Set git user
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-action[bot]@users.noreply.github.com
+
+      - name: Run command
+        env:
+          NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn install --frozen-lockfile # install dependencies and ensure lockfile is unchanged.
+          echo "Fixing code style issues using Prettier..."
+          yarn format:fix
+          if git diff --quiet; then
+              echo "No code style issues found!"
+              exit 0 # success
+          fi
+          echo "Code style issues found. Committing fixes..."
+          git commit -a -m "yarn format:fix"
+          git push
+          echo "Fixes successfully committed! Verifying no formatting issues remain..."
+          yarn format
+        working-directory: webapp

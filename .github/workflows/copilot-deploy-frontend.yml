@@ -1,4 +1,4 @@
-name: copilot-deploy-backend
+name: copilot-deploy-frontend
 
 on:
   workflow_call:

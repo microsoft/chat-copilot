@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "format": "prettier src --check",
+    "format:fix": "prettier src --write",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "prettify": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,scss,css,html,svg}\"",
     "serve": "serve -s build",
     "start": "react-scripts start",
     "build": "react-scripts build",

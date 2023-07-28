@@ -1,4 +1,4 @@
-name: Copilot Chat Tests
+name: copilot-test-e2e
 on:
   workflow_dispatch:
   merge_group:
