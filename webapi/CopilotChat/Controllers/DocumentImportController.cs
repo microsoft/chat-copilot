@@ -548,7 +548,7 @@ public class DocumentImportController : ControllerBase
                 id: key,
                 description: $"Document: {documentName}");
             importResult.AddKey(key);
-            importResult.Tokens += Utilities.TokenCount(paragraph);
+            importResult.Tokens += TokenUtilities.TokenCount(paragraph);
         }
 
         this._logger.LogInformation(

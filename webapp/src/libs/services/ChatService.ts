@@ -7,6 +7,7 @@ import { IChatParticipant } from '../models/ChatParticipant';
 import { IChatSession } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
+import { IAskResult } from '../semantic-kernel/model/AskResult';
 import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
 import { BaseService } from './BaseService';
 
@@ -101,7 +102,7 @@ export class ChatService extends BaseService {
         ask: IAsk,
         accessToken: string,
         enabledPlugins?: Plugin[],
-    ): Promise<IChatMessage> => {
+    ): Promise<IAskResult> => {
         // If skill requires any additional api properties, append to context
         if (enabledPlugins && enabledPlugins.length > 0) {
             const openApiSkillVariables: IAskVariables[] = [];
@@ -110,7 +111,6 @@ export class ChatService extends BaseService {
             const customPlugins: ICustomPlugin[] = [];
 
             for (const plugin of enabledPlugins) {
-
                 // If user imported a manifest domain, add custom plugin
                 if (plugin.manifestDomain) {
                     customPlugins.push({
@@ -153,7 +153,7 @@ export class ChatService extends BaseService {
             ask.variables = ask.variables ? ask.variables.concat(openApiSkillVariables) : openApiSkillVariables;
         }
 
-        const result = await this.getResponseAsync<IChatMessage>(
+        const result = await this.getResponseAsync<IAskResult>(
             {
                 commandPath: 'chat',
                 method: 'POST',
