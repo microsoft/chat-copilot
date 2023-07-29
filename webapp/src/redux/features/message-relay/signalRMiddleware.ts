@@ -13,7 +13,7 @@ import { Store, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store'
 // These have to match the callback names used in the backend
 const enum SignalRCallbackMethods {
     ReceiveMessage = 'ReceiveMessage',
-    ReceiveMessageStream = 'ReceiveMessageStream',
+    ReceiveMessageUpdate = 'ReceiveMessageUpdate',
     UserJoined = 'UserJoined',
     ReceiveUserTypingState = 'ReceiveUserTypingState',
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
@@ -165,15 +165,20 @@ export const registerSignalREvents = (store: Store) => {
         },
     );
 
-    hubConnection.on(
-        SignalRCallbackMethods.ReceiveMessageStream,
-        (chatId: string, messageId: string, content: string) => {
-            store.dispatch({
-                type: 'conversations/updateMessageProperty',
-                payload: { chatId, messageIdOrIndex: messageId, property: 'content', value: content, frontLoad: true },
-            });
-        },
-    );
+    hubConnection.on(SignalRCallbackMethods.ReceiveMessageUpdate, (message: IChatMessage) => {
+        const { chatId, id: messageId, content } = message;
+        // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
+        store.dispatch({
+            type: 'conversations/updateMessageProperty',
+            payload: {
+                chatId,
+                messageIdOrIndex: messageId,
+                property: message.tokenUsage ? 'tokenUsage' : 'content',
+                value: message.tokenUsage ?? content,
+                frontLoad: true,
+            },
+        });
+    });
 
     hubConnection.on(SignalRCallbackMethods.UserJoined, (chatId: string, userId: string) => {
         const user: IChatUser = {
