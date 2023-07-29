@@ -17,6 +17,7 @@ using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
 using SemanticKernel.Service.CopilotChat.Extensions;
 using SemanticKernel.Service.Options;
+using static SemanticKernel.Service.Options.MemoriesStoreOptions;
 
 namespace SemanticKernel.Service;
 
@@ -95,17 +96,14 @@ internal static class SemanticKernelExtensions
     private static void AddSemanticTextMemory(this IServiceCollection services)
     {
         MemoriesStoreOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<MemoriesStoreOptions>>().Value;
+
         switch (config.Type)
         {
-            case MemoriesStoreOptions.MemoriesStoreType.Volatile:
+            case MemoriesStoreType.Volatile:
                 services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
-                services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-                    sp.GetRequiredService<IMemoryStore>(),
-                    sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                        .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
                 break;
 
-            case MemoriesStoreOptions.MemoriesStoreType.Qdrant:
+            case MemoriesStoreType.Qdrant:
                 if (config.Qdrant == null)
                 {
                     throw new InvalidOperationException("MemoriesStore type is Qdrant and Qdrant configuration is null.");
@@ -129,13 +127,9 @@ internal static class SemanticKernelExtensions
                         logger: sp.GetRequiredService<ILogger<IQdrantVectorDbClient>>()
                     );
                 });
-                services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-                    sp.GetRequiredService<IMemoryStore>(),
-                    sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                        .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
                 break;
 
-            case MemoriesStoreOptions.MemoriesStoreType.AzureCognitiveSearch:
+            case MemoriesStoreType.AzureCognitiveSearch:
                 if (config.AzureCognitiveSearch == null)
                 {
                     throw new InvalidOperationException("MemoriesStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
@@ -145,15 +139,16 @@ internal static class SemanticKernelExtensions
                 {
                     return new AzureCognitiveSearchMemoryStore(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key);
                 });
-                services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-                    sp.GetRequiredService<IMemoryStore>(),
-                    sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                        .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
                 break;
 
             default:
                 throw new InvalidOperationException($"Invalid 'MemoriesStore' type '{config.Type}'.");
         }
+
+        services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
+            sp.GetRequiredService<IMemoryStore>(),
+            sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
+                .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
     }
 
     /// <summary>
