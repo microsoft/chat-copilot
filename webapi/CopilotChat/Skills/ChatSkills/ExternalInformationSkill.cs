@@ -16,8 +16,8 @@ using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.GitHubPlugin;
-using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin;
+using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.GitHubPlugin.Model;
+using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin.Model;
 
 namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
 

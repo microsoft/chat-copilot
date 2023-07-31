@@ -28,5 +28,4 @@ public class PlannerOptions
     /// </summary>
     [Range(0, 1.0)]
     public double? RelevancyThreshold { get; set; } = 0;
-
 }

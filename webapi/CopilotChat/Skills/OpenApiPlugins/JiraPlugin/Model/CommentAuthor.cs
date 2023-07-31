@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin;
+namespace SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin.Model;
 
 /// <summary>
 /// Represents the Author of a comment.
