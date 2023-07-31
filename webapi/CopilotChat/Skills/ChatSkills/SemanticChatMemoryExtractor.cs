@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using SemanticKernel.Service.CopilotChat.Extensions;
 using SemanticKernel.Service.CopilotChat.Options;
@@ -30,7 +31,7 @@ internal static class SemanticChatMemoryExtractor
     /// </summary>
     /// <param name="chatId">The Chat ID.</param>
     /// <param name="kernel">The semantic kernel.</param>
-    /// <param name="context">The context containing the memory.</param>
+    /// <param name="context">The Semantic Kernel context.</param>
     /// <param name="options">The prompts options.</param>
     internal static async Task ExtractSemanticChatMemoryAsync(
         string chatId,
@@ -50,7 +51,7 @@ internal static class SemanticChatMemoryExtractor
                 );
                 foreach (var item in semanticMemory.Items)
                 {
-                    await CreateMemoryAsync(item, chatId, context, memoryName, options);
+                    await CreateMemoryAsync(item, chatId, kernel.Memory, memoryName, options);
                 }
             }
             catch (Exception ex) when (!ex.IsCriticalException())
@@ -89,7 +90,7 @@ internal static class SemanticChatMemoryExtractor
             options.ResponseTokenLimit -
             TokenUtilities.TokenCount(memoryPrompt); ;
 
-        var memoryExtractionContext = Utilities.CopyContextWithVariablesClone(context);
+        var memoryExtractionContext = context.Clone();
         memoryExtractionContext.Variables.Set("tokenLimit", remainingToken.ToString(new NumberFormatInfo()));
         memoryExtractionContext.Variables.Set("memoryName", memoryName);
         memoryExtractionContext.Variables.Set("format", options.MemoryFormat);
@@ -121,31 +122,29 @@ internal static class SemanticChatMemoryExtractor
     internal static async Task CreateMemoryAsync(
         SemanticChatMemoryItem item,
         string chatId,
-        SKContext context,
+        ISemanticTextMemory semanticTextMemory,
         string memoryName,
         PromptsOptions options)
     {
         var memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
 
         // Search if there is already a memory item that has a high similarity score with the new item.
-        var memories = await context.Memory.SearchAsync(
+        var memories = await semanticTextMemory.SearchAsync(
                 collection: memoryCollectionName,
                 query: item.ToFormattedString(),
                 limit: 1,
-                minRelevanceScore: options.SemanticMemoryRelevanceUpper,
-                cancellationToken: context.CancellationToken
+                minRelevanceScore: options.SemanticMemoryRelevanceUpper
             )
             .ToListAsync()
             .ConfigureAwait(false);
 
         if (memories.Count == 0)
         {
-            await context.Memory.SaveInformationAsync(
+            await semanticTextMemory.SaveInformationAsync(
                 collection: memoryCollectionName,
                 text: item.ToFormattedString(),
                 id: Guid.NewGuid().ToString(),
-                description: memoryName,
-                cancellationToken: context.CancellationToken
+                description: memoryName
             );
         }
     }
