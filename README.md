@@ -25,7 +25,7 @@ You will need the following to run the sample:
 2. Configure environment.
 
     ```powershell
-    cd <path to semantic-kernal>\samples\apps\copilot-chat-app\scripts
+    cd <path to semantic-kernel>\samples\apps\copilot-chat-app\scripts
     .\Install.ps1
     ```
 
