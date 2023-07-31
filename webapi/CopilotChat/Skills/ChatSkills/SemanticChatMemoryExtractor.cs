@@ -114,7 +114,7 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="context">The context that contains the memory</param>
     /// <param name="memoryName">Name of the memory</param>
     /// <param name="options">The prompts options.</param>
-    /// <param name="logger"></param>
+    /// <param name="logger">Logger</param>
     internal static async Task CreateMemoryAsync(SemanticChatMemoryItem item,
         string chatId,
         SKContext context,
