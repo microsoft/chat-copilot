@@ -7,7 +7,7 @@ import {
     shorthands,
     tokens,
 } from '@fluentui/react-components';
-import { TokenUsageView } from '../../libs/models/TokenUsage';
+import { TokenUsageViewDetails } from '../../libs/models/TokenUsage';
 import { TokenUsageLegendLabel } from './TokenUsageLegendLabel';
 
 export const useClasses = makeStyles({
@@ -29,7 +29,7 @@ export const useClasses = makeStyles({
 interface ITokenUsageLegendItem {
     name: string;
     usageCount: number;
-    items: TokenUsageView;
+    items: TokenUsageViewDetails[];
     color: string;
 }
 
@@ -58,9 +58,11 @@ export const TokenUsageLegendItem: React.FC<ITokenUsageLegendItem> = ({ name, us
                     />
                 </PopoverTrigger>
                 <PopoverSurface>
-                    {Object.values(items).map((details) => {
-                        return <TokenUsageLegendLabel key={details.legendLabel} details={details} />;
-                    })}
+                    {items.length > 0
+                        ? items.map((details) => {
+                              return <TokenUsageLegendLabel key={details.legendLabel} details={details} />;
+                          })
+                        : 'No usage'}
                 </PopoverSurface>
             </Popover>
             <Text>{`${name} (${usageCount})`}</Text>

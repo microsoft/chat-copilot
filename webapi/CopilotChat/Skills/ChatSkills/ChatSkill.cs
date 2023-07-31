@@ -302,7 +302,14 @@ public class ChatSkill
             return context;
         }
 
-        context.Variables.Set("tokenUsage", JsonSerializer.Serialize(chatMessage.TokenUsage));
+        if (chatMessage.TokenUsage != null)
+        {
+            context.Variables.Set("tokenUsage", JsonSerializer.Serialize(chatMessage.TokenUsage));
+        } else
+        {
+            context.Log.LogWarning("ChatSkill token usage unknown. Ensure token management has been implemented correctly.");
+        }
+
         return context;
     }
 
@@ -623,7 +630,7 @@ public class ChatSkill
         }
 
         // Save message to chat history
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, response);
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, response, tokenUsage);
         await this._chatMessageRepository.UpsertAsync(chatMessage);
         return chatMessage;
     }

@@ -12,6 +12,7 @@ import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
 import { PromptDialog } from '../prompt-dialog/PromptDialog';
+import { TypingIndicator } from '../typing-indicator/TypingIndicator';
 import * as utils from './../../utils/TextUtils';
 import { ChatHistoryDocumentContent } from './ChatHistoryDocumentContent';
 import { ChatHistoryTextContent } from './ChatHistoryTextContent';
@@ -98,7 +99,8 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
     } else if (message.type === ChatMessageType.Document) {
         content = <ChatHistoryDocumentContent isMe={isMe} message={message} />;
     } else {
-        content = <ChatHistoryTextContent message={message} />;
+        content =
+            isBot && message.content.length === 0 ? <TypingIndicator /> : <ChatHistoryTextContent message={message} />;
     }
 
     // TODO: [Issue #42] Persistent RLHF, hook up to model
