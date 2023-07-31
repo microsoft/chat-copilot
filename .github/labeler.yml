@@ -6,6 +6,10 @@ webapp:
 webapi:
   - webapi/**/*
 
+# Add 'dependencies' label to any change of the 'webapp/yarn.lock' file
+dependencies:
+  - webapp/yarn.lock
+
 # Add 'deployment' label to any change within the 'deploy' directory
 deployment:
   - deploy/**/*
