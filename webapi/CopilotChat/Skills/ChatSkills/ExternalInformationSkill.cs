@@ -130,7 +130,7 @@ public class ExternalInformationSkill
                 catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
                 {
                     // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
-                    context.Log.LogTrace($"Retrying plan creation. Invalid plan returned from LLM. Error: {e.Message}");
+                    context.Log.LogTrace("Retrying plan creation. Invalid plan returned from LLM. Error: {0}", e.Message);
                     continue;
                 }
             } while (plan == null && maxRetries-- > 0);

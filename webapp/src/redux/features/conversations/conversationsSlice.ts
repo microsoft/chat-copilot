@@ -31,14 +31,17 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
             const newInput = action.payload.newInput;
             state.conversations[id].input = newInput;
         },
-        editConversationSystemDescription: (state: ConversationsState, action: PayloadAction<ConversationSystemDescriptionChange>) => {
+        editConversationSystemDescription: (
+            state: ConversationsState,
+            action: PayloadAction<ConversationSystemDescriptionChange>,
+        ) => {
             const id = action.payload.id;
             const newSystemDescription = action.payload.newSystemDescription;
             state.conversations[id].systemDescription = newSystemDescription;
         },
         editConversationMemoryBalance: (
             state: ConversationsState,
-            action: PayloadAction<{id: string, memoryBalance: number}>,
+            action: PayloadAction<{ id: string; memoryBalance: number }>,
         ) => {
             const id = action.payload.id;
             const newMemoryBalance = action.payload.memoryBalance;
