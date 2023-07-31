@@ -13,7 +13,7 @@ The chat prompt and response will evolve as the conversation between the user an
 This chat experience is orchestrated with Semantic Kernel and a Copilot Chat skill containing numerous
 functions that work together to construct each response.
 
-![UI Sample](images/UI-Sample.png)
+![UI-Sample](https://github.com/microsoft/chat-copilot/assets/52973358/4e2d926c-597d-4e03-8be7-ea277aa7e54d)
 
 # Automated Setup and Local Deployment
 
@@ -144,7 +144,7 @@ the complete list of current models supporting chat completions.
 
 ## 3. Localhost SSL certificate errors / CORS errors
 
-![](images/Cert-Issue.png)
+![Cert-Issue](https://github.com/microsoft/chat-copilot/assets/52973358/fb633f1d-55bd-45c8-a7c2-6479c214f14a)
 
 If you are stopped at an error message similar to the one above, your browser may be blocking the front-end access
 to the back end while waiting for your permission to connect. To resolve this, try the following:
