@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Memory;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
@@ -29,6 +30,7 @@ public static class CopilotChatSemanticKernelExtensions
         {
             IKernel plannerKernel = Kernel.Builder
                 .WithLogger(sp.GetRequiredService<ILogger<IKernel>>())
+                .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
                 // TODO: [sk Issue #2046] verify planner has AI service configured
                 .WithPlannerBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
                 .Build();
@@ -36,7 +38,7 @@ public static class CopilotChatSemanticKernelExtensions
         });
 
         // Register Planner skills (AI plugins) here.
-        // TODO: [sk Issue #2046] Move planner skill registration from ChatController to here.
+        // TODO: [sk Issue #2046] Move planner skill registration from ChatController to this location.
 
         return services;
     }
