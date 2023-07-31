@@ -61,7 +61,7 @@ export const BaseCard: React.FC<IBaseCardProps> = ({
                 description={<Caption1 className={styles.caption}>{secondaryText}</Caption1>}
                 action={action}
             />
-            <p className={styles.text}>
+            <div className={styles.text}>
                 {description}{' '}
                 {
                     <p className={styles.text}>
@@ -77,7 +77,7 @@ export const BaseCard: React.FC<IBaseCardProps> = ({
                         )}
                     </p>
                 }
-            </p>
+            </div>
         </Card>
     );
 };
