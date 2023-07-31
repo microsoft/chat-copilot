@@ -125,7 +125,7 @@ public class ChatSkill
             );
 
         // Clone the context to avoid modifying the original context variables.
-        var intentExtractionContext = Utilities.CopyContextWithVariablesClone(context);
+        var intentExtractionContext = context.Clone();
         intentExtractionContext.Variables.Set("tokenLimit", historyTokenBudget.ToString(new NumberFormatInfo()));
         intentExtractionContext.Variables.Set("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
 
@@ -172,7 +172,7 @@ public class ChatSkill
             );
 
         // Clone the context to avoid modifying the original context variables.
-        var audienceExtractionContext = Utilities.CopyContextWithVariablesClone(context);
+        var audienceExtractionContext = context.Clone();
         audienceExtractionContext.Variables.Set("tokenLimit", historyTokenBudget.ToString(new NumberFormatInfo()));
 
         var completionFunction = this._kernel.CreateSemanticFunction(
@@ -275,7 +275,7 @@ public class ChatSkill
         await this.SaveNewMessageAsync(message, userId, userName, chatId, messageType);
 
         // Clone the context to avoid modifying the original context variables.
-        var chatContext = Utilities.CopyContextWithVariablesClone(context);
+        var chatContext = context.Clone();
         chatContext.Variables.Set("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
 
         // Check if plan exists in ask's context variables.
@@ -379,8 +379,8 @@ public class ChatSkill
         try
         {
             tasks = await Task.WhenAll<string>(
-                this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, chatContext.Memory),
-                this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, chatContext.Memory)
+                this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._kernel.Memory),
+                this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory)
             );
         }
         catch (SKException ex)
@@ -449,21 +449,12 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Helper function create the correct context variables to
-    /// extract audience from the conversation history.
+    /// Helper function that creates the correct context variables to
+    /// extract the audience from a conversation history.
     /// </summary>
     private async Task<string> GetAudienceAsync(SKContext context)
     {
-        var contextVariables = new ContextVariables();
-        contextVariables.Set("chatId", context["chatId"]);
-
-        var audienceContext = new SKContext(
-            contextVariables,
-            context.Memory,
-            context.Skills,
-            context.Log,
-            context.CancellationToken
-        );
+        SKContext audienceContext = context.Clone();
 
         var audience = await this.ExtractAudienceAsync(audienceContext);
 
@@ -484,25 +475,15 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Helper function create the correct context variables to
-    /// extract user intent from the conversation history.
+    /// Helper function that creates the correct context variables to
+    /// extract the user intent from the conversation history.
     /// </summary>
     private async Task<string> GetUserIntentAsync(SKContext context)
     {
         // TODO: [Issue #51] Regenerate user intent if plan was modified
         if (!context.Variables.TryGetValue("planUserIntent", out string? userIntent))
         {
-            var contextVariables = new ContextVariables();
-            contextVariables.Set("chatId", context["chatId"]);
-            contextVariables.Set("audience", context["userName"]);
-
-            var intentContext = new SKContext(
-                contextVariables,
-                context.Memory,
-                context.Skills,
-                context.Log,
-                context.CancellationToken
-            );
+            SKContext intentContext = context.Clone();
 
             userIntent = await this.ExtractUserIntentAsync(intentContext);
 
@@ -524,8 +505,7 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Helper function create the correct context variables to
-    /// query chat memories from the chat memory store.
+    /// Helper function that queries chat memories from the chat memory store.
     /// </summary>
     /// <returns>The chat memories.</returns>
     /// <param name="context">The SKContext.</param>
@@ -533,12 +513,11 @@ public class ChatSkill
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     private Task<string> QueryChatMemoriesAsync(SKContext context, string userIntent, int tokenLimit)
     {
-        return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context["chatId"], tokenLimit, context.Memory);
+        return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context["chatId"], tokenLimit, this._kernel.Memory);
     }
 
     /// <summary>
-    /// Helper function create the correct context variables to
-    /// query document memories from the document memory store.
+    /// Helper function that queries document memories from the document memory store.
     /// </summary>
     /// <returns>The document memories.</returns>
     /// <param name="context">The SKContext.</param>
@@ -546,11 +525,11 @@ public class ChatSkill
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     private Task<string> QueryDocumentsAsync(SKContext context, string userIntent, int tokenLimit)
     {
-        return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context["chatId"], tokenLimit, context.Memory);
+        return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context["chatId"], tokenLimit, this._kernel.Memory);
     }
 
     /// <summary>
-    /// Helper function create the correct context variables to acquire external information.
+    /// Helper function that creates the correct context variables to acquire external information.
     /// </summary>
     /// <returns>The plan.</returns>
     /// <param name="context">The SKContext.</param>
@@ -558,16 +537,8 @@ public class ChatSkill
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     private async Task<string> AcquireExternalInformationAsync(SKContext context, string userIntent, int tokenLimit)
     {
-        var contextVariables = context.Variables.Clone();
-        contextVariables.Set("tokenLimit", tokenLimit.ToString(new NumberFormatInfo()));
-
-        var planContext = new SKContext(
-            contextVariables,
-            context.Memory,
-            context.Skills,
-            context.Log,
-            context.CancellationToken
-        );
+        SKContext planContext = context.Clone();
+        planContext.Variables.Set("tokenLimit", tokenLimit.ToString(new NumberFormatInfo()));
 
         var plan = await this._externalInformationSkill.AcquireExternalInformationAsync(userIntent, planContext);
 
