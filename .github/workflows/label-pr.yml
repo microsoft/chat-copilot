@@ -18,4 +18,5 @@ jobs:
     steps:
       - uses: actions/labeler@v4
         with:
+          dot: true # allows for easier matching of paths
           repo-token: ${{ secrets.GITHUB_TOKEN }}
