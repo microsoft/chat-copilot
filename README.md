@@ -11,13 +11,24 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 <img src="images/UI-Sample.png" alt="Chat Copilot UI" width="800"/>
 
 # Prerequisites
-You will need the following to run the sample:
+You will need the following to run the sample
 
-- An [Azure OpenAI](https://aka.ms/oai/access) resource or [OpenAI](https://platform.openai.com) account.
-- `API key` for Azure OpenAI or OpenAI
-- `Endpoint` address for an Azure Open AI resource (e.g., `http://contoso.openai.azure.com`). This is not needed if using OpenAI.
-- Azure Active Directory (AAD) [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
-- `Application (client) ID` of your registered application. (See [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) instructions.)
+**Frontend application:**
+The web UI application will run on Azure.
+
+- [Azure account](https://azure.microsoft.com/en-us/free)
+- [Azure AD Tenant](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant)
+- [Registered application](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application)
+- [Application (client) ID](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application)
+
+**Backend API:**
+Requirements depend on your AI Service choice.
+
+| AI Service   | Requirements                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Azure OpenAI | [Access](https://aka.ms/oai/access), [Resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource), [Deployed model (gpt-35-turbo)](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model), [Endpoint](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint), [API Key](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |  |
+| OpenAI       | [Account](https://platform.openai.com), [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+
 
 # Setup Instructions
 ## Windows
@@ -25,20 +36,20 @@ You will need the following to run the sample:
 2. Configure environment.
 
     ```powershell
-    cd <path to semantic-kernal>\samples\apps\copilot-chat-app\scripts
+    cd <path to chat-copilot>\scripts
     .\Install.ps1
     ```
 
 3. Configure Chat Copilot.
   
       ```powershell
-    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -ClientId {AZURE_APPLICATION_ID} -Endpoint {AZURE_OPENAI_ENDPOINT} 
+    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID} 
     ```
 
     - `AI_SERVICE`: AzureOpenAI or OpenAI
     - `API_KEY`: The API Key for Azure OpenAI or for OpenAI.
-    - `AZURE_APPLICATION_ID`: The application ID associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource Endpoint address (e.g., `http://contoso.openai.azure.com`). Omit this parameter and associated `-Endpoint` flag if using OpenAI.
+    - `AZURE_APPLICATION_ID`: The application ID associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
     
@@ -54,20 +65,21 @@ You will need the following to run the sample:
 2. Configure environment.
   
     ```bash
-    cd <path to semantic-kernel>/samples/apps/copilot-chat-app/scripts/
+    cd <path to chat-copilot>/scripts/
     ./Install.sh
     ```
 
 3. Configure Chat Copilot.
 
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --clientid {AZURE_APPLICATION_ID} --endpoint {AZURE_OPENAI_ENDPOINT}
+    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
     ```
 
     - `AI_SERVICE`: AzureOpenAI or OpenAI
     - `API_KEY`: The API Key for Azure OpenAI or for OpenAI.
-    - `AZURE_APPLICATION_ID`: The application ID associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource Endpoint address (e.g., `http://contoso.openai.azure.com`). Omit this parameter and associated `-Endpoint` flag if using OpenAI.
+    - `AZURE_APPLICATION_ID`: The application ID associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
