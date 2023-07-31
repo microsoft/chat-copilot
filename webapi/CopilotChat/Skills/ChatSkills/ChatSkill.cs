@@ -287,25 +287,30 @@ public class ChatSkill
             await this.UpdateChatMessageContentAsync(planJson, messageId);
         }
 
-        // Save hardcoded response if user cancelled plan
+        ChatMessage? chatMessage;
         if (chatContext.Variables.ContainsKey("userCancelledPlan"))
         {
-            await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId, TokenUtilities.EmptyTokenUsages());
-            return context;
+            // Save hardcoded response if user cancelled plan
+            chatMessage = await this.SaveNewResponseAsync("I am sorry the plan did not meet your goals.", string.Empty, chatId, userId, TokenUtilities.EmptyTokenUsages());
+        }
+        else
+        {
+            // Get the chat response
+            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
         }
 
-        // Get the chat response
-        var chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
         if (chatMessage == null)
         {
             context.Fail(chatContext.LastErrorDescription);
             return context;
         }
+        context.Variables.Update(chatMessage.Content);
 
         if (chatMessage.TokenUsage != null)
         {
             context.Variables.Set("tokenUsage", JsonSerializer.Serialize(chatMessage.TokenUsage));
-        } else
+        }
+        else
         {
             context.Log.LogWarning("ChatSkill token usage unknown. Ensure token management has been implemented correctly.");
         }
