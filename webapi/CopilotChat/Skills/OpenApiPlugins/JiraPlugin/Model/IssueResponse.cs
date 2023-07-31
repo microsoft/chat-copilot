@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.OpenApiSkills.JiraSkill.Model;
+namespace SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin;
 
 /// <summary>
 /// Represents a the trimmed down response for retrieving an issue from jira.
