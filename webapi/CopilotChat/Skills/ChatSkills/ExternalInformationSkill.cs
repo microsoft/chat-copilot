@@ -127,7 +127,10 @@ public class ExternalInformationSkill
                 {
                     plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
                 }
-                catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
+                catch (PlanningException e)
+                when ((e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+                        || (e.InnerException as PlanningException)?.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
+                    && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
                 {
                     if (maxRetries-- > 0)
                     {
@@ -135,14 +138,10 @@ public class ExternalInformationSkill
                         context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
                     }
-                    else
-                    {
-                        break;
-                    }
                 }
             } while (plan == null);
 
-            if (plan != null && plan.Steps.Count > 0)
+            if (plan.Steps.Count > 0)
             {
                 // Parameters stored in plan's top level
                 this.MergeContextIntoPlan(context.Variables, plan.Parameters);
