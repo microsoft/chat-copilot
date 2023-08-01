@@ -3,7 +3,7 @@
 namespace SemanticKernel.Service.CopilotChat.Models;
 
 /// <summary>
-/// Json body for creating a new chat session.
+/// Parameters for creating a new chat session.
 /// </summary>
 public class CreateChatParameters
 {

@@ -61,6 +61,10 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
     /// <param name="planner">Planner to use to create function sequences.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="askConverter">Converter to use for converting Asks.</param>
+    /// <param name="chatSessionRepository">Repository of chat sessions.</param>
+    /// <param name="chatParticipantRepository">Repository of chat participants.</param>
+    /// <param name="authInfo">Auth info for the current request.</param>
     /// <returns>Results containing the response from the model.</returns>
     [Route("chat")]
     [HttpPost]

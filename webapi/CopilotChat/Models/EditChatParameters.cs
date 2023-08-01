@@ -3,7 +3,7 @@
 namespace SemanticKernel.Service.CopilotChat.Models;
 
 /// <summary>
-/// Json body for editing chat session.
+/// Parameters for editing chat session.
 /// </summary>
 public class EditChatParameters
 {
