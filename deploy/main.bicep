@@ -39,10 +39,6 @@ param aiEndpoint string = ''
 @description('Azure OpenAI or OpenAI API key')
 param aiApiKey string = ''
 
-@secure()
-@description('WebAPI key to use for authorization')
-param webApiKey string = newGuid()
-
 @description('Whether to deploy a new Azure OpenAI instance')
 param deployNewAzureOpenAI bool = false
 
@@ -192,11 +188,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'Authorization:Type'
-        value: empty(webApiKey) ? 'None' : 'ApiKey'
-      }
-      {
-        name: 'Authorization:ApiKey'
-        value: webApiKey
+        value: 'None'
       }
       {
         name: 'ChatStore:Type'

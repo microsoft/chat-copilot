@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -14,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Text;
+using SemanticKernel.Service.Auth;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
@@ -105,19 +105,19 @@ public class DocumentImportController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
     [Route("importDocuments")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ImportDocumentsAsync(
         [FromServices] IKernel kernel,
+        [FromServices] IAuthInfo authInfo,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromForm] DocumentImportForm documentImportForm)
     {
         try
         {
-            await this.ValidateDocumentImportFormAsync(documentImportForm);
+            await this.ValidateDocumentImportFormAsync(documentImportForm, authInfo);
         }
         catch (ArgumentException ex)
         {
@@ -131,7 +131,7 @@ public class DocumentImportController : ControllerBase
         IEnumerable<ImportResult> importResults = new List<ImportResult>();
         foreach (var formFile in documentImportForm.FormFiles)
         {
-            var importResult = await this.ImportDocumentHelperAsync(kernel, formFile, documentImportForm);
+            var importResult = await this.ImportDocumentHelperAsync(kernel, formFile, documentImportForm, authInfo);
             documentMessageContent.AddDocument(
                 formFile.FileName,
                 this.GetReadableByteString(formFile.Length),
@@ -144,7 +144,8 @@ public class DocumentImportController : ControllerBase
         {
             var chatMessage = await this.TryCreateDocumentUploadMessage(
                 documentMessageContent,
-                documentImportForm);
+                documentImportForm,
+                authInfo);
             if (chatMessage == null)
             {
                 foreach (var importResult in importResults)
@@ -155,7 +156,7 @@ public class DocumentImportController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
-            var userId = documentImportForm.UserId;
+            var userId = authInfo.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
@@ -228,11 +229,11 @@ public class DocumentImportController : ControllerBase
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException">Throws ArgumentException if validation fails.</exception>
-    private async Task ValidateDocumentImportFormAsync(DocumentImportForm documentImportForm)
+    private async Task ValidateDocumentImportFormAsync(DocumentImportForm documentImportForm, IAuthInfo authInfo)
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
         if (documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Chat
-                && !(await this.UserHasAccessToChatAsync(documentImportForm.UserId, documentImportForm.ChatId)))
+                && !(await this.UserHasAccessToChatAsync(authInfo.UserId, documentImportForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -294,7 +295,11 @@ public class DocumentImportController : ControllerBase
     /// <param name="formFile">The form file.</param>
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns>Import result.</returns>
-    private async Task<ImportResult> ImportDocumentHelperAsync(IKernel kernel, IFormFile formFile, DocumentImportForm documentImportForm)
+    private async Task<ImportResult> ImportDocumentHelperAsync(
+        IKernel kernel,
+        IFormFile formFile,
+        DocumentImportForm documentImportForm,
+        IAuthInfo authInfo)
     {
         var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
         var documentContent = string.Empty;
@@ -323,7 +328,7 @@ public class DocumentImportController : ControllerBase
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
         // Create memory source
-        var memorySource = this.CreateMemorySourceAsync(formFile, documentImportForm);
+        var memorySource = this.CreateMemorySourceAsync(formFile, documentImportForm, authInfo);
 
         // Parse document content to memory
         ImportResult importResult = ImportResult.Fail();
@@ -363,10 +368,11 @@ public class DocumentImportController : ControllerBase
     /// <returns>A MemorySource object.</returns>
     private MemorySource CreateMemorySourceAsync(
         IFormFile formFile,
-        DocumentImportForm documentImportForm)
+        DocumentImportForm documentImportForm,
+        IAuthInfo authInfo)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
+        var userId = authInfo.UserId;
 
         return new MemorySource(
             chatId,
@@ -406,10 +412,11 @@ public class DocumentImportController : ControllerBase
     /// <returns>A ChatMessage object if successful, null otherwise</returns>
     private async Task<ChatMessage?> TryCreateDocumentUploadMessage(
         DocumentMessageContent documentMessageContent,
-        DocumentImportForm documentImportForm)
+        DocumentImportForm documentImportForm,
+        IAuthInfo authInfo)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
+        var userId = authInfo.UserId;
         var userName = documentImportForm.UserName;
 
         var chatMessage = ChatMessage.CreateDocumentMessage(

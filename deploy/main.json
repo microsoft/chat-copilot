@@ -86,13 +86,6 @@
         "description": "Azure OpenAI or OpenAI API key"
       }
     },
-    "webApiKey": {
-      "type": "securestring",
-      "defaultValue": "[newGuid()]",
-      "metadata": {
-        "description": "WebAPI key to use for authorization"
-      }
-    },
     "deployNewAzureOpenAI": {
       "type": "bool",
       "defaultValue": false,
@@ -301,11 +294,7 @@
           },
           {
             "name": "Authorization:Type",
-            "value": "[if(empty(parameters('webApiKey')), 'None', 'ApiKey')]"
-          },
-          {
-            "name": "Authorization:ApiKey",
-            "value": "[parameters('webApiKey')]"
+            "value": "None"
           },
           {
             "name": "ChatStore:Type",

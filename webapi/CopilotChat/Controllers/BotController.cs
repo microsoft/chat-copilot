@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Memory;
+using SemanticKernel.Service.Auth;
 using SemanticKernel.Service.CopilotChat.Extensions;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
@@ -77,11 +77,10 @@ public class BotController : ControllerBase
     /// Upload a bot.
     /// </summary>
     /// <param name="kernel">The Semantic Kernel instance.</param>
-    /// <param name="userId">The user id.</param>
+    /// <param name="authInfo">The auth info instance.</param>
     /// <param name="bot">The bot object from the message body</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The HTTP action result with new chat session object.</returns>
-    [Authorize]
     [HttpPost]
     [Route("bot/upload")]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -89,11 +88,10 @@ public class BotController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ChatSession>> UploadAsync(
         [FromServices] IKernel kernel,
-        [FromQuery] string userId,
+        [FromServices] IAuthInfo authInfo,
         [FromBody] Bot bot,
         CancellationToken cancellationToken)
     {
-        // TODO: [Issue #47] We should get userId from server context instead of from request for privacy/security reasons when support multiple users.
         this._logger.LogDebug("Received call to upload a bot");
 
         if (!IsBotCompatible(
@@ -118,7 +116,7 @@ public class BotController : ControllerBase
         // Create a new chat and get the chat id.
         newChat = new ChatSession(chatTitle, bot.SystemDescription);
         await this._chatRepository.CreateAsync(newChat);
-        await this._chatParticipantRepository.CreateAsync(new ChatParticipant(userId, newChat.Id));
+        await this._chatParticipantRepository.CreateAsync(new ChatParticipant(authInfo.UserId, newChat.Id));
         chatId = newChat.Id;
 
         string oldChatId = bot.ChatHistory.First().ChatId;
@@ -157,21 +155,22 @@ public class BotController : ControllerBase
     /// <param name="kernel">The Semantic Kernel instance.</param>
     /// <param name="chatId">The chat id to be downloaded.</param>
     /// <returns>The serialized Bot object of the chat id.</returns>
-    [Authorize]
+    [Authorize(Policy = AuthPolicyName.RequireChatOwner)]
     [HttpGet]
     [ActionName("DownloadAsync")]
     [Route("bot/download/{chatId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<string>> DownloadAsync(
+    public async Task<ActionResult<Bot?>> DownloadAsync(
         [FromServices] IKernel kernel,
         Guid chatId)
     {
         this._logger.LogDebug("Received call to download a bot");
         var memory = await this.CreateBotAsync(kernel: kernel, chatId: chatId);
 
-        return JsonSerializer.Serialize(memory);
+        //return JsonSerializer.Serialize(memory);
+        return this.Ok(memory);
     }
 
     /// <summary>
