@@ -135,7 +135,7 @@ First, let’s set up and verify the back-end API server is running.
 
    1. Give the app registration a name
 
-   2. As *Supported account type* choose `Accounts in this organizational directory only (Single tenant)`
+   2. As *Supported account type* choose `Accounts in any organizational directory and personal Microsoft Accounts`
 
    3. Do not configure a *Redirect Uri*
 
@@ -167,7 +167,7 @@ First, let’s set up and verify the back-end API server is running.
 
    4. Select the tab *My APIs*
 
-   5. Chooise the app registration representing the web api backend
+   5. Choose the app registration representing the web api backend
 
    6. Select permissions `access_as_user`
 
@@ -176,7 +176,7 @@ First, let’s set up and verify the back-end API server is running.
 5. Update frontend web app configuration
    1. Open *.env* file
 
-   2. Set the value of `REACT_APP_AAD_API_SCOPE` to your application ID URI
+   2. Set the value of `REACT_APP_AAD_API_SCOPE` to your application ID URI followed by the scope `access_as_user`, e.g. `api://12341234-1234-1234-1234-123412341234/access_as_user`
 
 6. Update backend web api configuration
    1. Open *appsettings.json*
