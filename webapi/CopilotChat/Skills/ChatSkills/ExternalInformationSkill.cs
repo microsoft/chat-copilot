@@ -122,20 +122,23 @@ public class ExternalInformationSkill
             int maxRetries = 1;
 
             do
-            {
+            { // TODO: [Issue #2256] Remove retry logic once Core team stabilizes planner
                 try
                 {
                     plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
                 }
                 catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
                 {
-                    // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
-                    context.Log.LogTrace("Retrying plan creation. Invalid plan returned from LLM. Error: {0}", e.Message);
-                    continue;
+                    if (maxRetries-- > 0)
+                    {
+                        // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
+                        context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
+                        continue;
+                    }
                 }
-            } while (plan == null && maxRetries-- > 0);
+            } while (plan == null);
 
-            if (plan != null && plan.Steps.Count > 0)
+            if (plan.Steps.Count > 0)
             {
                 // Parameters stored in plan's top level
                 this.MergeContextIntoPlan(context.Variables, plan.Parameters);
