@@ -7,5 +7,5 @@ namespace SemanticKernel.Service.Auth;
 /// </summary>
 public static class AuthPolicyName
 {
-    public const string RequireChatOwner = "RequireChatOwner";
+    public const string RequireChatParticipant = "RequireChatParticipant";
 }

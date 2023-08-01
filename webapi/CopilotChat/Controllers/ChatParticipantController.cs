@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -21,7 +20,6 @@ namespace SemanticKernel.Service.CopilotChat.Controllers;
 /// 3. Managing participants in a chat session.
 /// </summary>
 [ApiController]
-[Authorize]
 public class ChatParticipantController : ControllerBase
 {
     private const string UserJoinedClientCall = "UserJoined";

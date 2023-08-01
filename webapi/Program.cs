@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
@@ -48,7 +49,10 @@ public sealed class Program
             .AddCopilotChatOptions(builder.Configuration)
             .AddCopilotChatPlannerServices()
             .AddPersistentChatStore()
-            .AddPersistentOcrSupport();
+            .AddPersistentOcrSupport()
+            .AddUtilities()
+            .AddCopilotChatAuthentication(builder.Configuration)
+            .AddCopilotChatAuthorization();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();
@@ -67,19 +71,24 @@ public sealed class Program
 
         // Add in the rest of the services.
         builder.Services
-            .AddAuthorization(builder.Configuration)
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
             .AddCors()
-            .AddControllers();
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
         builder.Services.AddHealthChecks();
+        // .AddCheck("Default", () => HealthCheckResult.Healthy("Semantic Kernel service up and running"));
 
         // Configure middleware and endpoints
         WebApplication app = builder.Build();
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
+        app.MapControllers()
+            .RequireAuthorization();
         app.MapHealthChecks("/healthz");
 
         // Add CopilotChat hub for real time communication

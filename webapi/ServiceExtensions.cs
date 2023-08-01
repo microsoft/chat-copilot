@@ -3,14 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.Identity.Web;
-using SemanticKernel.Service.Auth;
 using SemanticKernel.Service.Options;
+using SemanticKernel.Service.Utilities;
 
 namespace SemanticKernel.Service;
 
@@ -35,13 +31,6 @@ internal static class ServicesExtensions
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
-        // Authorization configuration
-        services.AddOptions<AuthorizationOptions>()
-            .Bind(configuration.GetSection(AuthorizationOptions.PropertyName))
-            .ValidateOnStart()
-            .ValidateDataAnnotations()
-            .PostConfigure(TrimStringProperties);
-
         // Memory store configuration
         services.AddOptions<MemoriesStoreOptions>()
             .Bind(configuration.GetSection(MemoriesStoreOptions.PropertyName))
@@ -50,6 +39,11 @@ internal static class ServicesExtensions
             .PostConfigure(TrimStringProperties);
 
         return services;
+    }
+
+    internal static IServiceCollection AddUtilities(this IServiceCollection services)
+    {
+        return services.AddScoped<AskConverter>();
     }
 
     /// <summary>
@@ -70,40 +64,6 @@ internal static class ServicesExtensions
                             .AllowAnyHeader();
                     });
             });
-        }
-
-        return services;
-    }
-
-    /// <summary>
-    /// Add authorization services
-    /// </summary>
-    internal static IServiceCollection AddAuthorization(this IServiceCollection services, IConfiguration configuration)
-    {
-        AuthorizationOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<AuthorizationOptions>>().Value;
-        switch (config.Type)
-        {
-            case AuthorizationOptions.AuthorizationType.AzureAd:
-                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddMicrosoftIdentityWebApi(configuration.GetSection($"{AuthorizationOptions.PropertyName}:AzureAd"));
-                break;
-
-            case AuthorizationOptions.AuthorizationType.ApiKey:
-                services.AddAuthentication(ApiKeyAuthenticationHandler.AuthenticationScheme)
-                    .AddScheme<ApiKeyAuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
-                        ApiKeyAuthenticationHandler.AuthenticationScheme,
-                        options => options.ApiKey = config.ApiKey);
-                break;
-
-            case AuthorizationOptions.AuthorizationType.None:
-                services.AddAuthentication(PassThroughAuthenticationHandler.AuthenticationScheme)
-                    .AddScheme<AuthenticationSchemeOptions, PassThroughAuthenticationHandler>(
-                        authenticationScheme: PassThroughAuthenticationHandler.AuthenticationScheme,
-                        configureOptions: null);
-                break;
-
-            default:
-                throw new InvalidOperationException($"Invalid authorization type '{config.Type}'.");
         }
 
         return services;

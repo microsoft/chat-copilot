@@ -11,25 +11,28 @@ namespace SemanticKernel.Service.Auth;
 /// <summary>
 /// Class implementing "authorization" that validates the user has access to a chat.
 /// </summary>
-public class ChatOwnerAuthorizationHandler : AuthorizationHandler<ChatOwnerRequirement, HttpContext>
+public class ChatParticipantAuthorizationHandler : AuthorizationHandler<ChatParticipantRequirement, HttpContext>
 {
     private readonly IAuthInfo _authInfo;
     private readonly ChatSessionRepository _chatSessionRepository;
+    private readonly ChatParticipantRepository _chatParticipantRepository;
 
     /// <summary>
     /// Constructor
     /// </summary>
-    public ChatOwnerAuthorizationHandler(
+    public ChatParticipantAuthorizationHandler(
         IAuthInfo authInfo,
-        ChatSessionRepository chatSessionRepository) : base()
+        ChatSessionRepository chatSessionRepository,
+        ChatParticipantRepository chatParticipantRepository) : base()
     {
         this._authInfo = authInfo;
         this._chatSessionRepository = chatSessionRepository;
+        this._chatParticipantRepository = chatParticipantRepository;
     }
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        ChatOwnerRequirement requirement,
+        ChatParticipantRequirement requirement,
         HttpContext resource)
     {
         string? chatId = resource.GetRouteValue("chatId")?.ToString();
@@ -48,7 +51,8 @@ public class ChatOwnerAuthorizationHandler : AuthorizationHandler<ChatOwnerRequi
             return;
         }
 
-        if (session.UserId != this._authInfo.UserId)
+        bool isUserInChat = await this._chatParticipantRepository.IsUserInChatAsync(this._authInfo.UserId, chatId);
+        if (!isUserInChat)
         {
             context.Fail(new AuthorizationFailureReason(this, "User does not have access to the requested chat."));
         }

@@ -155,13 +155,13 @@ public class BotController : ControllerBase
     /// <param name="kernel">The Semantic Kernel instance.</param>
     /// <param name="chatId">The chat id to be downloaded.</param>
     /// <returns>The serialized Bot object of the chat id.</returns>
-    [Authorize(Policy = AuthPolicyName.RequireChatOwner)]
     [HttpGet]
     [ActionName("DownloadAsync")]
     [Route("bot/download/{chatId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<ActionResult<Bot?>> DownloadAsync(
         [FromServices] IKernel kernel,
         Guid chatId)
