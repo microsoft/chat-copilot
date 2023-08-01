@@ -126,18 +126,21 @@ public class DocumentImportController : ControllerBase
 
         this._logger.LogInformation("Importing {0} document(s)...", documentImportForm.FormFiles.Count());
 
-        // TODO: [Issue #49] Perform the import in parallel.
         DocumentMessageContent documentMessageContent = new();
         IEnumerable<ImportResult> importResults = new List<ImportResult>();
-        foreach (var formFile in documentImportForm.FormFiles)
-        {
-            var importResult = await this.ImportDocumentHelperAsync(kernel, formFile, documentImportForm);
-            documentMessageContent.AddDocument(
-                formFile.FileName,
-                this.GetReadableByteString(formFile.Length),
-                importResult.IsSuccessful);
-            importResults = importResults.Append(importResult);
-        }
+        await Task.WhenAll(documentImportForm.FormFiles.Select(formFile =>
+            this.ImportDocumentHelperAsync(kernel, formFile, documentImportForm).ContinueWith(task =>
+                {
+                    var importResult = task.Result;
+                    if (importResult != null)
+                    {
+                        documentMessageContent.AddDocument(
+                            formFile.FileName,
+                            this.GetReadableByteString(formFile.Length),
+                            importResult.IsSuccessful);
+                        importResults = importResults.Append(importResult);
+                    }
+                }, TaskScheduler.Default)));
 
         // Broadcast the document uploaded event to other users.
         if (documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Chat)
@@ -323,7 +326,7 @@ public class DocumentImportController : ControllerBase
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
         // Create memory source
-        var memorySource = this.CreateMemorySourceAsync(formFile, documentImportForm);
+        var memorySource = this.CreateMemorySource(formFile, documentImportForm);
 
         // Parse document content to memory
         ImportResult importResult = ImportResult.Fail();
@@ -361,7 +364,7 @@ public class DocumentImportController : ControllerBase
     /// <param name="formFile">The file to be uploaded</param>
     /// <param name="documentImportForm">The document upload form that contains additional necessary info</param>
     /// <returns>A MemorySource object.</returns>
-    private MemorySource CreateMemorySourceAsync(
+    private MemorySource CreateMemorySource(
         IFormFile formFile,
         DocumentImportForm documentImportForm)
     {
