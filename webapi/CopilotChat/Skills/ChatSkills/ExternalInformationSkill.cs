@@ -135,10 +135,14 @@ public class ExternalInformationSkill
                         context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
             } while (plan == null);
 
-            if (plan.Steps.Count > 0)
+            if (plan != null && plan.Steps.Count > 0)
             {
                 // Parameters stored in plan's top level
                 this.MergeContextIntoPlan(context.Variables, plan.Parameters);
