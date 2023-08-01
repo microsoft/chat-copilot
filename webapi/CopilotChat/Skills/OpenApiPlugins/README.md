@@ -12,7 +12,7 @@ This description is extracted from GitHub's official OpenAPI descriptions for th
 
 <!-- Change file path once renaming is done: https://github.com/microsoft/semantic-kernel/issues/2119 -->
 
-The OpenAPI spec at `./KlarnaSkill/openapi.json` defines the APIs for Klarna Shopping's ChatGPT AI plugin operations.
+The OpenAPI spec at [https://www.klarna.com/.well-known/ai-plugin.json](https://www.klarna.com/.well-known/ai-plugin.json) defines the APIs for Klarna Shopping's ChatGPT AI plugin operations.
 This definition was retrieved using Klarna's official ChatGPT plugin hosted at https://www.klarna.com/.well-known/ai-plugin.json.
 Serving the OpenAPI definition from the repo is a workaround for Klarna's ChatGPT plugin sometimes returning a 403 when requested from CopilotChat.
 
