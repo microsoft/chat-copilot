@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Constants } from '../../../Constants';
+import { AlertType } from '../../../libs/models/AlertType';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
@@ -59,6 +61,22 @@ export const appSlice = createSlice({
                 },
             };
         },
+        setMemoriesStoreType: (state: AppState, action: PayloadAction<string>) => {
+            const storeType = action.payload;
+            if (Constants.MemoriesStoreTypes.hasOwnProperty(storeType)) {
+                state.memoriesStoreType = action.payload;
+            } else {
+                state.memoriesStoreType = Constants.MemoriesStoreTypes.Unknown;
+
+                const supportedStoreTypes = Object.values(Constants.MemoriesStoreTypes).join(', ');
+                const errorMessage = `Unknown memory store type: ${storeType}. Supported types are: ${supportedStoreTypes}.`;
+                console.log(errorMessage);
+                appSlice.caseReducers.addAlert(state, {
+                    type: 'addAlert',
+                    payload: { message: errorMessage, type: AlertType.Error },
+                });
+            }
+        },
     },
 });
 
@@ -70,6 +88,7 @@ export const {
     toggleFeatureFlag,
     toggleFeatureState,
     updateTokenUsage,
+    setMemoriesStoreType,
 } = appSlice.actions;
 
 export default appSlice.reducer;

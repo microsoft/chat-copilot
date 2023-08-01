@@ -94,6 +94,9 @@ const App: FC = () => {
                         setAppState(AppState.Chat);
                     }
                 });
+
+                // Load service options
+                void chat.getMemoriesStoreType();
             }
         }
 

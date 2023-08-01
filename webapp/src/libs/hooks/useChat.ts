@@ -4,7 +4,7 @@ import { useMsal } from '@azure/msal-react';
 import { Constants } from '../../Constants';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addAlert, updateTokenUsage } from '../../redux/features/app/appSlice';
+import { addAlert, setMemoriesStoreType, updateTokenUsage } from '../../redux/features/app/appSlice';
 import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
@@ -324,6 +324,17 @@ export const useChat = () => {
         }
     };
 
+    const getMemoriesStoreType = async () => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        try {
+            const storeType = await chatService.getMemoriesStoreTypeAsync(accessToken);
+            dispatch(setMemoriesStoreType(storeType));
+        } catch (e: any) {
+            const errorMessage = `Error getting memories store type. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+        }
+    };
+
     return {
         getChatUserById,
         createChat,
@@ -336,6 +347,7 @@ export const useChat = () => {
         importDocument,
         joinChat,
         editChat,
+        getMemoriesStoreType,
     };
 };
 

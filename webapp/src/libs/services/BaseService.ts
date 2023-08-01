@@ -2,11 +2,17 @@
 
 import { Plugin } from '../../redux/features/plugins/PluginsState';
 
+export enum ResponseTypes {
+    JSON,
+    TEXT,
+}
+
 interface ServiceRequest {
     commandPath: string;
     method?: string;
     body?: unknown;
 }
+
 const noResponseBodyStatusCodes = [202];
 
 export class BaseService {
@@ -17,6 +23,7 @@ export class BaseService {
         request: ServiceRequest,
         accessToken: string,
         enabledPlugins?: Plugin[],
+        responseType: ResponseTypes = ResponseTypes.JSON,
     ): Promise<T> => {
         const { commandPath, method, body } = request;
         const isFormData = body instanceof FormData;
@@ -59,7 +66,13 @@ export class BaseService {
                 throw Object.assign(new Error(errorMessage));
             }
 
-            return (noResponseBodyStatusCodes.includes(response.status) ? {} : await response.json()) as T;
+            return (
+                noResponseBodyStatusCodes.includes(response.status)
+                    ? {}
+                    : responseType === ResponseTypes.TEXT
+                    ? await response.text()
+                    : await response.json()
+            ) as T;
         } catch (e: any) {
             let additionalErrorMsg = '';
             if (e instanceof TypeError) {

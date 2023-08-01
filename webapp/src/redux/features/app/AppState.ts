@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { Constants } from '../../../Constants';
 import { AlertType } from '../../../libs/models/AlertType';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
 
@@ -35,6 +36,7 @@ export interface AppState {
     tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
+    memoriesStoreType: string;
 }
 
 export enum FeatureKeys {
@@ -131,4 +133,5 @@ export const initialState: AppState = {
     tokenUsage: {},
     features: Features,
     settings: Settings,
+    memoriesStoreType: Constants.MemoriesStoreTypes.Unknown,
 };

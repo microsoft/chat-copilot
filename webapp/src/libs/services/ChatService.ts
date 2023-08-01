@@ -9,7 +9,7 @@ import { IChatUser } from '../models/ChatUser';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
 import { IAskResult } from '../semantic-kernel/model/AskResult';
 import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
-import { BaseService } from './BaseService';
+import { BaseService, ResponseTypes } from './BaseService';
 
 export class ChatService extends BaseService {
     public createChatAsync = async (
@@ -236,4 +236,21 @@ export class ChatService extends BaseService {
 
         return result;
     };
+<<<<<<< HEAD
+=======
+
+    public getMemoriesStoreTypeAsync = async (accessToken: string): Promise<string> => {
+        const result = await this.getResponseAsync<string>(
+            {
+                commandPath: `memoryStoreType`,
+                method: 'GET',
+            },
+            accessToken,
+            [],
+            ResponseTypes.TEXT,
+        );
+
+        return result;
+    };
+>>>>>>> f264a5d (Webapp to show memories storage selection from webapi)
 }

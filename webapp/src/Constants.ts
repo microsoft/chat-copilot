@@ -50,4 +50,12 @@ export const Constants = {
         MANIFEST_PATH: '/.well-known/ai-plugin.json',
     },
     KEYSTROKE_DEBOUNCE_TIME_MS: 250,
+    MemoriesStoreTypes: {
+        Qdrant: 'Qdrant',
+        AzureCognitiveSearch: 'AzureCognitiveSearch',
+        Pinecone: 'Pinecone',
+        Milvus: 'Milvus',
+        Volatile: 'Volatile',
+        Unknown: 'Unknown',
+    },
 };
