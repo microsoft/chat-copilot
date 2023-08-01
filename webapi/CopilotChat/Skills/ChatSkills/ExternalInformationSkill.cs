@@ -125,9 +125,9 @@ public class ExternalInformationSkill
             { // TODO: [Issue #2256] Remove retry logic once Core team stabilizes planner
                 try
                 {
-                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
+                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
                 }
-                catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
+                catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan)
                 {
                     if (maxRetries-- > 0)
                     {
@@ -140,13 +140,22 @@ public class ExternalInformationSkill
 
             if (plan.Steps.Count > 0)
             {
-                // Parameters stored in plan's top level
-                this.MergeContextIntoPlan(context.Variables, plan.Parameters);
+                // Merge any variables from ask context into plan parameters as these will be used on plan execution.
+                // These context variables come from user input, so they are prioritized.
+                if (this._planner.PlannerOptions!.Type == PlanType.Action)
+                {
+                    // Parameters stored in plan's top level state
+                    this.MergeContextIntoPlan(context.Variables, plan.Parameters);
+                }
+                else
+                {
+                    foreach (var step in plan.Steps)
+                    {
+                        this.MergeContextIntoPlan(context.Variables, step.Parameters);
+                    }
+                }
 
-                Plan sanitizedPlan = this.SanitizePlan(plan, context);
-                sanitizedPlan.Parameters.Update(plan.Parameters);
-
-                this.ProposedPlan = new ProposedPlan(sanitizedPlan, this._planner.PlannerOptions!.Type, PlanState.NoOp);
+                this.ProposedPlan = new ProposedPlan(plan, this._planner.PlannerOptions!.Type, PlanState.NoOp);
             }
         }
 
@@ -156,28 +165,7 @@ public class ExternalInformationSkill
     #region Private
 
     /// <summary>
-    /// Scrubs plan of functions not available in Planner's kernel.
-    /// </summary>
-    private Plan SanitizePlan(Plan plan, SKContext context)
-    {
-        List<Plan> sanitizedSteps = new();
-        var availableFunctions = this._planner.Kernel.Skills.GetFunctionsView(true);
-
-        foreach (var step in plan.Steps)
-        {
-            if (this._planner.Kernel.Skills.TryGetFunction(step.SkillName, step.Name, out var function))
-            {
-                this.MergeContextIntoPlan(context.Variables, step.Parameters);
-                sanitizedSteps.Add(step);
-            }
-        }
-
-        return new Plan(plan.Description, sanitizedSteps.ToArray<Plan>());
-    }
-
-    /// <summary>
-    /// Merge any variables from the context into plan parameters as these will be used on plan execution.
-    /// These context variables come from user input, so they are prioritized.
+    /// Merge any variables from context into plan parameters.
     /// </summary>
     private void MergeContextIntoPlan(ContextVariables variables, ContextVariables planParams)
     {

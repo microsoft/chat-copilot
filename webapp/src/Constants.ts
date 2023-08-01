@@ -49,4 +49,6 @@ export const Constants = {
         MANIFEST_PATH: '/.well-known/ai-plugin.json',
     },
     KEYSTROKE_DEBOUNCE_TIME_MS: 250,
+    // The flag to indicate that the variable is unknown in plan preview
+    UNKNOWN_VARIABLE_FLAG: '$???',
 };
