@@ -8,7 +8,9 @@ The OpenAPI spec at `./GitHubPlugin/openapi.json` defines the APIs for GitHub op
 This description is extracted from GitHub's official OpenAPI descriptions for their REST APIs, which can be found in
 [this repository](https://github.com/github/rest-api-description/blob/main/descriptions/ghec/ghec.2022-11-28.json).
 
-## KlarnaSkill
+## KlarnaPlugin
+
+<!-- Change file path once renaming is done: https://github.com/microsoft/semantic-kernel/issues/2119 -->
 
 The OpenAPI spec at `./KlarnaSkill/openapi.json` defines the APIs for Klarna Shopping's ChatGPT AI plugin operations.
 This definition was retrieved using Klarna's official ChatGPT plugin hosted at https://www.klarna.com/.well-known/ai-plugin.json.
