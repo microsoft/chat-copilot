@@ -11,7 +11,7 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 <img src="images/UI-Sample.png" alt="Chat Copilot UI" width="800"/>
 
 # Prerequisites
-You will need the following to run the sample
+You will need the following items to run the sample:
 
 **Frontend application:**
 The web UI application will run on Azure.
@@ -24,10 +24,10 @@ The web UI application will run on Azure.
 **Backend API:**
 Requirements depend on your AI Service choice.
 
-| AI Service   | Requirements                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Azure OpenAI | [Access](https://aka.ms/oai/access), [Resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource), [Deployed model (gpt-35-turbo)](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model), [Endpoint](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint), [API Key](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |  |
-| OpenAI       | [Account](https://platform.openai.com), [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo`) <br>- [Endpoint](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
+| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 
 # Setup Instructions
@@ -46,10 +46,10 @@ Requirements depend on your AI Service choice.
     .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID} 
     ```
 
-    - `AI_SERVICE`: AzureOpenAI or OpenAI
-    - `API_KEY`: The API Key for Azure OpenAI or for OpenAI.
-    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource Endpoint address (e.g., `http://contoso.openai.azure.com`). Omit this parameter and associated `-Endpoint` flag if using OpenAI.
-    - `AZURE_APPLICATION_ID`: The application ID associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
+    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
+    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
+    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
     
@@ -75,16 +75,15 @@ Requirements depend on your AI Service choice.
     ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
     ```
 
-    - `AI_SERVICE`: AzureOpenAI or OpenAI
-    - `API_KEY`: The API Key for Azure OpenAI or for OpenAI.
-    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource Endpoint address (e.g., `http://contoso.openai.azure.com`). Omit this parameter and associated `-Endpoint` flag if using OpenAI.
-    - `AZURE_APPLICATION_ID`: The application ID associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
-
+    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
+    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
+    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
+    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
     ```bash
-    .\Start.sh
+    ./Start.sh
     ```
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
@@ -102,7 +101,7 @@ All steps must be completed manually at this time.
     - Open a terminal and set your Azure OpenAI or OpenAI key:
     
         ```bash
-        cd <path to semantic-kernel>/samples/apps/copilot-chat-app/webapi/
+        cd <path to chat-copilot>/webapi/
         dotnet user-secrets set "AIService:Key" "MY_AZUREOPENAI_OR_OPENAI_KEY"
         ```
 
@@ -123,10 +122,10 @@ All steps must be completed manually at this time.
         1. Open `appsettings.json`
         2. Find the `AIService` section and update:
 
-            - `Type`: The AI service you will use (`AzureOpenAI` or `OpenAI`).
-            - `Endpoint`: Your Azure OpenAI resource endpoint address (e.g., `http://contoso.openai.azure.com`). For OpenAI, leave this empty.
+            - `Type`: `AzureOpenAI` or `OpenAI`.
+            - `Endpoint`: The Azure OpenAI resource `Endpoint` address. Leave this empty if using OpenAI.
             - `Completion`, `Embedding`, `Planner`: The models you will use. 
-                > **IMPORTANT:** For OpenAI, use a '.' in `gpt-3.5-turbo`.  For Azure OpenAI, omit the '.' (e.g. `gpt-35-turbo`).
+                > **IMPORTANT:** For OpenAI, use a '.' with `gpt-3.5-turbo`.  For Azure OpenAI, omit the '.' with `gpt-35-turbo`.
 
     -  Run the backend:
 
@@ -139,19 +138,19 @@ All steps must be completed manually at this time.
     - Open a terminal and create an `.env` file from the template:
     
         ```bash
-        cd <path to semantic-kernel>/samples/apps/copilot-chat-app/webapp/
+        cd <path to chat-copilot>/webapp/
         cp .env.example .env
         ```
 
     - Update configuration settings:
 
         1. Open `.env`
-        2. Update `REACT_APP_AAD_CLIENT_ID` with the AAD `Application (client) ID` associated with the Azure Active Directory [application registration](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+        2. Update `REACT_APP_AAD_CLIENT_ID` with the `Application (client) ID` associated with the registered application.
 
             ```bash
             REACT_APP_BACKEND_URI=https://localhost:40443/
             REACT_APP_AAD_AUTHORITY=https://login.microsoftonline.com/common
-            REACT_APP_AAD_CLIENT_ID={Your Application (client) ID}
+            REACT_APP_AAD_CLIENT_ID={Application (client) ID}
             ```
       
     - Run the frontend:
