@@ -88,15 +88,16 @@ const App: FC = () => {
             }
 
             if (appState === AppState.LoadingChats) {
-                // Load all chats from memory
-                void chat.loadChats().then((succeeded) => {
-                    if (succeeded) {
-                        setAppState(AppState.Chat);
-                    }
-                });
-
-                // Load service options
-                void chat.getMemoriesStoreType();
+                void Promise.all([
+                    // Load all chats from memory
+                    chat.loadChats().then((succeeded) => {
+                        if (succeeded) {
+                            setAppState(AppState.Chat);
+                        }
+                    }),
+                    // Load service options
+                    void chat.getMemoriesStoreType(),
+                ]);
             }
         }
 

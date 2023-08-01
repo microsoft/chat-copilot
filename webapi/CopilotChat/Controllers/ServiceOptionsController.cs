@@ -14,14 +14,14 @@ namespace SemanticKernel.Service.CopilotChat.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-public class OptionsController : ControllerBase
+public class ServiceOptionsController : ControllerBase
 {
-    private readonly ILogger<OptionsController> _logger;
+    private readonly ILogger<ServiceOptionsController> _logger;
 
     private readonly MemoriesStoreOptions _memoriesStoreOptions;
 
-    public OptionsController(
-        ILogger<OptionsController> logger,
+    public ServiceOptionsController(
+        ILogger<ServiceOptionsController> logger,
         IOptions<MemoriesStoreOptions> memoriesStoreOptions)
     {
         this._logger = logger;
@@ -34,7 +34,7 @@ public class OptionsController : ControllerBase
     [Route("memoryStoreType")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetMemoryStoreType()
+    public IActionResult GetMemoriesStoreType()
     {
         return this.Ok(this._memoriesStoreOptions.Type.ToString());
     }
