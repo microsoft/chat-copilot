@@ -1,6 +1,7 @@
 import { Badge, Button, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import { Checkmark16Regular, Dismiss16Regular, Edit16Regular } from '@fluentui/react-icons';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Constants } from '../../../Constants';
 import { IPlanInput } from '../../../libs/models/Plan';
 
 const useClasses = makeStyles({
@@ -17,41 +18,105 @@ const useClasses = makeStyles({
         ...shorthands.margin(tokens.spacingHorizontalXXS),
         maxHeight: '10px',
         minHeight: '10px',
-        fontSize: tokens.fontSizeBase200,
+        fontSize: '12px',
     },
     interactable: {
         zIndex: '50',
     },
 });
 
+// Regex to match interpolated variables in the form of $VARIABLE_NAME or $VARIABLE2_NAME.
+// Variables that are not interpolated will fail to match.
+// \$([A-Z0-9]+_*)+ matches the variable name
+// (?=[\sa-z[\].]+) is a positive lookahead matching the end of static string
+// (?:.+\s*) is a noncapturing group that matches the start of static string
+const INTERPOLATED_VARIABLE_REGEX = /((\$([A-Z0-9]+_*)+)(?=[\sa-z[\].]+))|((?:.+\s*)(\$([A-Z0-9]+_*)+))/g;
+
 interface PlanStepInputProps {
     input: IPlanInput;
     onEdit: (newValue: string) => void;
     enableEdits: boolean;
+    validationErrors: number;
+    setValidationErrors: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export const PlanStepInput: React.FC<PlanStepInputProps> = ({ input, onEdit, enableEdits }) => {
+export const PlanStepInput: React.FC<PlanStepInputProps> = ({
+    input,
+    onEdit,
+    enableEdits,
+    validationErrors,
+    setValidationErrors,
+}) => {
     const classes = useClasses();
-    const [isEditingInput, setIsEditingInput] = useState(false);
 
-    const [inputValue, setInputValue] = useState(input.Value);
+    // Prompt user to edit input if it contains an unknown variable or interpolated variable string
+    const requiresEdits = useCallback(
+        (input = '') => {
+            input = input.trim();
+            return (
+                enableEdits &&
+                (input.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG) ||
+                    input.match(INTERPOLATED_VARIABLE_REGEX) !== null)
+            );
+        },
+        [enableEdits],
+    );
+
+    const [formValue, setFormValue] = useState(input.Value);
+    const [isEditingInput, setIsEditingInput] = useState(requiresEdits(input.Value));
+    const [editsRequired, setEditsRequired] = useState(enableEdits && requiresEdits(input.Value));
+
+    useEffect(() => {
+        if (editsRequired) setValidationErrors(validationErrors + 1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [input.Value]);
 
     const onEditClick = useCallback(() => {
         setIsEditingInput(true);
     }, []);
 
+    const keyStrokeTimeout = useRef(-1);
+    const updateAndValidateInput = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            window.clearTimeout(keyStrokeTimeout.current);
+            setFormValue(event.target.value);
+
+            // Debounce validation to avoid unnecessary re-renders
+            keyStrokeTimeout.current = window.setTimeout(() => {
+                if (requiresEdits(event.target.value) || event.target.value === '') {
+                    setEditsRequired(true);
+                } else {
+                    setEditsRequired(false);
+                }
+            }, Constants.KEYSTROKE_DEBOUNCE_TIME_MS);
+        },
+        [requiresEdits],
+    );
+
     const onSubmitEdit = useCallback(() => {
+        if (input.Value.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG)) {
+            setValidationErrors(validationErrors - 1);
+        }
+
+        setEditsRequired(false);
         setIsEditingInput(false);
-        onEdit(inputValue);
-    }, [inputValue, onEdit]);
+        input.Value = formValue;
+        onEdit(formValue);
+    }, [formValue, validationErrors, input, onEdit, setValidationErrors]);
 
     const onCancel = useCallback(() => {
-        setIsEditingInput(false);
-        setInputValue(input.Value);
-    }, [input.Value]);
+        setIsEditingInput(formValue.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG));
+        setEditsRequired(input.Value.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG));
+        setFormValue(input.Value);
+    }, [input, formValue]);
 
     return (
-        <Badge color="informative" shape="rounded" appearance="tint" className={classes.root}>
+        <Badge
+            color={requiresEdits(input.Value) ? 'danger' : 'informative'}
+            shape="rounded"
+            appearance="tint"
+            className={classes.root}
+        >
             {`${input.Key}: `}
             {!enableEdits && input.Value}
             {enableEdits && (
@@ -61,10 +126,8 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({ input, onEdit, ena
                             className={mergeClasses(classes.input, classes.interactable)}
                             style={{ width: input.Value.length * 6, minWidth: '75px' }}
                             placeholder={input.Value}
-                            value={inputValue}
-                            onChange={(event) => {
-                                setInputValue(event.target.value);
-                            }}
+                            value={formValue}
+                            onChange={updateAndValidateInput}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter' && !event.shiftKey) {
                                     event.preventDefault();
@@ -73,13 +136,14 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({ input, onEdit, ena
                             }}
                         />
                     ) : (
-                        inputValue
+                        formValue
                     )}
                     <Button
                         icon={isEditingInput ? <Checkmark16Regular /> : <Edit16Regular />}
                         appearance="transparent"
                         className={mergeClasses(classes.buttons, classes.interactable)}
                         onClick={isEditingInput ? onSubmitEdit : onEditClick}
+                        disabled={isEditingInput && editsRequired}
                     />
                     {isEditingInput && (
                         <Button

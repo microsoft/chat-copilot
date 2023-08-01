@@ -127,7 +127,10 @@ public class ExternalInformationSkill
                 {
                     plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
                 }
-                catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan)
+                catch (PlanningException e)
+                when ((e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+                        || (e.InnerException as PlanningException)?.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
+                    && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan)
                 {
                     if (maxRetries-- > 0)
                     {

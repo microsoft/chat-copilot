@@ -132,10 +132,11 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
                 value: V;
                 chatId: string;
                 messageIdOrIndex: string | number;
+                updatedContent?: string;
                 frontLoad?: boolean;
             }>,
         ) => {
-            const { property, value, messageIdOrIndex, chatId, frontLoad } = action.payload;
+            const { property, value, messageIdOrIndex, chatId, updatedContent, frontLoad } = action.payload;
             const conversation = state.conversations[chatId];
             const conversationMessage =
                 typeof messageIdOrIndex === 'number'
@@ -144,7 +145,11 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
 
             if (conversationMessage) {
                 conversationMessage[property] = value;
+                if (updatedContent) {
+                    conversationMessage.content = updatedContent;
+                }
             }
+
             if (frontLoad) {
                 frontLoadChat(state, chatId);
             }
