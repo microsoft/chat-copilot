@@ -6,7 +6,7 @@ namespace SemanticKernel.Service.CopilotChat.Models;
 
 /// <summary>
 /// Response object definition to the 'chatSession/create' request.
-/// This group the initial bot message with the chat session
+/// This groups the initial bot message with the chat session
 /// to avoid making two requests.
 /// </summary>
 public class CreateChatResponse
