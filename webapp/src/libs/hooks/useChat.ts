@@ -17,8 +17,8 @@ import { Plugin } from '../../redux/features/plugins/PluginsState';
 import { AuthHelper } from '../auth/AuthHelper';
 import { AlertType } from '../models/AlertType';
 import { Bot } from '../models/Bot';
-import { ChatMessageType, IChatMessage } from '../models/ChatMessage';
-import { IChatSession } from '../models/ChatSession';
+import { ChatMessageType } from '../models/ChatMessage';
+import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { TokenUsage } from '../models/TokenUsage';
 import { IAskVariables } from '../semantic-kernel/model/Ask';
@@ -74,23 +74,25 @@ export const useChat = () => {
         const chatTitle = `Copilot @ ${new Date().toLocaleString()}`;
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            await chatService.createChatAsync(userId, chatTitle, accessToken).then((result: IChatSession) => {
-                const newChat: ChatState = {
-                    id: result.id,
-                    title: result.title,
-                    systemDescription: result.systemDescription,
-                    memoryBalance: result.memoryBalance,
-                    messages: [result.initialBotMessage as IChatMessage],
-                    users: [loggedInUser],
-                    botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
-                    input: '',
-                    botResponseStatus: undefined,
-                    userDataLoaded: false,
-                };
+            await chatService
+                .createChatAsync(userId, chatTitle, accessToken)
+                .then((result: ICreateChatSessionResponse) => {
+                    const newChat: ChatState = {
+                        id: result.chatSession.id,
+                        title: result.chatSession.title,
+                        systemDescription: result.chatSession.systemDescription,
+                        memoryBalance: result.chatSession.memoryBalance,
+                        messages: [result.initialBotMessage],
+                        users: [loggedInUser],
+                        botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
+                        input: '',
+                        botResponseStatus: undefined,
+                        userDataLoaded: false,
+                    };
 
-                dispatch(addConversation(newChat));
-                return newChat.id;
-            });
+                    dispatch(addConversation(newChat));
+                    return newChat.id;
+                });
         } catch (e: any) {
             const errorMessage = `Unable to create new chat. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));

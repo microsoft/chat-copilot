@@ -103,7 +103,9 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
             />
             {isEditable && (
                 <div className={classes.controls}>
-                    <Button onClick={onSaveButtonClick}>Save</Button>
+                    <Button onClick={onSaveButtonClick} disabled={value.length <= 0 || value === prompt}>
+                        Save
+                    </Button>
                 </div>
             )}
         </div>
