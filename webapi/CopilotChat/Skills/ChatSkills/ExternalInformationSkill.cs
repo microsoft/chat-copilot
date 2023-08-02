@@ -16,8 +16,8 @@ using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills.OpenApiSkills.GitHubSkill.Model;
-using SemanticKernel.Service.CopilotChat.Skills.OpenApiSkills.JiraSkill.Model;
+using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.GitHubPlugin.Model;
+using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin.Model;
 
 namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
 
@@ -118,7 +118,29 @@ public class ExternalInformationSkill
         {
             // Create a plan and set it in context for approval.
             var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
-            Plan plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
+            Plan? plan = null;
+            int maxRetries = 1;
+
+            do
+            { // TODO: [Issue #2256] Remove retry logic once Core team stabilizes planner
+                try
+                {
+                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
+                }
+                catch (PlanningException e)
+                when ((e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+                        || (e.InnerException as PlanningException)?.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
+                    && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
+                {
+                    if (maxRetries-- > 0)
+                    {
+                        // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
+                        context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
+                        continue;
+                    }
+                    throw;
+                }
+            } while (plan == null);
 
             if (plan.Steps.Count > 0)
             {
@@ -321,15 +343,15 @@ public class ExternalInformationSkill
         // Different operations under the skill will return responses as json structures;
         // Prune each operation response according to the most important/contextual fields only to avoid going over the token limit
         // Check what the last skill invoked was and deserialize the JSON content accordingly
-        if (string.Equals(lastSkillInvoked, "GitHubSkill", StringComparison.Ordinal))
+        if (string.Equals(lastSkillInvoked, "GitHubPlugin", StringComparison.Ordinal))
         {
             trimSkillResponse = true;
             skillResponseType = this.GetGithubSkillResponseType(ref document);
         }
-        else if (string.Equals(lastSkillInvoked, "JiraSkill", StringComparison.Ordinal))
+        else if (string.Equals(lastSkillInvoked, "JiraPlugin", StringComparison.Ordinal))
         {
             trimSkillResponse = true;
-            skillResponseType = this.GetJiraSkillResponseType(ref document, ref lastSkillFunctionInvoked);
+            skillResponseType = this.GetJiraPluginResponseType(ref document, ref lastSkillFunctionInvoked);
         }
 
         return skillResponseType;
@@ -340,7 +362,7 @@ public class ExternalInformationSkill
         return document.RootElement.ValueKind == JsonValueKind.Array ? typeof(PullRequest[]) : typeof(PullRequest);
     }
 
-    private Type GetJiraSkillResponseType(ref JsonDocument document, ref string lastSkillFunctionInvoked)
+    private Type GetJiraPluginResponseType(ref JsonDocument document, ref string lastSkillFunctionInvoked)
     {
         if (lastSkillFunctionInvoked == "GetIssue")
         {
