@@ -173,7 +173,7 @@ public class ExternalInformationSkill
     /// <summary>
     /// Retry on plan creation error if:
     /// 1. PlannerOptions.AllowRetriesOnInvalidPlan is true and exception contains error code InvalidPlan.
-    /// 2. PlannerOptions.SkipMissingFunctionsError is true and exception contains error code FunctionNotAvailable.
+    /// 2. PlannerOptions.SkipOnMissingFunctionsError is true and exception contains error code FunctionNotAvailable.
     /// </summary>
     private bool IsRetriableError(Exception e)
     {
@@ -182,7 +182,7 @@ public class ExternalInformationSkill
 
         var retryOnMissingFunctionError = e is KernelException
             && (e as KernelException)!.ErrorCode == KernelException.ErrorCodes.FunctionNotAvailable
-            && this._planner.PlannerOptions!.SkipMissingFunctionsError;
+            && this._planner.PlannerOptions!.SkipOnMissingFunctionsError;
 
         return this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan
             && (retryOnMissingFunctionError || retryOnInvalidPlanError);

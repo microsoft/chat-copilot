@@ -27,10 +27,10 @@ const useClasses = makeStyles({
 
 // Regex to match interpolated variables in the form of $VARIABLE_NAME or $VARIABLE2_NAME.
 // Variables that are not interpolated will fail to match.
-// \$([A-Z0-9]+_*)+ matches the variable name
+// \$([A-Z]+[_-]*)+ matches the variable name
 // (?=[\sa-z[\].]+) is a positive lookahead matching the end of static string
 // (?:.+\s*) is a noncapturing group that matches the start of static string
-const INTERPOLATED_VARIABLE_REGEX = /((\$([A-Z0-9]+_*)+)(?=[\sa-z[\].]+))|((?:.+\s*)(\$([A-Z0-9]+_*)+))/g;
+const INTERPOLATED_VARIABLE_REGEX = /((\$([A-Z]+[_-]*)+)(?=[\sa-z[\].]+))|((?:.+\s*)(\$([A-Z]+[_-]*)+))/g;
 
 interface PlanStepInputProps {
     input: IPlanInput;
@@ -112,7 +112,7 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({
 
     return (
         <Badge
-            color={requiresEdits(input.Value) ? 'danger' : 'informative'}
+            color={editsRequired ? 'danger' : 'informative'}
             shape="rounded"
             appearance="tint"
             className={classes.root}

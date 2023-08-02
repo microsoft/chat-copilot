@@ -29,7 +29,7 @@ public class PlannerOptions
     // If set to true, the plan will be created with missing functions as no-op steps that are filtered from the final proposed plan.
     // If this is set to false, the plan creation will fail if any functions are missing.
     // </summary>
-    public bool SkipMissingFunctionsError { get; set; } = true;
+    public bool SkipOnMissingFunctionsError { get; set; } = true;
 
     // <summary>
     // Whether to retry plan creation if LLM returned response that doesn't contain valid plan (e.g., invalid XML or JSON, contains missing function, etc.).

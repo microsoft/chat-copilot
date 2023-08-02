@@ -67,12 +67,12 @@ public class CopilotChatPlanner
                     {
                         RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
                         // Allow plan to be created with missing functions
-                        AllowMissingFunctions = this._plannerOptions!.SkipMissingFunctionsError
+                        AllowMissingFunctions = this._plannerOptions!.SkipOnMissingFunctionsError
                     }
                 ).CreatePlanAsync(goal)
                : await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
 
-        return this._plannerOptions!.SkipMissingFunctionsError ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+        return this._plannerOptions!.SkipOnMissingFunctionsError ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
     }
 
     #region Private
