@@ -97,12 +97,6 @@ You will need the following items to run the sample:
 
     > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
 
-5. When finished, terminate the backend API process.
-
-    ```powershell
-    pkill "CopilotChatWebA"
-    ```
-
 ## macOS
 1. Open Bash as an administrator.
 2. Configure environment.
@@ -127,7 +121,7 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-3. Run Chat Copilot locally. This step starts both the backend API and frontend application.
+4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
     ```bash
     ./Start.sh
