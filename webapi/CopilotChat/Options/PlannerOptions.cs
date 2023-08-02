@@ -25,7 +25,7 @@ public class PlannerOptions
         /// <summary>
         /// Max retries allowed on MissingFunctionsError.
         /// </summary>
-        /// [Range(1, 5)]
+        [Range(1, 5)]
         public int MaxRetriesAllowed { get; set; } = 3;
     }
 
