@@ -4,7 +4,7 @@ import { Plugin } from '../../redux/features/plugins/PluginsState';
 import { ChatMemorySource } from '../models/ChatMemorySource';
 import { IChatMessage } from '../models/ChatMessage';
 import { IChatParticipant } from '../models/ChatParticipant';
-import { IChatSession } from '../models/ChatSession';
+import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
 import { IAskResult } from '../semantic-kernel/model/AskResult';
@@ -12,12 +12,15 @@ import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
 import { BaseService } from './BaseService';
 
 export class ChatService extends BaseService {
-    public createChatAsync = async (title: string, accessToken: string): Promise<IChatSession> => {
+    public createChatAsync = async (
+        title: string,
+        accessToken: string,
+    ): Promise<ICreateChatSessionResponse> => {
         const body = {
             title,
         };
 
-        const result = await this.getResponseAsync<IChatSession>(
+        const result = await this.getResponseAsync<ICreateChatSessionResponse>(
             {
                 commandPath: 'chatSessions',
                 method: 'POST',
@@ -76,7 +79,7 @@ export class ChatService extends BaseService {
         title: string,
         systemDescription: string,
         memoryBalance: number,
-        accessToken: string
+        accessToken: string,
     ): Promise<any> => {
         // TODO: is this right to use Partial<IChatSession> ?
         const body: Partial<IChatSession> = {
@@ -211,7 +214,11 @@ export class ChatService extends BaseService {
         return chatUsers;
     };
 
-    public getSemanticMemoriesAsync = async (chatId: string, memoryName: string, accessToken: string): Promise<string[]> => {
+    public getSemanticMemoriesAsync = async (
+        chatId: string,
+        memoryName: string,
+        accessToken: string,
+    ): Promise<string[]> => {
         const result = await this.getResponseAsync<string[]>(
             {
                 commandPath: `chatMemory/${chatId}/${memoryName}`,
@@ -221,5 +228,5 @@ export class ChatService extends BaseService {
         );
 
         return result;
-    }
+    };
 }

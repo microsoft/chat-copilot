@@ -5,7 +5,11 @@ import { IChatMessage } from './ChatMessage';
 export interface IChatSession {
     id: string;
     title: string;
-    initialBotMessage?: IChatMessage;
     systemDescription: string;
     memoryBalance: number;
+}
+
+export interface ICreateChatSessionResponse {
+    chatSession: IChatSession;
+    initialBotMessage: IChatMessage;
 }

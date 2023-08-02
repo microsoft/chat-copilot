@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -62,14 +63,14 @@ public class ChatMemoryController : ControllerBase
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
         {
-            this._logger.LogWarning("Chat session: {0} does not exist.", chatId);
+            this._logger.LogWarning("Chat session: {0} does not exist.", this.SanitizeLogInput(chatId));
             return this.BadRequest($"Chat session: {chatId} does not exist.");
         }
 
         // Make sure the memory name is valid.
         if (!this.ValidateMemoryName(memoryName))
         {
-            this._logger.LogWarning("Memory name: {0} is invalid.", memoryName);
+            this._logger.LogWarning("Memory name: {0} is invalid.", this.SanitizeLogInput(memoryName));
             return this.BadRequest($"Memory name: {memoryName} is invalid.");
         }
 
@@ -101,6 +102,20 @@ public class ChatMemoryController : ControllerBase
     private bool ValidateMemoryName(string memoryName)
     {
         return this._promptOptions.MemoryMap.ContainsKey(memoryName);
+    }
+
+    /// <summary>
+    /// Sanitizes the log input by removing new line characters. 
+    /// This helps prevent log forgery attacks from malicious text.
+    /// </summary>
+    /// <remarks>
+    /// https://github.com/microsoft/chat-copilot/security/code-scanning/1
+    /// </remarks>
+    /// <param name="input">The input to sanitize.</param>
+    /// <returns>The sanitized input.</returns>
+    private string SanitizeLogInput(string input)
+    {
+        return input.Replace(Environment.NewLine, "");
     }
 
     # endregion
