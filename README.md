@@ -8,7 +8,7 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 
 > **IMPORTANT:** Each chat interaction will call Azure OpenAI/OpenAI which will use tokens that you may be billed for.
 
-![ChatCopilot](https://github.com/microsoft/chat-copilot/assets/64985898/142999e8-6698-4428-bad6-4a9f374adf85)
+![ChatCopilot](https://github.com/microsoft/chat-copilot/assets/64985898/4b5b4ddd-0ba5-4da1-9769-1bc4a74f1996)
 
 # Requirements
 You will need the following items to run the sample:
