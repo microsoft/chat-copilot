@@ -2,7 +2,7 @@
 
 This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two applications: a front-end web UI app and a back-end API server. 
 
-These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/chat-copilot/deploy/README.md).
+These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/chat-copilot/blob/main/deploy/README.md).
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
