@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using SemanticKernel.Service.CopilotChat.Extensions;
 using SemanticKernel.Service.CopilotChat.Models;
@@ -221,7 +222,7 @@ public class BotController : ControllerBase
                 cancellationToken: default
             ).ToListAsync();
         }
-        catch (Exception connectorException)
+        catch (SKException connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             this._logger.LogError(connectorException,

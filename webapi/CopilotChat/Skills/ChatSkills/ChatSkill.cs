@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -272,7 +273,8 @@ public class ChatSkill
         [Description("Type of the message")] string messageType,
         [Description("Previously proposed plan that is approved"), DefaultValue(null), SKName("proposedPlan")] string? planJson,
         [Description("ID of the response message for planner"), DefaultValue(null), SKName("responseMessageId")] string? messageId,
-        SKContext context)
+        SKContext context,
+        CancellationToken cancellationToken)
     {
         // Set the system description in the prompt options
         await this.SetSystemDescriptionAsync(chatId);
@@ -303,7 +305,7 @@ public class ChatSkill
         else
         {
             // Get the chat response
-            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
+            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, cancellationToken);
         }
 
         if (chatMessage == null)
@@ -334,7 +336,7 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="chatContext">The SKContext.</param>
     /// <returns>The created chat message containing the model-generated response.</returns>
-    private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext)
+    private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, CancellationToken cancellationToken)
     {
         // Get the audience
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting audience");
@@ -446,7 +448,9 @@ public class ChatSkill
             chatId,
             this._kernel,
             chatContext,
-            this._promptOptions, this._logger);
+            this._promptOptions,
+            this._logger,
+            cancellationToken);
 
         // Calculate total token usage for dependency functions and prompt template and send to client
         await this.UpdateBotResponseStatusOnClient(chatId, "Calculating token usage");

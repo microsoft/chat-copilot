@@ -46,7 +46,6 @@ public class MemoriesStoreOptions
     [RequiredOnPropertyValue(nameof(Type), MemoriesStoreType.Qdrant)]
     public QdrantOptions? Qdrant { get; set; }
 
-
     /// <summary>
     /// Gets or sets the configuration for the Chroma memories store.
     /// </summary>

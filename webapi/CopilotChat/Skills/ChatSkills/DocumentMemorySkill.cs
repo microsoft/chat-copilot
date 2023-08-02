@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
 using SemanticKernel.Service.CopilotChat.Options;
@@ -82,7 +82,7 @@ public class DocumentMemorySkill
                     relevantMemories.Add(memory);
                 }
             }
-            catch (Exception connectorException)
+            catch (SKException connectorException)
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
                 this._logger.LogError(connectorException, "Cannot search collection {0}", documentCollection);

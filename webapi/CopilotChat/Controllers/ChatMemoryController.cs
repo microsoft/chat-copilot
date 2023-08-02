@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
@@ -91,7 +92,7 @@ public class ChatMemoryController : ControllerBase
                 memories.Add(memory.Metadata.Text);
             }
         }
-        catch (Exception connectorException)
+        catch (SKException connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             this._logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
@@ -123,7 +124,7 @@ public class ChatMemoryController : ControllerBase
     /// <returns>The sanitized input.</returns>
     private string SanitizeLogInput(string input)
     {
-        return input.Replace(Environment.NewLine, "");
+        return input.Replace(Environment.NewLine, "", StringComparison.Ordinal);
     }
 
     # endregion

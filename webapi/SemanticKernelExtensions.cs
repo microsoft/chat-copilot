@@ -159,10 +159,6 @@ internal static class SemanticKernelExtensions
                         logger: sp.GetRequiredService<ILogger<IChromaClient>>()
                     );
                 });
-                services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-                    sp.GetRequiredService<IMemoryStore>(),
-                    sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                        .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
                 break;
 
             default:
