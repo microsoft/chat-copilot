@@ -39,6 +39,8 @@ export const Constants = {
         },
         // Reserved context variable names
         reservedWords: ['server_url', 'server-url'],
+        // Flag used to indicate that the variable is unknown in plan preview
+        UNKNOWN_VARIABLE_FLAG: '$???',
     },
     adoScopes: ['vso.work'],
     BATCH_REQUEST_LIMIT: 20,

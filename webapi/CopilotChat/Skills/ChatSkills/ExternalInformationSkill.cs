@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -119,21 +120,25 @@ public class ExternalInformationSkill
             // Create a plan and set it in context for approval.
             var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
             Plan? plan = null;
-            int maxRetries = 1;
+            // Use default planner options if planner options are null.
+            var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions();
+            int retriesAvail = plannerOptions.MissingFunctionError.AllowRetries
+                ? plannerOptions.MissingFunctionError.MaxRetriesAllowed // Will always be at least 1
+                : plannerOptions.AllowRetriesOnInvalidPlan ? 1 : 0;
 
             do
-            { // TODO: [Issue #2256] Remove retry logic once Core team stabilizes planner
+            { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
                 try
                 {
-                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}");
+                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
                 }
-                catch (PlanningException e)
-                when ((e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
-                        || (e.InnerException as PlanningException)?.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
-                    && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlans)
+                catch (Exception e) when (this.IsRetriableError(e))
                 {
-                    if (maxRetries-- > 0)
+                    if (retriesAvail > 0)
                     {
+                        // PlanningExceptions are limited to one (1) pass as built-in stabilization. Retry limit of MissingFunctionErrors is user-configured.
+                        retriesAvail = e is PlanningException ? 0 : retriesAvail--;
+
                         // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
                         context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
@@ -144,13 +149,22 @@ public class ExternalInformationSkill
 
             if (plan.Steps.Count > 0)
             {
-                // Parameters stored in plan's top level
-                this.MergeContextIntoPlan(context.Variables, plan.Parameters);
+                // Merge any variables from ask context into plan parameters as these will be used on plan execution.
+                // These context variables come from user input, so they are prioritized.
+                if (plannerOptions.Type == PlanType.Action)
+                {
+                    // Parameters stored in plan's top level state
+                    this.MergeContextIntoPlan(context.Variables, plan.Parameters);
+                }
+                else
+                {
+                    foreach (var step in plan.Steps)
+                    {
+                        this.MergeContextIntoPlan(context.Variables, step.Parameters);
+                    }
+                }
 
-                Plan sanitizedPlan = this.SanitizePlan(plan, context);
-                sanitizedPlan.Parameters.Update(plan.Parameters);
-
-                this.ProposedPlan = new ProposedPlan(sanitizedPlan, this._planner.PlannerOptions!.Type, PlanState.NoOp);
+                this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp);
             }
         }
 
@@ -160,28 +174,26 @@ public class ExternalInformationSkill
     #region Private
 
     /// <summary>
-    /// Scrubs plan of functions not available in Planner's kernel.
+    /// Retry on plan creation error if:
+    /// 1. PlannerOptions.AllowRetriesOnInvalidPlan is true and exception contains error code InvalidPlan.
+    /// 2. PlannerOptions.MissingFunctionError.AllowRetries is true and exception contains error code FunctionNotAvailable.
     /// </summary>
-    private Plan SanitizePlan(Plan plan, SKContext context)
+    private bool IsRetriableError(Exception e)
     {
-        List<Plan> sanitizedSteps = new();
-        var availableFunctions = this._planner.Kernel.Skills.GetFunctionsView(true);
+        var retryOnInvalidPlanError = e is PlanningException
+            && ((e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+                || (e.InnerException as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
+            && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan;
 
-        foreach (var step in plan.Steps)
-        {
-            if (this._planner.Kernel.Skills.TryGetFunction(step.SkillName, step.Name, out var function))
-            {
-                this.MergeContextIntoPlan(context.Variables, step.Parameters);
-                sanitizedSteps.Add(step);
-            }
-        }
+        var retryOnMissingFunctionError = e is KernelException
+            && (e as KernelException)!.ErrorCode == KernelException.ErrorCodes.FunctionNotAvailable
+            && this._planner.PlannerOptions!.MissingFunctionError.AllowRetries;
 
-        return new Plan(plan.Description, sanitizedSteps.ToArray<Plan>());
+        return retryOnMissingFunctionError || retryOnInvalidPlanError;
     }
 
     /// <summary>
-    /// Merge any variables from the context into plan parameters as these will be used on plan execution.
-    /// These context variables come from user input, so they are prioritized.
+    /// Merge any variables from context into plan parameters.
     /// </summary>
     private void MergeContextIntoPlan(ContextVariables variables, ContextVariables planParams)
     {
