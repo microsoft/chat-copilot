@@ -66,8 +66,8 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
     const loadingResponse = conversations[selectedId].botResponseStatus && Object.entries(tokenUsage).length === 0;
 
     const responseGenerationView: TokenUsageView = {};
-    const memoryExtractionView: TokenUsageView = {};
-    let memoryExtractionUsage = 0;
+    const memoryGenerationView: TokenUsageView = {};
+    let memoryGenerationUsage = 0;
     let responseGenerationUsage = 0;
 
     const graphColors = {
@@ -98,9 +98,9 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
         };
 
         if (key.toLocaleUpperCase().includes('MEMORY')) {
-            memoryExtractionUsage += value ?? 0;
+            memoryGenerationUsage += value ?? 0;
             viewDetails.color = contrastColors[graphColors.contrast.getNextIndex()];
-            memoryExtractionView[key] = viewDetails;
+            memoryGenerationView[key] = viewDetails;
         } else {
             responseGenerationUsage += value ?? 0;
             graphColors.brand.index = graphColors.brand.getNextIndex();
@@ -108,7 +108,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
         }
     });
 
-    const totalUsage = memoryExtractionUsage + responseGenerationUsage;
+    const totalUsage = memoryGenerationUsage + responseGenerationUsage;
 
     return (
         <>
@@ -145,7 +145,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                                     {Object.entries(responseGenerationView).map(([key, details]) => {
                                         return <TokenUsageBar key={key} details={details} totalUsage={totalUsage} />;
                                     })}
-                                    {Object.entries(memoryExtractionView).map(([key, details]) => {
+                                    {Object.entries(memoryGenerationView).map(([key, details]) => {
                                         return <TokenUsageBar key={key} details={details} totalUsage={totalUsage} />;
                                     })}
                                 </div>
@@ -158,10 +158,10 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                                         color={semanticKernelBrandRamp[graphColors.brand.legend]}
                                     />
                                     <TokenUsageLegendItem
-                                        key={'Memory Extraction'}
-                                        name={'Memory Extraction'}
-                                        usageCount={memoryExtractionUsage}
-                                        items={Object.values(memoryExtractionView)}
+                                        key={'Memory Generation'}
+                                        name={'Memory Generation'}
+                                        usageCount={memoryGenerationUsage}
+                                        items={Object.values(memoryGenerationView)}
                                         color={contrastColors[graphColors.contrast.legend]}
                                     />
                                 </div>
