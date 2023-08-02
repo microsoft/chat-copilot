@@ -16,8 +16,6 @@ export class DocumentImportService extends BaseService {
             formData.append('formFiles', document);
         }
 
-        // TODO: removed user name, in addition to user id. Does that need to be changed on the receiving end too?
-
         return await this.getResponseAsync<IChatMessage>(
             {
                 commandPath: 'importDocuments',

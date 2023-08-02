@@ -167,7 +167,7 @@ public class DocumentImportController : ControllerBase
         await messageRelayHubContext.Clients.All.SendAsync(
             GlobalDocumentUploadedClientCall,
             documentMessageContent.ToFormattedStringNamesOnly(),
-            documentImportForm.UserName
+            this._authInfo.Name
         );
 
         return this.Ok("Documents imported successfully to global scope.");
@@ -415,7 +415,7 @@ public class DocumentImportController : ControllerBase
     {
         var chatId = documentImportForm.ChatId.ToString();
         var userId = this._authInfo.UserId;
-        var userName = documentImportForm.UserName;
+        var userName = this._authInfo.Name;
 
         var chatMessage = ChatMessage.CreateDocumentMessage(
             userId,

@@ -38,10 +38,4 @@ public class DocumentImportForm
     /// If the document scope is set to global, this value is ignored.
     /// </summary>
     public Guid ChatId { get; set; } = Guid.Empty;
-
-    /// <summary>
-    /// Name of the user who sent this message.
-    /// Will be used to create the chat message representing the document upload.
-    /// </summary>
-    public string UserName { get; set; } = string.Empty;
 }

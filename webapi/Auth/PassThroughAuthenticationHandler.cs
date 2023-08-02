@@ -34,8 +34,6 @@ public class PassThroughAuthenticationHandler : AuthenticationHandler<Authentica
     {
         this.Logger.LogInformation("Allowing request to pass through");
 
-        //var principal = new ClaimsPrincipal(new ClaimsIdentity(AuthenticationScheme));
-        //var ticket = new AuthenticationTicket(principal, this.Scheme.Name);
         Claim userIdClaim = new(JwtRegisteredClaimNames.Sub, DefaultUserId);
         Claim nameClaim = new(JwtRegisteredClaimNames.Name, DefaultUserName);
         ClaimsIdentity identity = new(new Claim[] { userIdClaim, nameClaim }, AuthenticationScheme);
