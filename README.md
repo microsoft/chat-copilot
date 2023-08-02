@@ -1,6 +1,6 @@
 # Chat Copilot Sample Application
 
-This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample uses two applications: a front-end web UI app and a back-end API server. 
+This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two applications: a front-end web UI app and a back-end API server. 
 
 These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/semantic-kernel/blob/main/samples/apps/copilot-chat-app/deploy/README.md).
 
@@ -10,19 +10,19 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 
 <img src="images/UI-Sample.png" alt="Chat Copilot UI" width="800"/>
 
-# Prerequisites
+# Requirements
 You will need the following items to run the sample:
 
-**Frontend application:**
-The web UI application will run on Azure.
+**Frontend App -** The web UI application will run on Azure.
 
 - [Azure account](https://azure.microsoft.com/en-us/free)
 - [Azure AD Tenant](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant)
 - [Registered application](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application)
+    - Under `Supported account types`: Select "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - Under `Redirect URI (optional)`: Select `Single-page application (SPA)` and set the URI to `http://localhost:3000`.
 - [Application (client) ID](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application)
 
-**Backend API:**
-Requirements depend on your AI Service choice.
+**Backend API -** Requirements depend on your AI Service choice.
 
 | AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -36,9 +36,11 @@ Requirements depend on your AI Service choice.
 2. Configure environment.
 
     ```powershell
-    cd <path to chat-copilot>\scripts
+    cd <path to chat-copilot>\scripts\
     .\Install.ps1
     ```
+
+    > NOTE: This script will install `Chocolatey`, `dotnet-7.0-sdk`, `nodejs`, and `yarn`.
 
 3. Configure Chat Copilot.
   
@@ -60,14 +62,18 @@ Requirements depend on your AI Service choice.
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
     
 
-## Ubuntu/Debian Linux
+## Debian/Ubuntu Linux
 1. Open Bash as an administrator.
 2. Configure environment.
   
     ```bash
     cd <path to chat-copilot>/scripts/
-    ./Install.sh
+    chmod +x *.sh
+
+    ./Install-apt.sh
     ```
+
+    > NOTE: This script uses `apt` to install `dotnet-sdk-7.0`, `nodejs`, and `yarn`.
 
 3. Configure Chat Copilot.
 
@@ -88,78 +94,37 @@ Requirements depend on your AI Service choice.
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
 
-## Other Linux/macOS
-All steps must be completed manually at this time.
-1. Configure environment. Install:
+## macOS
+1. Open Bash as an administrator.
+2. Configure environment.
 
-   - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
-   - [Node.js](https://nodejs.org/) 14 or newer
-   - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install) classic v1.22.19
+    ```bash
+    cd <path to chat-copilot>/scripts/
+    chmod +x *.sh
 
-2. Run Chat Copilot backend locally. This step configures and runs the sample's backend API.
+    ./Install-brew.sh
+    ```
 
-    - Open a terminal and set your Azure OpenAI or OpenAI key:
-    
-        ```bash
-        cd <path to chat-copilot>/webapi/
-        dotnet user-secrets set "AIService:Key" "MY_AZUREOPENAI_OR_OPENAI_KEY"
-        ```
+    > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
 
-    - Install dev certificate:
-  
-        Linux:
-        ```bash
-        dotnet dev-certs https
-        ```
+3. Configure Chat Copilot.
 
-        macOS:
-        ```bash
-        dotnet dev-certs https --trust
-        ```
+    ```bash
+    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
+    ```
 
-    - Update configuration settings:
+    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
+    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
+    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
+    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-        1. Open `appsettings.json`
-        2. Find the `AIService` section and update:
+3. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
-            - `Type`: `AzureOpenAI` or `OpenAI`.
-            - `Endpoint`: The Azure OpenAI resource `Endpoint` address. Leave this empty if using OpenAI.
-            - `Completion`, `Embedding`, `Planner`: The models you will use. 
-                > **IMPORTANT:** For OpenAI, use a '.' with `gpt-3.5-turbo`.  For Azure OpenAI, omit the '.' with `gpt-35-turbo`.
+    ```bash
+    ./Start.sh
+    ```
 
-    -  Run the backend:
-
-        ```bash
-        dotnet build && dotnet run
-        ```
-
-3. Run Chat Copilot frontend locally. This step configures and runs the sample's frontend application.
-
-    - Open a terminal and create an `.env` file from the template:
-    
-        ```bash
-        cd <path to chat-copilot>/webapp/
-        cp .env.example .env
-        ```
-
-    - Update configuration settings:
-
-        1. Open `.env`
-        2. Update `REACT_APP_AAD_CLIENT_ID` with the `Application (client) ID` associated with the registered application.
-
-            ```bash
-            REACT_APP_BACKEND_URI=https://localhost:40443/
-            REACT_APP_AAD_AUTHORITY=https://login.microsoftonline.com/common
-            REACT_APP_AAD_CLIENT_ID={Application (client) ID}
-            ```
-      
-    - Run the frontend:
-
-        ```bash
-        yarn install && yarn start
-        ```
-
-        > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
+    > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
     
 # Troubleshooting
 

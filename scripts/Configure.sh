@@ -99,7 +99,7 @@ else # elif [ "$AI_SERVICE" = "$ENV_AZURE_OPEN_AI" ]; then
 fi
 
 if [ -z "$EMBEDDING_MODEL" ]; then
-  COMPLETION_MODEL="$ENV_EMBEDDING_MODEL"
+  EMBEDDING_MODEL="$ENV_EMBEDDING_MODEL"
   # TO DO: Validate model values if set by command line.
 fi
 if [ -z "$TENANT_ID" ]; then
