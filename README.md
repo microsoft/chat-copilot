@@ -61,7 +61,7 @@ You will need the following items to run the sample:
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
     
-    > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
+    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
 
 ## Debian/Ubuntu Linux
 1. Open Bash as an administrator.
@@ -95,13 +95,7 @@ You will need the following items to run the sample:
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
 
-    > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
-
-5. When finished, terminate the backend API process.
-
-    ```powershell
-    pkill "CopilotChatWebA"
-    ```
+    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
 
 ## macOS
 1. Open Bash as an administrator.
@@ -135,7 +129,7 @@ You will need the following items to run the sample:
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
 
-    > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
+    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
     
 ## (Optional) Enable backend authorization via Azure AD
 
@@ -210,7 +204,7 @@ You will need the following items to run the sample:
 
 3. **_Issue:_** Localhost SSL certificate errors / CORS errors
 
-    <img src="images/Cert-Issue.png" alt="Certificatw error message in browser" width="600"/>
+    ![Cert-Issue](https://github.com/microsoft/chat-copilot/assets/52973358/fb633f1d-55bd-45c8-a7c2-6479c214f14a)
 
     _Explanation_: Your browser may be blocking the frontend access to the backend while waiting for your permission to connect. 
     
