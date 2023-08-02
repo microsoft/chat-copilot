@@ -18,7 +18,7 @@ public class MemoriesStoreTypeResponse
     public IEnumerable<string> Types { get; set; } = Enumerable.Empty<string>();
 
     /// <summary>
-    /// the selected memories store type.
+    /// The selected memories store type.
     /// </summary>
     [JsonPropertyName("selectedType")]
     public string SelectedType { get; set; } = string.Empty;
