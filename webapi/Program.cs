@@ -80,7 +80,6 @@ public sealed class Program
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
         builder.Services.AddHealthChecks();
-        // .AddCheck("Default", () => HealthCheckResult.Healthy("Semantic Kernel service up and running"));
 
         // Configure middleware and endpoints
         WebApplication app = builder.Build();

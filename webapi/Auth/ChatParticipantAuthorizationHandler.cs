@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -56,5 +56,7 @@ public class ChatParticipantAuthorizationHandler : AuthorizationHandler<ChatPart
         {
             context.Fail(new AuthorizationFailureReason(this, "User does not have access to the requested chat."));
         }
+
+        context.Succeed(requirement);
     }
 }

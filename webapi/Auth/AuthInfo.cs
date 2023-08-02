@@ -35,7 +35,7 @@ public class AuthInfo : IAuthInfo
 
             if (userIdClaim is null)
             {
-                throw new CredentialUnavailableException("User Id was not present in the request token. " + user.ToString());
+                throw new CredentialUnavailableException("User Id was not present in the request token.");
             }
             var userNameClaim = user.FindFirst(ClaimConstants.Name);
             if (userNameClaim is null)

@@ -61,7 +61,8 @@ internal static class ServicesExtensions
                     policy =>
                     {
                         policy.WithOrigins(allowedOrigins)
-                            .AllowAnyHeader();
+                        .WithMethods("GET", "POST", "PATCH")
+                        .AllowAnyHeader();
                     });
             });
         }
