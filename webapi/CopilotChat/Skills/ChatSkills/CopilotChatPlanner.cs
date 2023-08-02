@@ -39,7 +39,14 @@ public class CopilotChatPlanner
     /// Flag to indicate that a variable is unknown and needs to be filled in by the user.
     /// This is used to flag any inputs that had dependencies from removed steps.
     /// </summary>
-    private static readonly string UNKNOWN_VARIABLE_FLAG = "$???";
+    private const string UNKNOWN_VARIABLE_FLAG = "$???";
+
+    /// <summary>
+    /// Regex to match variable names from plan parameters.
+    /// Matches: $variableName, $variable_name, $variable-name, $some_variable_Name, $variableName123, $variableName_123, $variableName-123
+    /// Does not match: $123variableName, $100 $200 
+    /// </summary>
+    private const string VARIABLE_REGEX = @"\$([A-Za-z]+[_-]*[\w]+)";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
@@ -66,19 +73,19 @@ public class CopilotChatPlanner
             return new Plan(goal);
         }
 
-        Plan plan = this._plannerOptions!.Type == PlanType.Sequential
+        Plan plan = this._plannerOptions?.Type == PlanType.Sequential
                ? await new SequentialPlanner(
                     this.Kernel,
                     new SequentialPlannerConfig
                     {
                         RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
                         // Allow plan to be created with missing functions
-                        AllowMissingFunctions = this._plannerOptions!.SkipOnMissingFunctionsError
+                        AllowMissingFunctions = this._plannerOptions?.MissingFunctionError.AllowRetries ?? false
                     }
                 ).CreatePlanAsync(goal)
                : await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
 
-        return this._plannerOptions!.SkipOnMissingFunctionsError ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+        return this._plannerOptions!.MissingFunctionError.AllowRetries ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
     }
 
     #region Private
@@ -104,7 +111,7 @@ public class CopilotChatPlanner
                 availableOutputs.AddRange(step.Outputs);
 
                 // Regex to match variable names
-                Regex variableRegEx = new(@"\$((\w+[_-]*)+)", RegexOptions.Singleline);
+                Regex variableRegEx = new(VARIABLE_REGEX, RegexOptions.Singleline);
 
                 // Check for any inputs that may have dependencies from removed steps
                 foreach (var input in step.Parameters)

@@ -120,10 +120,14 @@ public class ExternalInformationSkill
             // Create a plan and set it in context for approval.
             var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
             Plan? plan = null;
-            int retriesAvail = 3;
+            // Use default planner options if planner options are null.
+            var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions();
+            int retriesAvail = plannerOptions.MissingFunctionError.AllowRetries
+                ? plannerOptions.MissingFunctionError.MaxRetriesAllowed // Will always be at least 1
+                : plannerOptions.AllowRetriesOnInvalidPlan ? 1 : 0;
 
             do
-            { // TODO: [Issue #2256] Remove retry logic once Core team stabilizes planner
+            { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
                 try
                 {
                     plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
@@ -132,7 +136,7 @@ public class ExternalInformationSkill
                 {
                     if (retriesAvail > 0)
                     {
-                        // PlanningExceptions are limited to one (1) pass as built-in stabilization. MissingFunctionErrors are allowed 3 retries as they are user-allowed skips.
+                        // PlanningExceptions are limited to one (1) pass as built-in stabilization. Retry limit of MissingFunctionErrors is user-configured.
                         retriesAvail = e is PlanningException ? 0 : retriesAvail--;
 
                         // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
@@ -147,7 +151,7 @@ public class ExternalInformationSkill
             {
                 // Merge any variables from ask context into plan parameters as these will be used on plan execution.
                 // These context variables come from user input, so they are prioritized.
-                if (this._planner.PlannerOptions!.Type == PlanType.Action)
+                if (plannerOptions.Type == PlanType.Action)
                 {
                     // Parameters stored in plan's top level state
                     this.MergeContextIntoPlan(context.Variables, plan.Parameters);
@@ -160,7 +164,7 @@ public class ExternalInformationSkill
                     }
                 }
 
-                this.ProposedPlan = new ProposedPlan(plan, this._planner.PlannerOptions!.Type, PlanState.NoOp);
+                this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp);
             }
         }
 
@@ -172,17 +176,18 @@ public class ExternalInformationSkill
     /// <summary>
     /// Retry on plan creation error if:
     /// 1. PlannerOptions.AllowRetriesOnInvalidPlan is true and exception contains error code InvalidPlan.
-    /// 2. PlannerOptions.SkipOnMissingFunctionsError is true and exception contains error code FunctionNotAvailable.
+    /// 2. PlannerOptions.MissingFunctionError.AllowRetries is true and exception contains error code FunctionNotAvailable.
     /// </summary>
     private bool IsRetriableError(Exception e)
     {
         var retryOnInvalidPlanError = e is PlanningException
-            && (e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+            && ((e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+                || (e.InnerException as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
             && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan;
 
         var retryOnMissingFunctionError = e is KernelException
             && (e as KernelException)!.ErrorCode == KernelException.ErrorCodes.FunctionNotAvailable
-            && this._planner.PlannerOptions!.SkipOnMissingFunctionsError;
+            && this._planner.PlannerOptions!.MissingFunctionError.AllowRetries;
 
         return retryOnMissingFunctionError || retryOnInvalidPlanError;
     }

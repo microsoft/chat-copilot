@@ -27,10 +27,12 @@ const useClasses = makeStyles({
 
 // Regex to match interpolated variables in the form of $VARIABLE_NAME or $VARIABLE2_NAME.
 // Variables that are not interpolated will fail to match.
-// \$(\w+[_-]*)+ matches the variable name
-// (?=[^\w]+) is a positive lookahead matching the end of static string
-// (?:.+\s*) is a noncapturing group that matches the start of static string
-const INTERPOLATED_VARIABLE_REGEX = /((\$(\w+[_-]*)+)(?=[^\w]+))|((?:.+\s*)(\$(\w+[_-]*)+))/g;
+// \$[A-Za-z]+[_-]*[\w]+ matches the variable name
+// (?=([^-_\d\w])+) is a positive lookahead matching the end of static string (matches any character that is not a letter, number, underscore, or dash)
+// (?:.+\s*) is a noncapturing group that matches the start of static string (matches any character followed by whitespace)
+// Matches: "Interpolated $variable_name", "$variable_name Interpolated", "Interpolated $variable_name Interpolated"
+// Doesn't match: standalone variables (e.g. "$variable_name") or dollar amounts (e.g. "$1.00", "$100")
+const INTERPOLATED_VARIABLE_REGEX = /((\$[A-Za-z]+[_-]*[\w]+)(?=([^-_\d\w])+))|((?:.+\s*)(\$[A-Za-z]+[_-]*[\w]+))/g;
 
 interface PlanStepInputProps {
     input: IPlanInput;
@@ -113,7 +115,7 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({
 
     return (
         <Badge
-            color={editsRequired ? 'danger' : 'informative'}
+            color={enableEdits && editsRequired ? 'danger' : 'informative'}
             shape="rounded"
             appearance="tint"
             className={classes.root}
