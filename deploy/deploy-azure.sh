@@ -10,7 +10,6 @@ usage() {
     echo "Arguments:"
     echo "  -d, --deployment-name DEPLOYMENT_NAME      Name for the deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION            Subscription to which to make the deployment (mandatory)"
-    echo "  -wk, --web-api-key WEB_API_KEY             The API key for the backend web service"
     echo "  -ai, --ai-service AI_SERVICE_TYPE          Type of AI service to use (i.e., OpenAI or AzureOpenAI)"
     echo "  -aikey, --ai-service-key AI_SERVICE_KEY    API key for existing Azure OpenAI resource or OpenAI account"
     echo "  -aiend, --ai-endpoint AI_ENDPOINT          Endpoint for existing Azure OpenAI resource"
@@ -36,11 +35,6 @@ while [[ $# -gt 0 ]]; do
         ;;
         -s|--subscription)
         SUBSCRIPTION="$2"
-        shift
-        shift
-        ;;
-        -wk|--web-api-key)
-        WEB_API_KEY="$2"
         shift
         shift
         ;;
@@ -108,11 +102,6 @@ if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$AI_SERVICE
     exit 1
 fi
 
-# Check if WEB_API_KEY is provided or not
-if [[ -z "$WEB_API_KEY" ]]; then
-    WEB_API_KEY=$(uuidgen -r)
-fi
-
 # Check if AI_SERVICE_TYPE is either OpenAI or AzureOpenAI
 if [[ "${AI_SERVICE_TYPE,,}" != "openai" ]] && [[ "${AI_SERVICE_TYPE,,}" != "azureopenai" ]]; then
     echo "--ai-service must be either OpenAI or AzureOpenAI"
@@ -171,7 +160,6 @@ az account set -s "$SUBSCRIPTION"
 # Create JSON config
 JSON_CONFIG=$(cat << EOF
 {
-    "webApiKey": { "value" : "$WEB_API_KEY" },
     "webAppServiceSku": { "value": "$WEB_APP_SVC_SKU" },
     "aiService": { "value": "$AI_SERVICE_TYPE" },
     "aiApiKey": { "value": "$AI_SERVICE_KEY" },

@@ -1,9 +1,9 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.Identity.Web;
 
 namespace SemanticKernel.Service.Auth;
 
@@ -27,13 +27,17 @@ public class AuthInfo : IAuthInfo
             {
                 throw new InvalidOperationException("HttpContext must be present to inspect auth info.");
             }
-            var userIdClaim = user.FindFirst("oid")
-                ?? user.FindFirst(JwtRegisteredClaimNames.Sub);
+            //var userIdClaim = user.FindFirst("oid")
+            var userIdClaim = user.FindFirst(ClaimConstants.Oid)
+                ?? user.FindFirst(ClaimConstants.ObjectId)
+                ?? user.FindFirst(ClaimConstants.Sub)
+                ?? user.FindFirst(ClaimConstants.NameIdentifierId);
+
             if (userIdClaim is null)
             {
-                throw new CredentialUnavailableException("User Id was not present in the request token.");
+                throw new CredentialUnavailableException("User Id was not present in the request token. " + user.ToString());
             }
-            var userNameClaim = user.FindFirst(JwtRegisteredClaimNames.Name);
+            var userNameClaim = user.FindFirst(ClaimConstants.Name);
             if (userNameClaim is null)
             {
                 throw new CredentialUnavailableException("User name was not present in the request token.");

@@ -185,10 +185,6 @@ public static class Program
         };
         // Add required properties to the request header.
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-        if (!string.IsNullOrEmpty(config.ApiKey))
-        {
-            httpClient.DefaultRequestHeaders.Add("x-sk-api-key", config.ApiKey);
-        }
 
         try
         {
