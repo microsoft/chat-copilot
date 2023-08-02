@@ -4,6 +4,9 @@
 
 set -e
 
+# Stop any existing backend API process
+pkill "CopilotChatWebA"
+
 # Get defaults and constants
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . $SCRIPT_DIRECTORY/.env

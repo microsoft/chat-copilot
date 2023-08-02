@@ -2,7 +2,7 @@
 
 This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two applications: a front-end web UI app and a back-end API server. 
 
-These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/semantic-kernel/blob/main/samples/apps/copilot-chat-app/deploy/README.md).
+These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/chat-copilot/deploy/README.md).
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
@@ -15,19 +15,19 @@ You will need the following items to run the sample:
 
 **Frontend App -** The web UI application will run on Azure.
 
-- [Azure account](https://azure.microsoft.com/en-us/free)
-- [Azure AD Tenant](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant)
-- [Registered application](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application)
+- [Azure account](https://azure.microsoft.com/free)
+- [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
+- [Registered application](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application)
     - Under `Supported account types`: Select "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
     - Under `Redirect URI (optional)`: Select `Single-page application (SPA)` and set the URI to `http://localhost:3000`.
-- [Application (client) ID](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application)
+- [Application (client) ID](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application)
 
 **Backend API -** Requirements depend on your AI Service choice.
 
-| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo`) <br>- [Endpoint](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
-| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed model](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
+| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 
 # Setup Instructions
@@ -61,6 +61,13 @@ You will need the following items to run the sample:
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
     
+    > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
+
+5. When finished, terminate the backend API process.
+
+    ```powershell
+    Stop-Process -Name "CopilotChatWebApi"
+    ```
 
 ## Debian/Ubuntu Linux
 1. Open Bash as an administrator.
@@ -94,6 +101,14 @@ You will need the following items to run the sample:
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
 
+    > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
+
+5. When finished, terminate the backend API process.
+
+    ```powershell
+    pkill "CopilotChatWebA"
+    ```
+
 ## macOS
 1. Open Bash as an administrator.
 2. Configure environment.
@@ -125,6 +140,8 @@ You will need the following items to run the sample:
     ```
 
     > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
+
+    > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
     
 # Troubleshooting
 
@@ -139,7 +156,7 @@ You will need the following items to run the sample:
 2. **_Issue:_**: Challenges using text completion models, such as `text-davinci-003`
 
     _Solution_: For OpenAI, see [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility) for
-    the complete list of current models supporting chat completions. For Azure OpenAI, see [model summary table and region availability](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#model-summary-table-and-region-availability).
+    the complete list of current models supporting chat completions. For Azure OpenAI, see [model summary table and region availability](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#model-summary-table-and-region-availability).
 
 3. **_Issue:_** Localhost SSL certificate errors / CORS errors
 
@@ -163,4 +180,26 @@ You will need the following items to run the sample:
     ```bash
     npm install -g yarn
     yarn set version classic
+    ```
+
+5. **_Issue:_** Missing `/usr/share/dotnet/host/fxr` folder.
+
+    _Details_: "A fatal error occurred. The folder [/usr/share/dotnet/host/fxr] does not exist" when running dotnet commands on Linux.
+
+    _Explanation_: When .NET (Core) was first released for Linux, it was not yet available in the official Ubuntu repo. So instead, many of us added the Microsoft APT repo in order to install it. Now, the packages are part of the Ubuntu repo, and they are conflicting with the Microsoft packages. This error is a result of mixed packages. ([Source: StackOverflow](https://stackoverflow.com/questions/73753672/a-fatal-error-occurred-the-folder-usr-share-dotnet-host-fxr-does-not-exist))
+
+    _Solution_:
+
+    ```bash
+    # Remove all existing packages to get to a clean state:
+    sudo apt remove --assume-yes dotnet*;
+    sudo apt remove --assume-yes aspnetcore*;
+    sudo apt remove --assume-yes netstandard*;
+
+    # Set the Microsoft package provider priority
+    echo -e "Package: *\nPin: origin \"packages.microsoft.com\"\nPin-Priority: 1001" | sudo tee /etc/apt/preferences.d/99microsoft-dotnet.pref;
+
+    # Update and install dotnet
+    sudo apt update;
+    sudo apt install --assume-yes dotnet-sdk-7.0;
     ```
