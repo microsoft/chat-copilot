@@ -8,7 +8,7 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 
 > **IMPORTANT:** Each chat interaction will call Azure OpenAI/OpenAI which will use tokens that you may be billed for.
 
-<img src="images/UI-Sample.png" alt="Chat Copilot UI" width="800"/>
+![UI-Sample](https://github.com/microsoft/chat-copilot/assets/52973358/4e2d926c-597d-4e03-8be7-ea277aa7e54d)
 
 # Requirements
 You will need the following items to run the sample:
@@ -137,6 +137,62 @@ You will need the following items to run the sample:
 
     > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
     
+## (Optional) Enable backend authorization via Azure AD
+
+1. Ensure you created the required application registration mentioned in [Start the WebApp FrontEnd application](#start-the-webapp-frontend-application)
+2. Create a second application registration to represent the web api
+   > For more details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+
+   1. Give the app registration a name
+
+   2. As *Supported account type* choose `Accounts in any organizational directory and personal Microsoft Accounts`
+
+   3. Do not configure a *Redirect Uri*
+
+3. Expose an API within the second app registration
+   1. Select *Expose an API* from the menu
+
+   2. Add an *Application ID URI*
+      1. This will generate an `api://` URI with a generated for you
+
+      2. Click *Save* to store the generated URI
+      
+   3. Add a scope for `access_as_user`
+      1. Click *Add scope*
+
+      2. Set *Scope name* to `access_as_user`
+
+      3. Set *Who can consent* to *Admins and users*
+
+      4. Set *Admin consent display name* and *User consent display name* to `Access copilot chat as a user`
+
+      5. Set *Admin consent description* and *User consent description* to `Allows the accesses to the Copilot chat web API as a user`
+
+4. Add permissions to web app frontend to access web api as user
+   1. Open app registration for web app frontend
+
+   2. Go to *API Permissions*
+
+   3. Click *Add a permission*
+
+   4. Select the tab *My APIs*
+
+   5. Choose the app registration representing the web api backend
+
+   6. Select permissions `access_as_user`
+
+   7. Click *Add permissions*
+
+5. Update frontend web app configuration
+   1. Open *.env* file
+
+   2. Set the value of `REACT_APP_AAD_API_SCOPE` to your application ID URI followed by the scope `access_as_user`, e.g. `api://12341234-1234-1234-1234-123412341234/access_as_user`
+
+6. Update backend web api configuration
+   1. Open *appsettings.json*
+
+   2. Set the value of `Authorization:AzureAd:Audience` to your application ID URI
+   
 # Troubleshooting
 
 1. **_Issue:_** Unable to load chats. 
