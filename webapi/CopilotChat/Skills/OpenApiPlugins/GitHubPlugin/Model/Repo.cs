@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.OpenApiSkills.GitHubSkill.Model;
+namespace SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.GitHubPlugin.Model;
 
 /// <summary>
 /// Represents a GitHub Repo.

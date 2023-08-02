@@ -55,8 +55,8 @@ Importing documents enables Copilot Chat to have up-to-date knowledge of specifi
 
    With [ms10k.txt](./sample-docs/ms10k.txt):
 
-   ![](../images/Document-Memory-Sample-1.png)
+   ![Document-Memory-Sample-1](https://github.com/microsoft/chat-copilot/assets/52973358/3d35df4d-40f1-4f12-8e40-fd190d5ce127)
 
    With [Microsoft Responsible AI Standard v2 General Requirements.pdf](./sample-docs/Microsoft-Responsible-AI-Standard-v2-General-Requirements.pdf):
 
-   ![](../images/Document-Memory-Sample-2.png)
+   ![Document-Memory-Sample-2](https://github.com/microsoft/chat-copilot/assets/52973358/f0e95104-72ca-4a0a-9555-ee335d8df696)

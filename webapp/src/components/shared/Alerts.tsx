@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import {
-    makeStyles,
-    tokens
-} from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 import { Alert } from '@fluentui/react-components/unstable';
 import { Dismiss16Regular } from '@fluentui/react-icons';
 import React from 'react';
@@ -12,8 +9,6 @@ import { RootState } from '../../redux/app/store';
 import { removeAlert } from '../../redux/features/app/appSlice';
 
 const useClasses = makeStyles({
-    root: {
-    },
     alert: {
         fontWeight: tokens.fontWeightRegular,
         color: tokens.colorNeutralForeground1,
@@ -29,7 +24,7 @@ export const Alerts: React.FC = () => {
     const { alerts } = useAppSelector((state: RootState) => state.app);
 
     return (
-        <div className={classes.root}>
+        <div>
             {alerts.map(({ type, message }, index) => {
                 return (
                     <Alert

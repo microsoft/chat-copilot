@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { PlanState } from './Plan';
+import { TokenUsage } from './TokenUsage';
 
 /**
  * Role of the author of a chat message. It's a copy of AuthorRoles in the API C# code.
@@ -41,6 +42,7 @@ export enum UserFeedback {
 }
 
 export interface IChatMessage {
+    chatId: string;
     type: ChatMessageType;
     timestamp: number;
     userName: string;
@@ -53,4 +55,5 @@ export interface IChatMessage {
     planState?: PlanState;
     // TODO: [Issue #42] Persistent RLHF
     userFeedback?: UserFeedback;
+    tokenUsage?: TokenUsage;
 }

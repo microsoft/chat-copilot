@@ -10,7 +10,6 @@ namespace SemanticKernel.Service.Services;
 /// </summary>
 public interface IOcrEngine
 {
-
     /// <summary>
     /// Reads all text from the image file.
     /// </summary>

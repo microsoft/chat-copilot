@@ -8,15 +8,13 @@ import * as speechSdk from 'microsoft-cognitiveservices-speech-sdk';
 import React, { useRef } from 'react';
 import { Constants } from '../../Constants';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
+import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { AlertType } from '../../libs/models/AlertType';
 import { ChatMessageType } from '../../libs/models/ChatMessage';
-import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
-import {
-    editConversationInput, updateBotResponseStatus
-} from '../../redux/features/conversations/conversationsSlice';
+import { editConversationInput, updateBotResponseStatus } from '../../redux/features/conversations/conversationsSlice';
 import { Alerts } from '../shared/Alerts';
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';
@@ -87,6 +85,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
     const documentFileRef = useRef<HTMLInputElement | null>(null);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+
+    const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
+    React.useEffect(() => {
+        // Focus on the text area when the selected conversation changes
+        textAreaRef.current?.focus();
+    }, [selectedId]);
 
     React.useEffect(() => {
         async function initSpeechRecognizer() {
@@ -179,6 +183,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             <Alerts />
             <div className={classes.content}>
                 <Textarea
+                    ref={textAreaRef}
                     id="chat-input"
                     resize="vertical"
                     textarea={{
