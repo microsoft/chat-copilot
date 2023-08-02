@@ -5,7 +5,9 @@
 set -e
 
 # Stop any existing backend API process
-pkill "CopilotChatWebA"
+while pid=$(pgrep CopilotChatWebA); do 
+    kill $pid
+done
 
 # Get defaults and constants
 SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

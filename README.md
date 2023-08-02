@@ -63,12 +63,6 @@ You will need the following items to run the sample:
     
     > **NOTE** It may take a few minutes for Yarn packages to install on the first run.
 
-5. When finished, terminate the backend API process.
-
-    ```powershell
-    Stop-Process -Name "CopilotChatWebApi"
-    ```
-
 ## Debian/Ubuntu Linux
 1. Open Bash as an administrator.
 2. Configure environment.

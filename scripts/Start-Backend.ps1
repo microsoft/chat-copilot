@@ -4,7 +4,7 @@ Builds and runs the Chat Copilot backend.
 #>
 
 # Stop any existing backend API process
-Stop-Process -Name "CopilotChatWebApi"
+Get-Process -Name "CopilotChatWebApi" -ErrorAction SilentlyContinue | Stop-Process
 
 # Get defaults and constants
 $varScriptFilePath = Join-Path "$PSScriptRoot" 'Variables.ps1'
