@@ -15,8 +15,9 @@ export const Constants = {
             cacheLocation: 'localStorage',
             storeAuthStateInCookie: false,
         },
-        semanticKernelScopes: ['openid', 'offline_access', 'profile']
-            .concat(process.env.REACT_APP_AAD_API_SCOPE as string ? [process.env.REACT_APP_AAD_API_SCOPE as string] : []),
+        semanticKernelScopes: ['openid', 'offline_access', 'profile'].concat(
+            (process.env.REACT_APP_AAD_API_SCOPE as string) ? [process.env.REACT_APP_AAD_API_SCOPE as string] : [],
+        ),
         // MS Graph scopes required for loading user information
         msGraphAppScopes: ['User.ReadBasic.All'],
     },
@@ -50,12 +51,4 @@ export const Constants = {
         MANIFEST_PATH: '/.well-known/ai-plugin.json',
     },
     KEYSTROKE_DEBOUNCE_TIME_MS: 250,
-    MemoriesStoreTypes: {
-        Qdrant: 'Qdrant',
-        AzureCognitiveSearch: 'AzureCognitiveSearch',
-        Pinecone: 'Pinecone',
-        Milvus: 'Milvus',
-        Volatile: 'Volatile',
-        Unknown: 'Unknown',
-    },
 };

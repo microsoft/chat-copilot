@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.Options;
 
 namespace SemanticKernel.Service.CopilotChat.Controllers;
@@ -31,11 +33,17 @@ public class ServiceOptionsController : ControllerBase
     /// <summary>
     /// Return the memory store type that is configured.
     /// </summary>
-    [Route("memoryStoreType")]
+    [Route("memoriesStoreType")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetMemoriesStoreType()
     {
-        return this.Ok(this._memoriesStoreOptions.Type.ToString());
+        return this.Ok(
+            new MemoriesStoreTypeResponse()
+            {
+                Types = Enum.GetNames(typeof(MemoriesStoreOptions.MemoriesStoreType)),
+                SelectedType = this._memoriesStoreOptions.Type.ToString()
+            }
+        );
     }
 }

@@ -34,7 +34,6 @@ import {
 import * as React from 'react';
 import { useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { Constants } from '../../../Constants';
 import { useChat } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
 import { useAppSelector } from '../../../redux/app/hooks';
@@ -182,14 +181,14 @@ export const DocumentsTab: React.FC = () => {
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
                     <Label size="large">Vector Database</Label>
-                    <RadioGroup defaultValue={memoriesStoreType} layout="horizontal">
-                        {Object.keys(Constants.MemoriesStoreTypes).map((storeType) => {
-                            return storeType === Constants.MemoriesStoreTypes.Unknown ? null : (
+                    <RadioGroup defaultValue={memoriesStoreType.selectedType} layout="horizontal">
+                        {memoriesStoreType.types.map((storeType) => {
+                            return (
                                 <Radio
                                     key={storeType}
                                     value={storeType}
                                     label={storeType}
-                                    disabled={storeType !== memoriesStoreType}
+                                    disabled={storeType !== memoriesStoreType.selectedType}
                                 />
                             );
                         })}
