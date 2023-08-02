@@ -6,7 +6,7 @@ set -e
 
 # Stop any existing backend API process
 while pid=$(pgrep CopilotChatWebA); do 
-    kill $pid
+    echo $pid | sed 's/\([0-9]\{4\}\) .*/\1/' | xargs kill
 done
 
 # Get defaults and constants
