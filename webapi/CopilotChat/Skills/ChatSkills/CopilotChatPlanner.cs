@@ -43,6 +43,7 @@ public class CopilotChatPlanner
 
     /// <summary>
     /// Regex to match variable names from plan parameters.
+    /// Valid variable names can contain letters, numbers, underscores, and dashes but can't start with a number.
     /// Matches: $variableName, $variable_name, $variable-name, $some_variable_Name, $variableName123, $variableName_123, $variableName-123
     /// Does not match: $123variableName, $100 $200 
     /// </summary>
