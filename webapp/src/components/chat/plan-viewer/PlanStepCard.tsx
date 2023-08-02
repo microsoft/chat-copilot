@@ -71,6 +71,10 @@ const useClasses = makeStyles({
             width: 'max-content',
         },
     },
+    errorMessage: {
+        fontSize: tokens.fontSizeBase300,
+        color: tokens.colorPaletteRedForeground1,
+    },
 });
 
 interface PlanStepCardProps {
@@ -88,6 +92,7 @@ interface PlanStepCardProps {
 export const PlanStepCard: React.FC<PlanStepCardProps> = ({ step, enableEdits, enableStepDelete, onDeleteStep }) => {
     const classes = useClasses();
     const [openDialog, setOpenDialog] = useState(false);
+    const [validationErrors, setValidationErrors] = useState(0);
 
     // Omit reserved context variable names from displayed inputs
     const inputs = step.parameters.filter(
@@ -163,7 +168,16 @@ export const PlanStepCard: React.FC<PlanStepCardProps> = ({ step, enableEdits, e
                     )}
                     {inputs.length > 0 && (
                         <div className={classes.parameters}>
-                            <Text weight="semibold">Inputs: </Text>
+                            <div>
+                                <Text weight="semibold">Inputs: </Text>
+                                {enableEdits && validationErrors > 0 && (
+                                    <Text className={classes.errorMessage}>
+                                        This step needs some extra information to execute successfully. Please fix any
+                                        inputs containing interpolated variables or fields marked{' '}
+                                        <Text weight="bold"> $???</Text>.
+                                    </Text>
+                                )}
+                            </div>
                             {inputs.map((input: IPlanInput) => {
                                 const onEditInput = (newValue: string) => {
                                     const inputIndex = step.parameters.findIndex(
@@ -180,6 +194,8 @@ export const PlanStepCard: React.FC<PlanStepCardProps> = ({ step, enableEdits, e
                                         key={input.Key}
                                         onEdit={onEditInput}
                                         enableEdits={enableEdits}
+                                        validationErrors={validationErrors}
+                                        setValidationErrors={setValidationErrors}
                                     />
                                 );
                             })}

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Installs the requirements for running Copilot Chat.
+# Installs the requirements for running Chat Copilot.
 
 set -e
 
@@ -19,7 +19,7 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 # Install the requirements
 sudo apt update;
 sudo apt install yarn -y;
-sudo apt install dotnet-sdk-6.0 -y;
+sudo apt install dotnet-sdk-7.0 -y;
 sudo apt install nodejs -y;
 
 echo ""
