@@ -178,14 +178,14 @@ public class ExternalInformationSkill
     private bool IsRetriableError(Exception e)
     {
         var retryOnInvalidPlanError = e is PlanningException
-            && (e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan;
+            && (e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
+            && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan;
 
         var retryOnMissingFunctionError = e is KernelException
             && (e as KernelException)!.ErrorCode == KernelException.ErrorCodes.FunctionNotAvailable
             && this._planner.PlannerOptions!.SkipOnMissingFunctionsError;
 
-        return this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan
-            && (retryOnMissingFunctionError || retryOnInvalidPlanError);
+        return retryOnMissingFunctionError || retryOnInvalidPlanError;
     }
 
     /// <summary>

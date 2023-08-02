@@ -27,10 +27,10 @@ const useClasses = makeStyles({
 
 // Regex to match interpolated variables in the form of $VARIABLE_NAME or $VARIABLE2_NAME.
 // Variables that are not interpolated will fail to match.
-// \$([A-Z]+[_-]*)+ matches the variable name
-// (?=[\sa-z[\].]+) is a positive lookahead matching the end of static string
+// \$(\w+[_-]*)+ matches the variable name
+// (?=[^\w]+) is a positive lookahead matching the end of static string
 // (?:.+\s*) is a noncapturing group that matches the start of static string
-const INTERPOLATED_VARIABLE_REGEX = /((\$([A-Z]+[_-]*)+)(?=[\sa-z[\].]+))|((?:.+\s*)(\$([A-Z]+[_-]*)+))/g;
+const INTERPOLATED_VARIABLE_REGEX = /((\$(\w+[_-]*)+)(?=[^\w]+))|((?:.+\s*)(\$(\w+[_-]*)+))/g;
 
 interface PlanStepInputProps {
     input: IPlanInput;
@@ -94,6 +94,7 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({
     );
 
     const onSubmitEdit = useCallback(() => {
+        // Input was corrected, remove validation error from parent component
         if (input.Value.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG)) {
             setValidationErrors(validationErrors - 1);
         }
@@ -105,10 +106,10 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({
     }, [formValue, validationErrors, input, onEdit, setValidationErrors]);
 
     const onCancel = useCallback(() => {
-        setIsEditingInput(formValue.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG));
-        setEditsRequired(input.Value.includes(Constants.sk.UNKNOWN_VARIABLE_FLAG));
+        setIsEditingInput(requiresEdits(formValue));
+        setEditsRequired(requiresEdits(input.Value));
         setFormValue(input.Value);
-    }, [input, formValue]);
+    }, [requiresEdits, formValue, input.Value]);
 
     return (
         <Badge
