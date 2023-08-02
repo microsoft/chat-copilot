@@ -204,7 +204,7 @@ You will need the following items to run the sample:
 
 3. **_Issue:_** Localhost SSL certificate errors / CORS errors
 
-![Cert-Issue](https://github.com/microsoft/chat-copilot/assets/64985898/e9072af1-e43c-472d-bebc-d0082d0c9180)
+    ![Cert-Issue](https://github.com/microsoft/chat-copilot/assets/64985898/e9072af1-e43c-472d-bebc-d0082d0c9180)
 
     _Explanation_: Your browser may be blocking the frontend access to the backend while waiting for your permission to connect. 
     
