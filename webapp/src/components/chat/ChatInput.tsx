@@ -86,6 +86,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
 
+    const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
+    React.useEffect(() => {
+        // Focus on the text area when the selected conversation changes
+        textAreaRef.current?.focus();
+    }, [selectedId]);
+
     React.useEffect(() => {
         async function initSpeechRecognizer() {
             const speechService = new SpeechService(process.env.REACT_APP_BACKEND_URI as string);
@@ -177,6 +183,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
             <Alerts />
             <div className={classes.content}>
                 <Textarea
+                    ref={textAreaRef}
                     id="chat-input"
                     resize="vertical"
                     textarea={{

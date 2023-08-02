@@ -139,7 +139,6 @@ public class ExternalInformationSkill
                         context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
                     }
-
                     throw;
                 }
             } while (plan == null);

@@ -5,32 +5,27 @@ using System.Text.Json.Serialization;
 namespace SemanticKernel.Service.CopilotChat.Models;
 
 /// <summary>
-/// Response to chatSession/create request.
+/// Response object definition to the 'chatSession/create' request.
+/// This groups the initial bot message with the chat session
+/// to avoid making two requests.
 /// </summary>
 public class CreateChatResponse
 {
     /// <summary>
-    /// ID that is persistent and unique to new chat session.
+    /// The chat session that was created.
     /// </summary>
-    [JsonPropertyName("id")]
-    public string Id { get; set; }
-
-    /// <summary>
-    /// Title of the chat.
-    /// </summary>
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
+    [JsonPropertyName("chatSession")]
+    public ChatSession ChatSession { get; set; }
 
     /// <summary>
     /// Initial bot message.
     /// </summary>
     [JsonPropertyName("initialBotMessage")]
-    public ChatMessage? InitialBotMessage { get; set; }
+    public ChatMessage InitialBotMessage { get; set; }
 
     public CreateChatResponse(ChatSession chatSession, ChatMessage initialBotMessage)
     {
-        this.Id = chatSession.Id;
-        this.Title = chatSession.Title;
+        this.ChatSession = chatSession;
         this.InitialBotMessage = initialBotMessage;
     }
 }
