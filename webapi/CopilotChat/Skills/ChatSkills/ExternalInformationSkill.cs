@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -119,7 +120,7 @@ public class ExternalInformationSkill
             // Create a plan and set it in context for approval.
             var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
             Plan? plan = null;
-            int maxRetries = 1;
+            int retriesAvail = 3;
 
             do
             { // TODO: [Issue #2256] Remove retry logic once Core team stabilizes planner
@@ -127,13 +128,13 @@ public class ExternalInformationSkill
                 {
                     plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
                 }
-                catch (PlanningException e)
-                when ((e.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
-                        || (e.InnerException as PlanningException)?.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
-                    && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan)
+                catch (Exception e) when (this.IsRetriableError(e))
                 {
-                    if (maxRetries-- > 0)
+                    if (retriesAvail > 0)
                     {
+                        // PlanningExceptions are limited to one (1) pass as built-in stabilization. MissingFunctionErrors are allowed 3 retries as they are user-allowed skips.
+                        retriesAvail = e is PlanningException ? 0 : retriesAvail--;
+
                         // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
                         context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
@@ -168,6 +169,24 @@ public class ExternalInformationSkill
     }
 
     #region Private
+
+    /// <summary>
+    /// Retry on plan creation error if:
+    /// 1. PlannerOptions.AllowRetriesOnInvalidPlan is true and exception contains error code InvalidPlan.
+    /// 2. PlannerOptions.SkipMissingFunctionsError is true and exception contains error code FunctionNotAvailable.
+    /// </summary>
+    private bool IsRetriableError(Exception e)
+    {
+        var retryOnInvalidPlanError = e is PlanningException
+            && (e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan;
+
+        var retryOnMissingFunctionError = e is KernelException
+            && (e as KernelException)!.ErrorCode == KernelException.ErrorCodes.FunctionNotAvailable
+            && this._planner.PlannerOptions!.SkipMissingFunctionsError;
+
+        return this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan
+            && (retryOnMissingFunctionError || retryOnInvalidPlanError);
+    }
 
     /// <summary>
     /// Merge any variables from context into plan parameters.
