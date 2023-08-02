@@ -30,6 +30,7 @@ public class ServiceOptionsController : ControllerBase
         this._memoriesStoreOptions = memoriesStoreOptions.Value;
     }
 
+    // TODO: [Issue #95] Include all service options in a single response.
     /// <summary>
     /// Return the memory store type that is configured.
     /// </summary>
