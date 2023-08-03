@@ -74,7 +74,7 @@ You can start the WebApi service using the command-line, Visual Studio Code, or 
 
 # Enabling Sequential Planner
 
-If you want to use SequentialPlanner (multi-step) instead ActionPlanner (single-step), we recommend using `gpt-4` or `gpt-3.5-turbo` as the planner model. Using `gpt-3.5-turbo` will require with a relevancy filter.
+If you want to use SequentialPlanner (multi-step) instead ActionPlanner (single-step), we recommend using `gpt-4` or `gpt-3.5-turbo` as the planner model. **SequentialPlanner works best with `gpt-4`.** Using `gpt-3.5-turbo` will require using a relevancy filter.
 
 To enable sequential planner,
 

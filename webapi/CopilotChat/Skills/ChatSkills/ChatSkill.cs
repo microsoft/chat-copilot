@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,11 @@ public class ChatSkill
     /// of the <see cref="ChatAsync"/> function will generate a new prompt dynamically.
     /// </summary>
     private readonly IKernel _kernel;
+
+    /// <summary>
+    /// A logger instance to log events.
+    /// </summary>
+    private ILogger _logger;
 
     /// <summary>
     /// A repository to save and retrieve chat messages.
@@ -85,6 +91,7 @@ public class ChatSkill
         CopilotChatPlanner planner,
         ILogger logger)
     {
+        this._logger = logger;
         this._kernel = kernel;
         this._chatMessageRepository = chatMessageRepository;
         this._chatSessionRepository = chatSessionRepository;
@@ -94,10 +101,11 @@ public class ChatSkill
 
         this._semanticChatMemorySkill = new SemanticChatMemorySkill(
             promptOptions,
-            chatSessionRepository);
+            chatSessionRepository, logger);
         this._documentMemorySkill = new DocumentMemorySkill(
             promptOptions,
-            documentImportOptions);
+            documentImportOptions,
+            logger);
         this._externalInformationSkill = new ExternalInformationSkill(
             promptOptions,
             planner);
@@ -265,7 +273,8 @@ public class ChatSkill
         [Description("Type of the message")] string messageType,
         [Description("Previously proposed plan that is approved"), DefaultValue(null), SKName("proposedPlan")] string? planJson,
         [Description("ID of the response message for planner"), DefaultValue(null), SKName("responseMessageId")] string? messageId,
-        SKContext context)
+        SKContext context,
+        CancellationToken cancellationToken)
     {
         // Set the system description in the prompt options
         await this.SetSystemDescriptionAsync(chatId);
@@ -296,7 +305,7 @@ public class ChatSkill
         else
         {
             // Get the chat response
-            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext);
+            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, cancellationToken);
         }
 
         if (chatMessage == null)
@@ -327,7 +336,7 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="chatContext">The SKContext.</param>
     /// <returns>The created chat message containing the model-generated response.</returns>
-    private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext)
+    private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, CancellationToken cancellationToken)
     {
         // Get the audience
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting audience");
@@ -439,7 +448,9 @@ public class ChatSkill
             chatId,
             this._kernel,
             chatContext,
-            this._promptOptions);
+            this._promptOptions,
+            this._logger,
+            cancellationToken);
 
         // Calculate total token usage for dependency functions and prompt template and send to client
         await this.UpdateBotResponseStatusOnClient(chatId, "Calculating token usage");

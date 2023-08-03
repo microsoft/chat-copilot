@@ -3,10 +3,12 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using CopilotChat.Extensions;
@@ -33,11 +35,15 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="kernel">The semantic kernel.</param>
     /// <param name="context">The Semantic Kernel context.</param>
     /// <param name="options">The prompts options.</param>
+    /// <param name="logger">The logger.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     internal static async Task ExtractSemanticChatMemoryAsync(
         string chatId,
         IKernel kernel,
         SKContext context,
-        PromptsOptions options)
+        PromptsOptions options,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
         foreach (var memoryName in options.MemoryMap.Keys)
         {
@@ -51,7 +57,7 @@ internal static class SemanticChatMemoryExtractor
                 );
                 foreach (var item in semanticMemory.Items)
                 {
-                    await CreateMemoryAsync(item, chatId, kernel.Memory, memoryName, options);
+                    await CreateMemoryAsync(item, chatId, kernel.Memory, memoryName, options, logger, cancellationToken);
                 }
             }
             catch (Exception ex) when (!ex.IsCriticalException())
@@ -116,36 +122,50 @@ internal static class SemanticChatMemoryExtractor
     /// </summary>
     /// <param name="item">A SemanticChatMemoryItem instance</param>
     /// <param name="chatId">The ID of the chat the memories belong to</param>
-    /// <param name="context">The context that contains the memory</param>
+    /// <param name="ISemanticTextMemory">The semantic memory instance</param>
     /// <param name="memoryName">Name of the memory</param>
     /// <param name="options">The prompts options.</param>
+    /// <param name="logger">Logger</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     internal static async Task CreateMemoryAsync(
         SemanticChatMemoryItem item,
         string chatId,
         ISemanticTextMemory semanticTextMemory,
         string memoryName,
-        PromptsOptions options)
+        PromptsOptions options,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
         var memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
 
-        // Search if there is already a memory item that has a high similarity score with the new item.
-        var memories = await semanticTextMemory.SearchAsync(
-                collection: memoryCollectionName,
-                query: item.ToFormattedString(),
-                limit: 1,
-                minRelevanceScore: options.SemanticMemoryRelevanceUpper
-            )
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        if (memories.Count == 0)
+        try
         {
-            await semanticTextMemory.SaveInformationAsync(
-                collection: memoryCollectionName,
-                text: item.ToFormattedString(),
-                id: Guid.NewGuid().ToString(),
-                description: memoryName
-            );
+            // Search if there is already a memory item that has a high similarity score with the new item.
+            var memories = await semanticTextMemory.SearchAsync(
+                    collection: memoryCollectionName,
+                    query: item.ToFormattedString(),
+                    limit: 1,
+                    minRelevanceScore: options.SemanticMemoryRelevanceUpper,
+                    cancellationToken: cancellationToken
+                )
+                .ToListAsync()
+                .ConfigureAwait(false);
+
+            if (memories.Count == 0)
+            {
+                await semanticTextMemory.SaveInformationAsync(
+                    collection: memoryCollectionName,
+                    text: item.ToFormattedString(),
+                    id: Guid.NewGuid().ToString(),
+                    description: memoryName,
+                    cancellationToken: cancellationToken
+                );
+            }
+        }
+        catch (SKException connectorException)
+        {
+            // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+            logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
         }
     }
 

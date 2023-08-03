@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
 using CopilotChat.Models;
@@ -24,14 +26,20 @@ public class SemanticChatMemorySkill
     private readonly ChatSessionRepository _chatSessionRepository;
 
     /// <summary>
+    /// High level logger.
+    /// </summary>
+    private readonly ILogger _logger;
+
+    /// <summary>
     /// Create a new instance of SemanticChatMemorySkill.
     /// </summary>
     public SemanticChatMemorySkill(
         IOptions<PromptsOptions> promptOptions,
-        ChatSessionRepository chatSessionRepository)
+        ChatSessionRepository chatSessionRepository, ILogger logger)
     {
         this._promptOptions = promptOptions.Value;
         this._chatSessionRepository = chatSessionRepository;
+        this._logger = logger;
     }
 
     /// <summary>
@@ -59,14 +67,23 @@ public class SemanticChatMemorySkill
         List<MemoryQueryResult> relevantMemories = new();
         foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
         {
-            var results = textMemory.SearchAsync(
-                SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName),
-                query,
-                limit: 100,
-                minRelevanceScore: this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance));
-            await foreach (var memory in results)
+            string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
+            try
             {
-                relevantMemories.Add(memory);
+                var results = textMemory.SearchAsync(
+                    memoryCollectionName,
+                    query,
+                    limit: 100,
+                    minRelevanceScore: this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance));
+                await foreach (var memory in results)
+                {
+                    relevantMemories.Add(memory);
+                }
+            }
+            catch (SKException connectorException)
+            {
+                // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+                this._logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
             }
         }
 
