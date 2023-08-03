@@ -11,7 +11,7 @@ public class ServiceOptionsResponse
     /// <summary>
     /// Response to memoriesStoreType request.
     /// </summary>
-    public class MemoriesStoreTypeResponse
+    public class MemoriesStoreOptionResponse
     {
         /// <summary>
         /// All the available memories store types.
@@ -27,9 +27,9 @@ public class ServiceOptionsResponse
     }
 
     /// <summary>
-    /// The memories store type that is configured.
+    /// The memories store that is configured.
     /// </summary>
-    [JsonPropertyName("memoriesStoreType")]
-    public MemoriesStoreTypeResponse MemoriesStoreType { get; set; } = new MemoriesStoreTypeResponse();
+    [JsonPropertyName("memoriesStore")]
+    public MemoriesStoreOptionResponse MemoriesStore { get; set; } = new MemoriesStoreOptionResponse();
 }
 

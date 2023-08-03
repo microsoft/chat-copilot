@@ -43,7 +43,7 @@ public class ServiceOptionsController : ControllerBase
         return this.Ok(
             new ServiceOptionsResponse()
             {
-                MemoriesStoreType = new MemoriesStoreTypeResponse()
+                MemoriesStore = new MemoriesStoreOptionResponse()
                 {
                     Types = Enum.GetNames(typeof(MemoriesStoreOptions.MemoriesStoreType)),
                     SelectedType = this._memoriesStoreOptions.Type.ToString()
