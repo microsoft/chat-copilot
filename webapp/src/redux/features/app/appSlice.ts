@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ServiceOptions } from '../../../libs/models/ServiceOptions';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
@@ -59,6 +60,9 @@ export const appSlice = createSlice({
                 },
             };
         },
+        setServiceOptions: (state: AppState, action: PayloadAction<ServiceOptions>) => {
+            state.serviceOptions = action.payload;
+        },
     },
 });
 
@@ -70,6 +74,7 @@ export const {
     toggleFeatureFlag,
     toggleFeatureState,
     updateTokenUsage,
+    setServiceOptions,
 } = appSlice.actions;
 
 export default appSlice.reducer;
