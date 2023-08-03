@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -45,9 +47,15 @@ public class CopilotChatPlanner
     /// Regex to match variable names from plan parameters.
     /// Valid variable names can contain letters, numbers, underscores, and dashes but can't start with a number.
     /// Matches: $variableName, $variable_name, $variable-name, $some_variable_Name, $variableName123, $variableName_123, $variableName-123
-    /// Does not match: $123variableName, $100 $200 
+    /// Does not match: $123variableName, $100 $200
     /// </summary>
     private const string VARIABLE_REGEX = @"\$([A-Za-z]+[_-]*[\w]+)";
+
+    /// <summary>
+    /// Supplemental text to add to the plan goal if PlannerOptions.Type is set to Stepwise.
+    /// Helps the planner know when to bail out to request additional user input.
+    /// </summary>
+    private const string STEPWISE_PLANNER_SUPPLEMENT = "If you need more information to fulfill this request, return with a request for information using a well-formed JSON, where the only property is \"requestedInformation\" and its value is a comma-separated list of additional information needed (for example: \"{\"requestedInformation\": \"emailAddress, name, budget\"}\").";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
@@ -74,8 +82,12 @@ public class CopilotChatPlanner
             return new Plan(goal);
         }
 
-        Plan plan = this._plannerOptions?.Type == PlanType.Sequential
-               ? await new SequentialPlanner(
+        Plan plan;
+
+        switch (this._plannerOptions?.Type)
+        {
+            case PlanType.Sequential:
+                plan = await new SequentialPlanner(
                     this.Kernel,
                     new SequentialPlannerConfig
                     {
@@ -83,16 +95,51 @@ public class CopilotChatPlanner
                         // Allow plan to be created with missing functions
                         AllowMissingFunctions = this._plannerOptions?.MissingFunctionError.AllowRetries ?? false
                     }
-                ).CreatePlanAsync(goal)
-               : await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
+                ).CreatePlanAsync(goal);
+                break;
+            default:
+                plan = await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
+                break;
+        }
 
         return this._plannerOptions!.MissingFunctionError.AllowRetries ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+    }
+
+    public async Task<SKContext> RunStepwisePlannerAsync(string goal, SKContext context)
+    {
+        var config = new Microsoft.SemanticKernel.Planning.Stepwise.StepwisePlannerConfig();
+        config.MaxTokens = this._plannerOptions?.StepwisePlannerConfig.MaxTokens ?? 2048;
+        config.MaxIterations = this._plannerOptions?.StepwisePlannerConfig.MaxIterations ?? 10;
+        config.MinIterationTimeMs = this._plannerOptions?.StepwisePlannerConfig.MinIterationTimeMs ?? 1500;
+
+        Stopwatch sw = new();
+        sw.Start();
+
+        try
+        {
+            var plan = new StepwisePlanner(
+                this.Kernel,
+                config
+            ).CreatePlan(string.Join("\n", goal, STEPWISE_PLANNER_SUPPLEMENT));
+
+            // TODO: only use result if INPUT is available. Otherwise, return last thought from plan.
+            var result = await plan.InvokeAsync(context);
+
+            sw.Stop();
+            result.Variables.Set("timeTaken", sw.Elapsed.ToString());
+            return result;
+        }
+        catch (Exception e)
+        {
+            context.Log.LogError(e, "Error running stepwise planner");
+            throw;
+        }
     }
 
     #region Private
 
     /// <summary>
-    /// Scrubs plan of functions not available in planner's kernel 
+    /// Scrubs plan of functions not available in planner's kernel
     /// and flags any effected input dependencies with '$???' to prompt for user input.
     /// <param name="plan">Proposed plan object to sanitize.</param>
     /// <param name="availableFunctions">The functions available in the planner's kernel.</param>

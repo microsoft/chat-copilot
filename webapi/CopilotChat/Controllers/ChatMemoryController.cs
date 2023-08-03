@@ -104,7 +104,7 @@ public class ChatMemoryController : ControllerBase
     }
 
     /// <summary>
-    /// Sanitizes the log input by removing new line characters. 
+    /// Sanitizes the log input by removing new line characters.
     /// This helps prevent log forgery attacks from malicious text.
     /// </summary>
     /// <remarks>
@@ -114,7 +114,7 @@ public class ChatMemoryController : ControllerBase
     /// <returns>The sanitized input.</returns>
     private string SanitizeLogInput(string input)
     {
-        return input.Replace(Environment.NewLine, "");
+        return input.Replace(Environment.NewLine, "", StringComparison.OrdinalIgnoreCase);
     }
 
     # endregion

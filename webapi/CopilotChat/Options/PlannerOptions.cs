@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.ComponentModel.DataAnnotations;
+using Microsoft.SemanticKernel.Planning.Stepwise;
 using SemanticKernel.Service.CopilotChat.Models;
+using SemanticKernel.Service.Options;
 
 namespace SemanticKernel.Service.CopilotChat.Options;
 
@@ -52,4 +54,10 @@ public class PlannerOptions
     /// Whether to retry plan creation if LLM returned response that doesn't contain valid plan (e.g., invalid XML or JSON, contains missing function, etc.).
     /// </summary>
     public bool AllowRetriesOnInvalidPlan { get; set; } = true;
+
+    /// <summary>
+    /// The configuration for the stepwise planner.
+    /// </summary>
+    [RequiredOnPropertyValue(nameof(Type), PlanType.Stepwise)]
+    public StepwisePlannerConfig StepwisePlannerConfig { get; set; } = new StepwisePlannerConfig();
 }

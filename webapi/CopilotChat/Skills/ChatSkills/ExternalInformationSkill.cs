@@ -80,6 +80,15 @@ public class ExternalInformationSkill
             return string.Empty;
         }
 
+        var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
+        var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}";
+        if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
+        {
+            var newPlanContext = context.Clone();
+            newPlanContext = await this._planner.RunStepwisePlannerAsync(goal, context);
+            return $"{PromptPreamble}\n{newPlanContext.Variables.Input.Trim()}\n{PromptPostamble}\n";
+        }
+
         // Check if plan exists in ask's context variables.
         var planExists = context.Variables.TryGetValue("proposedPlan", out string? proposedPlanJson);
         var deserializedPlan = planExists && !string.IsNullOrWhiteSpace(proposedPlanJson) ? JsonSerializer.Deserialize<ProposedPlan>(proposedPlanJson) : null;
@@ -118,7 +127,6 @@ public class ExternalInformationSkill
         else
         {
             // Create a plan and set it in context for approval.
-            var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
             Plan? plan = null;
             // Use default planner options if planner options are null.
             var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions();
@@ -130,7 +138,7 @@ public class ExternalInformationSkill
             { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
                 try
                 {
-                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
+                    plan = await this._planner.CreatePlanAsync(goal, context.Log);
                 }
                 catch (Exception e) when (this.IsRetriableError(e))
                 {

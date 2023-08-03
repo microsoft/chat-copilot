@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.18.230725.3-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.18.230725.3-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="0.18.230725.3-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner" Version="0.18.230725.3-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.18.230725.3-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.18.230725.3-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.18.230725.3-preview" />
