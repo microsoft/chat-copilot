@@ -108,10 +108,10 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({
     }, [formValue, validationErrors, input, onEdit, setValidationErrors]);
 
     const onCancel = useCallback(() => {
-        setIsEditingInput(requiresEdits(formValue));
         setEditsRequired(requiresEdits(input.Value));
+        setIsEditingInput(requiresEdits(input.Value));
         setFormValue(input.Value);
-    }, [requiresEdits, formValue, input.Value]);
+    }, [requiresEdits, input.Value]);
 
     return (
         <Badge
