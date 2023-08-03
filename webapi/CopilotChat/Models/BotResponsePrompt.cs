@@ -34,7 +34,7 @@ public class BotResponsePrompt
     /// <summary>
     /// Relevant additional knowledge extracted using a planner.
     /// </summary>
-    [JsonPropertyName("relevantKnowledge")]
+    [JsonPropertyName("externalInformation")]
     public string ExternalInformation { get; set; } = string.Empty;
 
     /// <summary>
