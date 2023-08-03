@@ -45,7 +45,7 @@ You will need the following items to run the sample:
 3. Configure Chat Copilot.
   
     ```powershell
-    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID} 
+    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
@@ -59,6 +59,12 @@ You will need the following items to run the sample:
         -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
         ```
 
+    - > (Optional): To set a specific Tenant Id, use the parameter:
+
+        ```powershell
+        -TenantId {TENANT_ID}
+        ```
+
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
     
     ```powershell
@@ -69,18 +75,31 @@ You will need the following items to run the sample:
     
     > NOTE: It may take a few minutes for Yarn packages to install on the first run.
 
-## Debian/Ubuntu Linux
+## Linux/macOS
 1. Open Bash as an administrator.
 2. Configure environment.
-  
+
     ```bash
     cd <path to chat-copilot>/scripts/
     chmod +x *.sh
+    ```
 
+   **Ubuntu/Debian Linux**
+
+    ```bash
     ./Install-apt.sh
     ```
 
     > NOTE: This script uses `apt` to install `dotnet-sdk-7.0`, `nodejs`, and `yarn`.
+
+    **macOS**
+
+    ```bash
+    ./Install-brew.sh
+    ```
+
+    > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
+
 
 3. Configure Chat Copilot.
 
@@ -97,6 +116,12 @@ You will need the following items to run the sample:
 
         ```bash
         --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
+        ```
+
+    - > (Optional): To set a specific Tenant Id, use the parameter:
+
+        ```bash
+        --tenantid {TENANT_ID}
         ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
@@ -108,46 +133,6 @@ You will need the following items to run the sample:
     > NOTE: Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
 
     > NOTE: It may take a few minutes for Yarn packages to install on the first run.
-
-## macOS
-1. Open Bash as an administrator.
-2. Configure environment.
-
-    ```bash
-    cd <path to chat-copilot>/scripts/
-    chmod +x *.sh
-
-    ./Install-brew.sh
-    ```
-
-    > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
-
-3. Configure Chat Copilot.
-
-    ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
-    ```
-
-    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
-    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
-    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
-    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
-
-    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
-
-        ```bash
-        --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
-        ```
-
-4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
-
-    ```bash
-    ./Start.sh
-    ```
-
-    > NOTE: Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
-
-    > NOTE: It may take a few minutes for Yarn packages to install on the first run.    
     
 ## (Optional) Enable backend authorization via Azure AD
 
