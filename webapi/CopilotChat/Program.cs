@@ -37,18 +37,14 @@ public sealed class Program
         builder.Host.AddConfiguration();
         builder.WebHost.UseUrls(); // Disables endpoint override warning message when using IConfiguration for Kestrel endpoint.
 
-        // Add in configuration options and Semantic Kernel services.
+        // Add in configuration options and required services.
         builder.Services
             .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Program>>()) // some services require an un-templated ILogger
             .AddOptions(builder.Configuration)
-            .AddSemanticKernelServices();
-
-        // Add CopilotChat services.
-        builder.Services
-            .AddCopilotChatOptions(builder.Configuration)
-            .AddCopilotChatPlannerServices()
+            .AddPlannerServices()
             .AddPersistentChatStore()
-            .AddPersistentOcrSupport();
+            .AddPersistentOcrSupport()
+            .AddSemanticKernelServices();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();

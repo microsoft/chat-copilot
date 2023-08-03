@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Azure;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -26,56 +28,141 @@ public static class CopilotChatServiceExtensions
     /// <summary>
     /// Parse configuration into options.
     /// </summary>
-    public static IServiceCollection AddCopilotChatOptions(this IServiceCollection services, ConfigurationManager configuration)
+    public static IServiceCollection AddOptions(this IServiceCollection services, ConfigurationManager configuration)
     {
-        // AI service configurations for Copilot Chat.
-        // They are using the same configuration section as Semantic Kernel.
+        // General configuration
+        services.AddOptions<ServiceOptions>()
+            .Bind(configuration.GetSection(ServiceOptions.PropertyName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart()
+            .PostConfigure(TrimStringProperties);
+
+        // Default AI service configurations for Semantic Kernel
         services.AddOptions<AIServiceOptions>(AIServiceOptions.PropertyName)
             .Bind(configuration.GetSection(AIServiceOptions.PropertyName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart()
+            .PostConfigure(TrimStringProperties);
+
+        // Authorization configuration
+        services.AddOptions<AuthorizationOptions>()
+            .Bind(configuration.GetSection(AuthorizationOptions.PropertyName))
+            .ValidateOnStart()
+            .ValidateDataAnnotations()
+            .PostConfigure(TrimStringProperties);
+
+        // Memory store configuration
+        services.AddOptions<MemoriesStoreOptions>()
+            .Bind(configuration.GetSection(MemoriesStoreOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // Chat log storage configuration
         services.AddOptions<ChatStoreOptions>()
             .Bind(configuration.GetSection(ChatStoreOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // Azure speech token configuration
         services.AddOptions<AzureSpeechOptions>()
             .Bind(configuration.GetSection(AzureSpeechOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // Bot schema configuration
         services.AddOptions<BotSchemaOptions>()
             .Bind(configuration.GetSection(BotSchemaOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // Document memory options
         services.AddOptions<DocumentMemoryOptions>()
             .Bind(configuration.GetSection(DocumentMemoryOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // Chat prompt options
         services.AddOptions<PromptsOptions>()
             .Bind(configuration.GetSection(PromptsOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // Planner options
         services.AddOptions<PlannerOptions>()
             .Bind(configuration.GetSection(PlannerOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
         // OCR support options
         services.AddOptions<OcrSupportOptions>()
             .Bind(configuration.GetSection(OcrSupportOptions.PropertyName))
+            .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Add authorization services
+    /// </summary>
+    internal static IServiceCollection AddAuthorization(this IServiceCollection services, IConfiguration configuration)
+    {
+        AuthorizationOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<AuthorizationOptions>>().Value;
+        switch (config.Type)
+        {
+            case AuthorizationOptions.AuthorizationType.AzureAd:
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApi(configuration.GetSection($"{AuthorizationOptions.PropertyName}:AzureAd"));
+                break;
+
+            case AuthorizationOptions.AuthorizationType.ApiKey:
+                services.AddAuthentication(ApiKeyAuthenticationHandler.AuthenticationScheme)
+                    .AddScheme<ApiKeyAuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+                        ApiKeyAuthenticationHandler.AuthenticationScheme,
+                        options => options.ApiKey = config.ApiKey);
+                break;
+
+            case AuthorizationOptions.AuthorizationType.None:
+                services.AddAuthentication(PassThroughAuthenticationHandler.AuthenticationScheme)
+                    .AddScheme<AuthenticationSchemeOptions, PassThroughAuthenticationHandler>(
+                        authenticationScheme: PassThroughAuthenticationHandler.AuthenticationScheme,
+                        configureOptions: null);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Invalid authorization type '{config.Type}'.");
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Add CORS settings.
+    /// </summary>
+    internal static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+    {
+        IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        string[] allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        if (allowedOrigins.Length > 0)
+        {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    policy =>
+                    {
+                        policy.WithOrigins(allowedOrigins)
+                            .AllowAnyHeader();
+                    });
+            });
+        }
 
         return services;
     }
