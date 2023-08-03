@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+using System.Text.Json.Serialization;
 
 namespace SemanticKernel.Service.CopilotChat.Models;
 
@@ -38,6 +40,12 @@ public class BotResponsePrompt
     public string ExternalInformation { get; set; } = string.Empty;
 
     /// <summary>
+    /// Most recent messages from chat history.
+    /// </summary>
+    [JsonPropertyName("chatHistory")]
+    public string ChatHistory { get; set; } = string.Empty;
+
+    /// <summary>
     /// Preamble to the LLM's response.
     /// </summary>
     [JsonPropertyName("systemChatContinuation")]
@@ -58,6 +66,7 @@ public class BotResponsePrompt
         string chatMemories,
         string documentMemories,
         string externalInformation,
+        string chatHistory,
         string systemChatContinuation
         )
     {
@@ -65,11 +74,13 @@ public class BotResponsePrompt
         this.SystemPersona = string.Join("\n", systemDescription, systemResponse);
         this.Audience = audience;
         this.UserIntent = userIntent;
-        this.PastMemories =
-            !string.IsNullOrEmpty(chatMemories) && !string.IsNullOrEmpty(chatMemories)
-            ? string.Join("\n", chatMemories, documentMemories)
-            : chatMemories ?? documentMemories;
+        this.PastMemories = chatMemories ?? documentMemories;
+        if (!string.IsNullOrEmpty(chatMemories) && !string.IsNullOrEmpty(documentMemories))
+        {
+            this.PastMemories = string.Join("\n", chatMemories, documentMemories);
+        }
         this.ExternalInformation = externalInformation;
+        this.ChatHistory = chatHistory;
         this.SystemChatContinuation = systemChatContinuation;
     }
 }

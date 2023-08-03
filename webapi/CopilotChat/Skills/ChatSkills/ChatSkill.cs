@@ -409,10 +409,11 @@ public class ChatSkill
         var chatContextComponents = new List<string>() { chatMemories, documentMemories, planResult };
         var chatContextText = string.Join("\n\n", chatContextComponents.Where(c => !string.IsNullOrEmpty(c)));
         var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText);
+        string chatHistory = string.Empty;
         if (chatHistoryTokenLimit > 0)
         {
             await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
-            var chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
+            chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
             if (chatContext.ErrorOccurred)
             {
                 return null;
@@ -432,7 +433,7 @@ public class ChatSkill
 
         // Need to extract this from the rendered prompt because Time and Date are calculated during render
         var systemChatContinuation = Regex.Match(renderedPrompt, @"(SINGLE RESPONSE FROM BOT TO USER:\n\[.*] bot:)").Value;
-        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, planResult, systemChatContinuation);
+        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, planResult, chatHistory, systemChatContinuation);
 
         // Calculate token usage of prompt template
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
