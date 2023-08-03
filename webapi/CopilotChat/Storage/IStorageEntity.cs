@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace SemanticKernel.Service.CopilotChat.Storage;
+namespace CopilotChat.Storage;
 
 public interface IStorageEntity
 {

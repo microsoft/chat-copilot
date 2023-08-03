@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using SemanticKernel.Service.CopilotChat.Models;
+using CopilotChat.Models;
 
-namespace SemanticKernel.Service.CopilotChat.Storage;
+namespace CopilotChat.Storage;
 
 /// <summary>
 /// A repository for chat sessions.

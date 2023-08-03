@@ -14,17 +14,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Text;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills;
-using SemanticKernel.Service.CopilotChat.Storage;
-using SemanticKernel.Service.Services;
+using CopilotChat.Hubs;
+using CopilotChat.Models;
+using CopilotChat.Options;
+using CopilotChat.Skills;
+using CopilotChat.Storage;
+using CopilotChat.Services;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
-using static SemanticKernel.Service.CopilotChat.Models.MemorySource;
+using static CopilotChat.Models.MemorySource;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 /// <summary>
 /// Controller for importing documents.
@@ -271,16 +271,16 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
-                {
-                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
                     {
-                        break;
-                    }
+                        if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
+                        {
+                            break;
+                        }
 
-                    throw new ArgumentException($"Unsupported image file type: {fileType} when " +
-                        $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
-                        nameof(OcrSupportOptions.OcrSupportType.None));
-                }
+                        throw new ArgumentException($"Unsupported image file type: {fileType} when " +
+                            $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
+                            nameof(OcrSupportOptions.OcrSupportType.None));
+                    }
                 default:
                     throw new ArgumentException($"Unsupported file type: {fileType}");
             }
@@ -310,10 +310,10 @@ public class DocumentImportController : ControllerBase
             case SupportedFileType.Jpg:
             case SupportedFileType.Png:
             case SupportedFileType.Tiff:
-            {
-                documentContent = await this.ReadTextFromImageFileAsync(formFile);
-                break;
-            }
+                {
+                    documentContent = await this.ReadTextFromImageFileAsync(formFile);
+                    break;
+                }
 
             default:
                 // This should never happen. Validation should have already caught this.

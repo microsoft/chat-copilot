@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace SemanticKernel.Service.CopilotChat.Models;
+namespace CopilotChat.Models;
 
 /// <summary>
 /// Response object definition to the 'chatSession/create' request.

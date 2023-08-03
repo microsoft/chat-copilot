@@ -380,7 +380,7 @@
             "value": "Warning"
           },
           {
-            "name": "Logging:LogLevel:SemanticKernel.Service",
+            "name": "Logging:LogLevel:CopilotChat",
             "value": "Warning"
           },
           {

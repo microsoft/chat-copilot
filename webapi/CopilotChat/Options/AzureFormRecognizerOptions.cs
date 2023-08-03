@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.ComponentModel.DataAnnotations;
-using SemanticKernel.Service.Options;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Options;
+namespace CopilotChat.Options;
 
 /// <summary>
 /// Configuration options for Azure Form Recognizer OCR support.

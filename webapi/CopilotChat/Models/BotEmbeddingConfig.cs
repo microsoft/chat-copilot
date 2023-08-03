@@ -2,9 +2,9 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using SemanticKernel.Service.Options;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Models;
+namespace CopilotChat.Models;
 
 /// <summary>
 /// The embedding configuration of a bot. Used in the Bot object for portability.

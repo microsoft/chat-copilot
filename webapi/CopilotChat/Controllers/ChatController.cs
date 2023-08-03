@@ -24,13 +24,12 @@ using Microsoft.SemanticKernel.Skills.MsGraph.Connectors;
 using Microsoft.SemanticKernel.Skills.MsGraph.Connectors.Client;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
-using SemanticKernel.Service.Diagnostics;
-using SemanticKernel.Service.Models;
+using CopilotChat.Hubs;
+using CopilotChat.Models;
+using CopilotChat.Skills.ChatSkills;
+using CopilotChat.Diagnostics;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 /// <summary>
 /// Controller responsible for handling chat messages and responses.

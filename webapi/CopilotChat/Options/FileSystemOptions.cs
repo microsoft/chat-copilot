@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.ComponentModel.DataAnnotations;
-using SemanticKernel.Service.Options;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Options;
+namespace CopilotChat.Options;
 
 /// <summary>
 /// File system storage configuration.

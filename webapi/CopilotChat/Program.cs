@@ -12,12 +12,12 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SemanticKernel.Service.CopilotChat.Extensions;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.Diagnostics;
-using SemanticKernel.Service.Services;
+using CopilotChat.Extensions;
+using CopilotChat.Hubs;
+using CopilotChat.Diagnostics;
+using CopilotChat.Services;
 
-namespace SemanticKernel.Service;
+namespace CopilotChat;
 
 /// <summary>
 /// Copilot Chat Service

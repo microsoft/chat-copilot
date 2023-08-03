@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using SemanticKernel.Service.Options;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Options;
+namespace CopilotChat.Options;
 
 /// <summary>
 /// Configuration options for the chat

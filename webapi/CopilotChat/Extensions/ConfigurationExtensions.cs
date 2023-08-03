@@ -6,7 +6,7 @@ using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace SemanticKernel.Service;
+namespace CopilotChat.Extensions;
 
 internal static class ConfigExtensions
 {

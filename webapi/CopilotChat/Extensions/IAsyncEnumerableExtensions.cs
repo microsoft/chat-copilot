@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SemanticKernel.Service.CopilotChat.Extensions;
+namespace CopilotChat.Extensions;
 
 /// <summary>
 /// Extension methods for enabling async LINQ operations on IAsyncEnumerable sequence.

@@ -10,14 +10,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Storage;
-using SemanticKernel.Service.Options;
-using SemanticKernel.Service.Services;
+using Microsoft.Identity.Web;
+using CopilotChat.Auth;
+using CopilotChat.Models;
+using CopilotChat.Options;
+using CopilotChat.Storage;
+using CopilotChat.Services;
 using Tesseract;
 
-namespace SemanticKernel.Service.CopilotChat.Extensions;
+namespace CopilotChat.Extensions;
 
 /// <summary>
 /// Extension methods for <see cref="IServiceCollection"/>.

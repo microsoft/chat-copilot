@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SemanticKernel.Service.CopilotChat.Models;
+using CopilotChat.Models;
 
-namespace SemanticKernel.Service.CopilotChat.Storage;
+namespace CopilotChat.Storage;
 
 /// <summary>
 /// A repository for chat messages.

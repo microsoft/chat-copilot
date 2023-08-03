@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace SemanticKernel.Service.CopilotChat.Hubs;
+namespace CopilotChat.Hubs;
 
 /// <summary>
 /// Represents a chat hub for real-time communication.

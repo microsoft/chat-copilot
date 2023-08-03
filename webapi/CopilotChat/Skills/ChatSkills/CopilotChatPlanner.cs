@@ -10,10 +10,10 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
 using Microsoft.SemanticKernel.SkillDefinition;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
+using CopilotChat.Models;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
+namespace CopilotChat.Skills.ChatSkills;
 
 /// <summary>
 /// A lightweight wrapper around a planner to allow for curating which skills are available to it.

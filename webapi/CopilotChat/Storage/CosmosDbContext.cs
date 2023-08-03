@@ -7,7 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 
-namespace SemanticKernel.Service.CopilotChat.Storage;
+namespace CopilotChat.Storage;
 
 /// <summary>
 /// A storage context that stores entities in a CosmosDB container.

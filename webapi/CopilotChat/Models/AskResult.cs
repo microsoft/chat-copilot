@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SemanticKernel.Service.Models;
+namespace CopilotChat.Models;
 
 public class AskResult
 {

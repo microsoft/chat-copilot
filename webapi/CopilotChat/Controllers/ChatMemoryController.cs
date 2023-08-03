@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Memory;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
-using SemanticKernel.Service.CopilotChat.Storage;
+using CopilotChat.Options;
+using CopilotChat.Skills.ChatSkills;
+using CopilotChat.Storage;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 /// <summary>
 /// Controller for retrieving semantic memory data of chat sessions.

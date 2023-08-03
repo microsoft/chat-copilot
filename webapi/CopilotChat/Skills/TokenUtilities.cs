@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using Microsoft.SemanticKernel.Orchestration;
 
-namespace SemanticKernel.Service.CopilotChat.Skills;
+namespace CopilotChat.Skills;
 
 /// <summary>
 /// Utility methods for token management.

@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
+using CopilotChat.Models;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 [Authorize]
 [ApiController]

@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SemanticKernel.Service.CopilotChat.Storage;
+using CopilotChat.Storage;
 
-namespace SemanticKernel.Service.CopilotChat.Models;
+namespace CopilotChat.Models;
 
 /// <summary>
 /// Information about a single chat message.

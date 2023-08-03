@@ -9,10 +9,10 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
-using SemanticKernel.Service.CopilotChat.Extensions;
-using SemanticKernel.Service.CopilotChat.Options;
+using CopilotChat.Extensions;
+using CopilotChat.Options;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
+namespace CopilotChat.Skills.ChatSkills;
 
 /// <summary>
 /// Helper class to extract and create semantic memory from chat history.

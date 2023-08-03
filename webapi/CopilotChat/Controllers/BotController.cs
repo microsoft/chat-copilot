@@ -13,13 +13,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Memory;
-using SemanticKernel.Service.CopilotChat.Extensions;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Storage;
-using SemanticKernel.Service.Options;
+using CopilotChat.Extensions;
+using CopilotChat.Models;
+using CopilotChat.Options;
+using CopilotChat.Storage;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 [ApiController]
 public class BotController : ControllerBase

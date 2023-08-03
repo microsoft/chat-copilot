@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Storage;
+using CopilotChat.Hubs;
+using CopilotChat.Models;
+using CopilotChat.Storage;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 /// <summary>
 /// Controller for managing invitations and participants in a chat session.

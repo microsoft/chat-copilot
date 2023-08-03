@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
-using SemanticKernel.Service.Diagnostics;
+using CopilotChat.Diagnostics;
 
-namespace SemanticKernel.Service.Services;
+namespace CopilotChat.Services;
 
 /// <summary>
 /// Implementation of the telemetry service interface for Azure Application Insights (AppInsights).

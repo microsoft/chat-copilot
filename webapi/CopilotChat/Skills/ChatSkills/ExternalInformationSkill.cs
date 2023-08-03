@@ -15,12 +15,12 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.GitHubPlugin.Model;
-using SemanticKernel.Service.CopilotChat.Skills.OpenApiPlugins.JiraPlugin.Model;
+using CopilotChat.Models;
+using CopilotChat.Options;
+using CopilotChat.Skills.OpenApiPlugins.GitHubPlugin.Model;
+using CopilotChat.Skills.OpenApiPlugins.JiraPlugin.Model;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
+namespace CopilotChat.Skills.ChatSkills;
 
 /// <summary>
 /// This skill provides the functions to acquire external information.

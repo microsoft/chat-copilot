@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Storage;
+using CopilotChat.Models;
+using CopilotChat.Options;
+using CopilotChat.Storage;
 
-namespace SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
+namespace CopilotChat.Skills.ChatSkills;
 
 /// <summary>
 /// This skill provides the functions to query the semantic chat memory.

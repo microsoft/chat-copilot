@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace SemanticKernel.Service.Diagnostics;
+namespace CopilotChat.Diagnostics;
 
 /// <summary>
 /// Interface for common telemetry events to track actions across the semantic kernel.

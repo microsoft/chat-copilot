@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SemanticKernel.Service.CopilotChat.Storage;
+namespace CopilotChat.Storage;
 
 /// <summary>
 /// Defines the basic CRUD operations for a repository.

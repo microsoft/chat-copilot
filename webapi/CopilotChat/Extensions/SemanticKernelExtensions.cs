@@ -14,16 +14,15 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
-using SemanticKernel.Service.CopilotChat.Hubs;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
-using SemanticKernel.Service.CopilotChat.Storage;
-using SemanticKernel.Service.Options;
-using static SemanticKernel.Service.Options.MemoriesStoreOptions;
+using CopilotChat.Hubs;
+using CopilotChat.Options;
+using CopilotChat.Skills.ChatSkills;
+using CopilotChat.Storage;
+using static CopilotChat.Options.MemoriesStoreOptions;
 
-namespace SemanticKernel.Service.CopilotChat.Extensions;
+namespace CopilotChat.Extensions;
 
 /// <summary>
 /// Extension methods for registering Semantic Kernel related services.

@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.CopilotChat.Models;
-using SemanticKernel.Service.CopilotChat.Options;
-using SemanticKernel.Service.CopilotChat.Skills;
-using SemanticKernel.Service.CopilotChat.Storage;
+using CopilotChat.Hubs;
+using CopilotChat.Models;
+using CopilotChat.Options;
+using CopilotChat.Skills;
+using CopilotChat.Storage;
 
-namespace SemanticKernel.Service.CopilotChat.Controllers;
+namespace CopilotChat.Controllers;
 
 /// <summary>
 /// Controller for chat history.

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.ComponentModel.DataAnnotations;
-using SemanticKernel.Service.CopilotChat.Models;
+using CopilotChat.Models;
 
-namespace SemanticKernel.Service.CopilotChat.Options;
+namespace CopilotChat.Options;
 
 /// <summary>
 /// Configuration options for the planner.
