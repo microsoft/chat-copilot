@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { MemoriesStoreType } from '../../../libs/models/ServiceOptions';
+import { ServiceOptions } from '../../../libs/models/ServiceOptions';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
@@ -60,8 +60,8 @@ export const appSlice = createSlice({
                 },
             };
         },
-        setMemoriesStoreType: (state: AppState, action: PayloadAction<MemoriesStoreType>) => {
-            state.memoriesStoreType = action.payload;
+        setServiceOptions: (state: AppState, action: PayloadAction<ServiceOptions>) => {
+            state.serviceOptions = action.payload;
         },
     },
 });
@@ -74,7 +74,7 @@ export const {
     toggleFeatureFlag,
     toggleFeatureState,
     updateTokenUsage,
-    setMemoriesStoreType,
+    setServiceOptions,
 } = appSlice.actions;
 
 export default appSlice.reducer;

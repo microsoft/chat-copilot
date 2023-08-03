@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.Options;
+using static SemanticKernel.Service.CopilotChat.Models.ServiceOptionsResponse;
 
 namespace SemanticKernel.Service.CopilotChat.Controllers;
 
@@ -34,16 +35,19 @@ public class ServiceOptionsController : ControllerBase
     /// <summary>
     /// Return the memory store type that is configured.
     /// </summary>
-    [Route("memoriesStoreType")]
+    [Route("serviceOptions")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetMemoriesStoreType()
+    public IActionResult GetServiceOptions()
     {
         return this.Ok(
-            new MemoriesStoreTypeResponse()
+            new ServiceOptionsResponse()
             {
-                Types = Enum.GetNames(typeof(MemoriesStoreOptions.MemoriesStoreType)),
-                SelectedType = this._memoriesStoreOptions.Type.ToString()
+                MemoriesStoreType = new MemoriesStoreTypeResponse()
+                {
+                    Types = Enum.GetNames(typeof(MemoriesStoreOptions.MemoriesStoreType)),
+                    SelectedType = this._memoriesStoreOptions.Type.ToString()
+                }
             }
         );
     }

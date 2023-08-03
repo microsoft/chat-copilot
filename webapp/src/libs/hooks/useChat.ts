@@ -4,7 +4,7 @@ import { useMsal } from '@azure/msal-react';
 import { Constants } from '../../Constants';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addAlert, setMemoriesStoreType, updateTokenUsage } from '../../redux/features/app/appSlice';
+import { addAlert, updateTokenUsage } from '../../redux/features/app/appSlice';
 import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
@@ -324,14 +324,15 @@ export const useChat = () => {
         }
     };
 
-    const getMemoriesStoreType = async () => {
+    const getServiceOptions = async () => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            const storeType = await chatService.getMemoriesStoreTypeAsync(accessToken);
-            dispatch(setMemoriesStoreType(storeType));
+            return await chatService.getServiceOptionsAsync(accessToken);
         } catch (e: any) {
-            const errorMessage = `Error getting memories store type. Details: ${getErrorDetails(e)}`;
+            const errorMessage = `Error getting service options. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+
+            return undefined;
         }
     };
 
@@ -347,7 +348,7 @@ export const useChat = () => {
         importDocument,
         joinChat,
         editChat,
-        getMemoriesStoreType,
+        getServiceOptions,
     };
 };
 

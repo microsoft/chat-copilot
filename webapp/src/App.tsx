@@ -16,7 +16,7 @@ import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
-import { addAlert, setActiveUserInfo } from './redux/features/app/appSlice';
+import { addAlert, setActiveUserInfo, setServiceOptions } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
 
 export const useClasses = makeStyles({
@@ -95,8 +95,13 @@ const App: FC = () => {
                             setAppState(AppState.Chat);
                         }
                     }),
+
                     // Load service options
-                    void chat.getMemoriesStoreType(),
+                    chat.getServiceOptions().then((serviceOptions) => {
+                        if (serviceOptions) {
+                            dispatch(setServiceOptions(serviceOptions));
+                        }
+                    }),
                 ]);
             }
         }

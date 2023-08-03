@@ -87,7 +87,7 @@ export const DocumentsTab: React.FC = () => {
     const classes = useClasses();
     const chat = useChat();
     const dispatch = useDispatch();
-    const { memoriesStoreType } = useAppSelector((state: RootState) => state.app);
+    const { serviceOptions } = useAppSelector((state: RootState) => state.app);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { importingDocuments } = conversations[selectedId];
 
@@ -181,14 +181,14 @@ export const DocumentsTab: React.FC = () => {
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
                     <Label size="large">Vector Database</Label>
-                    <RadioGroup defaultValue={memoriesStoreType.selectedType} layout="horizontal">
-                        {memoriesStoreType.types.map((storeType) => {
+                    <RadioGroup defaultValue={serviceOptions.memoriesStoreType.selectedType} layout="horizontal">
+                        {serviceOptions.memoriesStoreType.types.map((storeType) => {
                             return (
                                 <Radio
                                     key={storeType}
                                     value={storeType}
                                     label={storeType}
-                                    disabled={storeType !== memoriesStoreType.selectedType}
+                                    disabled={storeType !== serviceOptions.memoriesStoreType.selectedType}
                                 />
                             );
                         })}

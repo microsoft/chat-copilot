@@ -4,3 +4,7 @@ export interface MemoriesStoreType {
     types: string[];
     selectedType: string;
 }
+
+export interface ServiceOptions {
+    memoriesStoreType: MemoriesStoreType;
+}

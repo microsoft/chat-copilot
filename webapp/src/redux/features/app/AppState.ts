@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { AlertType } from '../../../libs/models/AlertType';
-import { MemoriesStoreType } from '../../../libs/models/ServiceOptions';
+import { ServiceOptions } from '../../../libs/models/ServiceOptions';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
 
 export interface ActiveUserInfo {
@@ -36,7 +36,7 @@ export interface AppState {
     tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
-    memoriesStoreType: MemoriesStoreType;
+    serviceOptions: ServiceOptions;
 }
 
 export enum FeatureKeys {
@@ -133,5 +133,5 @@ export const initialState: AppState = {
     tokenUsage: {},
     features: Features,
     settings: Settings,
-    memoriesStoreType: { types: [], selectedType: '' },
+    serviceOptions: { memoriesStoreType: { types: [], selectedType: '' } },
 };

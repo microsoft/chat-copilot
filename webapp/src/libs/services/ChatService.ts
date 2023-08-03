@@ -6,7 +6,7 @@ import { IChatMessage } from '../models/ChatMessage';
 import { IChatParticipant } from '../models/ChatParticipant';
 import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
-import { MemoriesStoreType } from '../models/ServiceOptions';
+import { ServiceOptions } from '../models/ServiceOptions';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
 import { IAskResult } from '../semantic-kernel/model/AskResult';
 import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
@@ -238,10 +238,10 @@ export class ChatService extends BaseService {
         return result;
     };
 
-    public getMemoriesStoreTypeAsync = async (accessToken: string): Promise<MemoriesStoreType> => {
-        const result = await this.getResponseAsync<MemoriesStoreType>(
+    public getServiceOptionsAsync = async (accessToken: string): Promise<ServiceOptions> => {
+        const result = await this.getResponseAsync<ServiceOptions>(
             {
-                commandPath: `memoriesStoreType`,
+                commandPath: `serviceOptions`,
                 method: 'GET',
             },
             accessToken,
