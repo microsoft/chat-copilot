@@ -274,7 +274,7 @@ public class ChatSkill
         [Description("Previously proposed plan that is approved"), DefaultValue(null), SKName("proposedPlan")] string? planJson,
         [Description("ID of the response message for planner"), DefaultValue(null), SKName("responseMessageId")] string? messageId,
         SKContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         // Set the system description in the prompt options
         await this.SetSystemDescriptionAsync(chatId);
@@ -429,7 +429,8 @@ public class ChatSkill
         var promptRenderer = new PromptTemplateEngine();
         var renderedPrompt = await promptRenderer.RenderAsync(
             this._promptOptions.SystemChatPrompt,
-            chatContext);
+            chatContext,
+            cancellationToken);
         chatContext.Variables.Set("prompt", renderedPrompt);
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 

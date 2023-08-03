@@ -11,15 +11,17 @@ Memories can be generated from conversations as well as imported from external s
 Importing documents enables Copilot Chat to have up-to-date knowledge of specific contexts, such as enterprise and personal data.
 
 ## Configure your environment
+
 1. A registered App in Azure Portal (https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app)
    - Select Mobile and desktop applications as platform type, and the Redirect URI will be `http://localhost`
    - Select **`Accounts in any organizational directory (Any Azure AD directory - Multitenant)
-     and personal Microsoft accounts (e.g. Skype, Xbox)`** as the supported account
+and personal Microsoft accounts (e.g. Skype, Xbox)`** as the supported account
      type for this sample.
    - Note the **`Application (client) ID`** from your app registration.
-2. Make sure the service is running. To start the service, see [here](../webapi/README.md).
+2. Make sure the service is running. To start the service, see [here](../../webapi/README.md).
 
 ## Running the app
+
 1. Ensure the web api is running at `https://localhost:40443/`.
 2. Configure the appsettings.json file under this folder root with the following variables and fill
    in with your information, where
@@ -33,7 +35,7 @@ Importing documents enables Copilot Chat to have up-to-date knowledge of specifi
    all users will have access to:
 
    `dotnet run --files .\sample-docs\ms10k.txt`
-   
+
    Or **Run** the following command to import a document to the app under a chat isolated document collection where
    only the chat session will have access to:
 
