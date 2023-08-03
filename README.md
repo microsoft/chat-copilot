@@ -13,7 +13,7 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 # Requirements
 You will need the following items to run the sample:
 
-**Frontend App**
+**Frontend App -** The web UI application will run on Azure.
 
 - [Azure account](https://azure.microsoft.com/free)
 - [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
@@ -24,10 +24,10 @@ You will need the following items to run the sample:
 
 **Backend API -** Requirements depend on your AI Service choice.
 
-| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
-| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed model](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
+| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 
 # Setup Instructions
@@ -44,20 +44,14 @@ You will need the following items to run the sample:
 
 3. Configure Chat Copilot.
   
-    ```powershell
-    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID}
+      ```powershell
+    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID} 
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
     - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
-
-    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
-
-        ```powershell
-        -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
-        ```
 
     - > (Optional): To set a specific Tenant Id, use the parameter:
 
@@ -71,14 +65,14 @@ You will need the following items to run the sample:
     .\Start.ps1 
     ```
 
-    > NOTE: Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
+    > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
     
-    > NOTE: It may take a few minutes for Yarn packages to install on the first run.
+    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
 
 ## Linux/macOS
 1. Open Bash as an administrator.
 2. Configure environment.
-
+  
     ```bash
     cd <path to chat-copilot>/scripts/
     chmod +x *.sh
@@ -100,7 +94,6 @@ You will need the following items to run the sample:
 
     > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
 
-
 3. Configure Chat Copilot.
 
     ```bash
@@ -111,12 +104,6 @@ You will need the following items to run the sample:
     - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
-
-    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
-
-        ```bash
-        --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
-        ```
 
     - > (Optional): To set a specific Tenant Id, use the parameter:
 
@@ -130,9 +117,9 @@ You will need the following items to run the sample:
     ./Start.sh
     ```
 
-    > NOTE: Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
+    > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
 
-    > NOTE: It may take a few minutes for Yarn packages to install on the first run.
+    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
     
 ## (Optional) Enable backend authorization via Azure AD
 
