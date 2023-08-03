@@ -37,6 +37,10 @@ param(
     $Region = "southcentralus",
 
     [string]
+    # Region to deploy to the static web app into. This must be a region that supports static web apps.
+    $WebAppRegion = "westus2",
+
+    [string]
     # SKU for the Azure App Service plan
     $WebAppServiceSku = "B1",
 
@@ -86,6 +90,7 @@ if ($AIService -eq "OpenAI" -and !$AIApiKey) {
 $jsonConfig = "
 {
     `\`"webAppServiceSku`\`": { `\`"value`\`": `\`"$WebAppServiceSku`\`" },
+    `\`"webappLocation`\`": { `\`"value`\`": `\`"$WebAppRegion`\`" },
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
