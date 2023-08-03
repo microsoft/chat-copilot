@@ -15,6 +15,11 @@ param(
     $Subscription,
 
     [Parameter(Mandatory)]
+    [string]
+    # Azure AD client ID for the Web API backend app registration
+    $WebApiClientId,
+
+    [Parameter(Mandatory)]
     [ValidateSet("AzureOpenAI", "OpenAI")]
     [string]
     # AI service to use
@@ -39,6 +44,14 @@ param(
     [string]
     # SKU for the Azure App Service plan
     $WebAppServiceSku = "B1",
+
+    [string]
+    # Azure AD cloud instance for authenticating users
+    $AzureAdInstance = "https://login.microsoftonline.com/",
+
+    [string]
+    # Azure AD tenant ID for authenticating users
+    $AzureAdTenantId = "common",
 
     [ValidateSet("Volatile", "AzureCognitiveSearch", "Qdrant")]
     [string]
@@ -89,6 +102,9 @@ $jsonConfig = "
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
+    `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
+    `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$AzureAdTenantId`\`" },
+    `\`"webApiClientId`\`": { `\`"value`\`": `\`"$WebApiClientId`\`"},
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },

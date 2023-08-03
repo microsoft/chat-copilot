@@ -86,6 +86,27 @@
         "description": "Azure OpenAI or OpenAI API key"
       }
     },
+    "webApiClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Azure AD client ID for the backend web API"
+      }
+    },
+    "azureAdInstance": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com",
+      "metadata": {
+        "description": "Azure AD cloud instance for authenticating users"
+      }
+    },
+    "azureAdTenantId": {
+      "type": "string",
+      "defaultValue": "common",
+      "metadata": {
+        "description": "Azure AD tenant ID for authenticating users"
+      }
+    },
     "deployNewAzureOpenAI": {
       "type": "bool",
       "defaultValue": false,
@@ -293,8 +314,24 @@
             "value": "[parameters('plannerModel')]"
           },
           {
-            "name": "Authorization:Type",
-            "value": "None"
+            "name": "Authentication:Type",
+            "value": "AzureAd"
+          },
+          {
+            "name": "Authentication:AzureAd:Instance",
+            "value": "[parameters('azureAdInstance')]"
+          },
+          {
+            "name": "Authentication:AzureAd:TenantId",
+            "value": "[parameters('azureAdTenantId')]"
+          },
+          {
+            "name": "Authentication:AzureAd:ClientId",
+            "value": "[parameters('webApiClientId')]"
+          },
+          {
+            "name": "Authentication:AzureAd:Scopes",
+            "value": "access_as_user"
           },
           {
             "name": "ChatStore:Type",

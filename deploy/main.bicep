@@ -39,6 +39,15 @@ param aiEndpoint string = ''
 @description('Azure OpenAI or OpenAI API key')
 param aiApiKey string = ''
 
+@description('Azure AD client ID for the backend web API')
+param webApiClientId string = ''
+
+@description('Azure AD cloud instance for authenticating users')
+param azureAdInstance string = 'https://login.microsoftonline.com/'
+
+@description('Azure AD tenant ID for authenticating users')
+param azureAdTenantId string = 'common'
+
 @description('Whether to deploy a new Azure OpenAI instance')
 param deployNewAzureOpenAI bool = false
 
@@ -187,8 +196,24 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: plannerModel
       }
       {
-        name: 'Authorization:Type'
-        value: 'None'
+        name: 'Authentication:Type'
+        value: 'AzureAd'
+      }
+      {
+        name: 'Authentication:AzureAd:Instance'
+        value: azureAdInstance
+      }
+      {
+        name: 'Authentication:AzureAd:TenantId'
+        value: azureAdTenantId
+      }
+      {
+        name: 'Authentication:AzureAd:ClientId'
+        value: webApiClientId
+      }
+      {
+        name: 'Authentication:AzureAd:Scopes'
+        value: 'access_as_user'
       }
       {
         name: 'ChatStore:Type'
