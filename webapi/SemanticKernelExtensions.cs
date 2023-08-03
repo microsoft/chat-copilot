@@ -11,6 +11,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
+using Microsoft.SemanticKernel.Connectors.Memory.Chroma;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Skills.Core;
@@ -138,6 +139,25 @@ internal static class SemanticKernelExtensions
                 services.AddSingleton<IMemoryStore>(sp =>
                 {
                     return new AzureCognitiveSearchMemoryStore(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key);
+                });
+                break;
+            case MemoriesStoreOptions.MemoriesStoreType.Chroma:
+                if (config.Chroma == null)
+                {
+                    throw new InvalidOperationException("MemoriesStore type is Chroma and Chroma configuration is null.");
+                }
+
+                services.AddSingleton<IMemoryStore>(sp =>
+                {
+                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
+                    var endPointBuilder = new UriBuilder(config.Chroma.Host);
+                    endPointBuilder.Port = config.Chroma.Port;
+
+                    return new ChromaMemoryStore(
+                        httpClient: httpClient,
+                        endpoint: endPointBuilder.ToString(),
+                        logger: sp.GetRequiredService<ILogger<IChromaClient>>()
+                    );
                 });
                 break;
 
