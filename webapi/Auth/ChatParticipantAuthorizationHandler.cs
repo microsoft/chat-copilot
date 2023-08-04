@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -35,28 +36,35 @@ public class ChatParticipantAuthorizationHandler : AuthorizationHandler<ChatPart
         ChatParticipantRequirement requirement,
         HttpContext resource)
     {
-        string? chatId = resource.GetRouteValue("chatId")?.ToString();
-        if (chatId == null)
+        try
         {
-            // delegate to downstream validation
+            string? chatId = resource.GetRouteValue("chatId")?.ToString();
+            if (chatId == null)
+            {
+                // delegate to downstream validation
+                context.Succeed(requirement);
+                return;
+            }
+
+            var session = await this._chatSessionRepository.FindByIdAsync(chatId);
+            if (session == null)
+            {
+                // delegate to downstream validation
+                context.Succeed(requirement);
+                return;
+            }
+
+            bool isUserInChat = await this._chatParticipantRepository.IsUserInChatAsync(this._authInfo.UserId, chatId);
+            if (!isUserInChat)
+            {
+                context.Fail(new AuthorizationFailureReason(this, "User does not have access to the requested chat."));
+            }
+
             context.Succeed(requirement);
-            return;
         }
-
-        var session = await this._chatSessionRepository.FindByIdAsync(chatId);
-        if (session == null)
+        catch (Azure.Identity.CredentialUnavailableException ex)
         {
-            // delegate to downstream validation
-            context.Succeed(requirement);
-            return;
+            context.Fail(new AuthorizationFailureReason(this, ex.Message));
         }
-
-        bool isUserInChat = await this._chatParticipantRepository.IsUserInChatAsync(this._authInfo.UserId, chatId);
-        if (!isUserInChat)
-        {
-            context.Fail(new AuthorizationFailureReason(this, "User does not have access to the requested chat."));
-        }
-
-        context.Succeed(requirement);
     }
 }

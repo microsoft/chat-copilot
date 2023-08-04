@@ -49,10 +49,16 @@ $webappUrl = $deployment.properties.outputs.webappUrl.value
 $webappName = $deployment.properties.outputs.webappName.value
 $webapiUrl = $deployment.properties.outputs.webapiUrl.value
 $webapiName = $deployment.properties.outputs.webapiName.value
+$webapiClientId = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+    | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
+$webapiScope = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+    | Where-Object -Property name -EQ -Value Authentication:AzureAd:Scopes).value
 Write-Host "webappUrl: $webappUrl"
 Write-Host "webappName: $webappName"
 Write-Host "webapiName: $webapiName"
 Write-Host "webapiUrl: $webapiUrl"
+Write-Host "webapiClientId: $webapiClientId"
+Write-Host "webapiScope: $webapiScope"
 
 # Set ASCII as default encoding for Out-File
 $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
@@ -62,6 +68,7 @@ Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
 "REACT_APP_AAD_AUTHORITY=$Authority" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_CLIENT_ID=$ApplicationClientId" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
 
 Write-Host "Generating SWA config..."
 $swaConfig = $(Get-Content "$PSScriptRoot/../webapp/template.swa-cli.config.json" -Raw)

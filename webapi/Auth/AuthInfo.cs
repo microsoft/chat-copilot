@@ -27,7 +27,6 @@ public class AuthInfo : IAuthInfo
             {
                 throw new InvalidOperationException("HttpContext must be present to inspect auth info.");
             }
-            //var userIdClaim = user.FindFirst("oid")
             var userIdClaim = user.FindFirst(ClaimConstants.Oid)
                 ?? user.FindFirst(ClaimConstants.ObjectId)
                 ?? user.FindFirst(ClaimConstants.Sub)

@@ -429,7 +429,8 @@ public class ChatSkill
         var promptRenderer = new PromptTemplateEngine();
         var renderedPrompt = await promptRenderer.RenderAsync(
             this._promptOptions.SystemChatPrompt,
-            chatContext);
+            chatContext,
+            cancellationToken);
         chatContext.Variables.Set("prompt", renderedPrompt);
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 

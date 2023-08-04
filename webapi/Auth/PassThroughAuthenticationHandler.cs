@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 
 namespace SemanticKernel.Service.Auth;
 
@@ -34,8 +34,8 @@ public class PassThroughAuthenticationHandler : AuthenticationHandler<Authentica
     {
         this.Logger.LogInformation("Allowing request to pass through");
 
-        Claim userIdClaim = new(JwtRegisteredClaimNames.Sub, DefaultUserId);
-        Claim nameClaim = new(JwtRegisteredClaimNames.Name, DefaultUserName);
+        Claim userIdClaim = new(ClaimConstants.Sub, DefaultUserId);
+        Claim nameClaim = new(ClaimConstants.Name, DefaultUserName);
         ClaimsIdentity identity = new(new Claim[] { userIdClaim, nameClaim }, AuthenticationScheme);
         ClaimsPrincipal principal = new(identity);
         AuthenticationTicket ticket = new(principal, this.Scheme.Name);

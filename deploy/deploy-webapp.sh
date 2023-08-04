@@ -89,11 +89,17 @@ echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
 
+eval WEB_API_CLIENT_ID=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authentication:AzureAd:ClientId").value')
+echo "WEB_API_CLIENT_ID: $WEB_API_CLIENT_ID"
+eval WEB_API_SCOPE=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authentication:AzureAd:Scopes").value')
+echo "WEB_API_SCOPE: $WEB_API_SCOPE"
+
 ENV_FILE_PATH="$SCRIPT_ROOT/../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
 echo "REACT_APP_BACKEND_URI=https://$WEB_API_URL/" > $ENV_FILE_PATH
 echo "REACT_APP_AAD_AUTHORITY=$AUTHORITY" >> $ENV_FILE_PATH
 echo "REACT_APP_AAD_CLIENT_ID=$APPLICATION_ID" >> $ENV_FILE_PATH
+echo "REACT_APP_AAD_API_SCOPE=api://$WEB_API_CLIENT_ID/$WEB_API_SCOPE" >> $ENV_FILE_PATH
 
 echo "Writing swa-cli.config.json..."
 SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../webapp/swa-cli.config.json"
