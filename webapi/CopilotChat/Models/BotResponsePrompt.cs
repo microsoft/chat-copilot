@@ -74,11 +74,7 @@ public class BotResponsePrompt
         this.SystemPersona = string.Join("\n", systemDescription, systemResponse);
         this.Audience = audience;
         this.UserIntent = userIntent;
-        this.PastMemories = chatMemories ?? documentMemories;
-        if (!string.IsNullOrEmpty(chatMemories) && !string.IsNullOrEmpty(documentMemories))
-        {
-            this.PastMemories = string.Join("\n", chatMemories, documentMemories);
-        }
+        this.PastMemories = string.Join("\n", chatMemories, documentMemories).Trim();
         this.ExternalInformation = externalInformation;
         this.ChatHistory = chatHistory;
         this.SystemChatContinuation = systemChatContinuation;

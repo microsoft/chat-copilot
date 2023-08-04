@@ -432,7 +432,7 @@ public class ChatSkill
         chatContext.Variables.Set("prompt", renderedPrompt);
 
         // Need to extract this from the rendered prompt because Time and Date are calculated during render
-        var systemChatContinuation = Regex.Match(renderedPrompt, @"(SINGLE RESPONSE FROM BOT TO USER:\n\[.*] bot:)").Value;
+        var systemChatContinuation = Regex.Match(renderedPrompt, PromptsOptions.SYSTEM_CHAT_CONTINUATION_REGEX).Value;
         var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, planResult, chatHistory, systemChatContinuation);
 
         // Calculate token usage of prompt template
