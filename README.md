@@ -31,7 +31,7 @@ You will need the following items to run the sample:
 ## Register an application
 1. Follow [these instructions](/azure/active-directory/develop/quickstart-register-app) and use the values below:
     - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
-    - `Redirect URI (optional)`: `Single-page application (SPA)` and use `http://localhost:3000`.
+    - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
 2. Take note of the _Application (client) ID_.
 
 ## Windows
