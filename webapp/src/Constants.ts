@@ -15,8 +15,9 @@ export const Constants = {
             cacheLocation: 'localStorage',
             storeAuthStateInCookie: false,
         },
-        semanticKernelScopes: ['openid', 'offline_access', 'profile']
-            .concat(process.env.REACT_APP_AAD_API_SCOPE as string ? [process.env.REACT_APP_AAD_API_SCOPE as string] : []),
+        semanticKernelScopes: ['openid', 'offline_access', 'profile'].concat(
+            (process.env.REACT_APP_AAD_API_SCOPE as string) ? [process.env.REACT_APP_AAD_API_SCOPE as string] : [],
+        ),
         // MS Graph scopes required for loading user information
         msGraphAppScopes: ['User.ReadBasic.All'],
     },
@@ -39,6 +40,8 @@ export const Constants = {
         },
         // Reserved context variable names
         reservedWords: ['server_url', 'server-url'],
+        // Flag used to indicate that the variable is unknown in plan preview
+        UNKNOWN_VARIABLE_FLAG: '$???',
     },
     adoScopes: ['vso.work'],
     BATCH_REQUEST_LIMIT: 20,

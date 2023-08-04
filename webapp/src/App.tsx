@@ -16,7 +16,7 @@ import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
-import { addAlert, setActiveUserInfo } from './redux/features/app/appSlice';
+import { addAlert, setActiveUserInfo, setServiceOptions } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
 
 export const useClasses = makeStyles({
@@ -88,12 +88,21 @@ const App: FC = () => {
             }
 
             if (appState === AppState.LoadingChats) {
-                // Load all chats from memory
-                void chat.loadChats().then((succeeded) => {
-                    if (succeeded) {
-                        setAppState(AppState.Chat);
-                    }
-                });
+                void Promise.all([
+                    // Load all chats from memory
+                    chat.loadChats().then((succeeded) => {
+                        if (succeeded) {
+                            setAppState(AppState.Chat);
+                        }
+                    }),
+
+                    // Load service options
+                    chat.getServiceOptions().then((serviceOptions) => {
+                        if (serviceOptions) {
+                            dispatch(setServiceOptions(serviceOptions));
+                        }
+                    }),
+                ]);
             }
         }
 

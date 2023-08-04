@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
@@ -78,14 +79,23 @@ public class ChatMemoryController : ControllerBase
         // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
-        var results = semanticTextMemory.SearchAsync(
-            SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName),
-            "abc",
-            limit: 100,
-            minRelevanceScore: 0.0);
-        await foreach (var memory in results)
+        string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
+        try
         {
-            memories.Add(memory.Metadata.Text);
+            var results = semanticTextMemory.SearchAsync(
+                memoryCollectionName,
+                "abc",
+                limit: 100,
+                minRelevanceScore: 0.0);
+            await foreach (var memory in results)
+            {
+                memories.Add(memory.Metadata.Text);
+            }
+        }
+        catch (SKException connectorException)
+        {
+            // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+            this._logger.LogError(connectorException, "Cannot search collection {0}", this.SanitizeLogInput(memoryCollectionName));
         }
 
         return this.Ok(memories);
@@ -114,7 +124,7 @@ public class ChatMemoryController : ControllerBase
     /// <returns>The sanitized input.</returns>
     private string SanitizeLogInput(string input)
     {
-        return input.Replace(Environment.NewLine, "");
+        return input.Replace(Environment.NewLine, "", StringComparison.Ordinal);
     }
 
     # endregion
