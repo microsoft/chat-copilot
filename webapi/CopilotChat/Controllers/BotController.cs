@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using SemanticKernel.Service.CopilotChat.Extensions;
 using SemanticKernel.Service.CopilotChat.Models;
@@ -203,20 +204,32 @@ public class BotController : ControllerBase
     /// <param name="newCollectionName">
     /// The new collection name when appends to the embeddings list. Will use the old collection name if not provided.
     /// </param>
-    private static async Task GetMemoryRecordsAndAppendToEmbeddingsAsync(
+    private async Task GetMemoryRecordsAndAppendToEmbeddingsAsync(
         IKernel kernel,
         string collectionName,
         List<KeyValuePair<string, List<MemoryQueryResult>>> embeddings,
         string newCollectionName = "")
     {
-        List<MemoryQueryResult> collectionMemoryRecords = await kernel.Memory.SearchAsync(
-            collectionName,
-            "abc", // dummy query since we don't care about relevance. An empty string will cause exception.
-            limit: 999999999, // temp solution to get as much as record as a workaround.
-            minRelevanceScore: -1, // no relevance required since the collection only has one entry
-            withEmbeddings: true,
-            cancellationToken: default
-        ).ToListAsync();
+        List<MemoryQueryResult> collectionMemoryRecords;
+        try
+        {
+            collectionMemoryRecords = await kernel.Memory.SearchAsync(
+                collectionName,
+                "abc", // dummy query since we don't care about relevance. An empty string will cause exception.
+                limit: 999999999, // temp solution to get as much as record as a workaround.
+                minRelevanceScore: -1, // no relevance required since the collection only has one entry
+                withEmbeddings: true,
+                cancellationToken: default
+            ).ToListAsync();
+        }
+        catch (SKException connectorException)
+        {
+            // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+            this._logger.LogError(connectorException,
+                "Cannot search collection {0}",
+                collectionName);
+            collectionMemoryRecords = new();
+        }
 
         embeddings.Add(new KeyValuePair<string, List<MemoryQueryResult>>(
             string.IsNullOrEmpty(newCollectionName) ? collectionName : newCollectionName,
@@ -262,17 +275,17 @@ public class BotController : ControllerBase
 
         foreach (var collection in chatCollections)
         {
-            await GetMemoryRecordsAndAppendToEmbeddingsAsync(kernel: kernel, collectionName: collection, embeddings: bot.Embeddings);
+            await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(kernel: kernel, collectionName: collection, embeddings: bot.Embeddings);
         }
 
         // get the document memory collection names (global scope)
-        await GetMemoryRecordsAndAppendToEmbeddingsAsync(
+        await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
             kernel: kernel,
             collectionName: this._documentMemoryOptions.GlobalDocumentCollectionName,
             embeddings: bot.DocumentEmbeddings);
 
         // get the document memory collection names (user scope)
-        await GetMemoryRecordsAndAppendToEmbeddingsAsync(
+        await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
             kernel: kernel,
             collectionName: this._documentMemoryOptions.ChatDocumentCollectionNamePrefix + chatIdString,
             embeddings: bot.DocumentEmbeddings);
