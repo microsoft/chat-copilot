@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Response;
 
 /// <summary>
 /// Token Response is a simple wrapper around the token and region

@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
+using CopilotChat.Models.Storage;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Response;
 
 /// <summary>
 /// Response object definition to the 'chatSession/create' request.

@@ -4,7 +4,7 @@ using System;
 using System.Text.Json.Serialization;
 using CopilotChat.Storage;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Storage;
 
 /// <summary>
 /// A chat participant is a user that is part of a chat.

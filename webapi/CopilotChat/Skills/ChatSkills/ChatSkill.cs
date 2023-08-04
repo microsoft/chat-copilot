@@ -20,9 +20,10 @@ using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
 using CopilotChat.Hubs;
-using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Storage;
+using CopilotChat.Models.Storage;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Skills.ChatSkills;
 

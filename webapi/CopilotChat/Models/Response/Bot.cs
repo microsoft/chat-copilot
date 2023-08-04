@@ -3,8 +3,9 @@
 using System.Collections.Generic;
 using Microsoft.SemanticKernel.Memory;
 using CopilotChat.Options;
+using CopilotChat.Models.Storage;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Response;
 
 /// <summary>
 /// The data model of a bot for portability.

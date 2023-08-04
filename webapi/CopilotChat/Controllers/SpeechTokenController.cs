@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CopilotChat.Models;
 using CopilotChat.Options;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Controllers;
 

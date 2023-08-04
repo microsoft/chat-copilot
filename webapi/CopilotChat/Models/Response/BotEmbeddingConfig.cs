@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using CopilotChat.Options;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Response;
 
 /// <summary>
 /// The embedding configuration of a bot. Used in the Bot object for portability.

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using CopilotChat.Models;
+using CopilotChat.Models.Storage;
 
 namespace CopilotChat.Storage;
 

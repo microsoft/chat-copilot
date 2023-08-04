@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using CopilotChat.Hubs;
-using CopilotChat.Models;
 using CopilotChat.Storage;
+using CopilotChat.Models.Storage;
 
 namespace CopilotChat.Controllers;
 

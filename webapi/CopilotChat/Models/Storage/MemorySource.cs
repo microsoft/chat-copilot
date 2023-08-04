@@ -4,22 +4,22 @@ using System;
 using System.Text.Json.Serialization;
 using CopilotChat.Storage;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Storage;
+
+/// <summary>
+/// Type of the memory source.
+/// </summary>
+public enum MemorySourceType
+{
+    // A file source.
+    File,
+}
 
 /// <summary>
 /// The external memory source.
 /// </summary>
 public class MemorySource : IStorageEntity
 {
-    /// <summary>
-    /// Type of the memory source.
-    /// </summary>
-    public enum MemorySourceType
-    {
-        // A file source.
-        File,
-    }
-
     /// <summary>
     /// Source ID that is persistent and unique.
     /// </summary>

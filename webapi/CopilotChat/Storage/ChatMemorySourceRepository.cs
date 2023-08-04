@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CopilotChat.Models;
+using CopilotChat.Models.Storage;
 
 namespace CopilotChat.Storage;
 

@@ -66,7 +66,7 @@ public sealed class Program
             .AddAuthorization(builder.Configuration)
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
-            .AddCors()
+            .AddCorsPolicy()
             .AddControllers();
         builder.Services.AddHealthChecks();
 

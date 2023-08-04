@@ -10,8 +10,8 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
 using Microsoft.SemanticKernel.SkillDefinition;
-using CopilotChat.Models;
 using CopilotChat.Options;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Skills.ChatSkills;
 

@@ -15,10 +15,10 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
-using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Skills.OpenApiPlugins.GitHubPlugin.Model;
 using CopilotChat.Skills.OpenApiPlugins.JiraPlugin.Model;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Skills.ChatSkills;
 

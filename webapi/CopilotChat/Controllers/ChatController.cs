@@ -25,9 +25,10 @@ using Microsoft.SemanticKernel.Skills.MsGraph.Connectors.Client;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
 using CopilotChat.Hubs;
-using CopilotChat.Models;
 using CopilotChat.Skills.ChatSkills;
 using CopilotChat.Diagnostics;
+using CopilotChat.Models.Response;
+using CopilotChat.Models.Request;
 
 namespace CopilotChat.Controllers;
 

@@ -2,12 +2,13 @@
 
 using System.Text.Json.Serialization;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Request;
 
 /// <summary>
 /// Json body for creating a new chat session.
 /// </summary>
 public class CreateChatParameters
+
 {
     /// <summary>
     /// Id of the user who sent this message.

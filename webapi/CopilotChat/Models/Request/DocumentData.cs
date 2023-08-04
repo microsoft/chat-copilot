@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Request;
 
 public sealed class DocumentData
 {

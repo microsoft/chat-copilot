@@ -16,6 +16,9 @@ using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Skills;
 using CopilotChat.Storage;
+using CopilotChat.Models.Storage;
+using CopilotChat.Models.Request;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Controllers;
 

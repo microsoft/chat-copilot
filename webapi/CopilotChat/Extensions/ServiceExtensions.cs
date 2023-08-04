@@ -12,11 +12,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using CopilotChat.Auth;
-using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Storage;
 using CopilotChat.Services;
 using Tesseract;
+using CopilotChat.Models.Storage;
 
 namespace CopilotChat.Extensions;
 

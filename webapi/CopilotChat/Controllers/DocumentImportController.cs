@@ -15,14 +15,15 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Text;
 using CopilotChat.Hubs;
-using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Skills;
 using CopilotChat.Storage;
 using CopilotChat.Services;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
-using static CopilotChat.Models.MemorySource;
+using CopilotChat.Models.Request;
+using CopilotChat.Models.Storage;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Controllers;
 
@@ -271,16 +272,16 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
+                {
+                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
                     {
-                        if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
-                        {
-                            break;
-                        }
-
-                        throw new ArgumentException($"Unsupported image file type: {fileType} when " +
-                            $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
-                            nameof(OcrSupportOptions.OcrSupportType.None));
+                        break;
                     }
+
+                    throw new ArgumentException($"Unsupported image file type: {fileType} when " +
+                        $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
+                        nameof(OcrSupportOptions.OcrSupportType.None));
+                }
                 default:
                     throw new ArgumentException($"Unsupported file type: {fileType}");
             }
@@ -310,10 +311,10 @@ public class DocumentImportController : ControllerBase
             case SupportedFileType.Jpg:
             case SupportedFileType.Png:
             case SupportedFileType.Tiff:
-                {
-                    documentContent = await this.ReadTextFromImageFileAsync(formFile);
-                    break;
-                }
+            {
+                documentContent = await this.ReadTextFromImageFileAsync(formFile);
+                break;
+            }
 
             default:
                 // This should never happen. Validation should have already caught this.

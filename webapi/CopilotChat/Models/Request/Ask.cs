@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Request;
 
 public class Ask
 {

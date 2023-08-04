@@ -10,9 +10,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
-using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Storage;
+using CopilotChat.Models.Storage;
 
 namespace CopilotChat.Skills.ChatSkills;
 

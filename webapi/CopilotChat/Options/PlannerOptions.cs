@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.ComponentModel.DataAnnotations;
-using CopilotChat.Models;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Options;
 

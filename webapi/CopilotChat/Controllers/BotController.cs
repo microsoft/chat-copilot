@@ -15,9 +15,10 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using CopilotChat.Extensions;
-using CopilotChat.Models;
 using CopilotChat.Options;
 using CopilotChat.Storage;
+using CopilotChat.Models.Storage;
+using CopilotChat.Models.Response;
 
 namespace CopilotChat.Controllers;
 

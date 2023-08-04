@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.Text.Json.Serialization;
 
-namespace CopilotChat.Models;
+namespace CopilotChat.Models.Request;
 
 /// <summary>
 /// Custom plugin imported from ChatGPT Manifest file.
