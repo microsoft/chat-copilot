@@ -31,11 +31,12 @@ public class AuthInfo : IAuthInfo
                 ?? user.FindFirst(ClaimConstants.ObjectId)
                 ?? user.FindFirst(ClaimConstants.Sub)
                 ?? user.FindFirst(ClaimConstants.NameIdentifierId);
-
             if (userIdClaim is null)
             {
                 throw new CredentialUnavailableException("User Id was not present in the request token.");
             }
+            var tenantIdClaim = user.FindFirst(ClaimConstants.Tid)
+                ?? user.FindFirst(ClaimConstants.TenantId);
             var userNameClaim = user.FindFirst(ClaimConstants.Name);
             if (userNameClaim is null)
             {
@@ -43,7 +44,7 @@ public class AuthInfo : IAuthInfo
             }
             return new AuthData
             {
-                UserId = userIdClaim.Value,
+                UserId = (tenantIdClaim is null) ? userIdClaim.Value : string.Join(".", userIdClaim.Value, tenantIdClaim.Value),
                 UserName = userNameClaim.Value,
             };
         }, isThreadSafe: false);

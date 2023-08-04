@@ -43,7 +43,7 @@ param aiApiKey string = ''
 param webApiClientId string = ''
 
 @description('Azure AD cloud instance for authenticating users')
-param azureAdInstance string = 'https://login.microsoftonline.com/'
+param azureAdInstance string = environment().authentication.loginEndpoint
 
 @description('Azure AD tenant ID for authenticating users')
 param azureAdTenantId string = 'common'
