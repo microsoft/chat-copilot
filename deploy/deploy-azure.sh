@@ -16,6 +16,7 @@ usage() {
     echo "  -aiend, --ai-endpoint AI_ENDPOINT          Endpoint for existing Azure OpenAI resource"
     echo "  -rg, --resource-group RESOURCE_GROUP       Resource group to which to make the deployment (default: \"rg-\$DEPLOYMENT_NAME\")"
     echo "  -r, --region REGION                        Region to which to make the deployment (default: \"South Central US\")"
+    echo "  -wr, --web-app-region WEB_APP_REGION       Region to deploy to the static web app into. This must be a region that supports static web apps. (default: \"West US 2\")"
     echo "  -a, --app-service-sku WEB_APP_SVC_SKU      SKU for the Azure App Service plan (default: \"B1\")"
     echo "  -i, --instance AZURE_AD_INSTANCE           Azure AD cloud instance for authenticating users"
     echo "                                             (default: \"https://login.microsoftonline.com/\")"
@@ -69,6 +70,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         -r|--region)
         REGION="$2"
+        shift
+        shift
+        ;;
+        -wr|--web-app-region)
+        WEB_APP_REGION="$2"
         shift
         shift
         ;;
@@ -172,6 +178,7 @@ az account set -s "$SUBSCRIPTION"
 # Set defaults
 : "${REGION:="southcentralus"}"
 : "${WEB_APP_SVC_SKU:="B1"}"
+: "${WEB_APP_REGION:="westus2"}"
 : "${AZURE_AD_INSTANCE:="https://login.microsoftonline.com/"}"
 : "${AZURE_AD_TENANT_ID:="common"}"
 : "${MEMORY_STORE:="AzureCognitiveSearch"}"
@@ -182,6 +189,7 @@ az account set -s "$SUBSCRIPTION"
 JSON_CONFIG=$(cat << EOF
 {
     "webAppServiceSku": { "value": "$WEB_APP_SVC_SKU" },
+    "webappLocation": { "value": "$WEB_APP_REGION" },
     "aiService": { "value": "$AI_SERVICE_TYPE" },
     "aiApiKey": { "value": "$AI_SERVICE_KEY" },
     "deployWebApiPackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },

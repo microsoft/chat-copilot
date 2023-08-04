@@ -409,10 +409,11 @@ public class ChatSkill
         var chatContextComponents = new List<string>() { chatMemories, documentMemories, planResult };
         var chatContextText = string.Join("\n\n", chatContextComponents.Where(c => !string.IsNullOrEmpty(c)));
         var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText);
+        string chatHistory = string.Empty;
         if (chatHistoryTokenLimit > 0)
         {
             await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
-            var chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
+            chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
             if (chatContext.ErrorOccurred)
             {
                 return null;
@@ -427,11 +428,14 @@ public class ChatSkill
 
         // Render the prompt
         var promptRenderer = new PromptTemplateEngine();
-        var renderedPrompt = await promptRenderer.RenderAsync(
-            this._promptOptions.SystemChatPrompt,
-            chatContext,
-            cancellationToken);
+        var renderedPrompt = await promptRenderer.RenderAsync(this._promptOptions.SystemChatPrompt, chatContext, cancellationToken);
         chatContext.Variables.Set("prompt", renderedPrompt);
+
+        // Need to extract this from the rendered prompt because Time and Date are calculated during render
+        var systemChatContinuation = Regex.Match(renderedPrompt, PromptsOptions.SYSTEM_CHAT_CONTINUATION_REGEX).Value;
+        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, planResult, chatHistory, systemChatContinuation);
+
+        // Calculate token usage of prompt template
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 
         if (chatContext.ErrorOccurred)
@@ -441,7 +445,7 @@ public class ChatSkill
 
         // Stream the response to the client
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating bot response");
-        var chatMessage = await this.StreamResponseToClient(chatId, userId, renderedPrompt);
+        var chatMessage = await this.StreamResponseToClient(chatId, userId, promptView);
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating semantic chat memory");
@@ -728,14 +732,14 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="prompt">Prompt used to generate the response</param>
     /// <returns>The created chat message</returns>
-    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, string prompt)
+    private async Task<ChatMessage> StreamResponseToClient(string chatId, string userId, BotResponsePrompt prompt)
     {
         // Create the stream
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
-        var stream = chatCompletion.GenerateMessageStreamAsync(chatCompletion.CreateNewChat(prompt), this.CreateChatRequestSettings());
+        var stream = chatCompletion.GenerateMessageStreamAsync(chatCompletion.CreateNewChat(prompt.RawContent), this.CreateChatRequestSettings());
 
         // Create message on client
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, string.Empty);
+        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, JsonSerializer.Serialize(prompt), string.Empty);
 
         // Stream the message to the client
         await foreach (string contentPiece in stream)

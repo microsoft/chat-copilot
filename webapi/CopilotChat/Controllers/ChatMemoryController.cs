@@ -96,7 +96,7 @@ public class ChatMemoryController : ControllerBase
         catch (SKException connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", this.SanitizeLogInput(memoryCollectionName));
         }
 
         return this.Ok(memories);
