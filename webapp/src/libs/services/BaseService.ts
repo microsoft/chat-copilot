@@ -7,6 +7,7 @@ interface ServiceRequest {
     method?: string;
     body?: unknown;
 }
+
 const noResponseBodyStatusCodes = [202];
 
 export class BaseService {

@@ -48,6 +48,11 @@ public class ExternalInformationSkill
     private const string PromptPreamble = "[RELATED START]";
 
     /// <summary>
+    /// Header to indicate plan results.
+    /// </summary>
+    private const string ResultHeader = "RESULT: ";
+
+    /// <summary>
     /// Postamble to add to the related information text.
     /// </summary>
     private const string PromptPostamble = "[RELATED END]";
@@ -104,10 +109,14 @@ public class ExternalInformationSkill
 
             // Invoke plan
             newPlanContext = await plan.InvokeAsync(newPlanContext);
+            var functionsUsed = $"FUNCTIONS EXECUTED: {string.Join("; ", this.GetPlanSteps(plan))}.";
+
             int tokenLimit =
                 int.Parse(context["tokenLimit"], new NumberFormatInfo()) -
                 TokenUtilities.TokenCount(PromptPreamble) -
-                TokenUtilities.TokenCount(PromptPostamble);
+                TokenUtilities.TokenCount(PromptPostamble) -
+                TokenUtilities.TokenCount(functionsUsed) -
+                TokenUtilities.TokenCount(ResultHeader);
 
             // The result of the plan may be from an OpenAPI skill. Attempt to extract JSON from the response.
             bool extractJsonFromOpenApi =
@@ -122,7 +131,7 @@ public class ExternalInformationSkill
                 planResult = newPlanContext.Variables.Input;
             }
 
-            return $"{PromptPreamble}\n{planResult.Trim()}\n{PromptPostamble}\n";
+            return $"{PromptPreamble}\n{functionsUsed}\n{ResultHeader}{planResult.Trim()}\n{PromptPostamble}\n";
         }
         else
         {
@@ -353,11 +362,12 @@ public class ExternalInformationSkill
 
         return itemList.Count > 0
             ? string.Format(CultureInfo.InvariantCulture, "{0}{1}", resultsDescriptor, JsonSerializer.Serialize(itemList))
-            : string.Format(CultureInfo.InvariantCulture, "JSON response for {0} is too large to be consumed at this time.", lastSkillInvoked);
+            : string.Format(CultureInfo.InvariantCulture, "JSON response from {0} is too large to be consumed at this time.", this._planner.PlannerOptions?.Type == PlanType.Sequential ? "plan" : lastSkillInvoked);
     }
 
     private Type GetOpenApiSkillResponseType(ref JsonDocument document, ref string lastSkillInvoked, ref string lastSkillFunctionInvoked, ref bool trimSkillResponse)
     {
+        // TODO: [Issue #93] Find a way to determine response type if multiple steps are invoked
         Type skillResponseType = typeof(object); // Use a reasonable default response type
 
         // Different operations under the skill will return responses as json structures;
@@ -390,6 +400,22 @@ public class ExternalInformationSkill
         }
 
         return typeof(IssueResponse);
+    }
+
+    /// <summary>
+    /// Retrieves the steps in a plan that was executed successfully.
+    /// </summary>
+    /// <param name="plan">The plan object.</param>
+    /// <returns>A list of strings representing the successfully executed steps in the plan.</returns>
+    private List<string> GetPlanSteps(Plan plan)
+    {
+        List<string> steps = new();
+        foreach (var step in plan.Steps)
+        {
+            steps.Add($"{step.SkillName}.{step.Name}");
+        }
+
+        return steps;
     }
 
     #endregion
