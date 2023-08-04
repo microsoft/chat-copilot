@@ -53,6 +53,12 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
+    - > (Optional): To set a specific Tenant Id, use the parameter:
+
+        ```powershell
+        -TenantId {TENANT_ID}
+        ```
+
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
     
     ```powershell
@@ -63,48 +69,26 @@ You will need the following items to run the sample:
     
     > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
 
-## Debian/Ubuntu Linux
+## Linux/macOS
 1. Open Bash as an administrator.
 2. Configure environment.
   
     ```bash
     cd <path to chat-copilot>/scripts/
     chmod +x *.sh
+    ```
 
+   **Ubuntu/Debian Linux**
+
+    ```bash
     ./Install-apt.sh
     ```
 
     > NOTE: This script uses `apt` to install `dotnet-sdk-7.0`, `nodejs`, and `yarn`.
 
-3. Configure Chat Copilot.
+    **macOS**
 
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
-    ```
-
-    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
-    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
-    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
-    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
-
-4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
-
-    ```bash
-    ./Start.sh
-    ```
-
-    > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
-
-    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
-
-## macOS
-1. Open Bash as an administrator.
-2. Configure environment.
-
-    ```bash
-    cd <path to chat-copilot>/scripts/
-    chmod +x *.sh
-
     ./Install-brew.sh
     ```
 
@@ -121,7 +105,13 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-3. Run Chat Copilot locally. This step starts both the backend API and frontend application.
+    - > (Optional): To set a specific Tenant Id, use the parameter:
+
+        ```bash
+        --tenantid {TENANT_ID}
+        ```
+
+4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
     ```bash
     ./Start.sh
