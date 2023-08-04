@@ -15,6 +15,9 @@ export interface BotResponsePrompt {
     // Relevant additional knowledge extracted using a planner.
     externalInformation: string;
 
+    // Recent messages from history of the conversation.
+    chatHistory: string;
+
     // Preamble to the LLM's response.
     systemChatContinuation: string;
 }
@@ -25,5 +28,6 @@ export const PromptSectionsNameMap: Record<string, string> = {
     userIntent: 'User Intent',
     chatMemories: 'Chat Memories',
     externalInformation: 'External Information',
+    chatHistory: 'Chat History',
     systemChatContinuation: 'System Chat Continuation',
 };
