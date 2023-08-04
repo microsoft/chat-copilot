@@ -1,6 +1,6 @@
 # Chat Copilot Sample Application
 
-This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two applications: a front-end web UI app and a back-end API server. 
+This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two components: a frontend [React web app](./webapp/) and a backend [.NET web API service](./webapi/). 
 
 These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/chat-copilot/blob/main/deploy/README.md).
 
@@ -13,26 +13,30 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 # Requirements
 You will need the following items to run the sample:
 
-**Frontend App**
-
 - [Azure account](https://azure.microsoft.com/free)
 - [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
-- [Registered application](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application)
-    - Under `Supported account types`: Select "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
-    - Under `Redirect URI (optional)`: Select `Single-page application (SPA)` and set the URI to `http://localhost:3000`.
-- [Application (client) ID](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application)
+- AI Service
+  
+| AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
+| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
-**Backend API -** Requirements depend on your AI Service choice.
+- Installed by the Setup script:
+  - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
+  - [Node.js](https://nodejs.org/en/download)
+  - [Yarn](https://classic.yarnpkg.com/docs/install)
 
-| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
-| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+# Instructions
+## Register an application
+1. Follow [these instructions](/azure/active-directory/develop/quickstart-register-app) and use the values below:
+    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - `Redirect URI (optional)`: `Single-page application (SPA)` and use `http://localhost:3000`.
+2. Take note of the _Application (client) ID_.
 
-# Setup Instructions
 ## Windows
 1. Open PowerShell as an administrator.
-2. Configure environment.
+2. Setup your environment.
 
     ```powershell
     cd <path to chat-copilot>\scripts\
@@ -98,7 +102,7 @@ You will need the following items to run the sample:
 
     > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
 
-1. Configure Chat Copilot.
+3. Configure Chat Copilot.
 
     ```bash
     ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
