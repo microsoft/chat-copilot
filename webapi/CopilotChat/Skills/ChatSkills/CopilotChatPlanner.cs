@@ -55,7 +55,7 @@ public class CopilotChatPlanner
     /// Supplemental text to add to the plan goal if PlannerOptions.Type is set to Stepwise.
     /// Helps the planner know when to bail out to request additional user input.
     /// </summary>
-    private const string STEPWISE_PLANNER_SUPPLEMENT = "If you need more information to fulfill this request, return with a request for information using a well-formed JSON, where the only property is \"requestedInformation\" and its value is a comma-separated list of additional information needed (for example: \"{\"requestedInformation\": \"emailAddress, name, budget\"}\").";
+    private const string STEPWISE_PLANNER_SUPPLEMENT = "If you need more information to fulfill this request, return with a requet for additional user input.";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
