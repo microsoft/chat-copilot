@@ -13,6 +13,9 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 # Requirements
 You will need the following items to run the sample:
 
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup script)_
+- [Node.js](https://nodejs.org/en/download) _(via Setup script)_
+- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup script)_
 - [Azure account](https://azure.microsoft.com/free)
 - [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 - AI Service
@@ -22,17 +25,12 @@ You will need the following items to run the sample:
 | Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
 | OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
-- Installed by the Setup script:
-  - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
-  - [Node.js](https://nodejs.org/en/download)
-  - [Yarn](https://classic.yarnpkg.com/docs/install)
-
 # Instructions
 ## Register an application
 1. Follow [these instructions](/azure/active-directory/develop/quickstart-register-app) and use the values below:
     - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
     - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
-2. Take note of the _Application (client) ID_.
+2. Take note of the _Application (client) ID_. Chat Copilot will use this ID for authentication.
 
 ## Windows
 1. Open PowerShell as an administrator.
@@ -61,7 +59,7 @@ You will need the following items to run the sample:
         ```powershell
         -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
 
-    - > (Optional): To set a specific Tenant Id, use the parameter:
+    - (Optional): To set a specific Tenant Id, use the parameter:
 
         ```powershell
         -TenantId {TENANT_ID}
@@ -73,9 +71,9 @@ You will need the following items to run the sample:
     .\Start.ps1 
     ```
 
+    It may take a few minutes for Yarn packages to install on the first run.
+
     > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
-    
-    > NOTE: It may take a few minutes for Yarn packages to install on the first run.
 
 ## Linux/macOS
 1. Open Bash as an administrator.
@@ -119,7 +117,7 @@ You will need the following items to run the sample:
         --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
         ```
         
-    - > (Optional): To set a specific Tenant Id, use the parameter:
+    - (Optional): To set a specific Tenant Id, use the parameter:
 
         ```bash
         --tenantid {TENANT_ID}
@@ -131,9 +129,9 @@ You will need the following items to run the sample:
     ./Start.sh
     ```
 
-    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+    It may take a few minutes for Yarn packages to install on the first run.
 
-    > NOTE: It may take a few minutes for Yarn packages to install on the first run.
+    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
     
 ## (Optional) Enable backend authorization via Azure AD
 
