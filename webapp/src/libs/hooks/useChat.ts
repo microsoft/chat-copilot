@@ -324,6 +324,18 @@ export const useChat = () => {
         }
     };
 
+    const getServiceOptions = async () => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        try {
+            return await chatService.getServiceOptionsAsync(accessToken);
+        } catch (e: any) {
+            const errorMessage = `Error getting service options. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+
+            return undefined;
+        }
+    };
+
     return {
         getChatUserById,
         createChat,
@@ -336,6 +348,7 @@ export const useChat = () => {
         importDocument,
         joinChat,
         editChat,
+        getServiceOptions,
     };
 };
 

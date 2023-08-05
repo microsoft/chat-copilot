@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import {
+    Body1Strong,
     Button,
     Dialog,
     DialogActions,
@@ -14,14 +15,19 @@ import {
     Tooltip,
     makeStyles,
     shorthands,
+    tokens,
 } from '@fluentui/react-components';
 import { Info16Regular } from '@fluentui/react-icons';
 import React from 'react';
+import { BotResponsePrompt, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { useDialogClasses } from '../../../styles';
 import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 
 const useClasses = makeStyles({
+    prompt: {
+        marginTop: tokens.spacingHorizontalS,
+    },
     infoButton: {
         ...shorthands.padding(0),
         ...shorthands.margin(0),
@@ -38,6 +44,29 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
 
+    let prompt: string | BotResponsePrompt;
+    try {
+        prompt = JSON.parse(message.prompt ?? '{}') as BotResponsePrompt;
+    } catch (e) {
+        prompt = message.prompt ?? '';
+    }
+
+    let promptDetails;
+    if (typeof prompt === 'string') {
+        promptDetails = prompt.split('\n').map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>);
+    } else {
+        promptDetails = Object.entries(prompt).map(([key, value]) => {
+            return value ? (
+                <div className={classes.prompt} key={`prompt-details-${key}`}>
+                    <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
+                    {(value as string).split('\n').map((paragraph, idx) => (
+                        <p key={`prompt-details-${idx}`}>{paragraph}</p>
+                    ))}
+                </div>
+            ) : null;
+        });
+    }
+
     return (
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
@@ -50,9 +79,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                     <DialogTitle>Prompt</DialogTitle>
                     <DialogContent>
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
-                        {message.prompt
-                            ?.split('\n')
-                            .map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>)}
+                        {promptDetails}
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">
