@@ -19,7 +19,7 @@ You will need the following items to run the sample:
 - [Azure account](https://azure.microsoft.com/free)
 - [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 - AI Service
-  
+
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
@@ -104,7 +104,7 @@ You will need the following items to run the sample:
 3. Configure Chat Copilot.
 
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
+    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
@@ -133,7 +133,7 @@ You will need the following items to run the sample:
     It may take a few minutes for Yarn packages to install on the first run.
 
     > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
-    
+
 ## (Optional) Enable backend authorization via Azure AD
 
 1. Ensure you created the required application registration mentioned in [Start the WebApp FrontEnd application](#start-the-webapp-frontend-application)
@@ -153,7 +153,7 @@ You will need the following items to run the sample:
       1. This will generate an `api://` URI with a generated for you
 
       2. Click *Save* to store the generated URI
-      
+
    3. Add a scope for `access_as_user`
       1. Click *Add scope*
 
@@ -189,7 +189,7 @@ You will need the following items to run the sample:
    1. Open *appsettings.json*
 
    2. Set the value of `Authorization:AzureAd:Audience` to your application ID URI
-   
+
 # Troubleshooting
 
 1. **_Issue:_** Unable to load chats. 
@@ -197,7 +197,7 @@ You will need the following items to run the sample:
     _Details_: interaction_in_progress: Interaction is currently in progress._ 
 
     _Explanation_: The WebApp can display this error when the application is configured for a different AAD tenant from the browser, (e.g., personal/MSA account vs work/school account). 
-    
+
     _Solution_: Either use a private/incognito browser tab or clear your browser credentials/cookies. Confirm you are logged in with the same account used to register the application.
 
 2. **_Issue:_**: Challenges using text completion models, such as `text-davinci-003`
@@ -210,9 +210,9 @@ You will need the following items to run the sample:
     ![Cert-Issue](https://github.com/microsoft/chat-copilot/assets/64985898/e9072af1-e43c-472d-bebc-d0082d0c9180)
 
     _Explanation_: Your browser may be blocking the frontend access to the backend while waiting for your permission to connect. 
-    
+
     _Solution_:
-    
+
     1. Confirm the backend service is running. Open a web browser and navigate to `https://localhost:40443/healthz`
        - You should see a confirmation message: `Healthy`
        - If your browser asks you to acknowledge the risks of visiting an insecure website, you must acknowledge this before the frontend can connect to the backend server. 
