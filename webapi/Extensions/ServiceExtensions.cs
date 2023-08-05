@@ -39,7 +39,7 @@ public static class CopilotChatServiceExtensions
             .PostConfigure(TrimStringProperties);
 
         // Default AI service configurations for Semantic Kernel
-        services.AddOptions<AIServiceOptions>(AIServiceOptions.PropertyName)
+        services.AddOptions<AIServiceOptions>()
             .Bind(configuration.GetSection(AIServiceOptions.PropertyName))
             .ValidateDataAnnotations()
             .ValidateOnStart()
