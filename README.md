@@ -65,7 +65,7 @@ You will need the following items to run the sample:
     .\Start.ps1 
     ```
 
-    > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
+    > **IMPORTANT:** Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
     
     > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
 
@@ -117,7 +117,7 @@ You will need the following items to run the sample:
     ./Start.sh
     ```
 
-    > **IMPORTANT:** Confirm pop-ups are not bocked and you are logged in with the same account used to register the application.
+    > **IMPORTANT:** Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
 
     > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
     
