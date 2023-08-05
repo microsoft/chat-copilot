@@ -5,7 +5,7 @@
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <UserSecretsId>aspnet-SKWebApi-1581687a-bee4-40ea-a886-ce22524aea88</UserSecretsId>
   </PropertyGroup>
 
