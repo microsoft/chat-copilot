@@ -271,7 +271,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'Warning'
       }
       {
-        name: 'Logging:LogLevel:CopilotChat'
+        name: 'Logging:LogLevel:CopilotChat.WebApi'
         value: 'Warning'
       }
       {
