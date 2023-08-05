@@ -30,7 +30,7 @@ You will need the following items to run the sample:
 1. Follow [these instructions](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) and use the values below:
     - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
     - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
-2. Take note of the _Application (client) ID_. Chat Copilot will use this ID for authentication.
+2. Take note of the `Application (client) ID`. Chat Copilot will use this ID for authentication.
 
 ## Windows
 1. Open PowerShell as an administrator.
