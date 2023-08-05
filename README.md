@@ -27,7 +27,7 @@ You will need the following items to run the sample:
 
 # Instructions
 ## Register an application
-1. Follow [these instructions](/azure/active-directory/develop/quickstart-register-app) and use the values below:
+1. Follow [these instructions](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) and use the values below:
     - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
     - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
 2. Take note of the _Application (client) ID_. Chat Copilot will use this ID for authentication.
@@ -54,15 +54,16 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
-
-        ```powershell
-        -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
-
     - (Optional): To set a specific Tenant Id, use the parameter:
 
         ```powershell
         -TenantId {TENANT_ID}
+        ```
+
+    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
+
+        ```powershell
+        -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
         ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
@@ -111,16 +112,16 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
-
-        ```bash
-        --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
-        ```
-        
     - (Optional): To set a specific Tenant Id, use the parameter:
 
         ```bash
         --tenantid {TENANT_ID}
+        ```
+
+    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
+
+        ```bash
+        --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
         ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
