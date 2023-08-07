@@ -66,6 +66,7 @@ $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
 $envFilePath = "$PSScriptRoot/../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
+"REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_AUTHORITY=$Authority" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_CLIENT_ID=$ApplicationClientId" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
