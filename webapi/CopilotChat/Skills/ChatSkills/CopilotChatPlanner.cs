@@ -55,7 +55,7 @@ public class CopilotChatPlanner
     /// Supplemental text to add to the plan goal if PlannerOptions.Type is set to Stepwise.
     /// Helps the planner know when to bail out to request additional user input.
     /// </summary>
-    private const string STEPWISE_PLANNER_SUPPLEMENT = "If you need more information to fulfill this request, return with a requet for additional user input.";
+    private const string STEPWISE_PLANNER_SUPPLEMENT = "If you need more information to fulfill this request, return with a request for additional user input.";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
@@ -105,12 +105,19 @@ public class CopilotChatPlanner
         return this._plannerOptions!.MissingFunctionError.AllowRetries ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
     }
 
+    /// <summary>
+    /// Run the stepwise planner.
+    /// </summary>
+    /// <param name="goal">The goal containing user intent and ask context.</param>
+    /// <param name="context">The context to run the plan in.</param>
     public async Task<SKContext> RunStepwisePlannerAsync(string goal, SKContext context)
     {
-        var config = new Microsoft.SemanticKernel.Planning.Stepwise.StepwisePlannerConfig();
-        config.MaxTokens = this._plannerOptions?.StepwisePlannerConfig.MaxTokens ?? 2048;
-        config.MaxIterations = this._plannerOptions?.StepwisePlannerConfig.MaxIterations ?? 10;
-        config.MinIterationTimeMs = this._plannerOptions?.StepwisePlannerConfig.MinIterationTimeMs ?? 1500;
+        var config = new Microsoft.SemanticKernel.Planning.Stepwise.StepwisePlannerConfig()
+        {
+            MaxTokens = this._plannerOptions?.StepwisePlannerConfig.MaxTokens ?? 2048,
+            MaxIterations = this._plannerOptions?.StepwisePlannerConfig.MaxIterations ?? 15,
+            MinIterationTimeMs = this._plannerOptions?.StepwisePlannerConfig.MinIterationTimeMs ?? 1500
+        };
 
         Stopwatch sw = new();
         sw.Start();
@@ -121,8 +128,6 @@ public class CopilotChatPlanner
                 this.Kernel,
                 config
             ).CreatePlan(string.Join("\n", goal, STEPWISE_PLANNER_SUPPLEMENT));
-
-            // TODO: only use result if INPUT is available. Otherwise, return last thought from plan.
             var result = await plan.InvokeAsync(context);
 
             sw.Stop();

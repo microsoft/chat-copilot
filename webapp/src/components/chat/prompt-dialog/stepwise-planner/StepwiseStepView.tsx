@@ -8,6 +8,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { StepwiseStep } from '../../../../libs/models/StepwiseStep';
+import { formatParagraphTextContent } from '../../../utils/TextUtils';
 
 const useClasses = makeStyles({
     root: {
@@ -26,10 +27,6 @@ const useClasses = makeStyles({
             paddingLeft: tokens.spacingHorizontalNone,
         },
     },
-    tab: {
-        display: 'flex',
-        marginLeft: tokens.spacingHorizontalL,
-    },
 });
 
 interface IStepwiseStepViewProps {
@@ -45,30 +42,37 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
 
     if (step.thought) {
         const thoughtRegEx = /\[(THOUGHT|QUESTION|ACTION)](\s*(.*))*/g;
-        const match = step.thought.match(thoughtRegEx);
-        let thought = match?.[0].replace(/\\n/g, ' ') ?? `[THOUGHT] ${step.thought}`;
-        const sentences = thought.split('. ');
-        if (sentences.length > 1) {
-            thought = sentences.length > 1 ? sentences[0] + '.' : thought;
-            details = sentences.slice(1).join('. ');
+        let thought = step.thought.match(thoughtRegEx)?.[0] ?? `[THOUGHT] ${step.thought}`;
+
+        // Only show the first sentence of the thought in the header.
+        // Show the rest as details.
+        const firstSentenceIndex = thought.indexOf('. ');
+        if (firstSentenceIndex > 0) {
+            details = thought.substring(firstSentenceIndex + 2);
+            thought = thought.substring(0, firstSentenceIndex + 1);
         }
+
         header = thought;
     }
 
     if (step.action) {
         header = `[ACTION] ${step.action}`;
+
+        // Format the action variables and observation.
         const variables = step.action_variables
             ? 'Action variables: \n' +
               Object.entries(step.action_variables)
                   .map(([key, value]) => `\r${key}: ${value}`)
                   .join('\n')
             : '';
+
+        // Remove the [ACTION] tag from the thought and remove any code block formatting.
         details = step.thought.replace('[ACTION]', '').replaceAll('```', '') + '\n';
+
+        // Parse any unicode quotation characters in the observation.
         const observation = step.observation?.replaceAll(/\\{0,2}u0022/g, '"');
         details = details.concat(variables, `\nObservation: \n\r${observation}`);
     }
-
-    details = details?.replaceAll('\r\n', '\n\r');
 
     return (
         <div className={classes.root}>
@@ -79,20 +83,7 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
                         <AccordionHeader expandIconPosition="end" className={classes.header}>
                             <Body1>{header}</Body1>
                         </AccordionHeader>
-                        <AccordionPanel>
-                            {
-                                <Body1>
-                                    {details.split('\n').map((paragraph, idx) => (
-                                        <p
-                                            key={`step-details-${idx}`}
-                                            className={paragraph.includes('\r') ? classes.tab : undefined}
-                                        >
-                                            {paragraph}
-                                        </p>
-                                    ))}
-                                </Body1>
-                            }
-                        </AccordionPanel>
+                        <AccordionPanel>{formatParagraphTextContent(details)}</AccordionPanel>
                     </>
                 ) : (
                     <Body1>{header}</Body1>

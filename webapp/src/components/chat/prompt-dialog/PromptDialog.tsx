@@ -19,10 +19,12 @@ import {
 } from '@fluentui/react-components';
 import { Info16Regular } from '@fluentui/react-icons';
 import React from 'react';
+import { Constants } from '../../../Constants';
 import { BotResponsePrompt, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { useDialogClasses } from '../../../styles';
 import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
+import { formatParagraphTextContent } from '../../utils/TextUtils';
 import { StepwiseThoughtProcess } from './stepwise-planner/StepwiseThoughtProcess';
 
 const useClasses = makeStyles({
@@ -56,17 +58,14 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
         promptDetails = prompt.split('\n').map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>);
     } else {
         promptDetails = Object.entries(prompt).map(([key, value]) => {
-            const thoughtProcessRegEx = /Result not found, review _stepsTaken to see what happened\.\s+(\[{.*}])/g;
-            const isStepwiseThoughtProcess = (value as string).match(thoughtProcessRegEx) !== null;
+            const isStepwiseThoughtProcess = Constants.STEPWISE_RESULT_NOT_FOUND_REGEX.test(value as string);
             return value ? (
                 <div className={classes.prompt} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
                     {isStepwiseThoughtProcess ? (
                         <StepwiseThoughtProcess stepwiseResult={value as string} />
                     ) : (
-                        (value as string)
-                            .split('\n')
-                            .map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>)
+                        formatParagraphTextContent(value as string)
                     )}
                 </div>
             ) : null;

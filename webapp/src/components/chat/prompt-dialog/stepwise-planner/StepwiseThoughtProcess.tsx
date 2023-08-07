@@ -1,4 +1,5 @@
 import { Accordion, Body1, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
+import { Constants } from '../../../../Constants';
 import { StepwiseStep } from '../../../../libs/models/StepwiseStep';
 import { StepwiseStepView } from './StepwiseStepView';
 
@@ -20,8 +21,7 @@ interface IStepwiseThoughtProcessProps {
 export const StepwiseThoughtProcess: React.FC<IStepwiseThoughtProcessProps> = ({ stepwiseResult }) => {
     const classes = useClasses();
 
-    const thoughtProcessRegEx = /Result not found, review _stepsTaken to see what happened\.\s+(\[{.*}])/g;
-    const matches = stepwiseResult.matchAll(thoughtProcessRegEx);
+    const matches = stepwiseResult.matchAll(Constants.STEPWISE_RESULT_NOT_FOUND_REGEX);
     const matchGroups = Array.from(matches);
     if (matchGroups.length > 0) {
         const steps = JSON.parse(matchGroups[0][1]) as StepwiseStep[];
@@ -36,5 +36,6 @@ export const StepwiseThoughtProcess: React.FC<IStepwiseThoughtProcessProps> = ({
             </div>
         );
     }
+
     return;
 };
