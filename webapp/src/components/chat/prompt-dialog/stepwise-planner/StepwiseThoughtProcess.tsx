@@ -24,9 +24,10 @@ export const StepwiseThoughtProcess: React.FC<IStepwiseThoughtProcessProps> = ({
     const matches = stepwiseResult.matchAll(Constants.STEPWISE_RESULT_NOT_FOUND_REGEX);
     const matchGroups = Array.from(matches);
     if (matchGroups.length > 0) {
-        const steps = JSON.parse(matchGroups[0][1]) as StepwiseStep[];
+        const steps = JSON.parse(matchGroups[0][2]) as StepwiseStep[];
         return (
             <div className={mergeClasses(classes.root, classes.header)}>
+                <Body1>{matchGroups[0][1]}</Body1>
                 <Body1>[THOUGHT PROCESS]</Body1>
                 <Accordion collapsible multiple className={classes.root}>
                     {steps.map((step, index) => {
