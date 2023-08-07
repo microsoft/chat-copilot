@@ -5,6 +5,7 @@ import {
     createDarkTheme,
     createLightTheme,
     makeStyles,
+    shorthands,
     themeToTokensObject,
     tokens,
 } from '@fluentui/react-components';
@@ -65,6 +66,11 @@ export const SharedStyles: Record<string, GriffelStyle> = {
     scroll: {
         height: '100%',
         ...ScrollBarStyles,
+    },
+    overflowEllipsis: {
+        ...shorthands.overflow('hidden'),
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
     },
 };
 

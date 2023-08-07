@@ -31,17 +31,14 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ messages, onGetRespons
 
     return (
         <div className={classes.root}>
-            {messages
-                .slice()
-                .sort((a, b) => a.timestamp - b.timestamp)
-                .map((message, index) => (
-                    <ChatHistoryItem
-                        key={message.timestamp}
-                        message={message}
-                        getResponse={onGetResponse}
-                        messageIndex={index}
-                    />
-                ))}
+            {messages.map((message, index) => (
+                <ChatHistoryItem
+                    key={message.timestamp}
+                    message={message}
+                    getResponse={onGetResponse}
+                    messageIndex={index}
+                />
+            ))}
         </div>
     );
 };
