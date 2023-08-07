@@ -32,4 +32,3 @@ public class ServiceOptionsResponse
     [JsonPropertyName("memoriesStore")]
     public MemoriesStoreOptionResponse MemoriesStore { get; set; } = new MemoriesStoreOptionResponse();
 }
-

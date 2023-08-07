@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Orchestration;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
@@ -61,6 +62,18 @@ public static class CopilotChatSemanticKernelExtensions
             nameof(ChatSkill));
 
         return kernel;
+    }
+
+    /// <summary>
+    /// Propegate exception from within semantic function
+    /// </summary>
+    public static void ThrowIfFailed(this SKContext context)
+    {
+        if (context.ErrorOccurred)
+        {
+            context.Logger.LogError(context.LastException, "{0}", context.LastException?.Message);
+            throw context.LastException!;
+        }
     }
 
     /// <summary>

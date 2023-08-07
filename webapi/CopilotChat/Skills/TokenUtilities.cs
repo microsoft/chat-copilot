@@ -66,7 +66,7 @@ public static class TokenUtilities
     /// <returns> true if token usage is found in result context; otherwise, false.</returns>
     internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, string? functionName = null)
     {
-        var functionKey = GetFunctionKey(chatContext.Log, functionName);
+        var functionKey = GetFunctionKey(chatContext.Logger, functionName);
         if (functionKey == null)
         {
             return;
@@ -74,7 +74,7 @@ public static class TokenUtilities
 
         if (result.ModelResults == null || result.ModelResults.Count == 0)
         {
-            chatContext.Log.LogError("Unable to determine token usage for {0}", functionKey);
+            chatContext.Logger.LogError("Unable to determine token usage for {0}", functionKey);
             return;
         }
 

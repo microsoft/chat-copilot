@@ -15,10 +15,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
+using SemanticKernel.Service.CopilotChat.Extensions;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
@@ -150,12 +150,7 @@ public class ChatSkill
         // Get token usage from ChatCompletion result and add to context
         TokenUtilities.GetFunctionTokenUsage(result, context, "SystemIntentExtraction");
 
-        if (result.ErrorOccurred)
-        {
-            context.Log.LogError("{0}: {1}", result.LastErrorDescription, result.LastException);
-            context.Fail(result.LastErrorDescription);
-            return string.Empty;
-        }
+        result.ThrowIfFailed();
 
         return $"User intent: {result}";
     }
@@ -196,12 +191,7 @@ public class ChatSkill
         // Get token usage from ChatCompletion result and add to context
         TokenUtilities.GetFunctionTokenUsage(result, context, "SystemAudienceExtraction");
 
-        if (result.ErrorOccurred)
-        {
-            context.Log.LogError("{0}: {1}", result.LastErrorDescription, result.LastException);
-            context.Fail(result.LastErrorDescription);
-            return string.Empty;
-        }
+        result.ThrowIfFailed();
 
         return $"List of participants: {result}";
     }
@@ -220,7 +210,7 @@ public class ChatSkill
 
         var remainingToken = tokenLimit;
 
-        string historyText = "";
+        string historyText = string.Empty;
         foreach (var chatMessage in sortedMessages)
         {
             var formattedMessage = chatMessage.ToFormattedString();
@@ -308,10 +298,10 @@ public class ChatSkill
             chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, cancellationToken);
         }
 
-        if (chatMessage == null)
+        if (chatMessage == null) // $$$
         {
-            context.Fail(chatContext.LastErrorDescription);
-            return context;
+            context.Logger.LogError(context.LastException, "{0}", context.LastException?.Message);
+            throw context.LastException!;
         }
         context.Variables.Update(chatMessage.Content);
 
@@ -321,7 +311,7 @@ public class ChatSkill
         }
         else
         {
-            context.Log.LogWarning("ChatSkill token usage unknown. Ensure token management has been implemented correctly.");
+            context.Logger.LogWarning("ChatSkill token usage unknown. Ensure token management has been implemented correctly.");
         }
 
         return context;
@@ -389,19 +379,12 @@ public class ChatSkill
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting semantic and document memories");
         var chatMemoriesTokenLimit = (int)(remainingToken * this._promptOptions.MemoriesResponseContextWeight);
         var documentContextTokenLimit = (int)(remainingToken * this._promptOptions.DocumentContextWeight);
-        string[] tasks;
-        try
-        {
-            tasks = await Task.WhenAll<string>(
-                this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._kernel.Memory),
-                this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory)
-            );
-        }
-        catch (SKException ex)
-        {
-            chatContext.Fail(ex.Message, ex);
-            return null;
-        }
+
+        string[] tasks = await Task.WhenAll<string>(
+            this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._kernel.Memory),
+            this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory)
+        );
+
         var chatMemories = tasks[0];
         var documentMemories = tasks[1];
 
@@ -436,7 +419,7 @@ public class ChatSkill
         var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, planResult, chatHistory, systemChatContinuation);
 
         // Calculate token usage of prompt template
-        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Log, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
+        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Logger, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 
         if (chatContext.ErrorOccurred)
         {
@@ -480,17 +463,14 @@ public class ChatSkill
         var audience = await this.ExtractAudienceAsync(audienceContext);
 
         // Copy token usage into original chat context
-        var functionKey = TokenUtilities.GetFunctionKey(context.Log, "SystemAudienceExtraction")!;
+        var functionKey = TokenUtilities.GetFunctionKey(context.Logger, "SystemAudienceExtraction")!;
         if (audienceContext.Variables.TryGetValue(functionKey, out string? tokenUsage))
         {
             context.Variables.Set(functionKey, tokenUsage);
         }
 
         // Propagate the error
-        if (audienceContext.ErrorOccurred)
-        {
-            context.Fail(audienceContext.LastErrorDescription);
-        }
+        audienceContext.ThrowIfFailed();
 
         return audience;
     }
@@ -509,17 +489,13 @@ public class ChatSkill
             userIntent = await this.ExtractUserIntentAsync(intentContext);
 
             // Copy token usage into original chat context
-            var functionKey = TokenUtilities.GetFunctionKey(context.Log, "SystemIntentExtraction")!;
+            var functionKey = TokenUtilities.GetFunctionKey(context.Logger, "SystemIntentExtraction")!;
             if (intentContext.Variables.TryGetValue(functionKey!, out string? tokenUsage))
             {
                 context.Variables.Set(functionKey!, tokenUsage);
             }
 
-            // Propagate the error
-            if (intentContext.ErrorOccurred)
-            {
-                context.Fail(intentContext.LastErrorDescription);
-            }
+            intentContext.ThrowIfFailed();
         }
 
         return userIntent;
@@ -534,7 +510,7 @@ public class ChatSkill
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     private Task<string> QueryChatMemoriesAsync(SKContext context, string userIntent, int tokenLimit)
     {
-        return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context["chatId"], tokenLimit, this._kernel.Memory);
+        return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context.Variables["chatId"], tokenLimit, this._kernel.Memory);
     }
 
     /// <summary>
@@ -546,7 +522,7 @@ public class ChatSkill
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     private Task<string> QueryDocumentsAsync(SKContext context, string userIntent, int tokenLimit)
     {
-        return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context["chatId"], tokenLimit, this._kernel.Memory);
+        return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context.Variables["chatId"], tokenLimit, this._kernel.Memory);
     }
 
     /// <summary>
@@ -564,10 +540,7 @@ public class ChatSkill
         var plan = await this._externalInformationSkill.AcquireExternalInformationAsync(userIntent, planContext);
 
         // Propagate the error
-        if (planContext.ErrorOccurred)
-        {
-            context.Fail(planContext.LastErrorDescription);
-        }
+        planContext.ThrowIfFailed();
 
         return plan;
     }
@@ -593,7 +566,7 @@ public class ChatSkill
             userName,
             chatId,
             message,
-            "",
+            string.Empty,
             ChatMessage.AuthorRoles.User,
             // Default to a standard message if the `type` is not recognized
             Enum.TryParse(type, out ChatMessage.ChatMessageType typeAsEnum) && Enum.IsDefined(typeof(ChatMessage.ChatMessageType), typeAsEnum)

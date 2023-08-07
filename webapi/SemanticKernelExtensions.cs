@@ -83,7 +83,7 @@ internal static class SemanticKernelExtensions
                 }
                 catch (TemplateException e)
                 {
-                    kernel.Log.LogError("Could not load skill from {Directory}: {Message}", subDir, e.Message);
+                    kernel.Logger.LogError("Could not load skill from {Directory}: {Message}", subDir, e.Message);
                 }
             }
         }

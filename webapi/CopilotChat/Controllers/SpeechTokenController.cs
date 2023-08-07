@@ -71,6 +71,6 @@ public class SpeechTokenController : ControllerBase
             return new TokenResult { Token = token, ResponseCode = response.StatusCode };
         }
 
-        return new TokenResult { Token = "", ResponseCode = HttpStatusCode.NotFound };
+        return new TokenResult { ResponseCode = HttpStatusCode.NotFound };
     }
 }
