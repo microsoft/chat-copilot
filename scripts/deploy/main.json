@@ -380,7 +380,7 @@
             "value": "Warning"
           },
           {
-            "name": "Logging:LogLevel:CopilotChat",
+            "name": "Logging:LogLevel:CopilotChat.WebApi",
             "value": "Warning"
           },
           {
