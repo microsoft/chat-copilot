@@ -1,6 +1,6 @@
 # Chat Copilot Sample Application
 
-This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two applications: a front-end web UI app and a back-end API server. 
+This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two components: a frontend [React web app](./webapp/) and a backend [.NET web API service](./webapi/). 
 
 These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](https://github.com/microsoft/chat-copilot/blob/main/deploy/README.md).
 
@@ -13,27 +13,28 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 # Requirements
 You will need the following items to run the sample:
 
-**Frontend App -** The web UI application will run on Azure.
-
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup script)_
+- [Node.js](https://nodejs.org/en/download) _(via Setup script)_
+- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup script)_
 - [Azure account](https://azure.microsoft.com/free)
 - [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
-- [Registered application](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application)
-    - Under `Supported account types`: Select "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
-    - Under `Redirect URI (optional)`: Select `Single-page application (SPA)` and set the URI to `http://localhost:3000`.
-- [Application (client) ID](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application)
+- AI Service
 
-**Backend API -** Requirements depend on your AI Service choice.
+| AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
+| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
-| AI Service   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed model](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) (e.g., `http://contoso.openai.azure.com`)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
-| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+# Instructions
+## Register an application
+1. Follow [these instructions](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) and use the values below:
+    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
+2. Take note of the `Application (client) ID`. Chat Copilot will use this ID for authentication.
 
-
-# Setup Instructions
 ## Windows
 1. Open PowerShell as an administrator.
-2. Configure environment.
+2. Setup your environment.
 
     ```powershell
     cd <path to chat-copilot>\scripts\
@@ -44,7 +45,7 @@ You will need the following items to run the sample:
 
 3. Configure Chat Copilot.
   
-      ```powershell
+    ```powershell
     .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID} 
     ```
 
@@ -53,10 +54,16 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-    - > (Optional): To set a specific Tenant Id, use the parameter:
+    - (Optional): To set a specific Tenant Id, use the parameter:
 
         ```powershell
         -TenantId {TENANT_ID}
+        ```
+
+    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
+
+        ```powershell
+        -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
         ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
@@ -65,9 +72,9 @@ You will need the following items to run the sample:
     .\Start.ps1 
     ```
 
-    > **IMPORTANT:** Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
-    
-    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
+    It may take a few minutes for Yarn packages to install on the first run.
+
+    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
 
 ## Linux/macOS
 1. Open Bash as an administrator.
@@ -97,7 +104,7 @@ You will need the following items to run the sample:
 3. Configure Chat Copilot.
 
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID} 
+    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
@@ -105,10 +112,16 @@ You will need the following items to run the sample:
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
     - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
 
-    - > (Optional): To set a specific Tenant Id, use the parameter:
+    - (Optional): To set a specific Tenant Id, use the parameter:
 
         ```bash
         --tenantid {TENANT_ID}
+        ```
+
+    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
+
+        ```bash
+        --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
         ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
@@ -117,10 +130,10 @@ You will need the following items to run the sample:
     ./Start.sh
     ```
 
-    > **IMPORTANT:** Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+    It may take a few minutes for Yarn packages to install on the first run.
 
-    > **NOTE:** It may take a few minutes for Yarn packages to install on the first run.
-    
+    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+
 ## (Optional) Enable backend authorization via Azure AD
 
 1. Ensure you created the required application registration mentioned in [Start the WebApp FrontEnd application](#start-the-webapp-frontend-application)
@@ -140,7 +153,7 @@ You will need the following items to run the sample:
       1. This will generate an `api://` URI with a generated for you
 
       2. Click *Save* to store the generated URI
-      
+
    3. Add a scope for `access_as_user`
       1. Click *Add scope*
 
@@ -176,7 +189,7 @@ You will need the following items to run the sample:
    1. Open *appsettings.json*
 
    2. Set the value of `Authorization:AzureAd:Audience` to your application ID URI
-   
+
 # Troubleshooting
 
 1. **_Issue:_** Unable to load chats. 
@@ -184,7 +197,7 @@ You will need the following items to run the sample:
     _Details_: interaction_in_progress: Interaction is currently in progress._ 
 
     _Explanation_: The WebApp can display this error when the application is configured for a different AAD tenant from the browser, (e.g., personal/MSA account vs work/school account). 
-    
+
     _Solution_: Either use a private/incognito browser tab or clear your browser credentials/cookies. Confirm you are logged in with the same account used to register the application.
 
 2. **_Issue:_**: Challenges using text completion models, such as `text-davinci-003`
@@ -197,9 +210,9 @@ You will need the following items to run the sample:
     ![Cert-Issue](https://github.com/microsoft/chat-copilot/assets/64985898/e9072af1-e43c-472d-bebc-d0082d0c9180)
 
     _Explanation_: Your browser may be blocking the frontend access to the backend while waiting for your permission to connect. 
-    
+
     _Solution_:
-    
+
     1. Confirm the backend service is running. Open a web browser and navigate to `https://localhost:40443/healthz`
        - You should see a confirmation message: `Healthy`
        - If your browser asks you to acknowledge the risks of visiting an insecure website, you must acknowledge this before the frontend can connect to the backend server. 
