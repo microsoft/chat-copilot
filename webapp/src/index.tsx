@@ -30,9 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const missingEnvVariables = getMissingEnvVariables();
         const validEnvFile = missingEnvVariables.length === 0;
+        const shouldUseMsal = validEnvFile && AuthHelper.IsAuthAAD;
 
         let msalInstance: IPublicClientApplication | null = null;
-        if (validEnvFile) {
+        if (shouldUseMsal) {
             msalInstance = new PublicClientApplication(AuthHelper.msalConfig);
 
             void msalInstance.handleRedirectPromise().then((response) => {
@@ -44,18 +45,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         root.render(
             <React.StrictMode>
-                {!validEnvFile && <MissingEnvVariablesError missingVariables={missingEnvVariables} />}
-                {validEnvFile && (
+                {validEnvFile ? (
                     <ReduxProvider store={store}>
-                        {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                        <MsalProvider instance={msalInstance!}>
-                            <FluentProvider className="app-container" theme={semanticKernelLightTheme}>
-                                <App />
-                            </FluentProvider>
-                        </MsalProvider>
+                        {/* eslint-disable @typescript-eslint/no-non-null-assertion */}
+                        {shouldUseMsal ? (
+                            <MsalProvider instance={msalInstance!}>
+                                <AppWithTheme />
+                            </MsalProvider>
+                        ) : (
+                            <AppWithTheme />
+                        )}
+                        {/* eslint-enable @typescript-eslint/no-non-null-assertion */}
                     </ReduxProvider>
+                ) : (
+                    <MissingEnvVariablesError missingVariables={missingEnvVariables} />
                 )}
             </React.StrictMode>,
         );
     }
 });
+
+const AppWithTheme = () => {
+    return (
+        <FluentProvider className="app-container" theme={semanticKernelLightTheme}>
+            <App />
+        </FluentProvider>
+    );
+};

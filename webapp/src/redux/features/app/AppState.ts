@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { AuthHelper, DefaultActiveUserInfo } from '../../../libs/auth/AuthHelper';
 import { AlertType } from '../../../libs/models/AlertType';
 import { ServiceOptions } from '../../../libs/models/ServiceOptions';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
@@ -82,6 +83,8 @@ export const Features = {
     [FeatureKeys.MultiUserChat]: {
         enabled: false,
         label: 'Live Chat Session Sharing',
+        description: 'Enable multi-user chat sessions. Not available when authorization is disabled.',
+        inactive: !AuthHelper.IsAuthAAD,
     },
     [FeatureKeys.RLHF]: {
         enabled: false,
@@ -130,6 +133,7 @@ export const initialState: AppState = {
             type: AlertType.Info,
         },
     ],
+    activeUserInfo: AuthHelper.IsAuthAAD ? undefined : DefaultActiveUserInfo,
     tokenUsage: {},
     features: Features,
     settings: Settings,

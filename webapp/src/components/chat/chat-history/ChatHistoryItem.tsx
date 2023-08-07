@@ -3,6 +3,7 @@
 import { Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
 import { ThumbDislike24Filled, ThumbLike16Filled } from '@fluentui/react-icons';
 import React from 'react';
+import { DefaultChatUser } from '../../../libs/auth/AuthHelper';
 import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { useAppSelector } from '../../../redux/app/hooks';
@@ -84,9 +85,12 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
-    const isMe = message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id;
+    const isDefaultUser = message.userId === DefaultChatUser.id;
+    const isMe = isDefaultUser || (message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id);
     const isBot = message.authorRole === AuthorRoles.Bot;
-    const user = chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
+    const user = isDefaultUser
+        ? DefaultChatUser
+        : chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
     const fullName = user?.fullName ?? message.userName;
 
     const avatar = isBot
