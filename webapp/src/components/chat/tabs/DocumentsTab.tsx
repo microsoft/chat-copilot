@@ -227,8 +227,10 @@ function useTable(resources: ChatMemorySource[]) {
             ),
             renderCell: (item) => (
                 <TableCell key={item.id}>
-                    <TableCellLayout media={item.name.icon}>
-                        <a href={item.name.url}>{item.name.label}</a>
+                    <TableCellLayout media={item.name.icon} truncate>
+                        <a href={item.name.url} title={item.name.label}>
+                            {item.name.label}
+                        </a>
                     </TableCellLayout>
                 </TableCell>
             ),
