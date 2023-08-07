@@ -22,9 +22,9 @@ export const StepwiseThoughtProcess: React.FC<IStepwiseThoughtProcessProps> = ({
 
     const thoughtProcessRegEx = /Result not found, review _stepsTaken to see what happened\.\s+(\[{.*}])/g;
     const matches = stepwiseResult.matchAll(thoughtProcessRegEx);
-    const match = Array.from(matches);
-    if (match.length > 0) {
-        const steps = JSON.parse(match[0][1]) as StepwiseStep[];
+    const matchGroups = Array.from(matches);
+    if (matchGroups.length > 0) {
+        const steps = JSON.parse(matchGroups[0][1]) as StepwiseStep[];
         return (
             <div className={mergeClasses(classes.root, classes.header)}>
                 <Body1>[THOUGHT PROCESS]</Body1>

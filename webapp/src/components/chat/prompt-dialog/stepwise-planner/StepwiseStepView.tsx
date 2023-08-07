@@ -15,7 +15,7 @@ const useClasses = makeStyles({
         ...shorthands.gap(tokens.spacingHorizontalM),
     },
     accordionItem: {
-        width: '100%',
+        width: '99%',
     },
     header: {
         width: '100%',
@@ -25,6 +25,10 @@ const useClasses = makeStyles({
             minHeight: '-webkit-fill-available',
             paddingLeft: tokens.spacingHorizontalNone,
         },
+    },
+    tab: {
+        display: 'flex',
+        marginLeft: tokens.spacingHorizontalL,
     },
 });
 
@@ -39,21 +43,10 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
     let header = `[OBSERVATION] ${step.observation}`;
     let details: string | undefined;
 
-    if (step.action) {
-        header = `[ACTION] ${step.action}`;
-        details = step.action_variables
-            ? 'Action variables: \n' +
-              Object.entries(step.action_variables)
-                  .map(([key, value]) => `${key}: ${value}`)
-                  .join('\n')
-            : '';
-        const observation = step.observation?.replace(/[\\r]/g, '').replace(/\\{1,2}u0022/g, '"');
-        details = details.concat(`\nObservation: \n${observation}`);
-    }
-
     if (step.thought) {
-        const thoughtRegEx = /\[(THOUGHT|QUESTION|ACTION)]\s*(.*)/g;
-        let thought = step.thought.match(thoughtRegEx)?.[0].replace(/\\n/g, ' ') ?? `[THOUGHT] ${step.thought}`;
+        const thoughtRegEx = /\[(THOUGHT|QUESTION|ACTION)](\s*(.*))*/g;
+        const match = step.thought.match(thoughtRegEx);
+        let thought = match?.[0].replace(/\\n/g, ' ') ?? `[THOUGHT] ${step.thought}`;
         const sentences = thought.split('. ');
         if (sentences.length > 1) {
             thought = sentences.length > 1 ? sentences[0] + '.' : thought;
@@ -61,6 +54,21 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
         }
         header = thought;
     }
+
+    if (step.action) {
+        header = `[ACTION] ${step.action}`;
+        const variables = step.action_variables
+            ? 'Action variables: \n' +
+              Object.entries(step.action_variables)
+                  .map(([key, value]) => `\r${key}: ${value}`)
+                  .join('\n')
+            : '';
+        details = step.thought.replace('[ACTION]', '').replaceAll('```', '') + '\n';
+        const observation = step.observation?.replaceAll(/\\{0,2}u0022/g, '"');
+        details = details.concat(variables, `\nObservation: \n\r${observation}`);
+    }
+
+    details = details?.replaceAll('\r\n', '\n\r');
 
     return (
         <div className={classes.root}>
@@ -72,11 +80,18 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
                             <Body1>{header}</Body1>
                         </AccordionHeader>
                         <AccordionPanel>
-                            <Body1>
-                                {details.split('\n').map((paragraph, idx) => (
-                                    <p key={`step-details-${idx}`}>{paragraph}</p>
-                                ))}
-                            </Body1>
+                            {
+                                <Body1>
+                                    {details.split('\n').map((paragraph, idx) => (
+                                        <p
+                                            key={`step-details-${idx}`}
+                                            className={paragraph.includes('\r') ? classes.tab : undefined}
+                                        >
+                                            {paragraph}
+                                        </p>
+                                    ))}
+                                </Body1>
+                            }
                         </AccordionPanel>
                     </>
                 ) : (
