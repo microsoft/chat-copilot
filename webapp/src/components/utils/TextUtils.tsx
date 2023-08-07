@@ -59,7 +59,7 @@ export function createCommandLink(command: string) {
 }
 
 /*
- *
+ * Function to format chat text content to remove any html tags from it.
  */
 export function formatChatTextContent(messageContent: string) {
     const contentAsString = messageContent
@@ -69,6 +69,9 @@ export function formatChatTextContent(messageContent: string) {
     return contentAsString;
 }
 
+/*
+ * Formats text containing `\n` or `\r` into paragraphs.
+ */
 export function formatParagraphTextContent(messageContent: string) {
     messageContent = messageContent.replaceAll('\r\n', '\n\r');
     return (
