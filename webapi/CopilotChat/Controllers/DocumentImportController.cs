@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -14,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Text;
+using SemanticKernel.Service.Auth;
 using SemanticKernel.Service.CopilotChat.Hubs;
 using SemanticKernel.Service.CopilotChat.Models;
 using SemanticKernel.Service.CopilotChat.Options;
@@ -78,6 +78,7 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
+    private readonly IAuthInfo _authInfo;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -90,7 +91,8 @@ public class DocumentImportController : ControllerBase
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
-        IOcrEngine ocrEngine)
+        IOcrEngine ocrEngine,
+        IAuthInfo authInfo)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
@@ -100,12 +102,12 @@ public class DocumentImportController : ControllerBase
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
         this._ocrEngine = ocrEngine;
+        this._authInfo = authInfo;
     }
 
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
     [Route("importDocuments")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -155,7 +157,7 @@ public class DocumentImportController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
-            var userId = documentImportForm.UserId;
+            var userId = this._authInfo.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
@@ -165,7 +167,7 @@ public class DocumentImportController : ControllerBase
         await messageRelayHubContext.Clients.All.SendAsync(
             GlobalDocumentUploadedClientCall,
             documentMessageContent.ToFormattedStringNamesOnly(),
-            documentImportForm.UserName
+            this._authInfo.Name
         );
 
         return this.Ok("Documents imported successfully to global scope.");
@@ -232,7 +234,7 @@ public class DocumentImportController : ControllerBase
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
         if (documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Chat
-                && !(await this.UserHasAccessToChatAsync(documentImportForm.UserId, documentImportForm.ChatId)))
+                && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, documentImportForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -294,7 +296,10 @@ public class DocumentImportController : ControllerBase
     /// <param name="formFile">The form file.</param>
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns>Import result.</returns>
-    private async Task<ImportResult> ImportDocumentHelperAsync(IKernel kernel, IFormFile formFile, DocumentImportForm documentImportForm)
+    private async Task<ImportResult> ImportDocumentHelperAsync(
+        IKernel kernel,
+        IFormFile formFile,
+        DocumentImportForm documentImportForm)
     {
         var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
         var documentContent = string.Empty;
@@ -366,7 +371,7 @@ public class DocumentImportController : ControllerBase
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
+        var userId = this._authInfo.UserId;
 
         return new MemorySource(
             chatId,
@@ -409,8 +414,8 @@ public class DocumentImportController : ControllerBase
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
-        var userName = documentImportForm.UserName;
+        var userId = this._authInfo.UserId;
+        var userName = this._authInfo.Name;
 
         var chatMessage = ChatMessage.CreateDocumentMessage(
             userId,

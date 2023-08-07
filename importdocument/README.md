@@ -26,7 +26,6 @@ Importing documents enables Copilot Chat to have up-to-date knowledge of specifi
    `ClientId` is the GUID copied from the **Application (client) ID** from your app registration in the Azure Portal,
    `RedirectUri` is the Redirect URI also from the app registration in the Azure Portal, and
    `ServiceUri` is the address the web api is running at.
-   `ApiKey` is the API key to the service if there is one.
 
 3. Change directory to this folder root.
 4. **Run** the following command to import a document to the app under the global document collection where

@@ -75,7 +75,7 @@ export const useChat = () => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
             await chatService
-                .createChatAsync(userId, chatTitle, accessToken)
+                .createChatAsync(chatTitle, accessToken)
                 .then((result: ICreateChatSessionResponse) => {
                     const newChat: ChatState = {
                         id: result.chatSession.id,
@@ -103,14 +103,6 @@ export const useChat = () => {
         const ask = {
             input: value,
             variables: [
-                {
-                    key: 'userId',
-                    value: userId,
-                },
-                {
-                    key: 'userName',
-                    value: fullName,
-                },
                 {
                     key: 'chatId',
                     value: chatId,
@@ -150,7 +142,7 @@ export const useChat = () => {
     const loadChats = async () => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            const chatSessions = await chatService.getAllChatsAsync(userId, accessToken);
+            const chatSessions = await chatService.getAllChatsAsync(accessToken);
 
             if (chatSessions.length > 0) {
                 const loadedConversations: Conversations = {};
@@ -203,7 +195,7 @@ export const useChat = () => {
     const uploadBot = async (bot: Bot) => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         botService
-            .uploadAsync(bot, userId, accessToken)
+            .uploadAsync(bot, accessToken)
             .then(async (chatSession: IChatSession) => {
                 const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
@@ -260,8 +252,6 @@ export const useChat = () => {
     const importDocument = async (chatId: string, files: File[]) => {
         try {
             await documentImportService.importDocumentAsync(
-                userId,
-                fullName,
                 chatId,
                 files,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
@@ -284,7 +274,7 @@ export const useChat = () => {
     const joinChat = async (chatId: string) => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            await chatService.joinChatAsync(userId, chatId, accessToken).then(async (result: IChatSession) => {
+            await chatService.joinChatAsync(chatId, accessToken).then(async (result: IChatSession) => {
                 // Get chat messages
                 const chatMessages = await chatService.getChatMessagesAsync(result.id, 0, 100, accessToken);
 

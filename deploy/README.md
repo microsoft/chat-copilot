@@ -127,8 +127,6 @@ This will get you to the CORS page where you can add your allowed hosts.
 ## Authorization
 
 All of endpoints (except `/healthz`) require authorization to access.
-By default, an API key is required for access which can be found in the `Authorization:ApiKey` configuration setting.
-To authorize requests with the API key, add the API key value to a `x-sk-api-key` header in your requests.
 
 To view your CopilotChat API key:
 

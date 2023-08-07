@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
+using SemanticKernel.Service.Auth;
 using SemanticKernel.Service.CopilotChat.Options;
 using SemanticKernel.Service.CopilotChat.Skills.ChatSkills;
 using SemanticKernel.Service.CopilotChat.Storage;
@@ -20,7 +21,6 @@ namespace SemanticKernel.Service.CopilotChat.Controllers;
 /// Controller for retrieving semantic memory data of chat sessions.
 /// </summary>
 [ApiController]
-[Authorize]
 public class ChatMemoryController : ControllerBase
 {
     private readonly ILogger<ChatMemoryController> _logger;
@@ -55,6 +55,7 @@ public class ChatMemoryController : ControllerBase
     [Route("chatMemory/{chatId:guid}/{memoryName}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
         [FromServices] ISemanticTextMemory semanticTextMemory,
         [FromRoute] string chatId,

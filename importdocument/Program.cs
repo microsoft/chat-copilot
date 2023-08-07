@@ -132,9 +132,7 @@ public static class Program
 
         var userId = userAccount!.HomeAccountId.Identifier;
         var userName = userAccount.Username;
-        using var userIdContent = new StringContent(userId);
         using var userNameContent = new StringContent(userName);
-        formContent.Add(userIdContent, "userId");
         formContent.Add(userNameContent, "userName");
 
         if (chatCollectionId != Guid.Empty)
@@ -187,10 +185,6 @@ public static class Program
         };
         // Add required properties to the request header.
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-        if (!string.IsNullOrEmpty(config.ApiKey))
-        {
-            httpClient.DefaultRequestHeaders.Add("x-sk-api-key", config.ApiKey);
-        }
 
         try
         {

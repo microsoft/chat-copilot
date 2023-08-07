@@ -5,35 +5,28 @@ using System.ComponentModel.DataAnnotations;
 namespace SemanticKernel.Service.Options;
 
 /// <summary>
-/// Configuration options for authorizing to the service.
+/// Configuration options for authenticating to the service.
 /// </summary>
-public class AuthorizationOptions
+public class ChatAuthenticationOptions
 {
-    public const string PropertyName = "Authorization";
+    public const string PropertyName = "Authentication";
 
-    public enum AuthorizationType
+    public enum AuthenticationType
     {
         None,
-        ApiKey,
         AzureAd
     }
 
     /// <summary>
-    /// Type of authorization.
+    /// Type of authentication.
     /// </summary>
     [Required]
-    public AuthorizationType Type { get; set; } = AuthorizationType.None;
+    public AuthenticationType Type { get; set; } = AuthenticationType.None;
 
     /// <summary>
-    /// When <see cref="Type"/> is <see cref="AuthorizationType.ApiKey"/>, this is the API key to use.
+    /// When <see cref="Type"/> is <see cref="AuthenticationType.AzureAd"/>, these are the Azure AD options to use.
     /// </summary>
-    [RequiredOnPropertyValue(nameof(Type), AuthorizationType.ApiKey, notEmptyOrWhitespace: true)]
-    public string ApiKey { get; set; } = string.Empty;
-
-    /// <summary>
-    /// When <see cref="Type"/> is <see cref="AuthorizationType.AzureAd"/>, these are the Azure AD options to use.
-    /// </summary>
-    [RequiredOnPropertyValue(nameof(Type), AuthorizationType.AzureAd)]
+    [RequiredOnPropertyValue(nameof(Type), AuthenticationType.AzureAd)]
     public AzureAdOptions? AzureAd { get; set; }
 
     /// <summary>
