@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using Microsoft.SemanticKernel.Orchestration;
 
@@ -78,7 +79,7 @@ public static class TokenUtilities
             return;
         }
 
-        var tokenUsage = result.ModelResults.First().GetResult<ChatCompletions>().Usage.TotalTokens;
+        var tokenUsage = result.ModelResults.First().GetResult<ChatModelResult>().Usage.TotalTokens;
         chatContext.Variables.Set(functionKey!, tokenUsage.ToString(CultureInfo.InvariantCulture));
     }
 
