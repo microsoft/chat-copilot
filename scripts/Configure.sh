@@ -32,17 +32,17 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    --completion)
+    --completionmodel)
       COMPLETION_MODEL="$2"
       shift
       shift
       ;;
-    --embedding)
+    --embeddingmodel)
       EMBEDDING_MODEL="$2"
       shift
       shift
       ;;
-    --planner)
+    --plannermodel)
       PLANNER_MODEL="$2"
       shift
       shift
