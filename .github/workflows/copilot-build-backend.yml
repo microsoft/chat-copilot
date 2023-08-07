@@ -35,6 +35,11 @@ jobs:
         run: |
           deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\deploy
 
+      - name: Format Copilot Chat WebAPI
+        run: |
+          cd webapi/
+          dotnet format --verify-no-changes --verbosity diagnostic
+
       - name: Set version tag
         id: versiontag
         run: |
