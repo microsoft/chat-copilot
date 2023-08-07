@@ -1,4 +1,4 @@
-name: copilot-build
+name: copilot-build-backend
 
 on:
   workflow_call:
