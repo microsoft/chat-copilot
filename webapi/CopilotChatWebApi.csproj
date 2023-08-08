@@ -5,22 +5,22 @@
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <RootNamespace>SemanticKernel.Service</RootNamespace>
+    <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <UserSecretsId>aspnet-SKWebApi-1581687a-bee4-40ea-a886-ce22524aea88</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" Version="4.0.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.2" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Chroma" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.18.230725.3-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.18.230725.3-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Chroma" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.19.230804.2-preview" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.13.2" />
@@ -51,17 +51,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.Analyzers" Version="4.3.0">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.3.0">
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.3.0">
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
