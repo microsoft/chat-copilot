@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Deploy CopilotChat Azure resources
+Deploy Chat Copilot Azure resources
 #>
 
 param(

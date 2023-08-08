@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Deploy CopilotChat Azure resources.
+# Deploy Chat Copilot Azure resources.
 
 set -e
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -c WEBAPI_CLIENT_ID -ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
+    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -c WEBAPI_CLIENT_ID -t AZURE_AD_TENANT_ID -ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
     echo ""
     echo "Arguments:"
     echo "  -d, --deployment-name DEPLOYMENT_NAME      Name for the deployment (mandatory)"
@@ -20,7 +20,8 @@ usage() {
     echo "  -wr, --web-app-region WEB_APP_REGION       Region to deploy to the static web app into. This must be a region that supports static web apps. (default: \"West US 2\")"
     echo "  -a, --app-service-sku WEB_APP_SVC_SKU      SKU for the Azure App Service plan (default: \"B1\")"
     echo "  -i, --instance AZURE_AD_INSTANCE           Azure AD cloud instance for authenticating users"
-    echo "                                             (default: \"https://login.microsoftonline.com/\")"    echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
+    echo "                                             (default: \"https://login.microsoftonline.com/\")"
+    echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
     echo "                                             \"AzureCognitiveSearch\" (default), \"Qdrant\" and \"Volatile\""
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
@@ -121,7 +122,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check mandatory arguments
-if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$WEBAPI_CLIENT_ID" ]] || [[ -z "$AI_SERVICE_TYPE" ]]; then
+if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$WEBAPI_CLIENT_ID" ]] || [[ -z "$AZURE_AD_TENANT_ID" ]] || [[ -z "$AI_SERVICE_TYPE" ]]; then
     usage
     exit 1
 fi
