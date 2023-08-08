@@ -1,3 +1,5 @@
+import { Body1, tokens } from '@fluentui/react-components';
+
 /*
  * Function to detect and convert URLs within a string into clickable links.
  * It wraps each link matched with anchor tags and applies safe href attributes.
@@ -65,4 +67,30 @@ export function formatChatTextContent(messageContent: string) {
         .replace(/^sk:\/\/.*$/gm, (match: string) => createCommandLink(match))
         .replace(/^!sk:.*$/gm, (match: string) => createCommandLink(match));
     return contentAsString;
+}
+
+/*
+ * Formats text containing `\n` or `\r` into paragraphs.
+ */
+export function formatParagraphTextContent(messageContent: string) {
+    messageContent = messageContent.replaceAll('\r\n', '\n\r');
+    return (
+        <Body1>
+            {messageContent.split('\n').map((paragraph, idx) => (
+                <p
+                    key={`paragraph-${idx}`}
+                    style={
+                        paragraph.includes('\r')
+                            ? {
+                                  display: 'flex',
+                                  marginLeft: tokens.spacingHorizontalL,
+                              }
+                            : undefined
+                    }
+                >
+                    {paragraph}
+                </p>
+            ))}
+        </Body1>
+    );
 }
