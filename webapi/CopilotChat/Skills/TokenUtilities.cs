@@ -61,7 +61,7 @@ public static class TokenUtilities
     /// <summary>
     /// Gets the total token usage from a Chat or Text Completion result context and adds it as a variable to response context.
     /// </summary>
-    /// <param name="result">Result context of chat completion</param>
+    /// <param name="result">Result context from chat model</param>
     /// <param name="chatContext">Context maintained during response generation.</param>
     /// <param name="functionName">Name of the function that invoked the chat completion.</param>
     /// <returns> true if token usage is found in result context; otherwise, false.</returns>

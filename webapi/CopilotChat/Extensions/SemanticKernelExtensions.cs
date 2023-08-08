@@ -65,7 +65,7 @@ public static class CopilotChatSemanticKernelExtensions
     }
 
     /// <summary>
-    /// Propegate exception from within semantic function
+    /// Propagate exception from within semantic function
     /// </summary>
     public static void ThrowIfFailed(this SKContext context)
     {
