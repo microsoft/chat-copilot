@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
+import { AvatarProps, Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
 import { ThumbDislike24Filled, ThumbLike16Filled } from '@fluentui/react-icons';
 import React from 'react';
 import { DefaultChatUser } from '../../../libs/auth/AuthHelper';
@@ -93,9 +93,11 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
         : chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
     const fullName = user?.fullName ?? message.userName;
 
-    const avatar = isBot
+    const avatar: AvatarProps = isBot
         ? { image: { src: conversations[selectedId].botProfilePicture } }
-        : { name: fullName, color: 'colorful' as const };
+        : isDefaultUser
+        ? { idForColor: selectedId, color: 'colorful' }
+        : { name: fullName, color: 'colorful' };
 
     let content: JSX.Element;
     if (isBot && message.type === ChatMessageType.Plan) {

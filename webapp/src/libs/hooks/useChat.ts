@@ -31,6 +31,7 @@ import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
 import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
 import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
+import { FeatureKeys } from '../../redux/features/app/AppState';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -43,7 +44,7 @@ export const useChat = () => {
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
-    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
     const botService = new BotService(process.env.REACT_APP_BACKEND_URI as string);
     const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
@@ -74,25 +75,23 @@ export const useChat = () => {
         const chatTitle = `Copilot @ ${new Date().toLocaleString()}`;
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            await chatService
-                .createChatAsync(chatTitle, accessToken)
-                .then((result: ICreateChatSessionResponse) => {
-                    const newChat: ChatState = {
-                        id: result.chatSession.id,
-                        title: result.chatSession.title,
-                        systemDescription: result.chatSession.systemDescription,
-                        memoryBalance: result.chatSession.memoryBalance,
-                        messages: [result.initialBotMessage],
-                        users: [loggedInUser],
-                        botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
-                        input: '',
-                        botResponseStatus: undefined,
-                        userDataLoaded: false,
-                    };
+            await chatService.createChatAsync(chatTitle, accessToken).then((result: ICreateChatSessionResponse) => {
+                const newChat: ChatState = {
+                    id: result.chatSession.id,
+                    title: result.chatSession.title,
+                    systemDescription: result.chatSession.systemDescription,
+                    memoryBalance: result.chatSession.memoryBalance,
+                    messages: [result.initialBotMessage],
+                    users: [loggedInUser],
+                    botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
+                    input: '',
+                    botResponseStatus: undefined,
+                    userDataLoaded: false,
+                };
 
-                    dispatch(addConversation(newChat));
-                    return newChat.id;
-                });
+                dispatch(addConversation(newChat));
+                return newChat.id;
+            });
         } catch (e: any) {
             const errorMessage = `Unable to create new chat. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
@@ -150,6 +149,10 @@ export const useChat = () => {
                     const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
                     const chatUsers = await chatService.getAllChatParticipantsAsync(chatSession.id, accessToken);
+
+                    if (!features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1) {
+                        continue;
+                    }
 
                     loadedConversations[chatSession.id] = {
                         id: chatSession.id,
