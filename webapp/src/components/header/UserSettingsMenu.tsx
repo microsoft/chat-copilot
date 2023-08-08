@@ -81,7 +81,12 @@ export const UserSettingsMenu: FC<IUserSettingsProps> = ({ setLoadingState }) =>
                             avatar={{ color: 'colorful' }}
                         />
                         <MenuDivider />
-                        <MenuItem data-testid="settingsMenuItem" onClick={() => { setOpenSettingsDialog(true); }}>
+                        <MenuItem
+                            data-testid="settingsMenuItem"
+                            onClick={() => {
+                                setOpenSettingsDialog(true);
+                            }}
+                        >
                             Settings
                         </MenuItem>
                         <MenuItem data-testid="logOutMenuButton" onClick={onLogout}>
@@ -90,7 +95,12 @@ export const UserSettingsMenu: FC<IUserSettingsProps> = ({ setLoadingState }) =>
                     </MenuList>
                 </MenuPopover>
             </Menu>
-            <SettingsDialog open={openSettingsDialog} closeDialog={() => { setOpenSettingsDialog(false); }} />
+            <SettingsDialog
+                open={openSettingsDialog}
+                closeDialog={() => {
+                    setOpenSettingsDialog(false);
+                }}
+            />
         </>
     );
 };

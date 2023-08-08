@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
 using Microsoft.SemanticKernel.SkillDefinition;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Models.Response;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -45,7 +45,7 @@ public class CopilotChatPlanner
     /// Regex to match variable names from plan parameters.
     /// Valid variable names can contain letters, numbers, underscores, and dashes but can't start with a number.
     /// Matches: $variableName, $variable_name, $variable-name, $some_variable_Name, $variableName123, $variableName_123, $variableName-123
-    /// Does not match: $123variableName, $100 $200 
+    /// Does not match: $123variableName, $100 $200
     /// </summary>
     private const string VARIABLE_REGEX = @"\$([A-Za-z]+[_-]*[\w]+)";
 
@@ -92,7 +92,7 @@ public class CopilotChatPlanner
     #region Private
 
     /// <summary>
-    /// Scrubs plan of functions not available in planner's kernel 
+    /// Scrubs plan of functions not available in planner's kernel
     /// and flags any effected input dependencies with '$???' to prompt for user input.
     /// <param name="plan">Proposed plan object to sanitize.</param>
     /// <param name="availableFunctions">The functions available in the planner's kernel.</param>

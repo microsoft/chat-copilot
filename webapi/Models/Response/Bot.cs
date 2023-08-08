@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Collections.Generic;
-using Microsoft.SemanticKernel.Memory;
-using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Models.Storage;
+using CopilotChat.WebApi.Options;
+using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Models.Response;
 

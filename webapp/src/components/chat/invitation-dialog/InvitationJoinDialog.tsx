@@ -68,8 +68,12 @@ export const InvitationJoinDialog: React.FC<InvitationJoinDialogProps> = ({ onCl
                             <Input required type="text" id="chat-id-input" />
                         </DialogContent>
                         <DialogActions>
-                            <Button appearance="secondary" onClick={onCloseDialog}>Cancel</Button>
-                            <Button data-testid="joinChatButton" type="submit" appearance="primary">Join</Button>
+                            <Button appearance="secondary" onClick={onCloseDialog}>
+                                Cancel
+                            </Button>
+                            <Button data-testid="joinChatButton" type="submit" appearance="primary">
+                                Join
+                            </Button>
                         </DialogActions>
                     </DialogBody>
                 </form>
