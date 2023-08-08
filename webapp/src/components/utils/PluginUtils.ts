@@ -1,10 +1,10 @@
-import { 
+import {
     PluginManifest,
     PluginManifestKeys,
     isManifestAuthType,
     isHttpAuthorizationType,
-    requiresUserLevelAuth
-} from "../../libs/models/PluginManifest";
+    requiresUserLevelAuth,
+} from '../../libs/models/PluginManifest';
 
 export const isValidPluginManifest = (manifest: PluginManifest) => {
     const missingKeys: string[] = [];

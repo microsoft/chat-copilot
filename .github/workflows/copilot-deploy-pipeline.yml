@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/workflows/copilot-build.yml
+    uses: ./.github/workflows/copilot-build-backend.yml
 
   int:
     needs: build
