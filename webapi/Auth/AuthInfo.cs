@@ -5,7 +5,7 @@ using Azure.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Identity.Web;
 
-namespace SemanticKernel.Service.Auth;
+namespace CopilotChat.WebApi.Auth;
 
 /// <summary>
 /// Class which provides validated security information for use in controllers.

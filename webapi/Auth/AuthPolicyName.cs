@@ -1,6 +1,6 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace SemanticKernel.Service.Auth;
+namespace CopilotChat.WebApi.Auth;
 
 /// <summary>
 /// Holds the policy names for custom authorization policies.

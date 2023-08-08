@@ -16,7 +16,7 @@ import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { setSelectedConversation } from '../../../redux/features/conversations/conversationsSlice';
-import { Breakpoints } from '../../../styles';
+import { Breakpoints, SharedStyles } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { EditChatName } from '../shared/EditChatName';
 import { ListItemActions } from './ListItemActions';
@@ -55,12 +55,9 @@ const useClasses = makeStyles({
         justifyContent: 'space-between',
     },
     title: {
-        ...shorthands.overflow('hidden'),
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
+        ...SharedStyles.overflowEllipsis,
         fontSize: tokens.fontSizeBase300,
         color: tokens.colorNeutralForeground1,
-        lineHeight: tokens.lineHeightBase200,
     },
     timestamp: {
         flexShrink: 0,
@@ -70,12 +67,10 @@ const useClasses = makeStyles({
         lineHeight: tokens.lineHeightBase200,
     },
     previewText: {
+        ...SharedStyles.overflowEllipsis,
         display: 'block',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
         lineHeight: tokens.lineHeightBase100,
         color: tokens.colorNeutralForeground2,
-        ...shorthands.overflow('hidden'),
     },
     popoverSurface: {
         display: 'none',
@@ -143,12 +138,18 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                         }
                     />
                     {editingTitle ? (
-                        <EditChatName name={header} chatId={id} exitEdits={() => { setEditingTitle(false) }} />
+                        <EditChatName
+                            name={header}
+                            chatId={id}
+                            exitEdits={() => {
+                                setEditingTitle(false);
+                            }}
+                        />
                     ) : (
                         <>
                             <div className={classes.body}>
                                 <div className={classes.header}>
-                                    <Text className={classes.title}>
+                                    <Text className={classes.title} title={header}>
                                         {header}
                                         {features[FeatureKeys.AzureContentSafety].enabled && (
                                             <ShieldTask16Regular className={classes.protectedIcon} />
@@ -178,7 +179,9 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                                 <ListItemActions
                                     chatId={id}
                                     chatName={header}
-                                    onEditTitleClick={() => { setEditingTitle(true); }}
+                                    onEditTitleClick={() => {
+                                        setEditingTitle(true);
+                                    }}
                                 />
                             )}
                         </>

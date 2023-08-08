@@ -12,7 +12,7 @@ dependencies:
 
 # Add 'deployment' label to any change within the 'deploy' directory
 deployment:
-  - deploy/**/*
+  - scripts/deploy/**/*
 
 # Add 'documentation' label to any change of '.md' files
 documentation:

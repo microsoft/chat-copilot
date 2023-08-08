@@ -1,10 +1,10 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
+using CopilotChat.WebApi.Auth;
+using CopilotChat.WebApi.Models.Request;
 using Microsoft.SemanticKernel.Orchestration;
-using SemanticKernel.Service.Auth;
-using SemanticKernel.Service.Models;
 
-namespace SemanticKernel.Service.Utilities;
+namespace CopilotChat.WebApi.Utilities;
 
 /// <summary>
 /// Converts <see cref="Ask"/> variables to <see cref="ContextVariables"/>, inserting some system variables along the way.

@@ -4,6 +4,9 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.AspNetCore.Builder;
@@ -13,12 +16,8 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SemanticKernel.Service.CopilotChat.Extensions;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.Diagnostics;
-using SemanticKernel.Service.Services;
 
-namespace SemanticKernel.Service;
+namespace CopilotChat.WebApi;
 
 /// <summary>
 /// Copilot Chat Service
@@ -38,21 +37,17 @@ public sealed class Program
         builder.Host.AddConfiguration();
         builder.WebHost.UseUrls(); // Disables endpoint override warning message when using IConfiguration for Kestrel endpoint.
 
-        // Add in configuration options and Semantic Kernel services.
+        // Add in configuration options and required services.
         builder.Services
             .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Program>>()) // some services require an un-templated ILogger
             .AddOptions(builder.Configuration)
-            .AddSemanticKernelServices();
-
-        // Add CopilotChat services.
-        builder.Services
-            .AddCopilotChatOptions(builder.Configuration)
-            .AddCopilotChatPlannerServices()
+            .AddPlannerServices()
             .AddPersistentChatStore()
             .AddPersistentOcrSupport()
             .AddUtilities()
             .AddCopilotChatAuthentication(builder.Configuration)
-            .AddCopilotChatAuthorization();
+            .AddCopilotChatAuthorization()
+            .AddSemanticKernelServices();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();
@@ -73,7 +68,7 @@ public sealed class Program
         builder.Services
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
-            .AddCors()
+            .AddCorsPolicy()
             .AddControllers()
             .AddJsonOptions(options =>
             {
