@@ -9,16 +9,16 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Skills.OpenApiPlugins.GitHubPlugin.Model;
+using CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.OpenApiPlugins.GitHubPlugin.Model;
-using CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
-using CopilotChat.WebApi.Models.Response;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 

@@ -4,6 +4,10 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Skills.ChatSkills;
+using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,14 +19,10 @@ using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Chroma;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
-using CopilotChat.WebApi.Hubs;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.ChatSkills;
-using CopilotChat.WebApi.Storage;
 using static CopilotChat.WebApi.Options.MemoriesStoreOptions;
-using Microsoft.SemanticKernel.Orchestration;
 
 namespace CopilotChat.WebApi.Extensions;
 
