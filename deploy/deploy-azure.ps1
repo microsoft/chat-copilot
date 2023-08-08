@@ -20,6 +20,11 @@ param(
     $WebApiClientId,
 
     [Parameter(Mandatory)]
+    [string]
+    # Azure AD tenant ID for authenticating users
+    $TenantId,
+
+    [Parameter(Mandatory)]
     [ValidateSet("AzureOpenAI", "OpenAI")]
     [string]
     # AI service to use
@@ -52,10 +57,6 @@ param(
     [string]
     # Azure AD cloud instance for authenticating users
     $AzureAdInstance = "https://login.microsoftonline.com/",
-
-    [string]
-    # Azure AD tenant ID for authenticating users
-    $AzureAdTenantId = "common",
 
     [ValidateSet("Volatile", "AzureCognitiveSearch", "Qdrant")]
     [string]
@@ -108,7 +109,7 @@ $jsonConfig = "
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
-    `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$AzureAdTenantId`\`" },
+    `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
     `\`"webApiClientId`\`": { `\`"value`\`": `\`"$WebApiClientId`\`"},
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },

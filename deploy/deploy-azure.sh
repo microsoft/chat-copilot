@@ -11,6 +11,7 @@ usage() {
     echo "  -d, --deployment-name DEPLOYMENT_NAME      Name for the deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION            Subscription to which to make the deployment (mandatory)"
     echo "  -c, --client-id WEBAPI_CLIENT_ID           Azure AD client ID for the Web API backend app registration (mandatory)"
+    echo "  -t, --tenant-id AZURE_AD_TENANT_ID         Azure AD tenant ID for authenticating users (mandatory)"
     echo "  -ai, --ai-service AI_SERVICE_TYPE          Type of AI service to use (i.e., OpenAI or AzureOpenAI)"
     echo "  -aikey, --ai-service-key AI_SERVICE_KEY    API key for existing Azure OpenAI resource or OpenAI account"
     echo "  -aiend, --ai-endpoint AI_ENDPOINT          Endpoint for existing Azure OpenAI resource"
@@ -19,9 +20,7 @@ usage() {
     echo "  -wr, --web-app-region WEB_APP_REGION       Region to deploy to the static web app into. This must be a region that supports static web apps. (default: \"West US 2\")"
     echo "  -a, --app-service-sku WEB_APP_SVC_SKU      SKU for the Azure App Service plan (default: \"B1\")"
     echo "  -i, --instance AZURE_AD_INSTANCE           Azure AD cloud instance for authenticating users"
-    echo "                                             (default: \"https://login.microsoftonline.com/\")"
-    echo "  -t, --tenant-id AZURE_AD_TENANT_ID         Azure AD tenant ID for authenticating users (default: \"common\")"
-    echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
+    echo "                                             (default: \"https://login.microsoftonline.com/\")"    echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
     echo "                                             \"AzureCognitiveSearch\" (default), \"Qdrant\" and \"Volatile\""
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
@@ -45,6 +44,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         -c|--client-id)
         WEBAPI_CLIENT_ID="$2"
+        shift
+        shift
+        ;;
+        -t|--tenant-id)
+        AZURE_AD_TENANT_ID="$2"
         shift
         shift
         ;;
@@ -85,11 +89,6 @@ while [[ $# -gt 0 ]]; do
         ;;
         -i|--instance)
         AZURE_AD_INSTANCE="$2"
-        shift
-        shift
-        ;;
-        -a|--tenant-id)
-        AZURE_AD_TENANT_ID="$2"
         shift
         shift
         ;;
@@ -180,7 +179,6 @@ az account set -s "$SUBSCRIPTION"
 : "${WEB_APP_SVC_SKU:="B1"}"
 : "${WEB_APP_REGION:="westus2"}"
 : "${AZURE_AD_INSTANCE:="https://login.microsoftonline.com/"}"
-: "${AZURE_AD_TENANT_ID:="common"}"
 : "${MEMORY_STORE:="AzureCognitiveSearch"}"
 : "${NO_COSMOS_DB:=false}"
 : "${NO_SPEECH_SERVICES:=false}"

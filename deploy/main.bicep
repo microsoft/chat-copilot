@@ -42,11 +42,11 @@ param aiApiKey string = ''
 @description('Azure AD client ID for the backend web API')
 param webApiClientId string = ''
 
+@description('Azure AD tenant ID for authenticating users')
+param azureAdTenantId string = ''
+
 @description('Azure AD cloud instance for authenticating users')
 param azureAdInstance string = environment().authentication.loginEndpoint
-
-@description('Azure AD tenant ID for authenticating users')
-param azureAdTenantId string = 'common'
 
 @description('Whether to deploy a new Azure OpenAI instance')
 param deployNewAzureOpenAI bool = false

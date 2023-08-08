@@ -16,8 +16,6 @@ You will need the following items to run the sample:
 - [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup script)_
 - [Node.js](https://nodejs.org/en/download) _(via Setup script)_
 - [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup script)_
-- [Azure account](https://azure.microsoft.com/free)
-- [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 - AI Service
 
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -26,11 +24,6 @@ You will need the following items to run the sample:
 | OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 # Instructions
-## Register an application
-1. Follow [these instructions](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) and use the values below:
-    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
-    - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
-2. Take note of the `Application (client) ID`. Chat Copilot will use this ID for authentication.
 
 ## Windows
 1. Open PowerShell as an administrator.
@@ -46,19 +39,12 @@ You will need the following items to run the sample:
 3. Configure Chat Copilot.
   
     ```powershell
-    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -ClientId {AZURE_APPLICATION_ID} 
+    .\Configure.ps1 -AIService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
     - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
-    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
-
-    - (Optional): To set a specific Tenant Id, use the parameter:
-
-        ```powershell
-        -TenantId {TENANT_ID}
-        ```
 
     - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
 
@@ -104,19 +90,12 @@ You will need the following items to run the sample:
 3. Configure Chat Copilot.
 
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --clientid {AZURE_APPLICATION_ID}
+    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
     - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
     - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
-    - `AZURE_APPLICATION_ID`: The `Application (client) ID` associated with the registered application.
-
-    - (Optional): To set a specific Tenant Id, use the parameter:
-
-        ```bash
-        --tenantid {TENANT_ID}
-        ```
 
     - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
 
@@ -134,17 +113,27 @@ You will need the following items to run the sample:
 
     > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
 
-## (Optional) Enable backend authorization via Azure AD
+## (Optional) Enable backend authentication via Azure AD
 
-1. Ensure you created the required application registration mentioned in [Start the WebApp FrontEnd application](#start-the-webapp-frontend-application)
-2. Create a second application registration to represent the web api
-   > For more details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+By default, Chat Copilot runs locally without authentication, using a guest user profile. If you want to enable authentication with Azure Active Directory, follow the steps below.
 
-   1. Give the app registration a name
+### Requirements
 
-   2. As *Supported account type* choose `Accounts in any organizational directory and personal Microsoft Accounts`
+- [Azure account](https://azure.microsoft.com/free)
+- [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 
-   3. Do not configure a *Redirect Uri*
+### Instructions
+
+1. Create an [application registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) for the frontend web app, using the values below
+    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
+
+
+2. Create a second [application registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) for the backend web api, using the values below:
+    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - Do **not** configure a `Redirect URI (optional)`
+
+> Take note of the `Application (client) ID` for both app registrations as you will need them in future steps.
 
 3. Expose an API within the second app registration
    1. Select *Expose an API* from the menu
@@ -180,15 +169,40 @@ You will need the following items to run the sample:
 
    7. Click *Add permissions*
 
-5. Update frontend web app configuration
-   1. Open *.env* file
+5. Run the Configure script with additional parameters to set up authentication.
 
-   2. Set the value of `REACT_APP_AAD_API_SCOPE` to your application ID URI followed by the scope `access_as_user`, e.g. `api://12341234-1234-1234-1234-123412341234/access_as_user`
+    **Powershell**
 
-6. Update backend web api configuration
-   1. Open *appsettings.json*
+    ```powershell
+    .\Configure.ps1 -AiService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -FrontendClientId {FRONTEND_CLIENT_ID} -BackendClientId {BACKEND_CLIENT_ID} -TenantId {TENANT_ID} -Instance {AZURE_AD_INSTANCE}
+    ```
 
-   2. Set the value of `Authorization:AzureAd:Audience` to your application ID URI
+    **Bash**
+    ```bash
+    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --frontend-clientid {FRONTEND_APPLICATION_ID} --backend-clientid {BACKEND_APPLICATION_ID} --tenantid {TENANT_ID} --instance {AZURE_AD_INSTANCE}
+    ```
+
+    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
+    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
+    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `-Endpoint` if using OpenAI.
+    - `FRONTEND_APPLICATION_ID`: The `Application (client) ID` associated with the application registration for the frontend.
+    - `BACKEND_APPLICATION_ID`: The `Application (client) ID` associated with the application registration for the backend.
+    - `TENANT_ID` : Your Azure AD tenant ID
+    - `AZURE_AD_INSTANCE` _(optional)_: The Azure AD cloud instance for the authenticating users. Defaults to `https://login.microsoftonline.com/`.
+
+6. Run Chat Copilot locally. This step starts both the backend API and frontend application.
+
+    **Powershell**
+
+    ```powershell
+    .\Start.ps1
+    ```
+
+    **Bash**
+
+    ```bash
+    ./Start.sh
+     ```
 
 # Troubleshooting
 
