@@ -83,7 +83,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/CopilotChatWebApi.csproj",
+                "${workspaceFolder}/webapi/CopilotChatWebApi.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary",
                 "/property:DebugType=portable"
