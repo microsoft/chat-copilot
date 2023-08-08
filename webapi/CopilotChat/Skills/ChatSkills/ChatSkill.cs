@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
@@ -286,7 +287,7 @@ public class ChatSkill
             await this.UpdateChatMessageContentAsync(planJson, messageId);
         }
 
-        ChatMessage? chatMessage;
+        ChatMessage chatMessage;
         if (chatContext.Variables.ContainsKey("userCancelledPlan"))
         {
             // Save hardcoded response if user cancelled plan
@@ -298,11 +299,6 @@ public class ChatSkill
             chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, cancellationToken);
         }
 
-        if (chatMessage == null) // $$$
-        {
-            context.Logger.LogError(context.LastException, "{0}", context.LastException?.Message);
-            throw context.LastException!;
-        }
         context.Variables.Update(chatMessage.Content);
 
         if (chatMessage.TokenUsage != null)
@@ -326,7 +322,7 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="chatContext">The SKContext.</param>
     /// <returns>The created chat message containing the model-generated response.</returns>
-    private async Task<ChatMessage?> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, CancellationToken cancellationToken)
+    private async Task<ChatMessage> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, CancellationToken cancellationToken)
     {
         // Get the audience
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting audience");
@@ -421,10 +417,7 @@ public class ChatSkill
         // Calculate token usage of prompt template
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Logger, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 
-        if (chatContext.ErrorOccurred)
-        {
-            return null;
-        }
+        chatContext.ThrowIfFailed();
 
         // Stream the response to the client
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating bot response");
