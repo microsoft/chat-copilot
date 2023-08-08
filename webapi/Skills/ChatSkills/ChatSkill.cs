@@ -9,6 +9,12 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Models.Storage;
+using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,12 +24,6 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
-using CopilotChat.WebApi.Hubs;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Storage;
-using CopilotChat.WebApi.Models.Storage;
-using CopilotChat.WebApi.Models.Response;
-using CopilotChat.WebApi.Extensions;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 

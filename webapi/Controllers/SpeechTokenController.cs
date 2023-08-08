@@ -4,13 +4,13 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Models.Response;
 
 namespace CopilotChat.WebApi.Controllers;
 

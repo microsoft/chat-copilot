@@ -5,14 +5,14 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
-using CopilotChat.WebApi.Extensions;
-using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 

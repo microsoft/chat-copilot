@@ -9,6 +9,11 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Models.Request;
+using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Services;
+using CopilotChat.WebApi.Skills.ChatSkills;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,11 +29,6 @@ using Microsoft.SemanticKernel.Skills.MsGraph.Connectors;
 using Microsoft.SemanticKernel.Skills.MsGraph.Connectors.Client;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
-using CopilotChat.WebApi.Hubs;
-using CopilotChat.WebApi.Skills.ChatSkills;
-using CopilotChat.WebApi.Models.Response;
-using CopilotChat.WebApi.Models.Request;
-using CopilotChat.WebApi.Services;
 
 namespace CopilotChat.WebApi.Controllers;
 

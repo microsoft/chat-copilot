@@ -1,4 +1,4 @@
-name: copilot-deploy-backend
+name: copilot-deploy-frontend
 
 on:
   workflow_call:
@@ -23,7 +23,7 @@ permissions:
   contents: read
 
 jobs:
-  web-app:
+  webapp:
     environment: ${{inputs.ENVIRONMENT}}
     permissions:
       id-token: write
