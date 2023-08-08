@@ -1,6 +1,8 @@
 name: copilot-build-backend
 
 on:
+  pull_request:
+    branches: ["main"]
   workflow_call:
     outputs:
       artifact:
@@ -35,7 +37,7 @@ jobs:
         run: |
           scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy
 
-      - name: Format Copilot Chat WebAPI
+      - name: Check formatting of Copilot Chat WebAPI
         run: |
           cd webapi/
           dotnet format --verify-no-changes --verbosity diagnostic
