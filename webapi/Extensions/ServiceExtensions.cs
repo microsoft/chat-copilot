@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Azure;
+using CopilotChat.WebApi.Auth;
+using CopilotChat.WebApi.Models.Storage;
+using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
+using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using CopilotChat.WebApi.Auth;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Storage;
-using CopilotChat.WebApi.Services;
 using Tesseract;
-using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Extensions;
 

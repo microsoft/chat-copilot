@@ -3,6 +3,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.AspNetCore.Builder;
@@ -12,9 +15,6 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using CopilotChat.WebApi.Extensions;
-using CopilotChat.WebApi.Hubs;
-using CopilotChat.WebApi.Services;
 
 namespace CopilotChat.WebApi;
 
