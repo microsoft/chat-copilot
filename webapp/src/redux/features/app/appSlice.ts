@@ -13,10 +13,7 @@ export const appSlice = createSlice({
             state.alerts = action.payload;
         },
         addAlert: (state: AppState, action: PayloadAction<Alert>) => {
-            if (state.alerts.length === 3) {
-                state.alerts.shift();
-            }
-            state.alerts.push(action.payload);
+            state.alerts = [action.payload];
         },
         removeAlert: (state: AppState, action: PayloadAction<number>) => {
             state.alerts.splice(action.payload, 1);
