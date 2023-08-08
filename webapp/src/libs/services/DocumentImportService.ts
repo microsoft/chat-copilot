@@ -4,11 +4,7 @@ import { IChatMessage } from '../models/ChatMessage';
 import { BaseService } from './BaseService';
 
 export class DocumentImportService extends BaseService {
-    public importDocumentAsync = async (
-        chatId: string,
-        documents: File[],
-        accessToken: string,
-    ) => {
+    public importDocumentAsync = async (chatId: string, documents: File[], accessToken: string) => {
         const formData = new FormData();
         formData.append('chatId', chatId);
         formData.append('documentScope', 'Chat');

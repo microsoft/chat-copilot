@@ -13,10 +13,7 @@ import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
 import { BaseService } from './BaseService';
 
 export class ChatService extends BaseService {
-    public createChatAsync = async (
-        title: string,
-        accessToken: string,
-    ): Promise<ICreateChatSessionResponse> => {
+    public createChatAsync = async (title: string, accessToken: string): Promise<ICreateChatSessionResponse> => {
         const body = {
             title,
         };
@@ -173,7 +170,7 @@ export class ChatService extends BaseService {
         await this.getResponseAsync<any>(
             {
                 commandPath: `chatSessions/${chatId}/participants`,
-                method: 'POST'
+                method: 'POST',
                 // TODO: how to specify no content?
             },
             accessToken,
