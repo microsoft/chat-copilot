@@ -116,7 +116,7 @@ public class ChatController : ControllerBase, IDisposable
                 return this.BadRequest(string.Concat(aiException.Message, " - Detail: " + aiException.Detail));
             }
 
-            return this.BadRequest(result.LastErrorDescription);
+            return this.BadRequest(result.LastException!.Message);
         }
 
         AskResult chatSkillAskResult = new()
@@ -174,7 +174,7 @@ public class ChatController : ControllerBase, IDisposable
             this._logger.LogInformation("Registering Klarna plugin");
 
             // Register the Klarna shopping ChatGPT plugin with the planner's kernel. There is no authentication required for this plugin.
-            await planner.Kernel.ImportChatGptPluginSkillFromUrlAsync("KlarnaShoppingPlugin", new Uri("https://www.klarna.com/.well-known/ai-plugin.json"), new OpenApiSkillExecutionParameters());
+            await planner.Kernel.ImportAIPluginAsync("KlarnaShoppingPlugin", new Uri("https://www.klarna.com/.well-known/ai-plugin.json"), new OpenApiSkillExecutionParameters());
         }
 
         // GitHub
@@ -182,7 +182,7 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogInformation("Enabling GitHub plugin.");
             BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
-            await planner.Kernel.ImportOpenApiSkillFromFileAsync(
+            await planner.Kernel.ImportAIPluginAsync(
                 skillName: "GitHubPlugin",
                 filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "CopilotChat", "Skills", "OpenApiPlugins/GitHubPlugin/openapi.json"),
                 new OpenApiSkillExecutionParameters
@@ -198,7 +198,7 @@ public class ChatController : ControllerBase, IDisposable
             var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
             var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out string? serverUrlOverride);
 
-            await planner.Kernel.ImportOpenApiSkillFromFileAsync(
+            await planner.Kernel.ImportAIPluginAsync(
                 skillName: "JiraPlugin",
                 filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "CopilotChat", "Skills", "OpenApiPlugins/JiraPlugin/openapi.json"),
                 new OpenApiSkillExecutionParameters
@@ -241,7 +241,7 @@ public class ChatController : ControllerBase, IDisposable
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
-                        await planner.Kernel.ImportChatGptPluginSkillFromUrlAsync(
+                        await planner.Kernel.ImportAIPluginAsync(
                             $"{plugin.NameForModel}Plugin",
                             uriBuilder.Uri,
                             new OpenApiSkillExecutionParameters

@@ -134,7 +134,7 @@ public class ChatMessage : IStorageEntity
         string userName,
         string chatId,
         string content,
-        string prompt = "",
+        string? prompt = null,
         AuthorRoles authorRole = AuthorRoles.User,
         ChatMessageType type = ChatMessageType.Message,
         Dictionary<string, int>? tokenUsage = null)
@@ -145,7 +145,7 @@ public class ChatMessage : IStorageEntity
         this.ChatId = chatId;
         this.Content = content;
         this.Id = Guid.NewGuid().ToString();
-        this.Prompt = prompt;
+        this.Prompt = prompt ?? string.Empty;
         this.AuthorRole = authorRole;
         this.Type = type;
         this.TokenUsage = tokenUsage;

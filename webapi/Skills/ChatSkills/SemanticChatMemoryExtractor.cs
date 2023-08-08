@@ -64,7 +64,7 @@ internal static class SemanticChatMemoryExtractor
             {
                 // Skip semantic memory extraction for this item if it fails.
                 // We cannot rely on the model to response with perfect Json each time.
-                context.Log.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
+                context.Logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
                 continue;
             }
         }

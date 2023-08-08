@@ -95,7 +95,7 @@ public class ExternalInformationSkill
             string planJson = JsonSerializer.Serialize(deserializedPlan.Plan);
             // Reload the plan with the planner's kernel so
             // it has full context to be executed
-            var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.Log);
+            var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.Logger);
             var plan = Plan.FromJson(planJson, newPlanContext);
 
             // Invoke plan
@@ -103,7 +103,7 @@ public class ExternalInformationSkill
             var functionsUsed = $"FUNCTIONS EXECUTED: {string.Join("; ", this.GetPlanSteps(plan))}.";
 
             int tokenLimit =
-                int.Parse(context["tokenLimit"], new NumberFormatInfo()) -
+                int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo()) -
                 TokenUtilities.TokenCount(PromptPreamble) -
                 TokenUtilities.TokenCount(PromptPostamble) -
                 TokenUtilities.TokenCount(functionsUsed) -
@@ -139,7 +139,7 @@ public class ExternalInformationSkill
             { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
                 try
                 {
-                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Log);
+                    plan = await this._planner.CreatePlanAsync($"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}", context.Logger);
                 }
                 catch (Exception e) when (this.IsRetriableError(e))
                 {
@@ -149,7 +149,7 @@ public class ExternalInformationSkill
                         retriesAvail = e is PlanningException ? 0 : retriesAvail--;
 
                         // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
-                        context.Log.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
+                        context.Logger.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
                     }
                     throw;
@@ -241,11 +241,11 @@ public class ExternalInformationSkill
         }
         catch (JsonException)
         {
-            context.Log.LogDebug("Unable to extract JSON from planner response, it is likely not from an OpenAPI skill.");
+            context.Logger.LogDebug("Unable to extract JSON from planner response, it is likely not from an OpenAPI skill.");
         }
         catch (InvalidOperationException)
         {
-            context.Log.LogDebug("Unable to extract JSON from planner response, it may already be proper JSON.");
+            context.Logger.LogDebug("Unable to extract JSON from planner response, it may already be proper JSON.");
         }
 
         json = string.Empty;
@@ -289,7 +289,7 @@ public class ExternalInformationSkill
 
         // Some APIs will return a JSON response with one property key representing an embedded answer.
         // Extract this value for further processing
-        string resultsDescriptor = "";
+        string resultsDescriptor = string.Empty;
 
         if (document.RootElement.ValueKind == JsonValueKind.Object)
         {

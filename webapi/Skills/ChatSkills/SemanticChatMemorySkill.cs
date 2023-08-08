@@ -89,7 +89,7 @@ public class SemanticChatMemorySkill
 
         relevantMemories = relevantMemories.OrderByDescending(m => m.Relevance).ToList();
 
-        string memoryText = "";
+        string memoryText = string.Empty;
         foreach (var memory in relevantMemories)
         {
             var tokenCount = TokenUtilities.TokenCount(memory.Metadata.Text);
