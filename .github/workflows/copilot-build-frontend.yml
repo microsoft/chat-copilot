@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  webapp:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +26,7 @@ jobs:
         run: |
           #!/bin/bash
           set -e # exit with nonzero exit code if anything fails
-          echo "Running yarn install, yarn format, & yarn build for $dir"
+          echo "Running yarn install, yarn build, & yarn format"
           yarn install --frozen-lockfile # install dependencies and ensure lockfile is unchanged.
           yarn build # run build script
           yarn format # run format script

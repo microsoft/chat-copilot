@@ -23,7 +23,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  webapp:
     environment: ${{inputs.ENVIRONMENT}}
     permissions:
       id-token: write
