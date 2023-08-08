@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
-namespace SemanticKernel.Service.Auth;
+namespace CopilotChat.WebApi.Auth;
 
 /// <summary>
 /// Class implementing API key authentication.

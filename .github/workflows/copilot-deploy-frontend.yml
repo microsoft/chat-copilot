@@ -71,4 +71,4 @@ jobs:
 
       - name: Deploy SWA
         run: |
-          deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect
+          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect

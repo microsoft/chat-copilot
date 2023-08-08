@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace SemanticKernel.Service.Services;
+namespace CopilotChat.WebApi.Services;
 
 /// <summary>
 /// Used as a placeholder implementation when "none" is set in the OcrSupport:Type field in the configuration.

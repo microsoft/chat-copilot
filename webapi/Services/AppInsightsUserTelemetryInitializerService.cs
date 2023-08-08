@@ -5,7 +5,7 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 
-namespace SemanticKernel.Service.Services;
+namespace CopilotChat.WebApi.Services;
 
 /// <summary>
 /// A telemetry initializer used by the TelemetryClient to fill in data for requests.

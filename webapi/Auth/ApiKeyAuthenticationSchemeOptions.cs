@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Authentication;
 
-namespace SemanticKernel.Service.Auth;
+namespace CopilotChat.WebApi.Auth;
 
 /// <summary>
 /// Options for API key authentication.
