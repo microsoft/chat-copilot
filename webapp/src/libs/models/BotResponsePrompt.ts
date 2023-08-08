@@ -27,7 +27,7 @@ export const PromptSectionsNameMap: Record<string, string> = {
     audience: 'Audience',
     userIntent: 'User Intent',
     chatMemories: 'Chat Memories',
-    externalInformation: 'External Information',
+    externalInformation: 'Planner Results',
     chatHistory: 'Chat History',
     systemChatContinuation: 'System Chat Continuation',
 };

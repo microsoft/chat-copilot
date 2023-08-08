@@ -10,6 +10,7 @@ public enum PlanType
 {
     Action, // single-step
     Sequential, // multi-step
+    Stepwise, // MRKL style planning
 }
 
 // State of Plan
