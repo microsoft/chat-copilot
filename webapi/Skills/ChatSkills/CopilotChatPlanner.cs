@@ -41,7 +41,7 @@ public class CopilotChatPlanner
     /// Flag to indicate that a variable is unknown and needs to be filled in by the user.
     /// This is used to flag any inputs that had dependencies from removed steps.
     /// </summary>
-    private const string UNKNOWN_VARIABLE_FLAG = "$???";
+    private const string UnknownVariableFlag = "$???";
 
     /// <summary>
     /// Regex to match variable names from plan parameters.
@@ -49,13 +49,13 @@ public class CopilotChatPlanner
     /// Matches: $variableName, $variable_name, $variable-name, $some_variable_Name, $variableName123, $variableName_123, $variableName-123
     /// Does not match: $123variableName, $100 $200
     /// </summary>
-    private const string VARIABLE_REGEX = @"\$([A-Za-z]+[_-]*[\w]+)";
+    private const string VariableRegex = @"\$([A-Za-z]+[_-]*[\w]+)";
 
     /// <summary>
     /// Supplemental text to add to the plan goal if PlannerOptions.Type is set to Stepwise.
     /// Helps the planner know when to bail out to request additional user input.
     /// </summary>
-    private const string STEPWISE_PLANNER_SUPPLEMENT = "If you need more information to fulfill this request, return with a request for additional user input.";
+    private const string StepwisePlannerSupplement = "If you need more information to fulfill this request, return with a request for additional user input.";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
@@ -127,7 +127,7 @@ public class CopilotChatPlanner
             var plan = new StepwisePlanner(
                 this.Kernel,
                 config
-            ).CreatePlan(string.Join("\n", goal, STEPWISE_PLANNER_SUPPLEMENT));
+            ).CreatePlan(string.Join("\n", goal, StepwisePlannerSupplement));
             var result = await plan.InvokeAsync(context);
 
             sw.Stop();
@@ -164,7 +164,7 @@ public class CopilotChatPlanner
                 availableOutputs.AddRange(step.Outputs);
 
                 // Regex to match variable names
-                Regex variableRegEx = new(VARIABLE_REGEX, RegexOptions.Singleline);
+                Regex variableRegEx = new(VariableRegex, RegexOptions.Singleline);
 
                 // Check for any inputs that may have dependencies from removed steps
                 foreach (var input in step.Parameters)
@@ -185,7 +185,7 @@ public class CopilotChatPlanner
                                     && inputVariableMatch.Groups[1].Captures.Count == 1
                                     && !unavailableOutputs.Any(output => string.Equals(output, inputVariableValue, StringComparison.OrdinalIgnoreCase))
                                         ? "$PLAN.RESULT" // TODO: [Issue #2256] Extract constants from Plan class, requires change on kernel team
-                                        : UNKNOWN_VARIABLE_FLAG;
+                                        : UnknownVariableFlag;
                                 step.Parameters.Set(input.Key, Regex.Replace(input.Value, variableRegEx.ToString(), overrideValue));
                             }
                         }
