@@ -327,18 +327,12 @@ public class ChatSkill
         // Get the audience
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting audience");
         var audience = await this.GetAudienceAsync(chatContext);
-        if (chatContext.ErrorOccurred)
-        {
-            return null;
-        }
+        chatContext.ThrowIfFailed();
 
         // Extract user intent from the conversation history.
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting user intent");
         var userIntent = await this.GetUserIntentAsync(chatContext);
-        if (chatContext.ErrorOccurred)
-        {
-            return null;
-        }
+        chatContext.ThrowIfFailed();
 
         chatContext.Variables.Set("audience", audience);
         chatContext.Variables.Set("userIntent", userIntent);
@@ -351,10 +345,7 @@ public class ChatSkill
         await this.UpdateBotResponseStatusOnClient(chatId, "Acquiring external information from planner");
         var externalInformationTokenLimit = (int)(remainingToken * this._promptOptions.ExternalInformationContextWeight);
         var planResult = await this.AcquireExternalInformationAsync(chatContext, userIntent, externalInformationTokenLimit);
-        if (chatContext.ErrorOccurred)
-        {
-            return null;
-        }
+        chatContext.ThrowIfFailed();
 
         // If plan is suggested, send back to user for approval before running
         var proposedPlan = this._externalInformationSkill.ProposedPlan;
@@ -393,10 +384,7 @@ public class ChatSkill
         {
             await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
             chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
-            if (chatContext.ErrorOccurred)
-            {
-                return null;
-            }
+            chatContext.ThrowIfFailed();
             chatContextText = $"{chatContextText}\n{chatHistory}";
         }
 
