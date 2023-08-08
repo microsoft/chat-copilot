@@ -1,4 +1,4 @@
-# Semantic Kernel Service - CopilotChat
+# Copilot Chat Web API
 
 This ASP.Net web application provides a web service hosting the Semantic Kernel, enabling secure
 and modular access to its features for the Copilot Chat application without embedding kernel code and settings,
@@ -74,14 +74,14 @@ You can start the WebApi service using the command-line, Visual Studio Code, or 
 
 # Enabling Sequential Planner
 
-If you want to use SequentialPlanner (multi-step) instead ActionPlanner (single-step), we recommend using `gpt-4` or `gpt-3.5-turbo` as the planner model. **SequentialPlanner works best with `gpt-4`.** Using `gpt-3.5-turbo` will require with a relevancy filter.
+If you want to use SequentialPlanner (multi-step) instead ActionPlanner (single-step), we recommend using `gpt-4` or `gpt-3.5-turbo` as the planner model. **SequentialPlanner works best with `gpt-4`.** Using `gpt-3.5-turbo` will require using a relevancy filter.
 
 To enable sequential planner,
 
 1. In [./webapi/appsettings.json](appsettings.json), set `"Type": "Sequential"` under the `Planner` section.
 1. Then, set your preferred Planner model (`gpt-4` or `gpt-3.5-turbo`) under the `AIService` configuration section.
    1. If using `gpt-4`, no other changes are required.
-   1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](CopilotChat/Skills/ChatSkills/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
+   1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Skills/ChatSkills/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
       - Add `using` statement to top of file:
         ```
         using Microsoft.SemanticKernel.Planning.Sequential;

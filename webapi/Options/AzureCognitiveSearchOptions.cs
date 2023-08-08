@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace SemanticKernel.Service.Options;
+namespace CopilotChat.WebApi.Options;
 
 /// <summary>
 /// Configuration settings for connecting to Azure Cognitive Search.
