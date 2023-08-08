@@ -22,6 +22,7 @@ using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
 using static CopilotChat.WebApi.Options.MemoriesStoreOptions;
+using Microsoft.SemanticKernel.Orchestration;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -107,6 +108,18 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
+    /// Propagate exception from within semantic function
+    /// </summary>
+    public static void ThrowIfFailed(this SKContext context)
+    {
+        if (context.ErrorOccurred)
+        {
+            context.Logger.LogError(context.LastException, "{0}", context.LastException?.Message);
+            throw context.LastException!;
+        }
+    }
+
+    /// <summary>
     /// Register the skills with the kernel.
     /// </summary>
     private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
@@ -129,7 +142,7 @@ internal static class SemanticKernelExtensions
                 }
                 catch (TemplateException e)
                 {
-                    kernel.Log.LogError("Could not load skill from {Directory}: {Message}", subDir, e.Message);
+                    kernel.Logger.LogError("Could not load skill from {Directory}: {Message}", subDir, e.Message);
                 }
             }
         }

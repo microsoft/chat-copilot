@@ -142,7 +142,7 @@ public class BotController : ControllerBase
 
         return this.CreatedAtAction(
             nameof(ChatHistoryController.GetChatSessionByIdAsync),
-            nameof(ChatHistoryController).Replace("Controller", "", StringComparison.OrdinalIgnoreCase),
+            nameof(ChatHistoryController).Replace("Controller", string.Empty, StringComparison.OrdinalIgnoreCase),
             new { chatId },
             newChat);
     }
@@ -208,7 +208,7 @@ public class BotController : ControllerBase
         IKernel kernel,
         string collectionName,
         List<KeyValuePair<string, List<MemoryQueryResult>>> embeddings,
-        string newCollectionName = "")
+        string? newCollectionName = null)
     {
         List<MemoryQueryResult> collectionMemoryRecords;
         try
