@@ -46,6 +46,7 @@
       "**/.hg": true,
       "**/CVS": true,
       "**/.DS_Store": true,
-      "**/Thumbs.db": true
+      "**/Thumbs.db": true,
+      "**.lock": true,
     },
   }
