@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Tesseract;
 
-namespace SemanticKernel.Service.Services;
+namespace CopilotChat.WebApi.Services;
 
 /// <summary>
 /// Wrapper for the TesseractEngine within the Tesseract OCR library. This is used to allow the TesseractEngine to be mocked in the event that the Tesseract language file is not installed.
