@@ -20,7 +20,9 @@ const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                 }
             };
 
-            void fetchAsync();
+            void fetchAsync().catch(() => {
+                // Ignore - this page is just a probe, so we don't need to show any errors if backend is not found
+            });
         }, 3000);
 
         return () => {
@@ -33,8 +35,8 @@ const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
             <Title3>Looking for your backend</Title3>
             <Spinner />
             <Body1>
-                This sample expects to find a Semantic Kernel service from{' '}
-                <strong>webapi/</strong> running at <strong>{uri}</strong>
+                This sample expects to find a Semantic Kernel service from <strong>webapi/</strong> running at{' '}
+                <strong>{uri}</strong>
             </Body1>
             <Body1>
                 Run your Semantic Kernel service locally using Visual Studio, Visual Studio Code or by typing the
