@@ -21,7 +21,7 @@ using Microsoft.SemanticMemory.Core.Pipeline.Queue.RabbitMq;
 using Microsoft.SemanticMemory.Core.Pipeline;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 
-namespace SemanticMemory.Service;
+namespace CopilotChat.MemoryPipeline;
 
 /// <summary>
 /// Flexible dependency injection using dependencies defined in appsettings.json
