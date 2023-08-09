@@ -8,7 +8,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticMemory.Core.Configuration;
 using Microsoft.SemanticMemory.Core.Diagnostics;
-using SemanticMemory.Service;
+using CopilotChat.MemoryPipeline;
 
 var app = Builder.CreateBuilder(out SemanticMemoryConfig config).Build();
 
@@ -17,7 +17,7 @@ var app = Builder.CreateBuilder(out SemanticMemoryConfig config).Build();
 // ********************************************************
 
 app.Logger.LogInformation(
-    "Starting Semantic Memory pipeline service, .NET Env: {0}, Log Level: {1}",
+    "Starting Copilot Chat Memory pipeline service, .NET Env: {0}, Log Level: {1}",
     Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
     app.Logger.GetLogLevelName());
 
