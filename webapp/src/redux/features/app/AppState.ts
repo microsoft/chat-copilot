@@ -13,6 +13,7 @@ export interface ActiveUserInfo {
 export interface Alert {
     message: string;
     type: AlertType;
+    id?: string;
 }
 
 interface Feature {
