@@ -19,9 +19,9 @@ body,
 }
 
 ::-webkit-scrollbar {
-    width: .4rem;
+    width: 0.4rem;
 }
 ::-webkit-scrollbar-thumb {
     border-radius: 12px;
-    visibility: 'hidden',
+    visibility: 'hidden';
 }

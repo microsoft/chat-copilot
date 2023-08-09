@@ -24,7 +24,7 @@ export const EnterManifestStep: React.FC<IEnterManifestStepProps> = ({
     manifestDomainError,
 }) => {
     const classes = useClasses();
-    const [input, setInput] = useState<string>( manifestDomain ?? '');
+    const [input, setInput] = useState<string>(manifestDomain ?? '');
 
     const keyStrokeTimeout = useRef(-1);
 

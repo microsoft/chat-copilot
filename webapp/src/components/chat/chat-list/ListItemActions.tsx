@@ -65,7 +65,9 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
                     icon={<Share20 />}
                     appearance="transparent"
                     aria-label="Edit"
-                    onClick={() => { setIsGettingInvitationId(true); }}
+                    onClick={() => {
+                        setIsGettingInvitationId(true);
+                    }}
                 />
             </Tooltip>
             {features[FeatureKeys.DeleteChats].enabled && <DeleteChatDialog chatId={chatId} chatName={chatName} />}

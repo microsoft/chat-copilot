@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  e2e:
     defaults:
       run:
         working-directory: webapp

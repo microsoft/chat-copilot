@@ -91,7 +91,7 @@ echo "WEB_API_NAME: $WEB_API_NAME"
 echo "Getting webapi key..."
 eval WEB_API_KEY=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authorization:ApiKey").value')
 
-ENV_FILE_PATH="$SCRIPT_ROOT/../webapp/.env"
+ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
 echo "REACT_APP_BACKEND_URI=https://$WEB_API_URL/" > $ENV_FILE_PATH
 echo "REACT_APP_AAD_AUTHORITY=$AUTHORITY" >> $ENV_FILE_PATH
@@ -99,8 +99,8 @@ echo "REACT_APP_AAD_CLIENT_ID=$APPLICATION_ID" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_API_KEY=$WEB_API_KEY" >> $ENV_FILE_PATH
 
 echo "Writing swa-cli.config.json..."
-SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../webapp/swa-cli.config.json"
-SWA_CONFIG_TEMPLATE_FILE_PATH="$SCRIPT_ROOT/../webapp/template.swa-cli.config.json"
+SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../../webapp/swa-cli.config.json"
+SWA_CONFIG_TEMPLATE_FILE_PATH="$SCRIPT_ROOT/../../webapp/template.swa-cli.config.json"
 swaConfig=`cat $SWA_CONFIG_TEMPLATE_FILE_PATH`
 swaConfig=$(echo $swaConfig | sed "s/{{appDevserverUrl}}/https:\/\/${WEB_APP_URL}/")
 swaConfig=$(echo $swaConfig | sed "s/{{appName}}/$WEB_API_NAME/")
@@ -108,7 +108,7 @@ swaConfig=$(echo $swaConfig | sed "s/{{resourceGroup}}/$RESOURCE_GROUP/")
 swaConfig=$(echo $swaConfig | sed "s/{{subscription-id}}/$SUBSCRIPTION/")
 echo $swaConfig > $SWA_CONFIG_FILE_PATH
 
-pushd "$SCRIPT_ROOT/../webapp"
+pushd "$SCRIPT_ROOT/../../webapp"
 
 echo "Installing yarn dependencies..."
 yarn install

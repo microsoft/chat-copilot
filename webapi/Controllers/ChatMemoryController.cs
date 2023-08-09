@@ -3,6 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Skills.ChatSkills;
+using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
-using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.ChatSkills;
-using CopilotChat.WebApi.Storage;
 
 namespace CopilotChat.WebApi.Controllers;
 
