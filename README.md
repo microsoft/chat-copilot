@@ -141,7 +141,8 @@ You will need the following items to run the sample:
 
 ## (Optional) Enable backend authorization via Azure AD
 
-1. Ensure you created the required application registration mentioned in [Start the WebApp FrontEnd application](#start-the-webapp-frontend-application)
+1. Ensure you created the required application registration mentioned in [Register an application](#register-an-application)
+
 2. Create a second application registration to represent the web api
 
    > For more details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
