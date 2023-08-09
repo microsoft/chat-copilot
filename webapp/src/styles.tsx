@@ -78,7 +78,7 @@ export const useSharedClasses = makeStyles({
     informativeView: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.padding('80'),
+        ...shorthands.padding('80px'),
         alignItems: 'center',
         ...shorthands.gap(tokens.spacingVerticalXL),
         marginTop: tokens.spacingVerticalXXXL,
