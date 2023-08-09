@@ -181,14 +181,14 @@ export const DocumentsTab: React.FC = () => {
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
                     <Label size="large">Vector Database</Label>
-                    <RadioGroup defaultValue={serviceOptions.memoriesStore.selectedType} layout="horizontal">
-                        {serviceOptions.memoriesStore.types.map((storeType) => {
+                    <RadioGroup defaultValue={serviceOptions.memoryStore.selectedType} layout="horizontal">
+                        {serviceOptions.memoryStore.types.map((storeType) => {
                             return (
                                 <Radio
                                     key={storeType}
                                     value={storeType}
                                     label={storeType}
-                                    disabled={storeType !== serviceOptions.memoriesStore.selectedType}
+                                    disabled={storeType !== serviceOptions.memoryStore.selectedType}
                                 />
                             );
                         })}
