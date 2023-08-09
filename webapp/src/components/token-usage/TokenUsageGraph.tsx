@@ -63,7 +63,8 @@ const contrastColors = [
 export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenUsage }) => {
     const classes = useClasses();
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
-    const loadingResponse = conversations[selectedId].botResponseStatus && Object.entries(tokenUsage).length === 0;
+    const loadingResponse =
+        selectedId !== '' && conversations[selectedId].botResponseStatus && Object.entries(tokenUsage).length === 0;
 
     const responseGenerationView: TokenUsageView = {};
     const memoryGenerationView: TokenUsageView = {};

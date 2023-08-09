@@ -2,6 +2,7 @@
 
 import * as signalR from '@microsoft/signalr';
 import { AnyAction, Dispatch } from '@reduxjs/toolkit';
+import { Constants } from '../../../Constants';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
@@ -65,7 +66,13 @@ const registerCommonSignalConnectionEvents = (store: Store) => {
     hubConnection.onclose((error) => {
         if (hubConnection.state === signalR.HubConnectionState.Disconnected) {
             const errorMessage = 'Connection closed due to error. Try refreshing this page to restart the connection';
-            store.dispatch(addAlert({ message: String(errorMessage), type: AlertType.Error }));
+            store.dispatch(
+                addAlert({
+                    message: String(errorMessage),
+                    type: AlertType.Error,
+                    id: Constants.app.CONNECTION_ALERT_ID,
+                }),
+            );
             console.log(errorMessage, error);
         }
     });
@@ -73,15 +80,21 @@ const registerCommonSignalConnectionEvents = (store: Store) => {
     hubConnection.onreconnecting((error) => {
         if (hubConnection.state === signalR.HubConnectionState.Reconnecting) {
             const errorMessage = 'Connection lost due to error. Reconnecting...';
-            store.dispatch(addAlert({ message: String(errorMessage), type: AlertType.Info }));
+            store.dispatch(
+                addAlert({
+                    message: String(errorMessage),
+                    type: AlertType.Info,
+                    id: Constants.app.CONNECTION_ALERT_ID,
+                }),
+            );
             console.log(errorMessage, error);
         }
     });
 
     hubConnection.onreconnected((connectionId = '') => {
         if (hubConnection.state === signalR.HubConnectionState.Connected) {
-            const message = 'Connection reestablished.';
-            store.dispatch(addAlert({ message, type: AlertType.Success }));
+            const message = 'Connection reestablished. Please refresh the page to ensure you have the latest data.';
+            store.dispatch(addAlert({ message, type: AlertType.Success, id: Constants.app.CONNECTION_ALERT_ID }));
             console.log(message + ` Connected with connectionId ${connectionId}`);
         }
     });
