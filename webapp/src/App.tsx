@@ -11,7 +11,7 @@ import BackendProbe from './components/views/BackendProbe';
 import { ChatView } from './components/views/ChatView';
 import Loading from './components/views/Loading';
 import { Login } from './components/views/Login';
-import { useChat } from './libs/hooks';
+import { useChat, useContentModerator } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
@@ -67,6 +67,7 @@ const App: FC = () => {
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
+    const contentModerator = useContentModerator();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -95,7 +96,8 @@ const App: FC = () => {
                             setAppState(AppState.Chat);
                         }
                     }),
-
+                    // Check if content moderator is enabled
+                    contentModerator.getContentModerationStatus(),
                     // Load service options
                     chat.getServiceOptions().then((serviceOptions) => {
                         if (serviceOptions) {

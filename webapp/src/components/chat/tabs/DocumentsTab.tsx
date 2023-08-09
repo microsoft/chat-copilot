@@ -33,12 +33,10 @@ import {
 } from '@fluentui/react-icons';
 import * as React from 'react';
 import { useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import { useChat } from '../../../libs/hooks';
+import { useChat, useFile } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { setImportingDocumentsToConversation } from '../../../redux/features/conversations/conversationsSlice';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { TabView } from './TabView';
 
@@ -86,7 +84,8 @@ interface TableItem {
 export const DocumentsTab: React.FC = () => {
     const classes = useClasses();
     const chat = useChat();
-    const dispatch = useDispatch();
+    const fileHandler = useFile();
+
     const { serviceOptions } = useAppSelector((state: RootState) => state.app);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { importingDocuments } = conversations[selectedId];
@@ -118,38 +117,6 @@ export const DocumentsTab: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importingDocuments, selectedId]);
 
-    const handleImport = () => {
-        const files = documentFileRef.current?.files;
-
-        if (files && files.length > 0) {
-            // Deep copy the FileList into an array so that the function
-            // maintains a list of files to import before the import is complete.
-            const filesArray = Array.from(files);
-
-            dispatch(
-                setImportingDocumentsToConversation({
-                    importingDocuments: filesArray.map((file) => file.name),
-                    chatId: selectedId,
-                }),
-            );
-
-            void chat.importDocument(selectedId, filesArray).finally(() => {
-                dispatch(
-                    setImportingDocumentsToConversation({
-                        importingDocuments: [],
-                        chatId: selectedId,
-                    }),
-                );
-            });
-        }
-
-        // Reset the file input so that the onChange event will
-        // be triggered even if the same file is selected again.
-        if (documentFileRef.current?.value) {
-            documentFileRef.current.value = '';
-        }
-    };
-
     const { columns, rows } = useTable(resources);
     return (
         <TabView
@@ -165,7 +132,9 @@ export const DocumentsTab: React.FC = () => {
                     style={{ display: 'none' }}
                     accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
                     multiple={true}
-                    onChange={handleImport}
+                    onChange={() => {
+                        void fileHandler.handleImport(selectedId, documentFileRef);
+                    }}
                 />
                 <Tooltip content="Embed file into chat session" relationship="label">
                     <Button

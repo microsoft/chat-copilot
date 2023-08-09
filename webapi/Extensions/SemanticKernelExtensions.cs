@@ -6,9 +6,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -58,6 +60,9 @@ internal static class SemanticKernelExtensions
         // Semantic memory
         services.AddSemanticTextMemory();
 
+        // Azure Content Moderator
+        services.AddContentModerator();
+
         // Register skills
         services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
 
@@ -100,6 +105,7 @@ internal static class SemanticKernelExtensions
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
+                contentModerator: sp.GetService<AzureContentModerator>(),
                 planner: sp.GetRequiredService<CopilotChatPlanner>(),
                 logger: sp.GetRequiredService<ILogger<ChatSkill>>()),
             nameof(ChatSkill));
@@ -229,6 +235,20 @@ internal static class SemanticKernelExtensions
             sp.GetRequiredService<IMemoryStore>(),
             sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
                 .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
+    }
+
+    /// <summary>
+    /// Adds Azure Content Moderator
+    /// </summary>
+    internal static void AddContentModerator(this IServiceCollection services)
+    {
+        IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        ContentModeratorOptions options = configuration.GetSection(ContentModeratorOptions.PropertyName).Get<ContentModeratorOptions>();
+
+        if (options.Enabled)
+        {
+            services.AddSingleton<AzureContentModerator>(sp => new AzureContentModerator(new Uri(options.Endpoint), options.Key, options));
+        }
     }
 
     /// <summary>
