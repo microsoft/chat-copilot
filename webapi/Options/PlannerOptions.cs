@@ -33,7 +33,7 @@ public class PlannerOptions
     public const string PropertyName = "Planner";
 
     /// <summary>
-    /// Define if the planner must be Sequential or not.
+    /// The type of planner to used to create plan.
     /// </summary>
     [Required]
     public PlanType Type { get; set; } = PlanType.Action;
