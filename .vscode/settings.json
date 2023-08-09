@@ -48,4 +48,5 @@
       "**/.DS_Store": true,
       "**/Thumbs.db": true
     },
+    "dotnet.defaultSolution": ".\\CopilotChat.sln"
   }

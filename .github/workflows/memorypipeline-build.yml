@@ -1,0 +1,38 @@
+﻿name: Build SemanticMemoryPipelineService
+
+on:
+  push:
+    branches: ["feature-semantic-memory"]
+
+permissions:
+  contents: read
+
+jobs:
+  memory-pipeline:
+    runs-on: ubuntu-latest
+
+    environment: feature-semantic-memory
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          clean: true
+
+      - name: Set .Net Core version
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Add custom nuget source
+        run: |
+          dotnet nuget add source "https://pkgs.dev.azure.com/msctoproj/Lightspeed/_packaging/SemanticMemoryPrivate/nuget/v3/index.json" \
+            --name SemanticMemoryPrivate \
+            --username az \
+            --password ${{ secrets.AZURE_DEVOPS_PAT }} \
+            --store-password-in-clear-text
+
+      - name: Build SemanticMemoryPipelineService
+        run: |
+          dotnet build memorypipeline/SemanticMemoryPipelineService.csproj \
+            -c Release \
+            -v normal
