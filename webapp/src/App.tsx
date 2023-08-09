@@ -63,9 +63,7 @@ const App: FC = () => {
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
     const defaultUserInfoStatusText = 'Hang tight while we fetch your information...';
-    const [userInfoStatusText, setUserInfoStatusText] = React.useState<string>(
-        'Oops, something went wrong. Please try signing out and signing back in.',
-    );
+    const [userInfoStatusText, setUserInfoStatusText] = React.useState<string>(defaultUserInfoStatusText);
 
     const chat = useChat();
 
@@ -153,11 +151,12 @@ const App: FC = () => {
                             }}
                         />
                     )}
-                    {userInfoStatusText === defaultUserInfoStatusText ? (
-                        <Loading text={userInfoStatusText} />
-                    ) : (
-                        <Error text={userInfoStatusText} />
-                    )}
+                    {appState === AppState.SettingUserInfo &&
+                        (userInfoStatusText === defaultUserInfoStatusText ? (
+                            <Loading text={userInfoStatusText} />
+                        ) : (
+                            <Error text={userInfoStatusText} />
+                        ))}
                     {appState === AppState.LoadingChats && <Loading text="Loading Chats..." />}
                     {appState === AppState.Chat && <ChatView />}
                 </div>
