@@ -54,4 +54,5 @@ export const Constants = {
         MANIFEST_PATH: '/.well-known/ai-plugin.json',
     },
     KEYSTROKE_DEBOUNCE_TIME_MS: 250,
+    STEPWISE_RESULT_NOT_FOUND_REGEX: /(Result not found, review _stepsTaken to see what happened\.)\s+(\[{.*}])/g,
 };
