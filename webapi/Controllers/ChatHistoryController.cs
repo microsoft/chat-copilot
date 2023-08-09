@@ -73,7 +73,7 @@ public class ChatHistoryController : ControllerBase
     /// <param name="chatParameter">Contains the title of the chat.</param>
     /// <returns>The HTTP action result.</returns>
     [HttpPost]
-    [Route("chatSessions")]
+    [Route("chatSession/create")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateChatSessionAsync(
@@ -112,8 +112,9 @@ public class ChatHistoryController : ControllerBase
     /// <param name="chatId">The chat id.</param>
     [HttpGet]
     [ActionName("GetChatSessionByIdAsync")]
-    [Route("chatSessions/{chatId:guid}")]
+    [Route("chatSession/getChat/{chatId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetChatSessionByIdAsync(Guid chatId)
@@ -132,11 +133,17 @@ public class ChatHistoryController : ControllerBase
     /// </summary>
     /// <returns>A list of chat sessions. An empty list if the user is not in any chat session.</returns>
     [HttpGet]
-    [Route("chatSessions")]
+    [Route("chatSession/getAllChats/{userId:regex(([[a-z0-9]]+-)+[[a-z0-9]]+\\.([[a-z0-9]]+-)+[[a-z0-9]]+)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAllChatSessionsAsync()
+    public async Task<IActionResult> GetAllChatSessionsAsync(string userId)
     {
+        if (!userId.Equals(this._authInfo.UserId, StringComparison.Ordinal))
+        {
+            return this.Forbid("User id does not match request.");
+        }
+
         // Get all participants that belong to the user.
         // Then get all the chats from the list of participants.
         var chatParticipants = await this._participantRepository.FindByUserIdAsync(this._authInfo.UserId);
@@ -152,10 +159,9 @@ public class ChatHistoryController : ControllerBase
             else
             {
                 this._logger.LogDebug(
-                    "Failed to find chat session with id {0} for participant {1}", chatParticipant.ChatId, chatParticipant.Id);
+                    "Failed to find chat session with id {0}", chatParticipant.ChatId);
                 return this.NotFound(
-                    $"Failed to find chat session with id {chatParticipant.ChatId} for participant {chatParticipant.Id}");
-                // TODO: is it okay to share user id in logs?
+                    $"Failed to find chat session with id {chatParticipant.ChatId}");
             }
         }
 
@@ -170,8 +176,9 @@ public class ChatHistoryController : ControllerBase
     /// <param name="startIdx">The start index at which the first message will be returned.</param>
     /// <param name="count">The number of messages to return. -1 will return all messages starting from startIdx.</param>
     [HttpGet]
-    [Route("chatSessions/{chatId:guid}/messages")]
+    [Route("chatSession/getChatMessages/{chatId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetChatMessagesAsync(
@@ -196,24 +203,39 @@ public class ChatHistoryController : ControllerBase
     /// Edit a chat session.
     /// </summary>
     /// <param name="chatParameters">Object that contains the parameters to edit the chat.</param>
-    [HttpPatch]
-    [Route("chatSessions/{chatId:guid}")]
+    [HttpPost]
+    [Route("chatSession/edit")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> EditChatSessionAsync(
-        Guid chatId,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromBody] EditChatParameters chatParameters)
     {
+        string? chatId = chatParameters.Id;
+
+        if (chatId == null)
+        {
+            return this.BadRequest("Chat id must be specified.");
+        }
+
+        // Verify access to chat session
+        // TODO: [Issue #141] This can be removed when route is updated to include chatId, so that we can leverage RequireChatParticipant policy.
+        bool isUserInChat = await this._participantRepository.IsUserInChatAsync(this._authInfo.UserId, chatId);
+        if (!isUserInChat)
+        {
+            return this.Forbid("User does not have access to the specified chat.");
+        }
+
         ChatSession? chat = null;
-        if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), v => chat = v))
+        if (await this._sessionRepository.TryFindByIdAsync(chatId, v => chat = v))
         {
             chat!.Title = chatParameters.Title ?? chat!.Title;
             chat!.SystemDescription = chatParameters.SystemDescription ?? chat!.SystemDescription;
             chat!.MemoryBalance = chatParameters.MemoryBalance ?? chat!.MemoryBalance;
             await this._sessionRepository.UpsertAsync(chat);
-            await messageRelayHubContext.Clients.Group(chatId.ToString()).SendAsync(ChatEditedClientCall, chat);
+            await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatEditedClientCall, chat);
             return this.Ok(chat);
         }
 
@@ -223,10 +245,11 @@ public class ChatHistoryController : ControllerBase
     /// <summary>
     /// Service API to get a list of imported sources.
     /// </summary>
-    [Route("chatSessions/{chatId:guid}/sources")]
+    [Route("chatSession/{chatId:guid}/sources")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<ActionResult<IEnumerable<MemorySource>>> GetSourcesAsync(

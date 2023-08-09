@@ -20,7 +20,7 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<ICreateChatSessionResponse>(
             {
-                commandPath: 'chatSessions',
+                commandPath: 'chatSession/create',
                 method: 'POST',
                 body,
             },
@@ -33,7 +33,7 @@ export class ChatService extends BaseService {
     public getChatAsync = async (chatId: string, accessToken: string): Promise<IChatSession> => {
         const result = await this.getResponseAsync<IChatSession>(
             {
-                commandPath: `chatSessions/${chatId}`,
+                commandPath: `chatSession/getChat/${chatId}`,
                 method: 'GET',
             },
             accessToken,
@@ -42,10 +42,10 @@ export class ChatService extends BaseService {
         return result;
     };
 
-    public getAllChatsAsync = async (accessToken: string): Promise<IChatSession[]> => {
+    public getAllChatsAsync = async (userId: string, accessToken: string): Promise<IChatSession[]> => {
         const result = await this.getResponseAsync<IChatSession[]>(
             {
-                commandPath: 'chatSessions',
+                commandPath: `chatSession/getAllChats/${userId}`,
                 method: 'GET',
             },
             accessToken,
@@ -61,7 +61,7 @@ export class ChatService extends BaseService {
     ): Promise<IChatMessage[]> => {
         const result = await this.getResponseAsync<IChatMessage[]>(
             {
-                commandPath: `chatSessions/${chatId}/messages?startIdx=${startIdx}&count=${count}`,
+                commandPath: `chatSession/getChatMessages/${chatId}?startIdx=${startIdx}&count=${count}`,
                 method: 'GET',
             },
             accessToken,
@@ -79,8 +79,8 @@ export class ChatService extends BaseService {
         memoryBalance: number,
         accessToken: string,
     ): Promise<any> => {
-        // TODO: is this right to use Partial<IChatSession> ?
-        const body: Partial<IChatSession> = {
+        const body: IChatSession = {
+            id: chatId,
             title,
             systemDescription,
             memoryBalance,
@@ -88,8 +88,8 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<IChatSession>(
             {
-                commandPath: `chatSessions/${chatId}`,
-                method: 'PATCH',
+                commandPath: `chatSession/edit`,
+                method: 'POST',
                 body,
             },
             accessToken,
@@ -166,12 +166,17 @@ export class ChatService extends BaseService {
         return result;
     };
 
-    public joinChatAsync = async (chatId: string, accessToken: string): Promise<IChatSession> => {
+    public joinChatAsync = async (userId: string, chatId: string, accessToken: string): Promise<IChatSession> => {
+        const body: IChatParticipant = {
+            userId,
+            chatId,
+        };
+
         await this.getResponseAsync<any>(
             {
-                commandPath: `chatSessions/${chatId}/participants`,
+                commandPath: `chatParticipant/join`,
                 method: 'POST',
-                // TODO: how to specify no content?
+                body,
             },
             accessToken,
         );
@@ -182,7 +187,7 @@ export class ChatService extends BaseService {
     public getChatMemorySourcesAsync = async (chatId: string, accessToken: string): Promise<ChatMemorySource[]> => {
         const result = await this.getResponseAsync<ChatMemorySource[]>(
             {
-                commandPath: `chatSessions/${chatId}/sources`,
+                commandPath: `chatSession/${chatId}/sources`,
                 method: 'GET',
             },
             accessToken,
@@ -194,7 +199,7 @@ export class ChatService extends BaseService {
     public getAllChatParticipantsAsync = async (chatId: string, accessToken: string): Promise<IChatUser[]> => {
         const result = await this.getResponseAsync<IChatParticipant[]>(
             {
-                commandPath: `chatSessions/${chatId}/participants`,
+                commandPath: `chatParticipant/getAllParticipants/${chatId}`,
                 method: 'GET',
             },
             accessToken,

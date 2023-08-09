@@ -70,6 +70,7 @@ public class ChatController : ControllerBase, IDisposable
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChatAsync(
         [FromServices] IKernel kernel,
@@ -79,14 +80,14 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] ChatAsk ask)
+        [FromBody] Ask ask)
     {
         this._logger.LogDebug("Chat request received.");
 
         // Verify that the chat exists and that the user has access to it.
-        const string chatIdKey = "chatId";
-        var chatIdFromContext = ask.Variables.FirstOrDefault(x => x.Key == chatIdKey);
-        if (chatIdFromContext.Key is chatIdKey)
+        const string ChatIdKey = "chatId";
+        var chatIdFromContext = ask.Variables.FirstOrDefault(x => x.Key == ChatIdKey);
+        if (chatIdFromContext.Key is ChatIdKey)
         {
             var chatId = chatIdFromContext.Value;
             var chat = await chatSessionRepository.FindByIdAsync(chatId);
@@ -98,7 +99,7 @@ public class ChatController : ControllerBase, IDisposable
             bool isUserInChat = await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId);
             if (!isUserInChat)
             {
-                return this.Unauthorized("User does not have access to the chatId specified in variables.");
+                return this.Forbid("User does not have access to the chatId specified in variables.");
             }
         }
         else

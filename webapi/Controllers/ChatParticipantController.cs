@@ -52,7 +52,7 @@ public class ChatParticipantController : ControllerBase
     /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
     /// <param name="authInfo">The auth info for the current request.</param>
     [HttpPost]
-    [Route("chatSessions/{chatId:guid}/participants")]
+    [Route("chatParticipant/join")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> JoinChatAsync(
