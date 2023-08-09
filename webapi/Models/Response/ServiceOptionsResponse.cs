@@ -9,25 +9,25 @@ namespace CopilotChat.WebApi.Models.Response;
 public class ServiceOptionsResponse
 {
     /// <summary>
-    /// The memories store that is configured.
+    /// Configured memory store.
     /// </summary>
-    [JsonPropertyName("memoriesStore")]
-    public MemoriesStoreOptionResponse MemoriesStore { get; set; } = new MemoriesStoreOptionResponse();
+    [JsonPropertyName("memoryStore")]
+    public MemoryStoreOptionResponse MemoryStore { get; set; } = new MemoryStoreOptionResponse();
 }
 
 /// <summary>
-/// Response to memoriesStoreType request.
+/// Response to memoryStoreType request.
 /// </summary>
-public class MemoriesStoreOptionResponse
+public class MemoryStoreOptionResponse
 {
     /// <summary>
-    /// All the available memories store types.
+    /// All the available memory store types.
     /// </summary>
     [JsonPropertyName("types")]
     public IEnumerable<string> Types { get; set; } = Enumerable.Empty<string>();
 
     /// <summary>
-    /// The selected memories store type.
+    /// The selected memory store type.
     /// </summary>
     [JsonPropertyName("selectedType")]
     public string SelectedType { get; set; } = string.Empty;

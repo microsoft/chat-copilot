@@ -136,7 +136,7 @@ public class CopilotChatPlanner
         }
         catch (Exception e)
         {
-            context.Log.LogError(e, "Error running stepwise planner");
+            context.Logger.LogError(e, "Error running stepwise planner");
             throw;
         }
     }
