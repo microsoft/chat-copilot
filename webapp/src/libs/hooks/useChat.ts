@@ -90,9 +90,9 @@ export const useChat = () => {
                         userDataLoaded: false,
                     };
 
-                dispatch(addConversation(newChat));
-                return newChat.id;
-            });
+                    dispatch(addConversation(newChat));
+                    return newChat.id;
+                });
         } catch (e: any) {
             const errorMessage = `Unable to create new chat. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
