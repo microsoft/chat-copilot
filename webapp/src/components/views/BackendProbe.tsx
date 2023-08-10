@@ -20,7 +20,9 @@ const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                 }
             };
 
-            void fetchAsync();
+            fetchAsync().catch(() => {
+                // Ignore - this page is just a probe, so we don't need to show any errors if backend is not found
+            });
         }, 3000);
 
         return () => {

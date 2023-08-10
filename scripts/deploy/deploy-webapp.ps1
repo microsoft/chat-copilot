@@ -63,7 +63,7 @@ Write-Host "webapiScope: $webapiScope"
 # Set ASCII as default encoding for Out-File
 $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
 
-$envFilePath = "$PSScriptRoot/../webapp/.env"
+$envFilePath = "$PSScriptRoot/../../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
 "REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
@@ -72,16 +72,16 @@ Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
 
 Write-Host "Generating SWA config..."
-$swaConfig = $(Get-Content "$PSScriptRoot/../webapp/template.swa-cli.config.json" -Raw)
+$swaConfig = $(Get-Content "$PSScriptRoot/../../webapp/template.swa-cli.config.json" -Raw)
 $swaConfig = $swaConfig.Replace("{{appDevserverUrl}}", "https://$webappUrl")
 $swaConfig = $swaConfig.Replace("{{appName}}", "$webappName")
 $swaConfig = $swaConfig.Replace("{{resourceGroup}}", "$ResourceGroupName")
 $swaConfig = $swaConfig.Replace("{{subscription-id}}", "$Subscription")
 
-$swaConfig | Out-File -FilePath "$PSScriptRoot/../webapp/swa-cli.config.json"
-Write-Host $(Get-Content "$PSScriptRoot/../webapp/swa-cli.config.json" -Raw)
+$swaConfig | Out-File -FilePath "$PSScriptRoot/../../webapp/swa-cli.config.json"
+Write-Host $(Get-Content "$PSScriptRoot/../../webapp/swa-cli.config.json" -Raw)
 
-Push-Location -Path "$PSScriptRoot/../webapp"
+Push-Location -Path "$PSScriptRoot/../../webapp"
 Write-Host "Installing yarn dependencies..."
 yarn install
 if ($LASTEXITCODE -ne 0) {

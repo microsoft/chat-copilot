@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.ComponentModel.DataAnnotations;
 using CopilotChat.WebApi.Models.Response;
+using Microsoft.SemanticKernel.Planning.Stepwise;
 
 namespace CopilotChat.WebApi.Options;
 
@@ -32,7 +33,7 @@ public class PlannerOptions
     public const string PropertyName = "Planner";
 
     /// <summary>
-    /// Define if the planner must be Sequential or not.
+    /// The type of planner to used to create plan.
     /// </summary>
     [Required]
     public PlanType Type { get; set; } = PlanType.Action;
@@ -52,4 +53,10 @@ public class PlannerOptions
     /// Whether to retry plan creation if LLM returned response that doesn't contain valid plan (e.g., invalid XML or JSON, contains missing function, etc.).
     /// </summary>
     public bool AllowRetriesOnInvalidPlan { get; set; } = true;
+
+    /// <summary>
+    /// The configuration for the stepwise planner.
+    /// </summary>
+    [RequiredOnPropertyValue(nameof(Type), PlanType.Stepwise)]
+    public StepwisePlannerConfig StepwisePlannerConfig { get; set; } = new StepwisePlannerConfig();
 }

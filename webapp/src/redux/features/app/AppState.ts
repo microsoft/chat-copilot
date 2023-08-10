@@ -14,6 +14,7 @@ export interface ActiveUserInfo {
 export interface Alert {
     message: string;
     type: AlertType;
+    id?: string;
 }
 
 interface Feature {
@@ -137,5 +138,5 @@ export const initialState: AppState = {
     tokenUsage: {},
     features: Features,
     settings: Settings,
-    serviceOptions: { memoriesStore: { types: [], selectedType: '' } },
+    serviceOptions: { memoryStore: { types: [], selectedType: '' } },
 };

@@ -1,9 +1,12 @@
 import { AuthType } from './libs/auth/AuthHelper';
 
+/**
+ * Checks if all required environment variables are defined
+ * @returns {string[]} An array of missing environment variables
+ */
 export const getMissingEnvVariables = () => {
     // Should be aligned with variables defined in .env.example
     const envVariables = ['REACT_APP_BACKEND_URI'];
-
     const missingVariables = [];
 
     for (const variable of envVariables) {

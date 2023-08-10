@@ -18,14 +18,14 @@ public class ServiceOptionsController : ControllerBase
 {
     private readonly ILogger<ServiceOptionsController> _logger;
 
-    private readonly MemoriesStoreOptions _memoriesStoreOptions;
+    private readonly MemoryStoreOptions _memoryStoreOptions;
 
     public ServiceOptionsController(
         ILogger<ServiceOptionsController> logger,
-        IOptions<MemoriesStoreOptions> memoriesStoreOptions)
+        IOptions<MemoryStoreOptions> memoryStoreOptions)
     {
         this._logger = logger;
-        this._memoriesStoreOptions = memoriesStoreOptions.Value;
+        this._memoryStoreOptions = memoryStoreOptions.Value;
     }
 
     // TODO: [Issue #95] Include all service options in a single response.
@@ -40,10 +40,10 @@ public class ServiceOptionsController : ControllerBase
         return this.Ok(
             new ServiceOptionsResponse()
             {
-                MemoriesStore = new MemoriesStoreOptionResponse()
+                MemoryStore = new MemoryStoreOptionResponse()
                 {
-                    Types = Enum.GetNames(typeof(MemoriesStoreOptions.MemoriesStoreType)),
-                    SelectedType = this._memoriesStoreOptions.Type.ToString()
+                    Types = Enum.GetNames(typeof(MemoryStoreOptions.MemoryStoreType)),
+                    SelectedType = this._memoryStoreOptions.Type.ToString()
                 }
             }
         );

@@ -244,27 +244,27 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: deployCosmosDB ? cosmosAccount.listConnectionStrings().connectionStrings[0].connectionString : ''
       }
       {
-        name: 'MemoriesStore:Type'
+        name: 'MemoryStore:Type'
         value: memoryStore
       }
       {
-        name: 'MemoriesStore:Qdrant:Host'
+        name: 'MemoryStore:Qdrant:Host'
         value: memoryStore == 'Qdrant' ? 'https://${appServiceQdrant.properties.defaultHostName}' : ''
       }
       {
-        name: 'MemoriesStore:Qdrant:Port'
+        name: 'MemoryStore:Qdrant:Port'
         value: '443'
       }
       {
-        name: 'MemoriesStore:AzureCognitiveSearch:UseVectorSearch'
+        name: 'MemoryStore:AzureCognitiveSearch:UseVectorSearch'
         value: 'true'
       }
       {
-        name: 'MemoriesStore:AzureCognitiveSearch:Endpoint'
+        name: 'MemoryStore:AzureCognitiveSearch:Endpoint'
         value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
       }
       {
-        name: 'MemoriesStore:AzureCognitiveSearch:Key'
+        name: 'MemoryStore:AzureCognitiveSearch:Key'
         value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
       }
       {

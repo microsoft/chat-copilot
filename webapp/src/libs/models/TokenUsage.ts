@@ -20,6 +20,6 @@ export const TokenUsageFunctionNameMap: Record<string, string> = {
     userIntentExtraction: 'User Intent Extraction',
     metaPromptTemplate: 'Meta Prompt Template',
     responseCompletion: 'Response Completion',
-    workingMemoryExtraction: 'Working Memory Extraction',
-    longTermMemoryExtraction: 'Long Term Memory Extraction',
+    workingMemoryExtraction: 'Working Memory Generation',
+    longTermMemoryExtraction: 'Long Term Memory Generation',
 };
