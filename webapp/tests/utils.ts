@@ -13,7 +13,7 @@ export async function loginHelper(page, useraccount, password) {
     // Expect the page to contain a "Login" button.
     await page.getByRole('button').click();
     // Clicking the login button should redirect to the login page.
-    await expect(page).toHaveURL(new RegExp('^' + process.env.REACT_APP_AAD_AUTHORITY));
+    await expect(page).toHaveURL(process.env.REACT_APP_AAD_AUTHORITY);
     // Login with the test user.
     await page.getByPlaceholder('Email, phone, or Skype').click();
     await page.getByPlaceholder('Email, phone, or Skype').fill(useraccount as string);
@@ -36,7 +36,7 @@ export async function loginHelperAnotherUser(page, useraccount, password) {
     // Expect the page to contain a "Login" button.
     await page.getByRole('button').click();
     // Clicking the login button should redirect to the login page.
-    await expect(page).toHaveURL(new RegExp('^' + process.env.REACT_APP_AAD_AUTHORITY));
+    await expect(page).toHaveURL(process.env.REACT_APP_AAD_AUTHORITY);
     // Login with the another user account.
     await page.getByRole('button', { name: 'Use another account' }).click();
     await page.getByPlaceholder('Email, phone, or Skype').click();
