@@ -139,6 +139,7 @@ public class ChatHistoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAllChatSessionsAsync(string userId)
     {
+        // TODO: [Issue #141] Remove this once we remove userId from route
         if (!userId.Equals(this._authInfo.UserId, StringComparison.Ordinal))
         {
             return this.Forbid("User id does not match request.");

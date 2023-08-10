@@ -277,7 +277,7 @@ export const useChat = () => {
     const joinChat = async (chatId: string) => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
         try {
-            await chatService.joinChatAsync(chatId, accessToken).then(async (result: IChatSession) => {
+            await chatService.joinChatAsync(userId, chatId, accessToken).then(async (result: IChatSession) => {
                 // Get chat messages
                 const chatMessages = await chatService.getChatMessagesAsync(result.id, 0, 100, accessToken);
 

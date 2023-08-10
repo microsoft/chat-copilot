@@ -56,31 +56,31 @@ public class ChatParticipantController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> JoinChatAsync(
-        Guid chatId,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
-        [FromServices] IAuthInfo authInfo)
+        [FromServices] IAuthInfo authInfo,
+        [FromBody] ChatParticipant chatParticipantParam)
     {
-        var chatIdString = chatId.ToString();
-        var userId = authInfo.UserId;
+        string chatId = chatParticipantParam.ChatId;
+        string userId = authInfo.UserId;
 
         // Make sure the chat session exists.
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatIdString, v => _ = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
         {
             return this.BadRequest("Chat session does not exist.");
         }
 
         // Make sure the user is not already in the chat session.
-        if (await this._chatParticipantRepository.IsUserInChatAsync(userId, chatIdString))
+        if (await this._chatParticipantRepository.IsUserInChatAsync(userId, chatId))
         {
             return this.BadRequest("User is already in the chat session.");
         }
 
-        var chatParticipant = new ChatParticipant(userId, chatIdString);
+        var chatParticipant = new ChatParticipant(userId, chatId);
         await this._chatParticipantRepository.CreateAsync(chatParticipant);
 
         // Broadcast the user joined event to all the connected clients.
         // Note that the client who initiated the request may not have joined the group.
-        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(UserJoinedClientCall, chatIdString, userId);
+        await messageRelayHubContext.Clients.Group(chatId).SendAsync(UserJoinedClientCall, chatId, userId);
 
         return this.Ok(chatParticipant);
     }
