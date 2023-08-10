@@ -152,7 +152,7 @@ echo "Setting 'AIService:Key' user secret for $AI_SERVICE..."
 dotnet user-secrets set --project $WEBAPI_PROJECT_PATH  AIService:Key $API_KEY
 if [ $? -ne 0 ]; then exit 1; fi
 
-APPSETTINGS_OVERRIDES="{ \"AIService\": { \"Type\": \"${AI_SERVICE}\", \"Endpoint\": \"${ENDPOINT}\", \"Models\": { \"Completion\": \"${COMPLETION_MODEL}\", \"Embedding\": \"${EMBEDDING_MODEL}\", \"Planner\": \"${PLANNER_MODEL}\" } }, \"Authentication\": { \"Type\": \"${AUTH_TYPE}\", \"AzureAd\": { \"Instance\": \"${INSTANCE}\", \"TenantId\": \"${TENANT_ID}\", \"ClientId\": \"${BACKEND_CLINET_ID}\", \"Scopes\": \"${ENV_SCOPES}\" } } }"
+APPSETTINGS_OVERRIDES="{ \"AIService\": { \"Type\": \"${AI_SERVICE}\", \"Endpoint\": \"${ENDPOINT}\", \"Models\": { \"Completion\": \"${COMPLETION_MODEL}\", \"Embedding\": \"${EMBEDDING_MODEL}\", \"Planner\": \"${PLANNER_MODEL}\" } }, \"Authentication\": { \"Type\": \"${AUTH_TYPE}\", \"AzureAd\": { \"Instance\": \"${INSTANCE}\", \"TenantId\": \"${TENANT_ID}\", \"ClientId\": \"${BACKEND_CLIENT_ID}\", \"Scopes\": \"${ENV_SCOPES}\" } } }"
 APPSETTINGS_OVERRIDES_FILEPATH="${WEBAPI_PROJECT_PATH}/appsettings.${ENV_ASPNETCORE}.json"
 
 echo "Setting up 'appsettings.${ENV_ASPNETCORE}.json' for $AI_SERVICE..."

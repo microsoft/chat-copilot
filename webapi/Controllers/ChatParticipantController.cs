@@ -90,7 +90,7 @@ public class ChatParticipantController : ControllerBase
     /// </summary>
     /// <param name="chatId">The ID of the chat to get all the participants from.</param>
     [HttpGet]
-    [Route("chatSessions/{chatId:guid}/participants")]
+    [Route("chatParticipant/getAllParticipants/{chatId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
