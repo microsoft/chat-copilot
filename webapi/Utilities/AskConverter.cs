@@ -26,11 +26,11 @@ public class AskConverter
         const string userIdKey = "userId";
         const string userNameKey = "userName";
         var contextVariables = new ContextVariables(ask.Input);
-        foreach (var input in ask.Variables)
+        foreach (var variable in ask.Variables)
         {
-            if (input.Key != userIdKey && input.Key != userNameKey)
+            if (variable.Key != userIdKey && variable.Key != userNameKey)
             {
-                contextVariables.Set(input.Key, input.Value);
+                contextVariables.Set(variable.Key, variable.Value);
             }
         }
 
