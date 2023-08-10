@@ -43,6 +43,11 @@ public class ExternalInformationSkill
     public ProposedPlan? ProposedPlan { get; private set; }
 
     /// <summary>
+    /// Stepwise thought process to return for view.
+    /// </summary>
+    public StepwiseThoughtProcess? StepwiseThoughtProcess { get; private set; }
+
+    /// <summary>
     /// Preamble to add to the related information text.
     /// </summary>
     private const string PromptPreamble = "[RELATED START]";
@@ -89,9 +94,13 @@ public class ExternalInformationSkill
         var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}";
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
-            var newPlanContext = context.Clone();
-            newPlanContext = await this._planner.RunStepwisePlannerAsync(goal, context);
-            return $"{PromptPreamble}\n{newPlanContext.Variables.Input.Trim()}\n{PromptPostamble}\n";
+            var plannerContext = context.Clone();
+            plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context);
+            this.StepwiseThoughtProcess = new StepwiseThoughtProcess(
+                plannerContext.Variables["stepsTaken"],
+                plannerContext.Variables["timeTaken"],
+                plannerContext.Variables["skillCount"]);
+            return $"{PromptPreamble}\n{plannerContext.Variables.Input.Trim()}\n{PromptPostamble}\n";
         }
 
         // Check if plan exists in ask's context variables.
