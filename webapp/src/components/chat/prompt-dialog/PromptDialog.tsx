@@ -63,6 +63,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
             if (key === 'externalInformation') {
                 const information = value as DependencyDetails;
                 if (information.context) {
+                    // TODO: [Issue #150, sk#2106] Accomodate different planner contexts once core team finishes work to return prompt and token usage.
                     const details = information.context as StepwiseThoughtProcess;
                     isStepwiseThoughtProcess = details.plannerType === PlanType.Stepwise;
                 }

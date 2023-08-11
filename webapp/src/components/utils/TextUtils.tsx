@@ -74,6 +74,7 @@ export function formatChatTextContent(messageContent: string) {
  */
 export function formatParagraphTextContent(messageContent: string) {
     messageContent = messageContent.replaceAll('\r\n', '\n\r');
+
     return (
         <Body1>
             {messageContent.split('\n').map((paragraph, idx) => (
@@ -85,7 +86,9 @@ export function formatParagraphTextContent(messageContent: string) {
                                   display: 'flex',
                                   marginLeft: tokens.spacingHorizontalL,
                               }
-                            : undefined
+                            : {
+                                  overflowWrap: 'anywhere',
+                              }
                     }
                 >
                     {paragraph}

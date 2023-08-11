@@ -349,6 +349,7 @@ public class ChatSkill
         chatContext.ThrowIfFailed();
 
         // Extract additional details about planner execution in chat context
+        // TODO: [Issue #150, sk#2106] Accomodate different planner contexts once core team finishes work to return prompt and token usage.
         var plannerDetails = new SemanticDependency<StepwiseThoughtProcess>(
                 planResult,
                 this._externalInformationSkill.StepwiseThoughtProcess
@@ -532,11 +533,6 @@ public class ChatSkill
 
         // Propagate the error
         planContext.ThrowIfFailed();
-
-        if (planContext.Variables.TryGetValue("stepwiseThoughtProcess", out string? stepwiseThoughtProcess))
-        {
-            context.Variables.Set("stepwiseThoughtProcess", stepwiseThoughtProcess);
-        }
 
         return plan;
     }

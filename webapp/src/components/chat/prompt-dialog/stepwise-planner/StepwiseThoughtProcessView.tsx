@@ -40,6 +40,7 @@ export const StepwiseThoughtProcessView: React.FC<IStepwiseThoughtProcessViewPro
     const matchGroups = Array.from(testResultNotFound);
     const resultNotFound = matchGroups.length > 0;
     if (resultNotFound) {
+        // Extract result not found message. The rest is the same as stepsTaken.
         thoughtProcess.result = matchGroups[0][1];
     }
 
@@ -63,13 +64,13 @@ export const StepwiseThoughtProcessView: React.FC<IStepwiseThoughtProcessViewPro
                 <>
                     <Body1Strong>Time Taken:</Body1Strong>
                     <Body1>{stepwiseDetails.timeTaken}</Body1>
-                    <Body1Strong>Skills Used:</Body1Strong>
-                    <Body1>{stepwiseDetails.skillsUsed}</Body1>
+                    <Body1Strong>Plugins Used:</Body1Strong>
+                    <Body1>{!stepwiseDetails.skillsUsed.startsWith('0') ? stepwiseDetails.skillsUsed : 'None'}</Body1>
                 </>
             )}
             {(resultNotFound || showthoughtProcess) && (
                 <>
-                    <Body1Strong>Steps taken:</Body1Strong>
+                    {<Body1Strong>Steps taken:</Body1Strong>}
                     <Body1>[THOUGHT PROCESS]</Body1>
                     <Accordion collapsible multiple className={classes.root}>
                         {steps.map((step: StepwiseStep, index: number) => {

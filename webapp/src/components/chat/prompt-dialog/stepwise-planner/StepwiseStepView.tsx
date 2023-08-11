@@ -37,7 +37,7 @@ interface IStepwiseStepViewProps {
 export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index }) => {
     const classes = useStepClasses();
 
-    let header = step.final_answer ? `[FINAL ANSWER] ${step.final_answer}` : `[OBSERVATION] ${step.observation}`;
+    let header = `[OBSERVATION] ${step.observation}`;
     let details: string | undefined;
 
     if (step.thought || step.final_answer) {
@@ -46,10 +46,9 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
             ? `[FINAL ANSWER] ${step.final_answer}`
             : step.thought.match(thoughtRegEx)?.[0] ?? `[THOUGHT] ${step.thought}`;
 
-        // Only show the first sentence of the thought in the header.
-        // Show the rest as details.
-        let firstSentenceIndex = thought.indexOf(':');
-        firstSentenceIndex = firstSentenceIndex !== -1 ? firstSentenceIndex : thought.indexOf('. ');
+        // Only show the first sentence of the thought in the header. Show the rest as details.
+        // Match the first period or colon followed by a non-digit or non-letter
+        const firstSentenceIndex = thought.search(/(\.|:)([^a-z\d]|$)/);
         if (firstSentenceIndex > 0) {
             details = thought.substring(firstSentenceIndex + 2);
             thought = thought.substring(0, firstSentenceIndex + 1);
