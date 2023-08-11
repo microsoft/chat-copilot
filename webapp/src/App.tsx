@@ -48,6 +48,7 @@ export const useClasses = makeStyles({
 enum AppState {
     ProbeForBackend,
     SettingUserInfo,
+    ErrorLoadingUserInfo,
     LoadingChats,
     Chat,
     SigningOut,
@@ -62,8 +63,6 @@ const App: FC = () => {
     const { instance, inProgress } = useMsal();
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
-    const defaultUserInfoStatusText = 'Hang tight while we fetch your information...';
-    const [userInfoStatusText, setUserInfoStatusText] = React.useState<string>(defaultUserInfoStatusText);
 
     const chat = useChat();
 
@@ -73,9 +72,7 @@ const App: FC = () => {
                 if (activeUserInfo === undefined) {
                     const account = instance.getActiveAccount();
                     if (!account) {
-                        setUserInfoStatusText(
-                            'Oops, something went wrong. Please try signing out and signing back in.',
-                        );
+                        setAppState(AppState.ErrorLoadingUserInfo);
                     } else {
                         dispatch(
                             setActiveUserInfo({
@@ -151,12 +148,12 @@ const App: FC = () => {
                             }}
                         />
                     )}
-                    {appState === AppState.SettingUserInfo &&
-                        (userInfoStatusText === defaultUserInfoStatusText ? (
-                            <Loading text={userInfoStatusText} />
-                        ) : (
-                            <Error text={userInfoStatusText} />
-                        ))}
+                    {appState === AppState.SettingUserInfo && (
+                        <Loading text={'Hang tight while we fetch your information...'} />
+                    )}
+                    {appState === AppState.ErrorLoadingUserInfo && (
+                        <Error text={'Oops, something went wrong. Please try signing out and signing back in.'} />
+                    )}
                     {appState === AppState.LoadingChats && <Loading text="Loading Chats..." />}
                     {appState === AppState.Chat && <ChatView />}
                 </div>
