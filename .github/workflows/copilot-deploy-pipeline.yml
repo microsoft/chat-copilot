@@ -15,7 +15,56 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/workflows/copilot-build-backend.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { dotnet: "6.0", configuration: Release, os: windows-latest }
+
+    runs-on: ${{ matrix.os }}
+
+    environment: feature-semantic-memory
+
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+
+    outputs:
+      artifact: ${{steps.artifactoutput.outputs.artifactname}}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          clean: true
+
+      - name: Add custom nuget source
+        run: |
+          dotnet nuget add source "https://pkgs.dev.azure.com/msctoproj/Lightspeed/_packaging/SemanticMemoryPrivate/nuget/v3/index.json" --username az --password ${{ secrets.AZURE_DEVOPS_PAT }} --name SemanticMemoryPrivate --store-password-in-clear-text
+
+      - name: Package Copilot Chat WebAPI
+        run: |
+          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy
+
+      - name: Check formatting of Copilot Chat WebAPI
+        run: |
+          cd webapi/
+          dotnet format --verify-no-changes --verbosity diagnostic
+
+      - name: Set version tag
+        id: versiontag
+        run: |
+          $VERSION_TAG="$(Get-Date -Format "MMddHHmmss")"
+          echo $VERSION_TAG
+          Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
+
+      - name: Upload package to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: copilotchat-webapi-${{ steps.versiontag.outputs.versiontag }}
+          path: ${{ github.workspace }}\scripts\deploy\out\webapi.zip
+
+      - name: "Set outputs"
+        id: artifactoutput
+        run: Write-Output "artifactname=copilotchat-webapi-${{ steps.versiontag.outputs.versiontag }}" >> $env:GITHUB_OUTPUT
 
   feature-semantic-memory:
     needs: build
