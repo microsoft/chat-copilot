@@ -349,7 +349,7 @@ public class ChatSkill
         chatContext.ThrowIfFailed();
 
         // Extract additional details about planner execution in chat context
-        // TODO: [Issue #150, sk#2106] Accomodate different planner contexts once core team finishes work to return prompt and token usage.
+        // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
         var plannerDetails = new SemanticDependency<StepwiseThoughtProcess>(
                 planResult,
                 this._externalInformationSkill.StepwiseThoughtProcess
