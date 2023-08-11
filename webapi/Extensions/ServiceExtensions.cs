@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
+using Microsoft.SemanticMemory.Core.Configuration;
 using Tesseract;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -32,83 +33,55 @@ public static class CopilotChatServiceExtensions
     public static IServiceCollection AddOptions(this IServiceCollection services, ConfigurationManager configuration)
     {
         // General configuration
-        services.AddOptions<ServiceOptions>()
-            .Bind(configuration.GetSection(ServiceOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<ServiceOptions>(ServiceOptions.PropertyName);
 
         // Default AI service configurations for Semantic Kernel
-        services.AddOptions<AIServiceOptions>()
-            .Bind(configuration.GetSection(AIServiceOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<AIServiceOptions>(AIServiceOptions.PropertyName);
 
         // Authorization configuration
-        services.AddOptions<AuthorizationOptions>()
-            .Bind(configuration.GetSection(AuthorizationOptions.PropertyName))
-            .ValidateOnStart()
-            .ValidateDataAnnotations()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<AuthorizationOptions>(AuthorizationOptions.PropertyName);
 
         // Memory store configuration
-        services.AddOptions<MemoriesStoreOptions>()
-            .Bind(configuration.GetSection(MemoriesStoreOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<MemoriesStoreOptions>(MemoriesStoreOptions.PropertyName);
 
         // Chat log storage configuration
-        services.AddOptions<ChatStoreOptions>()
-            .Bind(configuration.GetSection(ChatStoreOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<ChatStoreOptions>(ChatStoreOptions.PropertyName);
 
         // Azure speech token configuration
-        services.AddOptions<AzureSpeechOptions>()
-            .Bind(configuration.GetSection(AzureSpeechOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<AzureSpeechOptions>(AzureSpeechOptions.PropertyName);
 
         // Bot schema configuration
-        services.AddOptions<BotSchemaOptions>()
-            .Bind(configuration.GetSection(BotSchemaOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<BotSchemaOptions>(BotSchemaOptions.PropertyName);
 
         // Document memory options
-        services.AddOptions<DocumentMemoryOptions>()
-            .Bind(configuration.GetSection(DocumentMemoryOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<DocumentMemoryOptions>(DocumentMemoryOptions.PropertyName);
 
         // Chat prompt options
-        services.AddOptions<PromptsOptions>()
-            .Bind(configuration.GetSection(PromptsOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<PromptsOptions>(PromptsOptions.PropertyName);
 
         // Planner options
-        services.AddOptions<PlannerOptions>()
-            .Bind(configuration.GetSection(PlannerOptions.PropertyName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart()
-            .PostConfigure(TrimStringProperties);
+        AddOptions<PlannerOptions>(PlannerOptions.PropertyName);
 
         // OCR support options
-        services.AddOptions<OcrSupportOptions>()
-            .Bind(configuration.GetSection(OcrSupportOptions.PropertyName))
+        AddOptions<OcrSupportOptions>(OcrSupportOptions.PropertyName);
+
+        return services;
+
+        void AddOptions<TOptions>(string propertyName)
+            where TOptions : class
+        {
+            services.AddOptions<TOptions>(configuration.GetSection(propertyName));
+        }
+    }
+
+    internal static void AddOptions<TOptions>(this IServiceCollection services, IConfigurationSection section)
+        where TOptions : class
+    {
+        services.AddOptions<TOptions>()
+            .Bind(section)
             .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
-
-        return services;
     }
 
     /// <summary>

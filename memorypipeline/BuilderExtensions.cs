@@ -24,34 +24,36 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 namespace SemanticMemory.Service;
 
 /// <summary>
-/// Flexible dependency injection using dependencies defined in appsettings.json
+/// Dependency injection for semantic-memory using configuration defined in appsettings.json
 /// </summary>
-public static class Builder
+internal static class BuilderExtensions
 {
     private const string ConfigRoot = "SemanticMemory";
 
-    public static WebApplicationBuilder CreateBuilder(out SemanticMemoryConfig config)
+    public static WebApplicationBuilder AddMemoryServices(this WebApplicationBuilder builder)
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder();
-        config = builder.Configuration.GetSection(ConfigRoot).Get<SemanticMemoryConfig>()
-                 ?? throw new ConfigurationException("Configuration is null");
+        var config =
+            builder.Configuration.GetSection(ConfigRoot).Get<SemanticMemoryConfig>()
+            ?? throw new ConfigurationException($"Missing configuraiton: {ConfigRoot}");
 
         builder.Services.AddSingleton<SemanticMemoryConfig>(config);
         builder.Services.AddSingleton<IMimeTypeDetection, MimeTypesDetection>();
         builder.Services.AddSingleton<IPipelineOrchestrator, DistributedPipelineOrchestrator>();
         builder.Services.AddSingleton<DistributedPipelineOrchestrator, DistributedPipelineOrchestrator>();
 
-        ConfigureContentStorage(builder, config);
-        ConfigurePipelineHandlers(builder, config);
-        ConfigureQueueSystem(builder, config);
-        ConfigureEmbeddingGenerator(builder, config);
-        ConfigureEmbeddingStorage(builder, config);
+        builder.ConfigureContentStorage(config);
+        builder.ConfigurePipelineHandlers(config);
+        builder.ConfigureQueueSystem(config);
+        builder.ConfigureEmbeddingGenerator(config);
+        builder.ConfigureEmbeddingStorage(config);
 
         return builder;
     }
 
-    // Service where documents and temporary files are stored
-    private static void ConfigureContentStorage(WebApplicationBuilder builder, SemanticMemoryConfig config)
+    /// <summary>
+    /// Service where documents and temporary files are stored
+    /// </summary>
+    private static void ConfigureContentStorage(this WebApplicationBuilder builder, SemanticMemoryConfig config)
     {
         switch (config.ContentStorageType)
         {
@@ -72,8 +74,10 @@ public static class Builder
         }
     }
 
-    // Register pipeline handlers as hosted services
-    private static void ConfigurePipelineHandlers(WebApplicationBuilder builder, SemanticMemoryConfig config)
+    /// <summary>
+    /// Register pipeline handlers as hosted services
+    /// </summary>
+    private static void ConfigurePipelineHandlers(this WebApplicationBuilder builder, SemanticMemoryConfig config)
     {
         builder.Services.AddHandlerAsHostedService<TextExtractionHandler>("extract");
         builder.Services.AddHandlerAsHostedService<TextPartitioningHandler>("partition");
@@ -81,8 +85,10 @@ public static class Builder
         builder.Services.AddHandlerAsHostedService<SaveEmbeddingsHandler>("save_embeddings");
     }
 
-    // Orchestration dependencies, ie. which queueing system to use
-    private static void ConfigureQueueSystem(WebApplicationBuilder builder, SemanticMemoryConfig config)
+    /// <summary>
+    /// Orchestration dependencies, ie. which queueing system to use
+    /// </summary>
+    private static void ConfigureQueueSystem(this WebApplicationBuilder builder, SemanticMemoryConfig config)
     {
         switch (config.DataIngestion.DistributedOrchestration.QueueType)
         {
@@ -109,8 +115,10 @@ public static class Builder
         }
     }
 
-    // List of embedding generators to use (multiple generators allowed during ingestion)
-    private static void ConfigureEmbeddingGenerator(WebApplicationBuilder builder, SemanticMemoryConfig config)
+    /// <summary>
+    /// List of embedding generators to use (multiple generators allowed during ingestion)
+    /// </summary>
+    private static void ConfigureEmbeddingGenerator(this WebApplicationBuilder builder, SemanticMemoryConfig config)
     {
         var embeddingGenerationServices = new TypeCollection<ITextEmbeddingGeneration>();
         builder.Services.AddSingleton(embeddingGenerationServices);
@@ -139,8 +147,10 @@ public static class Builder
         }
     }
 
-    // List of Vector DB list where to store embeddings (multiple DBs allowed during ingestion)
-    private static void ConfigureEmbeddingStorage(WebApplicationBuilder builder, SemanticMemoryConfig config)
+    /// <summary>
+    /// List of Vector DB list where to store embeddings (multiple DBs allowed during ingestion)
+    /// </summary>
+    private static void ConfigureEmbeddingStorage(this WebApplicationBuilder builder, SemanticMemoryConfig config)
     {
         var vectorDbServices = new TypeCollection<ISemanticMemoryVectorDb>();
         builder.Services.AddSingleton(vectorDbServices);

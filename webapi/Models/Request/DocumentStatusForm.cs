@@ -3,19 +3,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Http;
 
 namespace CopilotChat.WebApi.Models.Request;
 
 /// <summary>
 /// Form for importing a document from a POST Http request.
 /// </summary>
-public class DocumentImportForm
+public class DocumentStatusForm
 {
     /// <summary>
     /// The file to import.
     /// </summary>
-    public IEnumerable<IFormFile> FormFiles { get; set; } = Enumerable.Empty<IFormFile>();
+    public IEnumerable<string> FileReferences { get; set; } = Enumerable.Empty<string>();
 
     /// <summary>
     /// Scope of the document. This determines the collection name in the document memory.

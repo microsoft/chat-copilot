@@ -144,7 +144,7 @@ public class DocumentImportController : ControllerBase
                 }, TaskScheduler.Default)));
 
         // Broadcast the document uploaded event to other users.
-        if (documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Chat)
+        if (documentImportForm.DocumentScope == DocumentScope.Chat)
         {
             var chatMessage = await this.TryCreateDocumentUploadMessage(
                 documentMessageContent,
@@ -235,7 +235,7 @@ public class DocumentImportController : ControllerBase
     private async Task ValidateDocumentImportFormAsync(DocumentImportForm documentImportForm)
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
-        if (documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Chat
+        if (documentImportForm.DocumentScope == DocumentScope.Chat
                 && !(await this.UserHasAccessToChatAsync(documentImportForm.UserId, documentImportForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
@@ -531,7 +531,7 @@ public class DocumentImportController : ControllerBase
         DocumentImportForm documentImportForm,
         string memorySourceId)
     {
-        var targetCollectionName = documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Global
+        var targetCollectionName = documentImportForm.DocumentScope == DocumentScope.Global
             ? this._options.GlobalDocumentCollectionName
             : this._options.ChatDocumentCollectionNamePrefix + documentImportForm.ChatId;
         var importResult = new ImportResult(targetCollectionName);

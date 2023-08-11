@@ -5,12 +5,12 @@
 // ********************************************************
 
 using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticMemory.Core.Configuration;
 using Microsoft.SemanticMemory.Core.Diagnostics;
 using SemanticMemory.Service;
 
-var app = Builder.CreateBuilder(out SemanticMemoryConfig config).Build();
+var app = WebApplication.CreateBuilder().AddMemoryServices().Build();
 
 // ********************************************************
 // ************** START ***********************************

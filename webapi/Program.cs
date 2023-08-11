@@ -32,6 +32,8 @@ public sealed class Program
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+
+
         // Load in configuration settings from appsettings.json, user-secrets, key vaults, etc...
         builder.Host.AddConfiguration();
         builder.WebHost.UseUrls(); // Disables endpoint override warning message when using IConfiguration for Kestrel endpoint.
@@ -44,6 +46,9 @@ public sealed class Program
             .AddPersistentChatStore()
             .AddPersistentOcrSupport()
             .AddSemanticKernelServices();
+
+        // Configure and add semantic-memory
+        builder.AddSemanticMemoryServices();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();
