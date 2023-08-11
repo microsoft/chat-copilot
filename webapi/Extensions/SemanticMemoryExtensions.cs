@@ -4,6 +4,7 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticMemory.Core.AppBuilders;
 using Microsoft.SemanticMemory.Core.Configuration;
 using Microsoft.SemanticMemory.Core.ContentStorage.AzureBlobs;
@@ -13,8 +14,10 @@ using Microsoft.SemanticMemory.Core.MemoryStorage;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue.AzureQueues;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue.FileBasedQueues;
-using Microsoft.SemanticMemory.Core.Pipeline.Queue.RabbitMq;
-using Microsoft.Extensions.Options;
+using Microsoft.SemanticMemory.Core.AI.AzureOpenAI;
+using Microsoft.SemanticMemory.Core.AI.OpenAI;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
+using Microsoft.SemanticKernel.AI.Embeddings;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -28,6 +31,9 @@ internal static class SemanticMemoryExtensions
     /// <summary>
     /// Add Semantic Memory services
     /// </summary>
+    /// <remarks>
+    /// Forced to conform with the current state of semantic-memory.
+    /// </remarks>
     public static void AddSemanticMemoryServices(this WebApplicationBuilder builder)
     {
         var memoryConfig = builder.AddSemanticMemoryOptions();
@@ -37,7 +43,8 @@ internal static class SemanticMemoryExtensions
         builder
             .ConfigureContentStorage(memoryConfig)
             .ConfigureQueueSystem(memoryConfig)
-            .ConfigureEmbeddingStorage(memoryConfig);
+            .ConfigureEmbeddingStorage(memoryConfig)
+            .ConfigureAI(memoryConfig);
     }
 
     /// <summary>
@@ -97,12 +104,6 @@ internal static class SemanticMemoryExtensions
                     .Get<AzureQueueConfig>()!);
                 break;
 
-            case string y when y.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddRabbitMq(builder.Configuration
-                    .GetSection(ConfigRoot).GetSection("Services").GetSection("RabbitMq")
-                    .Get<RabbitMqConfig>()!);
-                break;
-
             case string y when y.Equals("FileBasedQueue", StringComparison.OrdinalIgnoreCase):
                 builder.Services.AddFileBasedQueue(builder.Configuration
                     .GetSection(ConfigRoot).GetSection("Services").GetSection("FileBasedQueue")
@@ -137,6 +138,54 @@ internal static class SemanticMemoryExtensions
                 default:
                     throw new NotSupportedException($"Unknown/unsupported {type} vector DB");
             }
+        }
+
+        return builder;
+    }
+
+    private static WebApplicationBuilder ConfigureAI(this WebApplicationBuilder builder, SemanticMemoryConfig config)
+    {
+        var embeddingGenerationServices = new TypeCollection<ITextEmbeddingGeneration>();
+        builder.Services.AddSingleton(embeddingGenerationServices);
+
+        switch (config.Retrieval.EmbeddingGeneratorType)
+        {
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
+                embeddingGenerationServices.Add<AzureTextEmbeddingGeneration>();
+                builder.Services.AddAzureOpenAIEmbeddingGeneration(builder.Configuration
+                    .GetSection(ConfigRoot).GetSection("Services").GetSection("AzureOpenAIEmbedding")
+                    .Get<AzureOpenAIConfig>()!);
+                break;
+
+            case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
+                embeddingGenerationServices.Add<OpenAITextEmbeddingGeneration>();
+                builder.Services.AddOpenAITextEmbeddingGeneration(builder.Configuration
+                    .GetSection(ConfigRoot).GetSection("Services").GetSection("OpenAI")
+                    .Get<OpenAIConfig>()!);
+                break;
+
+            default:
+                throw new NotSupportedException($"Unknown/unsupported {config.Retrieval.EmbeddingGeneratorType} text generator");
+        }
+
+        switch (config.Retrieval.TextGeneratorType)
+        {
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddAzureOpenAITextGeneration(builder.Configuration
+                    .GetSection(ConfigRoot).GetSection("Services").GetSection("AzureOpenAIText")
+                    .Get<AzureOpenAIConfig>()!);
+                break;
+
+            case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddOpenAITextGeneration(builder.Configuration
+                    .GetSection(ConfigRoot).GetSection("Services").GetSection("OpenAI")
+                    .Get<OpenAIConfig>()!);
+                break;
+
+            default:
+                throw new NotSupportedException($"Unknown/unsupported {config.Retrieval.TextGeneratorType} text generator");
         }
 
         return builder;

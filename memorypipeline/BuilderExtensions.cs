@@ -17,7 +17,6 @@ using Microsoft.SemanticMemory.Core.MemoryStorage;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue.AzureQueues;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue.FileBasedQueues;
-using Microsoft.SemanticMemory.Core.Pipeline.Queue.RabbitMq;
 using Microsoft.SemanticMemory.Core.Pipeline;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 
@@ -96,12 +95,6 @@ internal static class BuilderExtensions
                 builder.Services.AddAzureQueue(builder.Configuration
                     .GetSection(ConfigRoot).GetSection("Services").GetSection("AzureQueue")
                     .Get<AzureQueueConfig>()!);
-                break;
-
-            case string y when y.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddRabbitMq(builder.Configuration
-                    .GetSection(ConfigRoot).GetSection("Services").GetSection("RabbitMq")
-                    .Get<RabbitMqConfig>()!);
                 break;
 
             case string y when y.Equals("FileBasedQueue", StringComparison.OrdinalIgnoreCase):

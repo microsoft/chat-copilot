@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticMemory.Core;
 using Microsoft.SemanticMemory.Core.Pipeline;
 using Microsoft.SemanticMemory.Core.WebService;
 
@@ -68,7 +69,7 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DocumentStatusAsync(
-        [FromServices] IPipelineOrchestrator orchestrator,
+        [FromServices] ISemanticMemoryService memoryService,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromBody] DocumentStatusForm documentStatusForm)
     {
@@ -110,7 +111,7 @@ public class DocumentController : ControllerBase
         {
             foreach (var documentReference in documentStatusForm.FileReferences)
             {
-                DataPipeline? pipeline = await orchestrator.ReadPipelineStatusAsync(targetCollectionName, documentReference);
+                DataPipeline? pipeline = await memoryService.ReadPipelineStatusAsync(targetCollectionName, documentReference);
                 if (pipeline == null)
                 {
                     yield return new StatusResult(targetCollectionName, documentReference);
@@ -140,7 +141,7 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DocumentImportAsync(
-        [FromServices] IPipelineOrchestrator orchestrator,
+        [FromServices] ISemanticMemoryService memoryService,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromForm] DocumentImportForm documentImportForm)
     {
@@ -196,7 +197,7 @@ public class DocumentController : ControllerBase
         {
             foreach (var formFile in documentImportForm.FormFiles)
             {
-                var importResult = await this.ImportDocumentHelperAsync(orchestrator, formFile, documentImportForm);
+                var importResult = await this.ImportDocumentHelperAsync(memoryService, formFile, documentImportForm);
                 documentMessageContent.AddDocument(
                     formFile.FileName,
                     this.GetReadableByteString(formFile.Length),
@@ -408,7 +409,7 @@ public class DocumentController : ControllerBase
     /// <param name="formFile">The form file.</param>
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns>Import result.</returns>
-    private async Task<ImportResult> ImportDocumentHelperAsync(IPipelineOrchestrator orchestrator, IFormFile formFile, DocumentImportForm documentImportForm)
+    private async Task<ImportResult> ImportDocumentHelperAsync(ISemanticMemoryService memoryService, IFormFile formFile, DocumentImportForm documentImportForm)
     {
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
@@ -427,7 +428,7 @@ public class DocumentController : ControllerBase
             // Tags = null $$$ ???
         };
 
-        await orchestrator.UploadFileAsync(uploadRequest);
+        await memoryService.UploadFileAsync(uploadRequest);
 
         var importResult = new ImportResult(memorySource.Id);
 
