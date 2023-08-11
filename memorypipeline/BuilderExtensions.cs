@@ -33,7 +33,7 @@ internal static class BuilderExtensions
     {
         var config =
             builder.Configuration.GetSection(ConfigRoot).Get<SemanticMemoryConfig>()
-            ?? throw new ConfigurationException($"Missing configuraiton: {ConfigRoot}");
+            ?? throw new ConfigurationException($"Missing configuration: {ConfigRoot}");
 
         builder.Services.AddSingleton<SemanticMemoryConfig>(config);
         builder.Services.AddSingleton<IMimeTypeDetection, MimeTypesDetection>();
