@@ -42,7 +42,7 @@ public static class CopilotChatServiceExtensions
         AddOptions<AuthorizationOptions>(AuthorizationOptions.PropertyName);
 
         // Memory store configuration
-        AddOptions<MemoriesStoreOptions>(MemoriesStoreOptions.PropertyName);
+        AddOptions<MemoryStoreOptions>(MemoryStoreOptions.PropertyName);
 
         // Chat log storage configuration
         AddOptions<ChatStoreOptions>(ChatStoreOptions.PropertyName);
