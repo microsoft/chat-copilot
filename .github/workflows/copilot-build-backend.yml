@@ -24,6 +24,8 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    environment: feature-semantic-memory
+
     env:
       NUGET_CERT_REVOCATION_MODE: offline
 
@@ -34,6 +36,14 @@ jobs:
       - uses: actions/checkout@v3
         with:
           clean: true
+
+      - name: Add custom nuget source
+        run: |
+          dotnet nuget add source "https://pkgs.dev.azure.com/msctoproj/Lightspeed/_packaging/SemanticMemoryPrivate/nuget/v3/index.json" \
+            --name SemanticMemoryPrivate \
+            --username az \
+            --password ${{ secrets.AZURE_DEVOPS_PAT }} \
+            --store-password-in-clear-text
 
       - name: Package Copilot Chat WebAPI
         run: |
