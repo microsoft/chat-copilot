@@ -1,4 +1,4 @@
-﻿name: Build SemanticMemoryPipelineService
+﻿name: Build CopilotChatMemoryPipelineService
 
 on:
   push:
@@ -31,8 +31,8 @@ jobs:
             --password ${{ secrets.AZURE_DEVOPS_PAT }} \
             --store-password-in-clear-text
 
-      - name: Build SemanticMemoryPipelineService
+      - name: Build CopilotChatMemoryPipelineService
         run: |
-          dotnet build memorypipeline/SemanticMemoryPipelineService.csproj \
+          dotnet build memorypipeline/CopilotChatMemoryPipeline.csproj \
             -c Release \
             -v normal
