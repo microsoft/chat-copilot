@@ -72,7 +72,7 @@ You will need the following items to run the sample:
      -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
      ```
 
-3. Run Chat Copilot locally. This step starts both the backend API and frontend application.
+4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
    ```powershell
    .\Start.ps1
