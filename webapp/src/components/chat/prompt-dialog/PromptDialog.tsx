@@ -101,14 +101,16 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                     <DialogTitle>Prompt</DialogTitle>
                     <DialogContent>
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
-                        <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
-                            <Tab data-testid="formatted" id="formatted" value="formatted">
-                                Formatted
-                            </Tab>
-                            <Tab data-testid="rawContent" id="rawContent" value="rawContent">
-                                Raw Content
-                            </Tab>
-                        </TabList>
+                        {message.prompt && (
+                            <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
+                                <Tab data-testid="formatted" id="formatted" value="formatted">
+                                    Formatted
+                                </Tab>
+                                <Tab data-testid="rawContent" id="rawContent" value="rawContent">
+                                    Raw Content
+                                </Tab>
+                            </TabList>
+                        )}
                         {selectedTab === 'formatted' && promptDetails}
                         {selectedTab === 'rawContent' &&
                             formatParagraphTextContent((prompt as BotResponsePrompt).rawContent)}
