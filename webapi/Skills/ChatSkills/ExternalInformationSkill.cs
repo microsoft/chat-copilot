@@ -45,7 +45,12 @@ public class ExternalInformationSkill
     /// <summary>
     /// Preamble to add to the related information text.
     /// </summary>
-    private const string PromptPreamble = "[SOURCE START]\nThis is the result of invoking the functions listed after \"PLUGINS USED:\" to retrieve additional information outside of the data you were trained on. You can use this data to help answer the user's query.";
+    private const string PromptPreamble = "[SOURCE START]";
+
+    /// <summary>
+    /// Supplement to help guide model in using data.
+    /// </summary>
+    private const string PromptSupplement = "This is the result of invoking the functions listed after \"PLUGINS USED:\" to retrieve additional information outside of the data you were trained on. You can use this data to help answer the user's query.";
 
     /// <summary>
     /// Header to indicate plan results.
@@ -131,7 +136,7 @@ public class ExternalInformationSkill
                 planResult = newPlanContext.Variables.Input;
             }
 
-            return $"{PromptPreamble}\n{functionsUsed}\n{ResultHeader}{planResult.Trim()}\n{PromptPostamble}\n";
+            return $"{PromptPreamble}\n{PromptSupplement}\n{functionsUsed}\n{ResultHeader}{planResult.Trim()}\n{PromptPostamble}\n";
         }
         else
         {
