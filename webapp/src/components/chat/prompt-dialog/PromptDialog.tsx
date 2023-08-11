@@ -69,6 +69,13 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
     } else {
         promptDetails = Object.entries(prompt).map(([key, value]) => {
             const isStepwiseThoughtProcess = Constants.STEPWISE_RESULT_NOT_FOUND_REGEX.test(value as string);
+            if (
+                key === 'chatMemories' &&
+                value &&
+                !(value as string).includes('User has also shared some document snippets:')
+            ) {
+                value += '\nNo relevant document memories.';
+            }
             return value && key !== 'rawContent' ? (
                 <div className={classes.prompt} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>

@@ -390,7 +390,7 @@ public class ChatSkill
 
         // Set variables needed in prompt
         chatContext.Variables.Set("audience", audience);
-        chatContext.Variables.Set("userIntent", $"User Intent: {userIntent}");
+        chatContext.Variables.Set("userIntent", userIntent);
         chatContext.Variables.Set("chatContext", chatContextText);
 
         // Render the prompt
