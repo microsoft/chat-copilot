@@ -17,9 +17,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory.Core;
-using Microsoft.SemanticMemory.Core.Pipeline;
-using Microsoft.SemanticMemory.Core.WebService;
+using Microsoft.SemanticMemory.Client;
+using Microsoft.SemanticMemory.Client.Models;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -69,7 +68,7 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DocumentStatusAsync(
-        [FromServices] ISemanticMemoryService memoryService,
+        [FromServices] ISemanticMemoryClient memoryClient,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromBody] DocumentStatusForm documentStatusForm)
     {
@@ -111,21 +110,20 @@ public class DocumentController : ControllerBase
         {
             foreach (var documentReference in documentStatusForm.FileReferences)
             {
-                DataPipeline? pipeline = await memoryService.ReadPipelineStatusAsync(targetCollectionName, documentReference);
-                if (pipeline == null)
+                var status = await memoryClient.GetDocumentStatusAsync(targetCollectionName!, documentReference!);
+                if (status == null)
                 {
                     yield return new StatusResult(targetCollectionName, documentReference);
                 }
                 else
                 {
-                    var file = pipeline.Files.FirstOrDefault();
                     yield return new StatusResult(targetCollectionName, documentReference)
                     {
                         IsStarted = true,
-                        IsCompleted = pipeline.Complete,
-                        LastUpdate = pipeline.LastUpdate,
-                        Keys = file?.GeneratedFiles.Values.Select(f => f.Id).ToArray() ?? Array.Empty<string>(),
-                        Tokens = file?.Size ?? 0, // $$$ DCR MEMORY | DCR CHAT
+                        IsCompleted = status.Completed,
+                        LastUpdate = status.LastUpdate,
+                        Keys = Array.Empty<string>(), // $$$ DCR MEMORY | DCR CHAT
+                        Tokens = 0, // $$$ DCR MEMORY | DCR CHAT
                     };
                 }
             }
@@ -141,7 +139,7 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DocumentImportAsync(
-        [FromServices] ISemanticMemoryService memoryService,
+        [FromServices] ISemanticMemoryClient memoryClient,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromForm] DocumentImportForm documentImportForm)
     {
@@ -197,7 +195,7 @@ public class DocumentController : ControllerBase
         {
             foreach (var formFile in documentImportForm.FormFiles)
             {
-                var importResult = await this.ImportDocumentHelperAsync(memoryService, formFile, documentImportForm);
+                var importResult = await this.ImportDocumentHelperAsync(memoryClient, formFile, documentImportForm);
                 documentMessageContent.AddDocument(
                     formFile.FileName,
                     this.GetReadableByteString(formFile.Length),
@@ -409,7 +407,7 @@ public class DocumentController : ControllerBase
     /// <param name="formFile">The form file.</param>
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns>Import result.</returns>
-    private async Task<ImportResult> ImportDocumentHelperAsync(ISemanticMemoryService memoryService, IFormFile formFile, DocumentImportForm documentImportForm)
+    private async Task<ImportResult> ImportDocumentHelperAsync(ISemanticMemoryClient memoryClient, IFormFile formFile, DocumentImportForm documentImportForm)
     {
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
@@ -420,15 +418,16 @@ public class DocumentController : ControllerBase
         // Create memory source
         var memorySource = this.CreateMemorySource(formFile, documentImportForm);
 
-        var uploadRequest = new UploadRequest
+        using var stream = formFile.OpenReadStream();
+        var uploadRequest = new DocumentUploadRequest
         {
             DocumentId = memorySource.Id,
-            Files = new[] { formFile },
+            Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile(formFile.FileName, stream) },
             UserId = targetCollectionName,
-            // Tags = null $$$ ???
+            Tags = new TagCollection { "document" } // $$$ REVISIT
         };
 
-        await memoryService.UploadFileAsync(uploadRequest);
+        await memoryClient.ImportDocumentAsync(uploadRequest);
 
         var importResult = new ImportResult(memorySource.Id);
 
