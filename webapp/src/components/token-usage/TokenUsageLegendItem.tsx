@@ -63,6 +63,10 @@ export const TokenUsageLegendItem: React.FC<ITokenUsageLegendItem> = ({ name, us
                               return <TokenUsageLegendLabel key={details.legendLabel} details={details} />;
                           })
                         : 'No usage'}
+                    {
+                        // TODO: [Issue #150, sk#2106] Remove this once core team finishes work to return token usage.
+                        name === 'Response Generation' && `(Planner usage coming soon)`
+                    }
                 </PopoverSurface>
             </Popover>
             <Text>{`${name} (${usageCount})`}</Text>

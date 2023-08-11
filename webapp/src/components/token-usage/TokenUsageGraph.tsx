@@ -123,10 +123,11 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                         <Body1>
                             Token count for each category is the total sum of tokens used for the prompt template and
                             chat completion for the respective completion functions. For more details about token usage,
-                            see:{' '}
+                            see{' '}
                             <a href="https://learn.microsoft.com/en-us/dotnet/api/azure.ai.openai.completionsusage?view=azure-dotnet-preview">
-                                CompletionsUsage docs here.
-                            </a>
+                                CompletionsUsage
+                            </a>{' '}
+                            docs.
                         </Body1>
                     </PopoverSurface>
                 </Popover>

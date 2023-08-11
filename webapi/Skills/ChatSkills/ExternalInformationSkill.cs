@@ -45,7 +45,7 @@ public class ExternalInformationSkill
     /// <summary>
     /// Preamble to add to the related information text.
     /// </summary>
-    private const string PromptPreamble = "[RELATED START]";
+    private const string PromptPreamble = "[SOURCE START]\nThis is the result of invoking the functions listed after \"PLUGINS USED:\" to retrieve additional information outside of the data you were trained on. You can use this data to help answer the user's query.";
 
     /// <summary>
     /// Header to indicate plan results.
@@ -55,7 +55,7 @@ public class ExternalInformationSkill
     /// <summary>
     /// Postamble to add to the related information text.
     /// </summary>
-    private const string PromptPostamble = "[RELATED END]";
+    private const string PromptPostamble = "[SOURCE END]";
 
     /// <summary>
     /// Create a new instance of ExternalInformationSkill.
@@ -109,7 +109,7 @@ public class ExternalInformationSkill
 
             // Invoke plan
             newPlanContext = await plan.InvokeAsync(newPlanContext);
-            var functionsUsed = $"FUNCTIONS EXECUTED: {string.Join("; ", this.GetPlanSteps(plan))}.";
+            var functionsUsed = $"PLUGINS USED: {string.Join("; ", this.GetPlanSteps(plan))}.";
 
             int tokenLimit =
                 int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo()) -

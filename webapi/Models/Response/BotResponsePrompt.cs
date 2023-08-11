@@ -52,9 +52,9 @@ public class BotResponsePrompt
     public string SystemChatContinuation { get; set; } = string.Empty;
 
     /// <summary>
-    /// Raw content of the prompt. Used to pass rendered prompt around ChatSkill.
+    /// Raw content of the rendered prompt.
     /// </summary>
-    [JsonIgnore]
+    [JsonPropertyName("rawContent")]
     public string RawContent { get; set; } = string.Empty;
 
     public BotResponsePrompt(
