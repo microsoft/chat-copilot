@@ -60,18 +60,23 @@ public class ChatMemoryController : ControllerBase
         [FromRoute] string chatId,
         [FromRoute] string memoryName)
     {
+        // Sanitize the log input by removing new line characters.
+        // https://github.com/microsoft/chat-copilot/security/code-scanning/1
+        var sanitizedChatId = chatId.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+        var sanitizedMemoryName = memoryName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
         {
-            this._logger.LogWarning("Chat session: {0} does not exist.", this.SanitizeLogInput(chatId));
-            return this.BadRequest($"Chat session: {chatId} does not exist.");
+            this._logger.LogWarning("Chat session: {0} does not exist.", sanitizedChatId);
+            return this.BadRequest($"Chat session: {sanitizedChatId} does not exist.");
         }
 
         // Make sure the memory name is valid.
-        if (!this.ValidateMemoryName(memoryName))
+        if (!this.ValidateMemoryName(sanitizedMemoryName))
         {
-            this._logger.LogWarning("Memory name: {0} is invalid.", this.SanitizeLogInput(memoryName));
-            return this.BadRequest($"Memory name: {memoryName} is invalid.");
+            this._logger.LogWarning("Memory name: {0} is invalid.", sanitizedMemoryName);
+            return this.BadRequest($"Memory name: {sanitizedMemoryName} is invalid.");
         }
 
         // Gather the requested semantic memory.
@@ -79,7 +84,7 @@ public class ChatMemoryController : ControllerBase
         // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
-        string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
+        string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(sanitizedChatId, sanitizedMemoryName);
         try
         {
             var results = semanticTextMemory.SearchAsync(
@@ -95,7 +100,8 @@ public class ChatMemoryController : ControllerBase
         catch (SKException connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            this._logger.LogError(connectorException, "Cannot search collection {0}", this.SanitizeLogInput(memoryCollectionName));
+            var sanitizedMemoryCollectionName = memoryCollectionName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", sanitizedMemoryCollectionName);
         }
 
         return this.Ok(memories);
@@ -111,20 +117,6 @@ public class ChatMemoryController : ControllerBase
     private bool ValidateMemoryName(string memoryName)
     {
         return this._promptOptions.MemoryMap.ContainsKey(memoryName);
-    }
-
-    /// <summary>
-    /// Sanitizes the log input by removing new line characters.
-    /// This helps prevent log forgery attacks from malicious text.
-    /// </summary>
-    /// <remarks>
-    /// https://github.com/microsoft/chat-copilot/security/code-scanning/1
-    /// </remarks>
-    /// <param name="input">The input to sanitize.</param>
-    /// <returns>The sanitized input.</returns>
-    private string SanitizeLogInput(string input)
-    {
-        return input.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
     }
 
     # endregion

@@ -4,6 +4,7 @@ export const Constants = {
     app: {
         name: 'Copilot',
         updateCheckIntervalSeconds: 60 * 5,
+        CONNECTION_ALERT_ID: 'connection-alert',
     },
     msal: {
         method: 'redirect', // 'redirect' | 'popup'
