@@ -131,20 +131,15 @@ public class ChatHistoryController : ControllerBase
     /// <summary>
     /// Get all chat sessions associated with the logged in user. Return an empty list if no chats are found.
     /// </summary>
+    /// <param name="userId">The user id.</param>
     /// <returns>A list of chat sessions. An empty list if the user is not in any chat session.</returns>
     [HttpGet]
-    [Route("chatSession/getAllChats/{userId:regex(([[a-z0-9]]+-)+[[a-z0-9]]+\\.([[a-z0-9]]+-)+[[a-z0-9]]+)}")]
+    [Route("chatSession/getAllChats/{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAllChatSessionsAsync(string userId)
     {
-        // TODO: [Issue #141] Remove this once we remove userId from route
-        if (!userId.Equals(this._authInfo.UserId, StringComparison.Ordinal))
-        {
-            return this.Forbid("User id does not match request.");
-        }
-
         // Get all participants that belong to the user.
         // Then get all the chats from the list of participants.
         var chatParticipants = await this._participantRepository.FindByUserIdAsync(this._authInfo.UserId);

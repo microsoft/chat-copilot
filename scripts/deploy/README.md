@@ -47,7 +47,7 @@ You will need two Azure Active Directory (AAD) application registrations -- one 
    1. Select *Expose an API* from the menu
 
    2. Add an *Application ID URI*
-      1. This will generate an `api://` URI with a generated for you
+      1. This will generate an `api://` URI
 
       2. Click *Save* to store the generated URI
 

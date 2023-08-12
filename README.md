@@ -129,13 +129,14 @@ By default, Chat Copilot runs locally without authentication, using a guest user
 ### Instructions
 
 1. Create an [application registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) for the frontend web app, using the values below
-    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - `Supported account types`: "_Accounts in this organizational directory only ({YOUR TENANT} only - Single tenant)_"
     - `Redirect URI (optional)`: _Single-page application (SPA)_ and use _http://localhost:3000_.
 
-
 2. Create a second [application registration](https://learn.microsoft.com/azure/active-directory/develop/quickstart-register-app) for the backend web api, using the values below:
-    - `Supported account types`: "_Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)_" 
+    - `Supported account types`: "_Accounts in this organizational directory only ({YOUR TENANT} only - Single tenant)_"
     - Do **not** configure a `Redirect URI (optional)`
+
+> NOTE: Other account types can be used to allow multitenant and personal Microsoft accounts to use your application if you desire. Doing so may result in more users and therefore higher costs.
 
 > Take note of the `Application (client) ID` for both app registrations as you will need them in future steps.
 
@@ -145,7 +146,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
 
    2. Add an _Application ID URI_
 
-      1. This will generate an `api://` URI with a generated for you
+      1. This will generate an `api://` URI
 
       2. Click _Save_ to store the generated URI
 

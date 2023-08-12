@@ -19,6 +19,8 @@ export const enum AuthType {
     AAD = 'AzureAd',
 }
 
+// This is the default user information when authentication is set to 'None'.
+// It must match what is defined in PassthroughAuthenticationHandler.cs on the backend.
 export const DefaultChatUser: IChatUser = {
     id: 'c05c61eb-65e4-4223-915a-fe72b0c9ece1',
     emailAddress: 'user@contoso.com',
