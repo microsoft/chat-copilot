@@ -21,13 +21,18 @@ param(
 
     [Parameter(Mandatory)]
     [string]
-    # Client application id
-    $ApplicationClientId,
+    # Client application id for the frontend web app
+    $FrontendClientId,
+
+    [Parameter(Mandatory)]
+    [string]
+    # Azure AD tenant id
+    $TenantId,
 
     [Parameter(Mandatory = $false)]
     [string]
-    # Authority for client applications that are not configured as multi-tenant.
-    $Authority = "https://login.microsoftonline.com/common"
+    # Azure cloud instance for authenticating users
+    $Instance = "https://login.microsoftonline.com"
 )
 
 Write-Host "Setting up Azure credentials..."
@@ -67,8 +72,8 @@ $envFilePath = "$PSScriptRoot/../../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
 "REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_AUTHORITY=$Authority" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_CLIENT_ID=$ApplicationClientId" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_AUTHORITY=$($Instance.Trim("/"))/$TenantId" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_CLIENT_ID=$FrontendClientId" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
 
 Write-Host "Generating SWA config..."
@@ -109,7 +114,7 @@ if (-not ((az webapp cors show --name $webapiName --resource-group $ResourceGrou
 }
 
 Write-Host "Ensuring '$origin' is included in AAD app registration's redirect URIs..."
-$objectId = (az ad app show --id $ApplicationClientId | ConvertFrom-Json).id
+$objectId = (az ad app show --id $FrontendClientId | ConvertFrom-Json).id
 $redirectUris = (az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$objectId" --headers 'Content-Type=application/json' | ConvertFrom-Json).spa.redirectUris
 if ($redirectUris -notcontains "$origin") {
     $redirectUris += "$origin"

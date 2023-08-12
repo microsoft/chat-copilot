@@ -172,7 +172,7 @@ Set-Content -Path $webappEnvFilePath -Value "REACT_APP_BACKEND_URI=https://local
 if ($authType -eq $varAzureAd) {
     Write-Host "Configuring Azure AD authentication..."
     Add-Content -Path $webappEnvFilePath -Value "REACT_APP_AUTH_TYPE=AzureAd"
-    Add-Content -Path $webappEnvFilePath -Value "REACT_APP_AAD_AUTHORITY=https://$($Instance.Trim("/"))/$TenantId"
+    Add-Content -Path $webappEnvFilePath -Value "REACT_APP_AAD_AUTHORITY=$($Instance.Trim("/"))/$TenantId"
     Add-Content -Path $webappEnvFilePath -Value "REACT_APP_AAD_CLIENT_ID=$FrontendClientId"
     Add-Content -Path $webappEnvFilePath -Value "REACT_APP_AAD_API_SCOPE=api://$BackendClientId/access_as_user"
 }

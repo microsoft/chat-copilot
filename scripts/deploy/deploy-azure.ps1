@@ -17,7 +17,7 @@ param(
     [Parameter(Mandatory)]
     [string]
     # Azure AD client ID for the Web API backend app registration
-    $WebApiClientId,
+    $BackendClientId,
 
     [Parameter(Mandatory)]
     [string]
@@ -56,7 +56,7 @@ param(
 
     [string]
     # Azure AD cloud instance for authenticating users
-    $AzureAdInstance = "https://login.microsoftonline.com/",
+    $AzureAdInstance = "https://login.microsoftonline.com",
 
     [ValidateSet("Volatile", "AzureCognitiveSearch", "Qdrant")]
     [string]
@@ -110,7 +110,7 @@ $jsonConfig = "
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
     `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
-    `\`"webApiClientId`\`": { `\`"value`\`": `\`"$WebApiClientId`\`"},
+    `\`"webApiClientId`\`": { `\`"value`\`": `\`"$BackendClientId`\`"},
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },

@@ -7,14 +7,15 @@ set -e
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION --ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
+    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -rg RESOURCE_GROUP -c FRONTEND_CLIENT_ID -t AZURE_AD_TENANT_ID [OPTIONS]"
     echo ""
     echo "Arguments:"
     echo "  -s, --subscription SUBSCRIPTION        Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
-    echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
-    echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified."
+    echo "  -c, --client-id FRONTEND_CLIENT_ID     Client application ID for the frontend web app (mandatory)"
+    echo "  -t, --tenant-id AZURE_AD_TENANT_ID     Azure AD tenant ID (mandatory)"
+    echo "  -i, --instance AZURE_AD_INSTANCE       Azure cloud instance for authenticating users. Defaults to (https://login.microsoftonline.com/) if not specified."
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
 }
 
@@ -37,13 +38,18 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-        -a|--application-id)
-        APPLICATION_ID="$2"
+        -c|--client-id)
+        FRONTEND_CLIENT_ID="$2"
         shift
         shift
         ;;
-        -au|--authority)
-        AUTHORITY="$2"
+        -t|--tenant-id)
+        TENANT_ID="$2"
+        shift
+        shift
+        ;;
+        -i|--instance)
+        INSTANCE="$2"
         shift
         shift
         ;;
@@ -60,7 +66,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check mandatory arguments
-if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$RESOURCE_GROUP" ]] || [[ -z "$APPLICATION_ID" ]]; then
+if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$RESOURCE_GROUP" ]] || [[ -z "$FRONTEND_CLIENT_ID" ]] || [[ -z "$TENANT_ID" ]]; then
     usage
     exit 1
 fi
@@ -71,8 +77,8 @@ if [ $? -ne 0 ]; then
     az login --use-device-code
 fi
 
-if [[ -z "$AUTHORITY" ]]; then
-    AUTHORITY="https://login.microsoftonline.com/common"
+if [[ -z "$INSTANCE" ]]; then
+    INSTANCE="https://login.microsoftonline.com"
 fi
 
 az account set -s "$SUBSCRIPTION"
@@ -98,8 +104,9 @@ ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
 echo "REACT_APP_BACKEND_URI=https://$WEB_API_URL/" > $ENV_FILE_PATH
 echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_AUTHORITY=$AUTHORITY" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_CLIENT_ID=$APPLICATION_ID" >> $ENV_FILE_PATH
+# TODO: trim trailing slash from instance
+echo "REACT_APP_AAD_AUTHORITY=$INSTANCE/$TENANT_ID" >> $ENV_FILE_PATH
+echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >> $ENV_FILE_PATH
 echo "REACT_APP_AAD_API_SCOPE=api://$WEB_API_CLIENT_ID/$WEB_API_SCOPE" >> $ENV_FILE_PATH
 
 echo "Writing swa-cli.config.json..."

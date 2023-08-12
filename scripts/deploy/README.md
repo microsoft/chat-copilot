@@ -30,16 +30,18 @@ You will need two Azure Active Directory (AAD) application registrations -- one 
 
 > For details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
 
+> NOTE: Other account types can be used to allow multitenant and personal Microsoft accounts to use your application if you desire. Doing so may result in more users and therefore higher costs.
+
 ### Frontend app registration
 
 - Select `Single-page application (SPA)` as platform type, and set the redirect URI to `http://localhost:3000`
-- Select `Accounts in any organizational directory and personal Microsoft Accounts` as supported account types.
+- Select `Accounts in this organizational directory only ({YOUR TENANT} only - Single tenant)` as supported account types.
 - Make a note of the `Application (client) ID` from the Azure Portal for use in the `Deploy Frontend` step below.
 
 ### Backend app registration
 
 - Do not set a redirect URI
-- Select `Accounts in any organizational directory and personal Microsoft Accounts` as supported account types.
+- Select `Accounts in this organizational directory only ({YOUR TENANT} only - Single tenant)` as supported account types.
 - Make a note of the `Application (client) ID` from the Azure Portal for use in the `Deploy Azure infrastructure` step below.
 
 ### Linking the frontend to the backend
@@ -85,7 +87,7 @@ The examples below assume you are using an existing Azure OpenAI resource. See t
 ## PowerShell
 
 ```powershell
-./deploy-azure.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -DeploymentName {YOUR_DEPLOYMENT_NAME} -AIService {AzureOpenAI or OpenAI} -AIApiKey {YOUR_AI_KEY} -AIEndpoint {YOUR_AZURE_OPENAI_ENDPOINT} -WebApiClientId {YOUR_BACKEND_APPLICATION_ID} -TenantId {YOUR_TENANT_ID}
+./deploy-azure.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -DeploymentName {YOUR_DEPLOYMENT_NAME} -AIService {AzureOpenAI or OpenAI} -AIApiKey {YOUR_AI_KEY} -AIEndpoint {YOUR_AZURE_OPENAI_ENDPOINT} -BackendClientId {YOUR_BACKEND_APPLICATION_ID} -TenantId {YOUR_TENANT_ID}
 ```
 
 - To use an existing Azure OpenAI resource, set `-AIService` to `AzureOpenAI` and include `-AIApiKey` and `-AIEndpoint`.
@@ -96,7 +98,7 @@ The examples below assume you are using an existing Azure OpenAI resource. See t
 
 ```bash
 chmod +x ./deploy-azure.sh
-./deploy-azure.sh --subscription {YOUR_SUBSCRIPTION_ID} --deployment-name {YOUR_DEPLOYMENT_NAME} --ai-service {AzureOpenAI or OpenAI} --ai-service-key {YOUR_AI_KEY} --ai-endpoint {YOUR_AZURE_OPENAI_ENDPOINT} --client-id{YOUR_BACKEND_APPLICATION_ID} --tenant-id {YOUR_TENANT_ID}
+./deploy-azure.sh --subscription {YOUR_SUBSCRIPTION_ID} --deployment-name {YOUR_DEPLOYMENT_NAME} --ai-service {AzureOpenAI or OpenAI} --ai-service-key {YOUR_AI_KEY} --ai-endpoint {YOUR_AZURE_OPENAI_ENDPOINT} --client-id {YOUR_BACKEND_APPLICATION_ID} --tenant-id {YOUR_TENANT_ID}
 ```
 
 - To use an existing Azure OpenAI resource, set `--ai-service` to `AzureOpenAI` and include `--ai-service-key` and `--ai-endpoint`.
