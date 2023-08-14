@@ -116,7 +116,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                     <DialogTitle>Prompt</DialogTitle>
                     <DialogContent>
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
-                        {message.prompt && (
+                        {message.prompt && typeof prompt !== 'string' && (
                             <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
                                 <Tab data-testid="formatted" id="formatted" value="formatted">
                                     Formatted

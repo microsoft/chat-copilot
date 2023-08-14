@@ -84,22 +84,30 @@ public class CopilotChatPlanner
 
         Plan plan;
 
-        switch (this._plannerOptions?.Type)
+        try
         {
-            case PlanType.Sequential:
-                plan = await new SequentialPlanner(
-                    this.Kernel,
-                    new SequentialPlannerConfig
-                    {
-                        RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
-                        // Allow plan to be created with missing functions
-                        AllowMissingFunctions = this._plannerOptions?.MissingFunctionError.AllowRetries ?? false
-                    }
-                ).CreatePlanAsync(goal);
-                break;
-            default:
-                plan = await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
-                break;
+            switch (this._plannerOptions?.Type)
+            {
+                case PlanType.Sequential:
+                    plan = await new SequentialPlanner(
+                        this.Kernel,
+                        new SequentialPlannerConfig
+                        {
+                            RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
+                            // Allow plan to be created with missing functions
+                            AllowMissingFunctions = this._plannerOptions?.MissingFunctionError.AllowRetries ?? false
+                        }
+                    ).CreatePlanAsync(goal);
+                    break;
+                default:
+                    plan = await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
+                    break;
+            }
+        }
+        catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.CreatePlanError && e.Message.Contains("Not possible to create plan for goal with available functions", StringComparison.InvariantCulture))
+        {
+            // No relevant functions are available - return an empty plan.
+            return new Plan(goal);
         }
 
         return this._plannerOptions!.MissingFunctionError.AllowRetries ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
