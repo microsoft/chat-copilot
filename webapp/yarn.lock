@@ -7590,10 +7590,10 @@ micromatch@^4.0.2, micromatch@^4.0.4, micromatch@^4.0.5:
     braces "^3.0.2"
     picomatch "^2.3.1"
 
-microsoft-cognitiveservices-speech-sdk@^1.27.0:
-  version "1.30.1"
-  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.30.1.tgz#80ad5fc3a1986569881e432694099c857e5c8497"
-  integrity sha512-pR/abkc55hvUOG1TSmJ79Mt+A+/9R5TVeuvMaJCcvHYroIPVdG5eXqzIiZNxuy5P0x+YICYnPSOQMoHyPgtN1Q==
+microsoft-cognitiveservices-speech-sdk@^1.31.0:
+  version "1.31.0"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.31.0.tgz#a90d59f4205f58d072ed3d4439fa35b07d908ec0"
+  integrity sha512-wmNi0XoGtQwRoI2To6QSrGHVW0d8WfhJwXtE2nk48l4YkBiDqdPV2tdSXFHRrdv3uwr/+THip45H91Fllpm8qA==
   dependencies:
     agent-base "^6.0.1"
     bent "^7.3.12"
