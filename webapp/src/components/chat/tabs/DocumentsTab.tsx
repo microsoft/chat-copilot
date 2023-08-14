@@ -4,8 +4,6 @@ import {
     Button,
     Label,
     ProgressBar,
-    Radio,
-    RadioGroup,
     Spinner,
     Table,
     TableBody,
@@ -180,19 +178,8 @@ export const DocumentsTab: React.FC = () => {
                 {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
-                    <Label size="large">Vector Database</Label>
-                    <RadioGroup defaultValue={serviceOptions.memoryStore.selectedType} layout="horizontal">
-                        {serviceOptions.memoryStore.types.map((storeType) => {
-                            return (
-                                <Radio
-                                    key={storeType}
-                                    value={storeType}
-                                    label={storeType}
-                                    disabled={storeType !== serviceOptions.memoryStore.selectedType}
-                                />
-                            );
-                        })}
-                    </RadioGroup>
+                    <Label size="large">Vector Database:</Label>
+                    <Label>{serviceOptions.values.memoryStore}</Label>
                 </div>
             </div>
             <Table aria-label="External resource table" className={classes.table}>

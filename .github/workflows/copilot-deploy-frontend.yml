@@ -69,6 +69,27 @@ jobs:
             echo "::add-mask::$swaToken"
             echo "SWA_CLI_DEPLOYMENT_TOKEN=$swaToken" >> $GITHUB_ENV
 
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Display GitVersion config
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0
+        with:
+          additionalArguments: '/showConfig'
+
+      - name: Set version tag
+        id: versiontag
+        run: |
+          $VERSION_TAG = "${{ steps.gitversion.outputs.Major }}."
+          $VERSION_TAG += "${{ steps.gitversion.outputs.Minor }}."
+          $VERSION_TAG += "$(Get-Date -Format "yyyyMMdd")."
+          $VERSION_TAG += "${{ steps.gitversion.outputs.CommitsSinceVersionSourcePadded }}"
+          echo $VERSION_TAG
+          Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
+
       - name: Deploy SWA
         run: |
-          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect
+          scripts/deploy/deploy-webapp.sh --Subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect -version ${{ steps.versiontag.outputs.versiontag }} -informational_version "Commit steps.gitversion.outputs.ShortSha"
