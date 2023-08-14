@@ -17,6 +17,7 @@ public class StepwiseThoughtProcess
 
     /// <summary>
     /// Time taken to fulfil the goal.
+    /// Format: hh:mm:ss
     /// </summary>
     [JsonPropertyName("timeTaken")]
     public string TimeTaken { get; set; } = string.Empty;
