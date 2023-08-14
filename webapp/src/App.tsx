@@ -7,16 +7,12 @@ import * as React from 'react';
 import { FC, useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
-import BackendProbe from './components/views/BackendProbe';
-import { ChatView } from './components/views/ChatView';
-import Loading from './components/views/Loading';
-import { Login } from './components/views/Login';
+import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
 import { useChat } from './libs/hooks';
-import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
-import { addAlert, setActiveUserInfo, setServiceOptions } from './redux/features/app/appSlice';
+import { setActiveUserInfo, setServiceOptions } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
 
 export const useClasses = makeStyles({
@@ -51,6 +47,8 @@ export const useClasses = makeStyles({
 
 enum AppState {
     ProbeForBackend,
+    SettingUserInfo,
+    ErrorLoadingUserInfo,
     LoadingChats,
     Chat,
     SigningOut,
@@ -70,21 +68,24 @@ const App: FC = () => {
 
     useEffect(() => {
         if (isAuthenticated) {
-            let isActiveUserInfoSet = activeUserInfo !== undefined;
-            if (!isActiveUserInfoSet) {
-                const account = instance.getActiveAccount();
-                if (!account) {
-                    dispatch(addAlert({ type: AlertType.Error, message: 'Unable to get active logged in account.' }));
+            if (appState === AppState.SettingUserInfo) {
+                if (activeUserInfo === undefined) {
+                    const account = instance.getActiveAccount();
+                    if (!account) {
+                        setAppState(AppState.ErrorLoadingUserInfo);
+                    } else {
+                        dispatch(
+                            setActiveUserInfo({
+                                id: account.homeAccountId,
+                                email: account.username, // username in an AccountInfo object is the email address
+                                username: account.name ?? account.username,
+                            }),
+                        );
+                        setAppState(AppState.LoadingChats);
+                    }
                 } else {
-                    dispatch(
-                        setActiveUserInfo({
-                            id: account.homeAccountId,
-                            email: account.username, // username in an AccountInfo object is the email address
-                            username: account.name ?? account.username,
-                        }),
-                    );
+                    setAppState(AppState.LoadingChats);
                 }
-                isActiveUserInfoSet = true;
             }
 
             if (appState === AppState.LoadingChats) {
@@ -143,9 +144,15 @@ const App: FC = () => {
                         <BackendProbe
                             uri={process.env.REACT_APP_BACKEND_URI as string}
                             onBackendFound={() => {
-                                setAppState(AppState.LoadingChats);
+                                setAppState(AppState.SettingUserInfo);
                             }}
                         />
+                    )}
+                    {appState === AppState.SettingUserInfo && (
+                        <Loading text={'Hang tight while we fetch your information...'} />
+                    )}
+                    {appState === AppState.ErrorLoadingUserInfo && (
+                        <Error text={'Oops, something went wrong. Please try signing out and signing back in.'} />
                     )}
                     {appState === AppState.LoadingChats && <Loading text="Loading Chats..." />}
                     {appState === AppState.Chat && <ChatView />}

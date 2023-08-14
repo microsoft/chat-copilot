@@ -487,3 +487,6 @@ webapi/CopilotChatWebApi.sln
 
 # Files created for deployments
 /deploy/
+
+# Tesseract OCR language data files
+*.traineddata
