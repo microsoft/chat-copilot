@@ -37,7 +37,7 @@ public class BotResponsePrompt
     /// Relevant additional knowledge extracted using a planner.
     /// </summary>
     [JsonPropertyName("externalInformation")]
-    public string ExternalInformation { get; set; } = string.Empty;
+    public SemanticDependency<StepwiseThoughtProcess> ExternalInformation { get; set; }
 
     /// <summary>
     /// Most recent messages from chat history.
@@ -65,7 +65,7 @@ public class BotResponsePrompt
         string userIntent,
         string chatMemories,
         string documentMemories,
-        string externalInformation,
+        SemanticDependency<StepwiseThoughtProcess> externalInformation,
         string chatHistory,
         string systemChatContinuation
         )
