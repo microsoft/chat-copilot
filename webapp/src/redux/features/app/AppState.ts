@@ -89,7 +89,6 @@ export const Features = {
         label: 'Reinforcement Learning from Human Feedback',
         description: 'Enable users to vote on model-generated responses. For demonstration purposes only.',
         // TODO: [Issue #42] Send and store feedback in backend
-        inactive: true,
     },
     [FeatureKeys.DeleteChats]: {
         enabled: false,
