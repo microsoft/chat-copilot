@@ -84,7 +84,8 @@ public class CopilotChatPlanner
 
         Plan plan;
 
-        try {
+        try
+        {
             switch (this._plannerOptions?.Type)
             {
                 case PlanType.Sequential:
