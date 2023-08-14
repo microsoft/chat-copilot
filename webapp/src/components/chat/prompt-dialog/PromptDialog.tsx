@@ -23,13 +23,14 @@ import {
 } from '@fluentui/react-components';
 import { Info16Regular } from '@fluentui/react-icons';
 import React from 'react';
-import { Constants } from '../../../Constants';
-import { BotResponsePrompt, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
+import { BotResponsePrompt, DependencyDetails, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
+import { PlanType } from '../../../libs/models/Plan';
+import { StepwiseThoughtProcess } from '../../../libs/models/StepwiseThoughtProcess';
 import { useDialogClasses } from '../../../styles';
 import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 import { formatParagraphTextContent } from '../../utils/TextUtils';
-import { StepwiseThoughtProcess } from './stepwise-planner/StepwiseThoughtProcess';
+import { StepwiseThoughtProcessView } from './stepwise-planner/StepwiseThoughtProcessView';
 
 const useClasses = makeStyles({
     prompt: {
@@ -68,7 +69,20 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
         promptDetails = formatParagraphTextContent(prompt);
     } else {
         promptDetails = Object.entries(prompt).map(([key, value]) => {
-            const isStepwiseThoughtProcess = Constants.STEPWISE_RESULT_NOT_FOUND_REGEX.test(value as string);
+            let isStepwiseThoughtProcess = false;
+            if (key === 'externalInformation') {
+                const information = value as DependencyDetails;
+                if (information.context) {
+                    // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
+                    const details = information.context as StepwiseThoughtProcess;
+                    isStepwiseThoughtProcess = details.plannerType === PlanType.Stepwise;
+                }
+
+                if (!isStepwiseThoughtProcess) {
+                    value = information.result;
+                }
+            }
+
             if (
                 key === 'chatMemories' &&
                 value &&
@@ -76,11 +90,12 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
             ) {
                 value += '\nNo relevant document memories.';
             }
+
             return value && key !== 'rawContent' ? (
                 <div className={classes.prompt} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
                     {isStepwiseThoughtProcess ? (
-                        <StepwiseThoughtProcess stepwiseResult={value as string} />
+                        <StepwiseThoughtProcessView thoughtProcess={value as DependencyDetails} />
                     ) : (
                         formatParagraphTextContent(value as string)
                     )}

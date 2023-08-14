@@ -10,13 +10,13 @@ import {
 import { StepwiseStep } from '../../../../libs/models/StepwiseStep';
 import { formatParagraphTextContent } from '../../../utils/TextUtils';
 
-const useClasses = makeStyles({
+export const useStepClasses = makeStyles({
     root: {
         display: 'flex',
         ...shorthands.gap(tokens.spacingHorizontalM),
     },
     accordionItem: {
-        width: '99%',
+        width: '95%',
     },
     header: {
         width: '100%',
@@ -35,18 +35,20 @@ interface IStepwiseStepViewProps {
 }
 
 export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index }) => {
-    const classes = useClasses();
+    const classes = useStepClasses();
 
     let header = `[OBSERVATION] ${step.observation}`;
     let details: string | undefined;
 
-    if (step.thought) {
+    if (step.thought || step.final_answer) {
         const thoughtRegEx = /\[(THOUGHT|QUESTION|ACTION)](\s*(.*))*/g;
-        let thought = step.thought.match(thoughtRegEx)?.[0] ?? `[THOUGHT] ${step.thought}`;
+        let thought = step.final_answer
+            ? `[FINAL ANSWER] ${step.final_answer}`
+            : step.thought.match(thoughtRegEx)?.[0] ?? `[THOUGHT] ${step.thought}`;
 
-        // Only show the first sentence of the thought in the header.
-        // Show the rest as details.
-        const firstSentenceIndex = thought.indexOf('. ');
+        // Only show the first sentence of the thought in the header. Show the rest as details.
+        // Match the first period or colon followed by a non-digit or non-letter
+        const firstSentenceIndex = thought.search(/(\.|:)([^a-z\d]|$)/);
         if (firstSentenceIndex > 0) {
             details = thought.substring(firstSentenceIndex + 2);
             thought = thought.substring(0, firstSentenceIndex + 1);

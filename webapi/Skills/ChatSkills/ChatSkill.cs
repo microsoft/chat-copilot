@@ -347,6 +347,13 @@ public class ChatSkill
         var planResult = await this.AcquireExternalInformationAsync(chatContext, userIntent, externalInformationTokenLimit);
         chatContext.ThrowIfFailed();
 
+        // Extract additional details about planner execution in chat context
+        // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
+        var plannerDetails = new SemanticDependency<StepwiseThoughtProcess>(
+                planResult,
+                this._externalInformationSkill.StepwiseThoughtProcess
+            );
+
         // If plan is suggested, send back to user for approval before running
         var proposedPlan = this._externalInformationSkill.ProposedPlan;
         if (proposedPlan != null)
@@ -403,7 +410,7 @@ public class ChatSkill
 
         // Need to extract this from the rendered prompt because Time and Date are calculated during render
         var systemChatContinuation = Regex.Match(renderedPrompt, PromptsOptions.SYSTEM_CHAT_CONTINUATION_REGEX).Value;
-        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, planResult, chatHistory, systemChatContinuation);
+        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, systemChatContinuation);
 
         // Calculate token usage of prompt template
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Logger, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
