@@ -52,19 +52,17 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
 
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>('formatted');
+    const onTabSelect: SelectTabEventHandler = (_event, data) => {
+        setSelectedTab(data.value);
+    };
+
     let prompt: string | BotResponsePrompt;
     try {
         prompt = JSON.parse(message.prompt ?? '{}') as BotResponsePrompt;
     } catch (e) {
         prompt = message.prompt ?? '';
     }
-
-    const [selectedTab, setSelectedTab] = React.useState<TabValue>(
-        typeof prompt === 'string' ? 'rawContent' : 'formatted',
-    );
-    const onTabSelect: SelectTabEventHandler = (_event, data) => {
-        setSelectedTab(data.value);
-    };
 
     let promptDetails;
     if (typeof prompt === 'string') {
@@ -81,7 +79,6 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                 }
 
                 if (!isStepwiseThoughtProcess) {
-                    setSelectedTab('rawContent');
                     value = information.result;
                 }
             }
@@ -121,11 +118,9 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
                         {message.prompt && (
                             <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
-                                {typeof prompt === 'string' && (
-                                    <Tab data-testid="formatted" id="formatted" value="formatted">
-                                        Formatted
-                                    </Tab>
-                                )}
+                                <Tab data-testid="formatted" id="formatted" value="formatted">
+                                    Formatted
+                                </Tab>
                                 <Tab data-testid="rawContent" id="rawContent" value="rawContent">
                                     Raw Content
                                 </Tab>
@@ -133,9 +128,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                         )}
                         {selectedTab === 'formatted' && promptDetails}
                         {selectedTab === 'rawContent' &&
-                            (typeof prompt === 'string'
-                                ? promptDetails
-                                : formatParagraphTextContent(prompt.rawContent))}
+                            formatParagraphTextContent((prompt as BotResponsePrompt).rawContent)}
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">
