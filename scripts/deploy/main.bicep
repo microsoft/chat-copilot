@@ -54,6 +54,7 @@ param deployCosmosDB bool = true
   'Volatile'
   'AzureCognitiveSearch'
   'Qdrant'
+  'Postgres'
 ])
 param memoryStore string = 'Volatile'
 
@@ -77,6 +78,10 @@ var uniqueName = '${name}-${rgIdHash}'
 
 @description('Name of the Azure Storage file share to create')
 var storageFileShareName = 'aciqdrantshare'
+
+@description('PostgreSQL admin password')
+@secure()
+param sqlAdminPassword string = newGuid()
 
 resource openAI 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployNewAzureOpenAI) {
   name: 'ai-${uniqueName}'
@@ -249,6 +254,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'MemoryStore:AzureCognitiveSearch:Key'
         value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
+      }
+      {
+        name: 'MemoryStore:Postgres:ConnectionString'
+        value: memoryStore == 'Postgres' ? 'Host=${postgreServerGroup.properties.serverNames[0].fullyQualifiedDomainName}:5432;Username=citus;Password=${sqlAdminPassword};Database=citus' : ''
       }
       {
         name: 'AzureSpeech:Region'
@@ -501,6 +510,16 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
       }
+      {
+        name: 'postgresSubnet'
+        properties: {
+          addressPrefix: '10.0.3.0/24'
+          serviceEndpoints: []
+          delegations: []
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+        }
+      }
     ]
   }
 }
@@ -700,6 +719,76 @@ resource memorySourcesContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDataba
         version: 2
       }
     }
+  }
+}
+
+resource postgreServerGroup 'Microsoft.DBforPostgreSQL/serverGroupsv2@2022-11-08' = if (memoryStore == 'Postgres') {
+  name: 'pg-${uniqueName}'
+  location: location
+  properties: {
+    postgresqlVersion: '15'
+    administratorLoginPassword: sqlAdminPassword
+    enableHa: false
+    coordinatorVCores: 1
+    coordinatorServerEdition: 'BurstableMemoryOptimized'
+    coordinatorStorageQuotaInMb: 32768
+    nodeVCores: 4
+    nodeCount: 0
+    nodeStorageQuotaInMb: 524288
+    nodeEnablePublicIpAccess: false
+  }
+}
+
+resource postgresDNSZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (memoryStore == 'Postgres') {
+  name: 'privatelink.postgres.cosmos.azure.com'
+  location: 'global'
+}
+
+resource postgresPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-01' = if (memoryStore == 'Postgres') {
+  name: 'pg-${uniqueName}-pe'
+  location: location
+  properties: {
+    subnet: {
+      id: virtualNetwork.properties.subnets[2].id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'postgres'
+        properties: {
+          privateLinkServiceId: postgreServerGroup.id
+          groupIds: [
+            'coordinator'
+          ]
+        }
+      }
+    ]
+  }
+}
+
+resource postgresVirtualNetworkLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = if (memoryStore == 'Postgres') {
+  parent: postgresDNSZone
+  name: 'pg-${uniqueName}-vnl'
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: virtualNetwork.id
+    }
+    registrationEnabled: true
+  }
+}
+
+resource postgresPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2023-04-01' = if (memoryStore == 'Postgres') {
+  #disable-next-line use-parent-property
+  name: '${postgresPrivateEndpoint.name}/default'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'postgres'
+        properties: {
+          privateDnsZoneId: postgresDNSZone.id
+        }
+      }
+    ]
   }
 }
 
