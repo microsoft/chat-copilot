@@ -28,6 +28,7 @@ export const useClasses = makeStyles({
     },
     persona: {
         ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingVerticalMNudge),
+        overflowWrap: 'break-word',
     },
 });
 

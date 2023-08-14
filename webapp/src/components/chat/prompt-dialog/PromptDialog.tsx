@@ -12,6 +12,10 @@ import {
     DialogTrigger,
     Label,
     Link,
+    SelectTabEventHandler,
+    Tab,
+    TabList,
+    TabValue,
     Tooltip,
     makeStyles,
     shorthands,
@@ -47,19 +51,32 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
 
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>('formatted');
+    const onTabSelect: SelectTabEventHandler = (_event, data) => {
+        setSelectedTab(data.value);
+    };
+
     let prompt: string | BotResponsePrompt;
     try {
         prompt = JSON.parse(message.prompt ?? '{}') as BotResponsePrompt;
     } catch (e) {
         prompt = message.prompt ?? '';
     }
+
     let promptDetails;
     if (typeof prompt === 'string') {
-        promptDetails = prompt.split('\n').map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>);
+        promptDetails = formatParagraphTextContent(prompt);
     } else {
         promptDetails = Object.entries(prompt).map(([key, value]) => {
             const isStepwiseThoughtProcess = Constants.STEPWISE_RESULT_NOT_FOUND_REGEX.test(value as string);
-            return value ? (
+            if (
+                key === 'chatMemories' &&
+                value &&
+                !(value as string).includes('User has also shared some document snippets:')
+            ) {
+                value += '\nNo relevant document memories.';
+            }
+            return value && key !== 'rawContent' ? (
                 <div className={classes.prompt} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
                     {isStepwiseThoughtProcess ? (
@@ -84,7 +101,19 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                     <DialogTitle>Prompt</DialogTitle>
                     <DialogContent>
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
-                        {promptDetails}
+                        {message.prompt && (
+                            <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
+                                <Tab data-testid="formatted" id="formatted" value="formatted">
+                                    Formatted
+                                </Tab>
+                                <Tab data-testid="rawContent" id="rawContent" value="rawContent">
+                                    Raw Content
+                                </Tab>
+                            </TabList>
+                        )}
+                        {selectedTab === 'formatted' && promptDetails}
+                        {selectedTab === 'rawContent' &&
+                            formatParagraphTextContent((prompt as BotResponsePrompt).rawContent)}
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">
