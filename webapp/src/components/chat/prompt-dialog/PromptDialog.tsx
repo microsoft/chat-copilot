@@ -113,7 +113,9 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                         )}
                         {selectedTab === 'formatted' && promptDetails}
                         {selectedTab === 'rawContent' &&
-                            formatParagraphTextContent((prompt as BotResponsePrompt).rawContent)}
+                            (typeof prompt === 'string'
+                                ? promptDetails
+                                : formatParagraphTextContent(prompt.rawContent))}
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">
