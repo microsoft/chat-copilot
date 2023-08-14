@@ -22,6 +22,9 @@ export interface BotResponsePrompt {
 
     // Preamble to the LLM's response.
     systemChatContinuation: string;
+
+    // Raw content of the rendered prompt.
+    rawContent: string;
 }
 
 export const PromptSectionsNameMap: Record<string, string> = {
