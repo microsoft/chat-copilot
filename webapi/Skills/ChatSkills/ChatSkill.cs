@@ -24,7 +24,6 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
-using static CopilotChat.WebApi.Models.Response.BotResponsePrompt;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 

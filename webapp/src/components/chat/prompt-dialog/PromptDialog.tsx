@@ -90,7 +90,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
             ) {
                 value += '\nNo relevant document memories.';
             }
-          
+
             return value && key !== 'rawContent' ? (
                 <div className={classes.prompt} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
