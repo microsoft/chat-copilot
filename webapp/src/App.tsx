@@ -129,16 +129,18 @@ const App: FC = () => {
                 <div className={classes.container}>
                     <div className={classes.header}>
                         <Subtitle1 as="h1">Chat Copilot</Subtitle1>
-                        <div className={classes.cornerItems}>
-                            <div data-testid="logOutMenuList" className={classes.cornerItems}>
-                                <PluginGallery />
-                                <UserSettingsMenu
-                                    setLoadingState={() => {
-                                        setAppState(AppState.SigningOut);
-                                    }}
-                                />
+                        {appState > AppState.SettingUserInfo && (
+                            <div className={classes.cornerItems}>
+                                <div data-testid="logOutMenuList" className={classes.cornerItems}>
+                                    <PluginGallery />
+                                    <UserSettingsMenu
+                                        setLoadingState={() => {
+                                            setAppState(AppState.SigningOut);
+                                        }}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                     {appState === AppState.ProbeForBackend && (
                         <BackendProbe
