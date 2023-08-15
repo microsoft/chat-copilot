@@ -78,11 +78,6 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
         if (event.key === 'Enter') {
             handleSave();
         }
-
-        if (event.key === 'Space') {
-            event.stopPropagation();
-            event.preventDefault();
-        }
     };
 
     return (
