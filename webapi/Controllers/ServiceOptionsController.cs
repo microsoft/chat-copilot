@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
@@ -35,15 +36,20 @@ public class ServiceOptionsController : ControllerBase
     /// <summary>
     /// Return the memory store type that is configured.
     /// </summary>
-    [Route("ServiceOptions")]
+    [Route("serviceOptions")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetServiceOptions()
     {
-        var response = new ServiceOptionsResponse();
-
-        response.Values.Add("memoryStore", this._memoryStoreOptions.Type.ToString());
-        response.Values.Add("version", GetAssemblyFileVersion());
+        var response = new ServiceOptionsResponse()
+        {
+            MemoryStore = new MemoryStoreOptionResponse()
+            {
+                Types = Enum.GetNames(typeof(MemoryStoreOptions.MemoryStoreType)),
+                SelectedType = this._memoryStoreOptions.Type.ToString()
+            },
+            Version = GetAssemblyFileVersion()
+        };
 
         return this.Ok(response);
     }

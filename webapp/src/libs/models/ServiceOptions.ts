@@ -1,5 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+export interface MemoryStore {
+    types: string[];
+    selectedType: string;
+}
+
 export interface ServiceOptions {
-    values: { [key: string]: string };
+    memoryStore: MemoryStore;
+    version: string;
 }

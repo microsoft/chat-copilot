@@ -241,7 +241,7 @@ export class ChatService extends BaseService {
     public getServiceOptionsAsync = async (accessToken: string): Promise<ServiceOptions> => {
         const result = await this.getResponseAsync<ServiceOptions>(
             {
-                commandPath: `ServiceOptions`,
+                commandPath: `serviceOptions`,
                 method: 'GET',
             },
             accessToken,
