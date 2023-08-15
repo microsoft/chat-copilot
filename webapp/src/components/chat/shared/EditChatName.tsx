@@ -78,7 +78,13 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
         if (event.key === 'Enter') {
             handleSave();
         }
+
+        if (event.key === 'Space') {
+            event.stopPropagation();
+            event.preventDefault();
+        }
     };
+
     return (
         <div
             className={classes.root}
@@ -87,8 +93,10 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
                 flexDirection: `${textButtons ? 'column' : 'row'}`,
                 gap: `${textButtons ? tokens.spacingVerticalS : tokens.spacingVerticalNone}`,
             }}
+            title={'Edit chat name'}
+            aria-label={`Edit chat name for "${name}"`}
         >
-            <Input value={title} onChange={onTitleChange} id={title} onKeyDown={handleKeyDown} />
+            <Input value={title} onChange={onTitleChange} id={`input-${chatId}`} onKeyDown={handleKeyDown} autoFocus />
             {textButtons && (
                 <div className={mergeClasses(classes.buttons, classes.textButtons)}>
                     <Button appearance="secondary" onClick={onClose}>
