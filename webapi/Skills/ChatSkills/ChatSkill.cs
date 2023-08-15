@@ -388,6 +388,8 @@ public class ChatSkill
         var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText) - TokenUtilities.TokenCount(planResult);
 
         string chatHistory = string.Empty;
+
+        // Append the chat history, if allowed.
         if (chatHistoryTokenLimit > 0)
         {
             await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
@@ -396,6 +398,7 @@ public class ChatSkill
             chatContextText = $"{chatContextText}\n{chatHistory}";
         }
 
+        // Append the plan result, if exists.
         if (!string.IsNullOrWhiteSpace(planResult))
         {
             chatContextText = $"{chatContextText}\n{planResult}";
