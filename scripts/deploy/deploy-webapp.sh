@@ -15,7 +15,7 @@ usage() {
     echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
     echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified."
-    echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
+    echo "  -v  --version VERSION                  Version to display in UI (default: 1.0.0)"
     echo "  -i  --info INFO                        Additional info to put in version details"
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
 }

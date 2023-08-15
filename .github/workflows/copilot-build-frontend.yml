@@ -1,0 +1,35 @@
+name: copilot-build-frontend
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "webapp/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  webapp:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "yarn"
+          cache-dependency-path: "webapp/yarn.lock"
+
+      - name: Run yarn install, yarn build, & yarn format
+        run: |
+          #!/bin/bash
+          set -e # exit with nonzero exit code if anything fails
+          echo "Running yarn install, yarn build, & yarn format"
+          yarn install --frozen-lockfile # install dependencies and ensure lockfile is unchanged.
+          yarn build # run build script
+          yarn format # run format script
+        working-directory: webapp

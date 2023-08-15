@@ -9,7 +9,7 @@ on:
       DEPLOYMENT_NAME:
         required: true
         type: string
-      MAJOR_MINOR:
+      VERSION: # Major and minor (ex: 1.0) part of a version string
         required: true
         type: string
     secrets:
@@ -75,7 +75,7 @@ jobs:
       - name: Set version tag
         id: versiontag
         run: |
-          $VERSION_TAG = ${{ inputs.MAJOR_MINOR }}
+          $VERSION_TAG = ${{ inputs.VERSION }}
           $VERSION_TAG += "$(Get-Date -Format "yyyyMMdd")."
           $VERSION_TAG += "${{ github.run_number }}"
           echo $VERSION_TAG

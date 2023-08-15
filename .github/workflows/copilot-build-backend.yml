@@ -7,7 +7,7 @@ on:
       - "webapi/**"
   workflow_call:
     inputs:
-      MAJOR_MINOR:
+      VERSION: # Major and minor (ex: 1.0) part of a version string
         required: true
         type: string
     outputs:
@@ -41,8 +41,8 @@ jobs:
 
       - name: Set version tag
         id: versiontag
-        run: |
-          $VERSION_TAG = ${{ inputs.MAJOR_MINOR }}
+        run: | # Start with inputs.VERSION if provided, or '0.0' otherwise
+          $VERSION_TAG = ${{inputs.VERSION != '' && inputs.VERSION || '0.0'}}
           $VERSION_TAG += "$(Get-Date -Format "yyyyMMdd")."
           $VERSION_TAG += "${{ github.run_number }}"
           echo $VERSION_TAG
