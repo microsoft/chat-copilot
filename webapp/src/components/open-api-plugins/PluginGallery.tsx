@@ -74,6 +74,8 @@ export const PluginGallery: React.FC = () => {
                     style={{ color: 'white' }}
                     appearance="transparent"
                     icon={<AppsAddIn24 color="white" />}
+                    title="Plugins Gallery"
+                    aria-label="Plugins Gallery"
                 >
                     Plugins
                 </Button>
