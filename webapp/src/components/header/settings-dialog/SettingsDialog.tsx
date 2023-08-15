@@ -106,6 +106,7 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                                     </Body1>
                                 </AccordionPanel>
                             </AccordionItem>
+                            <Divider />
                         </Accordion>
                     </DialogContent>
                 </DialogBody>
