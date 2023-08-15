@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.SemanticKernel.AI;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Models.Response;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -116,7 +117,7 @@ public sealed class AzureContentModerator : IDisposable
     /// <param name="cancellationToken">The cancellation token.</param>
     /// </summary>
     /// <returns>SKContext containing the image analysis result.</returns>
-    public async Task<Dictionary<string, AnalysisResult>> ImageAnalysisAsync(string base64Image, CancellationToken cancellationToken)
+    public async Task<ImageAnalysisResponse> ImageAnalysisAsync(string base64Image, CancellationToken cancellationToken)
     {
         var image = base64Image.Replace("data:image/png;base64,", "", StringComparison.InvariantCultureIgnoreCase).Replace("data:image/jpeg;base64,", "", StringComparison.InvariantCultureIgnoreCase);
         ImageContent content = new(image);
@@ -138,7 +139,7 @@ public sealed class AzureContentModerator : IDisposable
                 $"Content moderator: Failed analyzing the image. {response.StatusCode}");
         }
 
-        var result = JsonSerializer.Deserialize<Dictionary<string, AnalysisResult>>(body!);
+        var result = JsonSerializer.Deserialize<ImageAnalysisResponse>(body!);
         if (result is null)
         {
             throw new AIException(
