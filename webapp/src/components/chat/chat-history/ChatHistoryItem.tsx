@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
-import { ThumbDislike24Filled, ThumbLike16Filled } from '@fluentui/react-icons';
+import { ThumbDislikeFilled, ThumbLikeFilled } from '@fluentui/react-icons';
 import React from 'react';
 import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
@@ -139,11 +139,11 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
                 {content}
                 {showShowRLHFMessage && <UserFeedbackActions messageIndex={messageIndex} />}
             </div>
-            {showShowRLHFMessage && message.userFeedback === UserFeedback.Positive && (
-                <ThumbLike16Filled color="gray" />
+            {features[FeatureKeys.RLHF].enabled && message.userFeedback === UserFeedback.Positive && (
+                <ThumbLikeFilled color="gray" />
             )}
-            {showShowRLHFMessage && message.userFeedback === UserFeedback.Negative && (
-                <ThumbDislike24Filled color="gray" />
+            {features[FeatureKeys.RLHF].enabled && message.userFeedback === UserFeedback.Negative && (
+                <ThumbDislikeFilled color="gray" />
             )}
         </div>
     );

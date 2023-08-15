@@ -120,7 +120,15 @@ function useTable(planMessages: IChatMessage[]) {
                     Token Count
                 </TableHeaderCell>
             ),
-            renderCell: (item) => <TableCell key={`plan-${item.index}-tokens`}>{item.tokens}</TableCell>,
+            renderCell: (item) => (
+                <TableCell key={`plan-${item.index}-tokens`}>
+                    {
+                        // TODO: [Issue #150, sk#2106] Remove static text once core team finishes work to return token usage.
+                        // item.tokens
+                        'Coming soon'
+                    }
+                </TableCell>
+            ),
             compare: (a, b) => {
                 const comparison = a.tokens - b.tokens;
                 return getSortDirection('tokenCounts') === 'ascending' ? comparison : comparison * -1;

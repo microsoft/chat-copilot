@@ -1,4 +1,5 @@
 import {
+    Body2,
     Button,
     Dialog,
     DialogActions,
@@ -174,8 +175,11 @@ export const PluginWizard: React.FC = () => {
                 <div className={classes.center}>
                     <CheckmarkCircle48Regular color="green" />
                     <Text size={600} align="center">
-                        Your plugin has been added successfully! Navigate back to the Gallery to enable it.
+                        Your plugin has been added successfully!
                     </Text>
+                    <Body2 align="center">
+                        You have to enable it from the plugin gallery before it can be used in your chats.
+                    </Body2>
                     <DialogTrigger disableButtonEnhancement>
                         <Button data-testid="close-plugin-wizard" aria-label="Close Wizard" appearance="secondary">
                             Close
