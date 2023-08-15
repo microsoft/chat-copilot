@@ -51,7 +51,7 @@ param(
 
     [SecureString]
     # Password for the Postgres database
-    $SqlAdminPassword = '',
+    $SqlAdminPassword = "",
 
     [switch]
     # Don't deploy Cosmos DB for chat storage - Use volatile memory instead
