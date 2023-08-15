@@ -5,6 +5,9 @@ on:
   push:
     branches: ["main"]
 
+env:
+  MAJOR_MINOR: "0.1"
+
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
@@ -16,6 +19,8 @@ permissions:
 jobs:
   build:
     uses: ./.github/workflows/copilot-build-backend.yml
+    with:
+      MAJOR_MINOR: ${{ $MAJOR_MINOR }}
 
   int:
     needs: build
@@ -23,6 +28,7 @@ jobs:
     with:
       ENVIRONMENT: int
       ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+      MAJOR_MINOR: ${{ $MAJOR_MINOR }}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
@@ -37,6 +43,7 @@ jobs:
     with:
       ENVIRONMENT: stable
       ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+      MAJOR_MINOR: ${{ $MAJOR_MINOR }}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
