@@ -540,7 +540,7 @@ public class DocumentImportController : ControllerBase
         // Split the document into lines of text and then combine them into paragraphs.
         // Note that this is only one of many strategies to chunk documents. Feel free to experiment with other strategies.
         var lines = TextChunker.SplitPlainTextLines(content, this._options.DocumentLineSplitMaxTokens);
-        var paragraphs = TextChunker.SplitPlainTextParagraphs(lines, this._options.DocumentParagraphSplitMaxLines);
+        var paragraphs = TextChunker.SplitPlainTextParagraphs(lines, this._options.DocumentParagraphSplitMaxLines, this._options.DocumentLineSplitMaxTokens);
 
         // TODO: Perform the save in parallel.
         for (var i = 0; i < paragraphs.Count; i++)
