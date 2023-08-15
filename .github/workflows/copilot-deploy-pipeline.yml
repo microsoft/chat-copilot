@@ -6,7 +6,7 @@ on:
     branches: ["main"]
 
 env:
-  MAJOR_MINOR: "0.1"
+  MAJOR_MINOR: '0.1'
 
 concurrency:
   group: ${{ github.workflow }}
@@ -20,7 +20,7 @@ jobs:
   build:
     uses: ./.github/workflows/copilot-build-backend.yml
     with:
-      MAJOR_MINOR: ${{ $MAJOR_MINOR }}
+      MAJOR_MINOR: ${{ env.MAJOR_MINOR }}
 
   int:
     needs: build

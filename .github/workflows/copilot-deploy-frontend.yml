@@ -77,7 +77,7 @@ jobs:
         run: |
           $VERSION_TAG = ${{ inputs.MAJOR_MINOR }}
           $VERSION_TAG += "$(Get-Date -Format "yyyyMMdd")."
-          $VERSION_TAG += "${{ github.run_attempt }}"
+          $VERSION_TAG += "${{ github.run_number }}"
           echo $VERSION_TAG
           Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
 

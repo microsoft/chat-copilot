@@ -34,7 +34,7 @@ param(
     $Version = "",
 
     [string]
-    # Additional information given in version info.
+    # Additional information given in version info. (Ex: commit SHA)
     $InformationalVersion = ""
 )
 
