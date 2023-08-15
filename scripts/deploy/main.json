@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "15530074115758293206"
+      "templateHash": "1330294935556235998"
     }
   },
   "parameters": {
@@ -113,7 +113,8 @@
       "allowedValues": [
         "Volatile",
         "AzureCognitiveSearch",
-        "Qdrant"
+        "Qdrant",
+        "Postgres"
       ],
       "metadata": {
         "description": "What method to use to persist embeddings"
@@ -145,6 +146,13 @@
       "defaultValue": "westus2",
       "metadata": {
         "description": "Region for the webapp frontend"
+      }
+    },
+    "sqlAdminPassword": {
+      "type": "securestring",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "PostgreSQL admin password"
       }
     }
   },
@@ -360,6 +368,10 @@
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
+            "name": "MemoryStore:Postgres:ConnectionString",
+            "value": "[if(equals(parameters('memoryStore'), 'Postgres'), format('Host={0}:5432;Username=citus;Password={1};Database=citus', reference(resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName'))), '2022-11-08').serverNames[0].fullyQualifiedDomainName, parameters('sqlAdminPassword')), '')]"
+          },
+          {
             "name": "AzureSpeech:Region",
             "value": "[parameters('location')]"
           },
@@ -416,6 +428,7 @@
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]"
       ]
     },
@@ -633,6 +646,16 @@
                   }
                 }
               ],
+              "privateEndpointNetworkPolicies": "Disabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+          },
+          {
+            "name": "postgresSubnet",
+            "properties": {
+              "addressPrefix": "10.0.3.0/24",
+              "serviceEndpoints": [],
+              "delegations": [],
               "privateEndpointNetworkPolicies": "Disabled",
               "privateLinkServiceNetworkPolicies": "Enabled"
             }
@@ -876,6 +899,96 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', toLower(format('cosmos-{0}', variables('uniqueName'))), 'CopilotChat')]"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
+      "type": "Microsoft.DBforPostgreSQL/serverGroupsv2",
+      "apiVersion": "2022-11-08",
+      "name": "[format('pg-{0}', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "postgresqlVersion": "15",
+        "administratorLoginPassword": "[parameters('sqlAdminPassword')]",
+        "enableHa": false,
+        "coordinatorVCores": 1,
+        "coordinatorServerEdition": "BurstableMemoryOptimized",
+        "coordinatorStorageQuotaInMb": 32768,
+        "nodeVCores": 4,
+        "nodeCount": 0,
+        "nodeStorageQuotaInMb": 524288,
+        "nodeEnablePublicIpAccess": false
+      }
+    },
+    {
+      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2020-06-01",
+      "name": "privatelink.postgres.cosmos.azure.com",
+      "location": "global"
+    },
+    {
+      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2023-04-01",
+      "name": "[format('pg-{0}-pe', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "subnet": {
+          "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[2].id]"
+        },
+        "privateLinkServiceConnections": [
+          {
+            "name": "postgres",
+            "properties": {
+              "privateLinkServiceId": "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
+              "groupIds": [
+                "coordinator"
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}/{1}', 'privatelink.postgres.cosmos.azure.com', format('pg-{0}-vnl', variables('uniqueName')))]",
+      "location": "global",
+      "properties": {
+        "virtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
+        },
+        "registrationEnabled": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.cosmos.azure.com')]",
+        "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
+      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+      "apiVersion": "2023-04-01",
+      "name": "[format('{0}/default', format('pg-{0}-pe', variables('uniqueName')))]",
+      "properties": {
+        "privateDnsZoneConfigs": [
+          {
+            "name": "postgres",
+            "properties": {
+              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.cosmos.azure.com')]"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.cosmos.azure.com')]",
+        "[resourceId('Microsoft.Network/privateEndpoints', format('pg-{0}-pe', variables('uniqueName')))]"
       ]
     },
     {

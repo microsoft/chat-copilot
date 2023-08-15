@@ -223,6 +223,7 @@ internal static class SemanticKernelExtensions
                     );
                 });
                 break;
+
             case MemoryStoreOptions.MemoryStoreType.Postgres:
                 if (config.Postgres == null)
                 {

@@ -92,6 +92,7 @@ if ($AIService -eq "OpenAI" -and !$AIApiKey) {
 }
 
 if ($MemoryStore -eq "Postgres" -and !$SqlAdminPassword) {
+    Write-Host "When MemoryStore is Postgres, SqlAdminPassword must be set"
     exit 1
 }
 
