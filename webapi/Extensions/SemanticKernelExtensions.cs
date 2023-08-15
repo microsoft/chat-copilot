@@ -17,11 +17,14 @@ using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Chroma;
+using Microsoft.SemanticKernel.Connectors.Memory.Postgres;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
+using Npgsql;
+using Pgvector.Npgsql;
 using static CopilotChat.WebApi.Options.MemoryStoreOptions;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -219,6 +222,25 @@ internal static class SemanticKernelExtensions
                         logger: sp.GetRequiredService<ILogger<IChromaClient>>()
                     );
                 });
+                break;
+
+            case MemoryStoreOptions.MemoryStoreType.Postgres:
+                if (config.Postgres == null)
+                {
+                    throw new InvalidOperationException("MemoryStore type is Cosmos and Cosmos configuration is null.");
+                }
+
+                var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
+                dataSourceBuilder.UseVector();
+
+                services.AddSingleton<IMemoryStore>(sp =>
+                {
+                    return new PostgresMemoryStore(
+                        dataSource: dataSourceBuilder.Build(),
+                        vectorSize: config.Postgres.VectorSize
+                    );
+                });
+
                 break;
 
             default:
