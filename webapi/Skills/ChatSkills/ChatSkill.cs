@@ -398,7 +398,7 @@ public class ChatSkill
             chatContextText = $"{chatContextText}\n{chatHistory}";
         }
 
-        // Append the plan result, if exists.
+        // Append the plan result last, if exists, to imply precedence.
         if (!string.IsNullOrWhiteSpace(planResult))
         {
             chatContextText = $"{chatContextText}\n{planResult}";
