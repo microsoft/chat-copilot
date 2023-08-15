@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
@@ -56,9 +57,7 @@ public sealed class Program
             .AddLogging(logBuilder => logBuilder.AddApplicationInsights())
             .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
 
-#if DEBUG
-        TelemetryDebugWriter.IsTracingDisabled = false;
-#endif
+        TelemetryDebugWriter.IsTracingDisabled = Debugger.IsAttached;
 
         // Add in the rest of the services.
         builder.Services
