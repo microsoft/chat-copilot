@@ -7,12 +7,12 @@ set -e
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION --ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
+    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -rg RESOURCE_GROUP -a APPLICATION_ID [OPTIONS]"
     echo ""
     echo "Arguments:"
+    echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION        Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
-    echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
     echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified."
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
