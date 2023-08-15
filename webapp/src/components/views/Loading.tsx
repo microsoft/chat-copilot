@@ -2,17 +2,17 @@
 
 import { Spinner } from '@fluentui/react-components';
 import { FC } from 'react';
+import { useSharedClasses } from '../../styles';
 
 interface ILoadingProps {
     text: string;
 }
 
-const Loading: FC<ILoadingProps> = ({ text }) => {
+export const Loading: FC<ILoadingProps> = ({ text }) => {
+    const classes = useSharedClasses();
     return (
-        <div style={{ padding: 80, alignItems: 'center' }}>
+        <div className={classes.informativeView}>
             <Spinner labelPosition="below" label={text} />
         </div>
     );
 };
-
-export default Loading;

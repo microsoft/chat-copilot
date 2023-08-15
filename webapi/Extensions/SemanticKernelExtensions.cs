@@ -24,7 +24,7 @@ using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
-using static CopilotChat.WebApi.Options.MemoriesStoreOptions;
+using static CopilotChat.WebApi.Options.MemoryStoreOptions;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -161,18 +161,18 @@ internal static class SemanticKernelExtensions
     /// </summary>
     private static void AddSemanticTextMemory(this IServiceCollection services)
     {
-        MemoriesStoreOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<MemoriesStoreOptions>>().Value;
+        MemoryStoreOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<MemoryStoreOptions>>().Value;
 
         switch (config.Type)
         {
-            case MemoriesStoreType.Volatile:
+            case MemoryStoreType.Volatile:
                 services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
                 break;
 
-            case MemoriesStoreType.Qdrant:
+            case MemoryStoreType.Qdrant:
                 if (config.Qdrant == null)
                 {
-                    throw new InvalidOperationException("MemoriesStore type is Qdrant and Qdrant configuration is null.");
+                    throw new InvalidOperationException("MemoryStore type is Qdrant and Qdrant configuration is null.");
                 }
 
                 services.AddSingleton<IMemoryStore>(sp =>
@@ -195,10 +195,10 @@ internal static class SemanticKernelExtensions
                 });
                 break;
 
-            case MemoriesStoreType.AzureCognitiveSearch:
+            case MemoryStoreType.AzureCognitiveSearch:
                 if (config.AzureCognitiveSearch == null)
                 {
-                    throw new InvalidOperationException("MemoriesStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
+                    throw new InvalidOperationException("MemoryStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
                 }
 
                 services.AddSingleton<IMemoryStore>(sp =>
@@ -207,10 +207,10 @@ internal static class SemanticKernelExtensions
                 });
                 break;
 
-            case MemoriesStoreOptions.MemoriesStoreType.Chroma:
+            case MemoryStoreOptions.MemoryStoreType.Chroma:
                 if (config.Chroma == null)
                 {
-                    throw new InvalidOperationException("MemoriesStore type is Chroma and Chroma configuration is null.");
+                    throw new InvalidOperationException("MemoryStore type is Chroma and Chroma configuration is null.");
                 }
 
                 services.AddSingleton<IMemoryStore>(sp =>
@@ -228,7 +228,7 @@ internal static class SemanticKernelExtensions
                 break;
 
             default:
-                throw new InvalidOperationException($"Invalid 'MemoriesStore' type '{config.Type}'.");
+                throw new InvalidOperationException($"Invalid 'MemoryStore' type '{config.Type}'.");
         }
 
         services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(

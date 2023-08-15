@@ -53,8 +53,8 @@ public static class CopilotChatServiceExtensions
             .PostConfigure(TrimStringProperties);
 
         // Memory store configuration
-        services.AddOptions<MemoriesStoreOptions>()
-            .Bind(configuration.GetSection(MemoriesStoreOptions.PropertyName))
+        services.AddOptions<MemoryStoreOptions>()
+            .Bind(configuration.GetSection(MemoryStoreOptions.PropertyName))
             .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);

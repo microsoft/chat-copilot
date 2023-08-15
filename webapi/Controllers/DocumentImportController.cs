@@ -271,6 +271,7 @@ public class DocumentImportController : ControllerBase
             {
                 case SupportedFileType.Txt:
                 case SupportedFileType.Pdf:
+                case SupportedFileType.Md:
                     break;
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
@@ -465,7 +466,7 @@ public class DocumentImportController : ControllerBase
     private SupportedFileType GetFileType(string fileName)
     {
         string extension = Path.GetExtension(fileName).ToUpperInvariant();
-        return extension switch
+        return extension.ToUpperInvariant() switch
         {
             ".TXT" => SupportedFileType.Txt,
             ".MD" => SupportedFileType.Md,

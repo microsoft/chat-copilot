@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.19.5.34762",
-      "templateHash": "12182074692341112389"
+      "version": "0.20.4.51522",
+      "templateHash": "15530074115758293206"
     }
   },
   "parameters": {
@@ -336,27 +336,27 @@
             "value": "[if(parameters('deployCosmosDB'), listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName')))), '2023-04-15').connectionStrings[0].connectionString, '')]"
           },
           {
-            "name": "MemoriesStore:Type",
+            "name": "MemoryStore:Type",
             "value": "[parameters('memoryStore')]"
           },
           {
-            "name": "MemoriesStore:Qdrant:Host",
+            "name": "MemoryStore:Qdrant:Host",
             "value": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
           },
           {
-            "name": "MemoriesStore:Qdrant:Port",
+            "name": "MemoryStore:Qdrant:Port",
             "value": "443"
           },
           {
-            "name": "MemoriesStore:AzureCognitiveSearch:UseVectorSearch",
+            "name": "MemoryStore:AzureCognitiveSearch:UseVectorSearch",
             "value": "true"
           },
           {
-            "name": "MemoriesStore:AzureCognitiveSearch:Endpoint",
+            "name": "MemoryStore:AzureCognitiveSearch:Endpoint",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
           },
           {
-            "name": "MemoriesStore:AzureCognitiveSearch:Key",
+            "name": "MemoryStore:AzureCognitiveSearch:Key",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {

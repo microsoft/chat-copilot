@@ -8,7 +8,7 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 
 > **IMPORTANT:** Each chat interaction will call Azure OpenAI/OpenAI which will use tokens that you may be billed for.
 
-![ChatCopilot](https://github.com/microsoft/chat-copilot/assets/64985898/4b5b4ddd-0ba5-4da1-9769-1bc4a74f1996)
+![Chat Copilot answering a question](https://learn.microsoft.com/en-us/semantic-kernel/media/chat-copilot-in-action.gif)
 
 # Requirements
 
@@ -40,12 +40,14 @@ You will need the following items to run the sample:
 1. Open PowerShell as an administrator.
 2. Setup your environment.
 
-   ```powershell
-   cd <path to chat-copilot>\scripts\
-   .\Install.ps1
-   ```
+    ```powershell
+    cd <path to chat-copilot>\scripts\
+    .\Install.ps1
+    ```
 
-   > NOTE: This script will install `Chocolatey`, `dotnet-7.0-sdk`, `nodejs`, and `yarn`.
+    > NOTE: This script will install `Chocolatey`, `dotnet-7.0-sdk`, `nodejs`, and `yarn`.
+     
+    > NOTE: If you receive an error that the script is not digitally signed or cannot execute on the system, you may need to [change the execution policy](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#change-the-execution-policy) (see list of [policies](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#powershell-execution-policies) and [scopes](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#execution-policy-scope)) or [unblock the script](https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-executionpolicy?view=powershell-7.3#example-4-unblock-a-script-to-run-it-without-changing-the-execution-policy).
 
 3. Configure Chat Copilot.
 
@@ -141,7 +143,8 @@ You will need the following items to run the sample:
 
 ## (Optional) Enable backend authorization via Azure AD
 
-1. Ensure you created the required application registration mentioned in [Start the WebApp FrontEnd application](#start-the-webapp-frontend-application)
+1. Ensure you created the required application registration mentioned in [Register an application](#register-an-application)
+
 2. Create a second application registration to represent the web api
 
    > For more details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).

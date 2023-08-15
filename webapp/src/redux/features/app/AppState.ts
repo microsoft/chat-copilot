@@ -134,5 +134,5 @@ export const initialState: AppState = {
     tokenUsage: {},
     features: Features,
     settings: Settings,
-    serviceOptions: { memoriesStore: { types: [], selectedType: '' } },
+    serviceOptions: { memoryStore: { types: [], selectedType: '' } },
 };
