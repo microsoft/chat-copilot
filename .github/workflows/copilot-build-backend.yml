@@ -40,11 +40,9 @@ jobs:
         with:
           versionSpec: '5.x'
 
-      - name: Display GitVersion config
+      - name: Determine version
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0
-        with:
-          additionalArguments: '/showConfig'
 
       - name: Set version tag
         id: versiontag
