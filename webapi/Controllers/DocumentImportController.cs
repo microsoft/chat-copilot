@@ -276,16 +276,13 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
+                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
                     {
-                        if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
-                        {
-                            break;
-                        }
-
-                        throw new ArgumentException($"Unsupported image file type: {fileType} when " +
-                            $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
-                            nameof(OcrSupportOptions.OcrSupportType.None));
+                        break;
                     }
+                    throw new ArgumentException($"Unsupported image file type: {fileType} when " +
+                        $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
+                        nameof(OcrSupportOptions.OcrSupportType.None));
                 default:
                     throw new ArgumentException($"Unsupported file type: {fileType}");
             }
@@ -315,15 +312,12 @@ public class DocumentImportController : ControllerBase
             case SupportedFileType.Jpg:
             case SupportedFileType.Png:
             case SupportedFileType.Tiff:
+                documentContent = await this.ReadTextFromImageFileAsync(formFile);
+                if (documentContent.Trim().Length == 0)
                 {
-                    documentContent = await this.ReadTextFromImageFileAsync(formFile);
-                    if (documentContent.Trim().Length == 0)
-                    {
-                        throw new ArgumentException($"Image {{{formFile.FileName}}} does not contain text.");
-                    }
-                    break;
+                    throw new ArgumentException($"Image {{{formFile.FileName}}} does not contain text.");
                 }
-
+                break;
             default:
                 // This should never happen. Validation should have already caught this.
                 return ImportResult.Fail();
