@@ -18,7 +18,15 @@ param(
     
     [string]
     # Output directory for published assets.
-    $OutputDirectory = "$PSScriptRoot"
+    $OutputDirectory = "$PSScriptRoot",
+
+    [string]
+    # Version to give to assemblies and files.
+    $Version = "1.0.0",
+
+    [string]
+    # Additional information given in version info.
+    $InformationalVersion = ""
 )
 
 Write-Host "BuildConfiguration: $BuildConfiguration"
@@ -37,7 +45,7 @@ if (!(Test-Path $publishOutputDirectory)) {
 }
 
 Write-Host "Build configuration: $BuildConfiguration"
-dotnet publish "$PSScriptRoot/../../webapi/CopilotChatWebApi.csproj" --configuration $BuildConfiguration --framework $DotNetFramework --runtime $TargetRuntime --self-contained --output "$publishOutputDirectory"
+dotnet publish "$PSScriptRoot/../../webapi/CopilotChatWebApi.csproj" --configuration $BuildConfiguration --framework $DotNetFramework --runtime $TargetRuntime --self-contained --output "$publishOutputDirectory" /p:AssemblyVersion=$Version /p:FileVersion=$Version /p:InformationalVersion=$InformationalVersion
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
