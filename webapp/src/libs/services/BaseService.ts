@@ -8,7 +8,7 @@ interface ServiceRequest {
     body?: unknown;
 }
 
-const noResponseBodyStatusCodes = [202];
+const noResponseBodyStatusCodes = [202, 204];
 
 export class BaseService {
     // eslint-disable-next-line @typescript-eslint/space-before-function-paren

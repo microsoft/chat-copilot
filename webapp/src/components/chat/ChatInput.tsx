@@ -113,7 +113,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
     React.useEffect(() => {
         const chatState = conversations[selectedId];
-        setValue(chatState.input);
+        setValue(chatState.disabled ? Constants.CHAT_DELETED_MESSAGE() : chatState.input);
     }, [conversations, selectedId]);
 
     const handleSpeech = () => {
@@ -188,6 +188,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                     ref={textAreaRef}
                     id="chat-input"
                     resize="vertical"
+                    disabled={conversations[selectedId].disabled}
                     textarea={{
                         className: isDraggingOver
                             ? mergeClasses(classes.dragAndDrop, classes.textarea)
@@ -243,7 +244,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                         }}
                     />
                     <Button
-                        disabled={documentImporting}
+                        disabled={conversations[selectedId].disabled || documentImporting}
                         appearance="transparent"
                         icon={<AttachRegular />}
                         onClick={() => documentFileRef.current?.click()}
@@ -256,7 +257,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                     {recognizer && (
                         <Button
                             appearance="transparent"
-                            disabled={isListening}
+                            disabled={conversations[selectedId].disabled || isListening}
                             icon={<MicRegular />}
                             onClick={handleSpeech}
                         />
@@ -269,6 +270,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                         onClick={() => {
                             handleSubmit(value);
                         }}
+                        disabled={conversations[selectedId].disabled}
                     />
                 </div>
             </div>

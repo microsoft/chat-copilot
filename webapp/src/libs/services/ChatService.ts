@@ -103,6 +103,22 @@ export class ChatService extends BaseService {
         return result;
     };
 
+    public deleteChatAsync = async (chatId: string, userId: string, accessToken: string): Promise<any> => {
+        const result = await this.getResponseAsync(
+            {
+                commandPath: 'chatSession/delete',
+                method: 'POST',
+                body: {
+                    userId: userId,
+                    chatId: chatId,
+                },
+            },
+            accessToken,
+        );
+
+        return result;
+    };
+
     public getBotResponseAsync = async (
         ask: IAsk,
         accessToken: string,

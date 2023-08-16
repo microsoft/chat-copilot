@@ -3,6 +3,7 @@
 import * as signalR from '@microsoft/signalr';
 import { AnyAction, Dispatch } from '@reduxjs/toolkit';
 import { Constants } from '../../../Constants';
+import { getFriendlyChatName } from '../../../libs/hooks/useChat';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
@@ -20,6 +21,7 @@ const enum SignalRCallbackMethods {
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
     GlobalDocumentUploaded = 'GlobalDocumentUploaded',
     ChatEdited = 'ChatEdited',
+    ChatDeleted = 'ChatDeleted',
 }
 
 // The action sent to the SignalR middleware.
@@ -31,6 +33,8 @@ interface SignalRAction extends AnyAction {
         id?: string;
     };
 }
+
+const refreshAdvisory = 'Please refresh the page to ensure you have the latest data.';
 
 // Set up a SignalR connection to the messageRelayHub on the server
 const setupSignalRConnectionToChatHub = () => {
@@ -93,7 +97,7 @@ const registerCommonSignalConnectionEvents = (store: Store) => {
 
     hubConnection.onreconnected((connectionId = '') => {
         if (hubConnection.state === signalR.HubConnectionState.Connected) {
-            const message = 'Connection reestablished. Please refresh the page to ensure you have the latest data.';
+            const message = `Connection reestablished. ${refreshAdvisory}`;
             store.dispatch(addAlert({ message, type: AlertType.Success, id: Constants.app.CONNECTION_ALERT_ID }));
             console.log(message + ` Connected with connectionId ${connectionId}`);
         }
@@ -228,11 +232,37 @@ export const registerSignalREvents = (store: Store) => {
         if (!(id in store.getState().conversations.conversations)) {
             store.dispatch(
                 addAlert({
-                    message: `Chat ${id} not found in store. Chat edited signal from server is not processed.`,
+                    message: `Chat ${id} not found in store. Chat edited signal from server was not processed.`,
                     type: AlertType.Error,
                 }),
             );
         }
         store.dispatch({ type: 'conversations/editConversationTitle', payload: { id, newTitle: title } });
+    });
+
+    // User Id is that of the user who initiated the deletion.
+    hubConnection.on(SignalRCallbackMethods.ChatDeleted, (chatId: string, userId: string) => {
+        if (!(chatId in store.getState().conversations.conversations)) {
+            store.dispatch({
+                message: `Chat ${chatId} not found in store. Chat deleted signal from server was not processed. ${refreshAdvisory}`,
+                type: AlertType.Error,
+            });
+        } else {
+            const friendlyChatName = getFriendlyChatName(store.getState().conversations.conversations[chatId]);
+            const deletedByAnotherUser = userId !== store.getState().app.activeUserInfo?.id;
+            store.dispatch(
+                addAlert({
+                    message: deletedByAnotherUser
+                        ? Constants.CHAT_DELETED_MESSAGE(friendlyChatName)
+                        : `Chat {${friendlyChatName}} deleted successfully.`,
+                    type: AlertType.Warning,
+                }),
+            );
+            if (deletedByAnotherUser)
+                store.dispatch({
+                    type: 'conversations/disableConversation',
+                    payload: chatId,
+                });
+        }
     });
 };

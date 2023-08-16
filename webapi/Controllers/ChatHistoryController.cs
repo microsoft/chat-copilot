@@ -37,6 +37,7 @@ public class ChatHistoryController : ControllerBase
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly PromptsOptions _promptOptions;
     private const string ChatEditedClientCall = "ChatEdited";
+    private const string ChatDeletedClientCall = "ChatDeleted";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatHistoryController"/> class.
@@ -143,6 +144,7 @@ public class ChatHistoryController : ControllerBase
         foreach (var chatParticipant in chatParticipants)
         {
             ChatSession? chat = null;
+            // TODO: TryFindByIdAsync should check for deletion
             if (await this._sessionRepository.TryFindByIdAsync(chatParticipant.ChatId, v => chat = v))
             {
                 chats.Add(chat!);
@@ -239,5 +241,84 @@ public class ChatHistoryController : ControllerBase
         }
 
         return this.NotFound($"No chat session found for chat id '{chatId}'.");
+    }
+
+    /// <summary>
+    /// Delete a chat session.
+    /// </summary>
+    /// <param name="requestParamaters">Object that contains the parameters to delete the chat.</param>
+    [HttpPost]
+    [Route("chatSession/delete")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteChatSessionAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, [FromBody] DeleteChatRequest requestParamaters)
+    {
+        string? chatId = requestParamaters.ChatId;
+        string? userId = requestParamaters.UserId;
+
+        if (chatId == null || userId == null)
+        {
+            return this.BadRequest("Chat session parameters cannot be null.");
+        }
+
+        ChatSession? chatToDelete = null;
+        try
+        {
+            // Make sure the chat session exists
+            chatToDelete = await this._sessionRepository.FindByIdAsync(chatId);
+        }
+        catch (KeyNotFoundException)
+        {
+            return this.NotFound($"No chat session found for chat id '{chatId}'.");
+        }
+
+        // Delete message and broadcast update to all participants.
+        await this._sessionRepository.DeleteAsync(chatToDelete);
+        await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatDeletedClientCall, chatId, userId);
+
+        // Create and store the tasks for deleting all users tied to the chat.
+        var participants = await this._participantRepository.FindByChatIdAsync(chatId);
+        var participantsTasks = new List<Task>();
+        foreach (var participant in participants)
+        {
+            participantsTasks.Add(this._participantRepository.DeleteAsync(participant));
+        }
+
+        // Create and store the tasks for deleting chat messages.
+        var messages = await this._messageRepository.FindByChatIdAsync(chatId);
+        var messageTasks = new List<Task>();
+        foreach (var message in messages)
+        {
+            messageTasks.Add(this._messageRepository.DeleteAsync(message));
+        }
+
+        // Create and store the tasks for deleting memory sources.
+        var sources = await this._sourceRepository.FindByChatIdAsync(chatId, false);
+        var sourceTasks = new List<Task>();
+        foreach (var source in sources)
+        {
+            sourceTasks.Add(this._sourceRepository.DeleteAsync(source));
+        }
+
+        // Await all the tasks in parallel and handle the exceptions
+        try
+        {
+            await Task.WhenAll(participantsTasks.Concat(messageTasks).Concat(sourceTasks));
+        }
+        catch (Exception)
+        {
+            // Iterate over the tasks and check their status and exception
+            foreach (var task in messageTasks.Concat(sourceTasks))
+            {
+                if (task.IsFaulted && task.Exception != null)
+                {
+                    // Handle the exception as needed
+                    this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, task.Exception.Message);
+                }
+            }
+        }
+
+        return this.NoContent();
     }
 }

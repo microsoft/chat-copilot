@@ -91,10 +91,8 @@ export const Features = {
         // TODO: [Issue #42] Send and store feedback in backend
     },
     [FeatureKeys.DeleteChats]: {
-        enabled: false,
+        enabled: true,
         label: 'Delete Chat Sessions',
-        // TODO: [sk Issue #1642] Implement delete chats
-        inactive: true,
     },
 };
 
