@@ -1,6 +1,6 @@
 # Chat Copilot Sample Application
 
-This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft Semantic Kernel and has two components: a frontend [React web app](./webapp/) and a backend [.NET web API service](./webapi/).
+This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft [Semantic Kernel](https://github.com/microsoft/semantic-kernel) and has two components: a frontend [React web app](./webapp/) and a backend [.NET web API service](./webapi/).
 
 These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/deploy/README.md).
 
@@ -40,14 +40,14 @@ You will need the following items to run the sample:
 1. Open PowerShell as an administrator.
 2. Setup your environment.
 
-    ```powershell
-    cd <path to chat-copilot>\scripts\
-    .\Install.ps1
-    ```
+   ```powershell
+   cd <path to chat-copilot>\scripts\
+   .\Install.ps1
+   ```
 
-    > NOTE: This script will install `Chocolatey`, `dotnet-7.0-sdk`, `nodejs`, and `yarn`.
-     
-    > NOTE: If you receive an error that the script is not digitally signed or cannot execute on the system, you may need to [change the execution policy](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#change-the-execution-policy) (see list of [policies](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#powershell-execution-policies) and [scopes](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#execution-policy-scope)) or [unblock the script](https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-executionpolicy?view=powershell-7.3#example-4-unblock-a-script-to-run-it-without-changing-the-execution-policy).
+   > NOTE: This script will install `Chocolatey`, `dotnet-7.0-sdk`, `nodejs`, and `yarn`.
+
+   > NOTE: If you receive an error that the script is not digitally signed or cannot execute on the system, you may need to [change the execution policy](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#change-the-execution-policy) (see list of [policies](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#powershell-execution-policies) and [scopes](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#execution-policy-scope)) or [unblock the script](https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-executionpolicy?view=powershell-7.3#example-4-unblock-a-script-to-run-it-without-changing-the-execution-policy).
 
 3. Configure Chat Copilot.
 
@@ -265,3 +265,42 @@ You will need the following items to run the sample:
    sudo apt update;
    sudo apt install --assume-yes dotnet-sdk-7.0;
    ```
+
+## Check out our other repos!
+
+If you would like to learn more about Semantic Kernel and AI, you may also be interested in other repos the Semantic Kernel team supports:
+
+| Repo                                                                              | Description                                                                                      |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [Semantic Kernel](https://github.com/microsoft/semantic-kernel)                   | A lightweight SDK that integrates cutting-edge LLM technology quickly and easily into your apps. |
+| [Semantic Kernel Docs](https://github.com/MicrosoftDocs/semantic-kernel-docs)     | The home for Semantic Kernel documentation that appears on the Microsoft learn site.             |
+| [Semantic Kernel Starters](https://github.com/microsoft/semantic-kernel-starters) | Starter projects for Semantic Kernel to make it easier to get started.                           |
+| [Semantic Memory](https://github.com/microsoft/semantic-memory)                   | A service that allows you to create pipelines for ingesting, storing, and querying knowledge.    |
+
+## Join the community
+
+We welcome your contributions and suggestions to the Chat Copilot Sample App! One of the easiest
+ways to participate is to engage in discussions in the GitHub repository.
+Bug reports and fixes are welcome!
+
+To learn more and get started:
+
+- Read the [documentation](https://learn.microsoft.com/en-us/semantic-kernel/chat-copilot/)
+- Join the [Discord community](https://aka.ms/SKDiscord)
+- [Contribute](CONTRIBUTING.md) to the project.
+- Follow the team on our [blog](https://aka.ms/sk/blog)
+
+## Code of Conduct
+
+This project has adopted the
+[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the
+[Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
+with any additional questions or comments.
+
+## License
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+Licensed under the [MIT](LICENSE) license.
