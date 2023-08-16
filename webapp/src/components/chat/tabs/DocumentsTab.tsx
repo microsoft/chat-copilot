@@ -163,7 +163,7 @@ export const DocumentsTab: React.FC = () => {
                     type="file"
                     ref={documentFileRef}
                     style={{ display: 'none' }}
-                    accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff,.csv"
+                    accept=".txt,.pdf,.md,.csv,.jpg,.jpeg,.png,.tif,.tiff"
                     multiple={true}
                     onChange={handleImport}
                 />

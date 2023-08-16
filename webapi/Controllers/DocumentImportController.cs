@@ -54,6 +54,11 @@ public class DocumentImportController : ControllerBase
         Md,
 
         /// <summary>
+        /// .csv
+        /// </summary>
+        Csv,
+
+        /// <summary>
         /// .jpg
         /// </summary>
         Jpg,
@@ -66,12 +71,7 @@ public class DocumentImportController : ControllerBase
         /// <summary>
         /// .tif or .tiff
         /// </summary>
-        Tiff,
-
-        /// <summary>
-        /// .csv
-        /// </summary>
-        Csv,
+        Tiff
     };
 
     private readonly ILogger<DocumentImportController> _logger;
@@ -275,9 +275,9 @@ public class DocumentImportController : ControllerBase
             switch (fileType)
             {
                 case SupportedFileType.Txt:
-                case SupportedFileType.Csv:
                 case SupportedFileType.Pdf:
                 case SupportedFileType.Md:
+                case SupportedFileType.Csv:
                     break;
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
@@ -473,13 +473,13 @@ public class DocumentImportController : ControllerBase
         {
             ".TXT" => SupportedFileType.Txt,
             ".MD" => SupportedFileType.Md,
+            ".CSV" => SupportedFileType.Csv,
             ".PDF" => SupportedFileType.Pdf,
             ".JPG" => SupportedFileType.Jpg,
             ".JPEG" => SupportedFileType.Jpg,
             ".PNG" => SupportedFileType.Png,
             ".TIF" => SupportedFileType.Tiff,
             ".TIFF" => SupportedFileType.Tiff,
-            ".CSV" => SupportedFileType.Csv,
             _ => throw new ArgumentOutOfRangeException($"Unsupported file type: {extension}"),
         };
     }
