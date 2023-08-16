@@ -6,10 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using CopilotChat.WebApi.Models.Request;
-using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
@@ -127,7 +124,6 @@ internal static class SemanticChatMemoryExtractor
                     await writer.WriteAsync(memory);
                     await writer.FlushAsync();
                     stream.Position = 0;
-
 
                     var id = Guid.NewGuid().ToString();
                     //var documentName = Path.ChangeExtension(memoryName, ".txt"); $$$ 
