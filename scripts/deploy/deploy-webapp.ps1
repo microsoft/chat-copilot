@@ -35,7 +35,7 @@ param(
 
     [string]
     # Additional information given in version info. (Ex: commit SHA)
-    $InformationalVersion = ""
+    $VersionInfo = ""
 )
 
 Write-Host "Setting up Azure credentials..."
@@ -73,7 +73,7 @@ Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_AAD_CLIENT_ID=$ApplicationClientId" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_API_KEY=$webapiApiKey" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_VERSION=$Version" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_SK_BUILD_INFO=$InformationalVersion" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_SK_BUILD_INFO=$VersionInfo" | Out-File -FilePath $envFilePath -Append
 
 Write-Host "Generating SWA config..."
 $swaConfig = $(Get-Content "$PSScriptRoot/../../webapp/template.swa-cli.config.json" -Raw)

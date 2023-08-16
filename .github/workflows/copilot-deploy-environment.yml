@@ -9,9 +9,6 @@ on:
       ARTIFACT_NAME:
         required: true
         type: string
-      VERSION: # Major and minor (ex: 1.0) part of a version string
-        required: true
-        type: string
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -60,7 +57,6 @@ jobs:
     with:
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
-      VERSION: ${{inputs.VERSION}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
