@@ -66,7 +66,12 @@ public class DocumentImportController : ControllerBase
         /// <summary>
         /// .tif or .tiff
         /// </summary>
-        Tiff
+        Tiff,
+
+        /// <summary>
+        /// .csv
+        /// </summary>
+        Csv,
     };
 
     private readonly ILogger<DocumentImportController> _logger;
@@ -270,6 +275,7 @@ public class DocumentImportController : ControllerBase
             switch (fileType)
             {
                 case SupportedFileType.Txt:
+                case SupportedFileType.Csv:
                 case SupportedFileType.Pdf:
                 case SupportedFileType.Md:
                     break;
@@ -307,6 +313,7 @@ public class DocumentImportController : ControllerBase
         {
             case SupportedFileType.Txt:
             case SupportedFileType.Md:
+            case SupportedFileType.Csv:
                 documentContent = await this.ReadTxtFileAsync(formFile);
                 break;
             case SupportedFileType.Pdf:
@@ -472,6 +479,7 @@ public class DocumentImportController : ControllerBase
             ".PNG" => SupportedFileType.Png,
             ".TIF" => SupportedFileType.Tiff,
             ".TIFF" => SupportedFileType.Tiff,
+            ".CSV" => SupportedFileType.Csv,
             _ => throw new ArgumentOutOfRangeException($"Unsupported file type: {extension}"),
         };
     }
