@@ -8,10 +8,12 @@ RUN dotnet dev-certs https
 
 # copy csproj and restore as distinct layers
 COPY webapi/*.csproj .
-RUN dotnet restore --use-current-runtime  
+RUN dotnet restore --use-current-runtime
 
 # copy everything else and build app
 COPY webapi/. .
+RUN apt update && apt install -y wget
+RUN wget -P data https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/eng.traineddata
 RUN dotnet publish --use-current-runtime --self-contained false --no-restore -o /app
 
 

@@ -22,5 +22,12 @@ services:
     env_file:
       - ../webapi/.env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - MemoryStore__Qdrant__Host=http://qdrant
+    depends_on:
+      qdrant:
+        condition: service_started
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - 6333:6333
 
