@@ -14,7 +14,11 @@ param webAppServiceSku string = 'B1'
 
 @description('Location of package to deploy as the web service')
 #disable-next-line no-hardcoded-env-urls
-param packageUri string = 'https://aka.ms/copilotchat/webapi/latest'
+param webApiPackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
+
+@description('Location of package to deploy as the memory pipeline')
+#disable-next-line no-hardcoded-env-urls
+param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
 
 @description('Underlying AI service')
 @allowed([
@@ -63,6 +67,9 @@ param deploySpeechServices bool = true
 
 @description('Whether to deploy the backend Web API package')
 param deployWebApiPackage bool = true
+
+@description('Whether to deploy the memory pipeline package')
+param deployMemoryPipelinePackage bool = true
 
 @description('Region for the resources')
 param location string = resourceGroup().location
@@ -316,10 +323,124 @@ resource appServiceWebDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (d
   kind: 'string'
   parent: appServiceWeb
   properties: {
-    packageUri: packageUri
+    packageUri: webApiPackageUri
   }
   dependsOn: [
     appServiceWebConfig
+  ]
+}
+
+resource appServiceMemoryPipeline 'Microsoft.Web/sites@2022-09-01' = {
+  name: 'app-${uniqueName}-memorypipeline'
+  location: location
+  kind: 'app'
+  tags: {
+    skweb: '1'
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+  }
+}
+
+resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' = {
+  parent: appServiceMemoryPipeline
+  name: 'web'
+  properties: {
+    alwaysOn: false
+    detailedErrorLoggingEnabled: true
+    minTlsVersion: '1.2'
+    netFrameworkVersion: 'v6.0'
+    use32BitWorkerProcess: false
+    appSettings: [
+      {
+        name: 'SemanticMemory:ContentStorageType'
+        value: 'AzureBlobs'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:OrchestrationType'
+        value: 'Distributed'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
+        value: 'AzureQueue'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes'
+        value: '[\'${aiService}\']'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:VectorDbTypes'
+        value: '[\'${memoryStore}\']'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:ConnectionString'
+        value: storage.listConnectionStrings().connectionStrings[0].connectionString
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Container'
+        value: 'chatmemory'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:ConnectionString'
+        value: storage.listConnectionStrings().connectionStrings[0].connectionString
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Endpoint'
+        value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
+      }
+      {
+        name: 'MemoryStore:AzureCognitiveSearch:Key'
+        value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint'
+        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:APIKey'
+        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Deployment'
+        value: embeddingModel
+      }
+      {
+        name: 'Logging:LogLevel:Default'
+        value: 'Information'
+      }
+      {
+        name: 'Logging:LogLevel:AspNetCore'
+        value: 'Warning'
+      }
+    ]
+  }
+}
+
+resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployMemoryPipelinePackage) {
+  name: 'MSDeploy'
+  kind: 'string'
+  parent: appServiceMemoryPipeline
+  properties: {
+    packageUri: memoryPipelinePackageUri
+  }
+  dependsOn: [
+    appServiceMemoryPipelineConfig
   ]
 }
 
@@ -361,7 +482,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   }
 }
 
-resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (memoryStore == 'Qdrant') {
+resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: 'st${rgIdHash}' // Not using full unique name to avoid hitting 24 char limit
   location: location
   kind: 'StorageV2'
@@ -372,7 +493,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (memoryStor
     supportsHttpsTrafficOnly: true
     allowBlobPublicAccess: false
   }
-  resource fileservices 'fileServices' = {
+  resource fileservices 'fileServices' = if (memoryStore == 'Qdrant') {
     name: 'default'
     resource share 'shares' = {
       name: storageFileShareName
@@ -827,3 +948,4 @@ output webappUrl string = staticWebApp.properties.defaultHostname
 output webappName string = staticWebApp.name
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
+output memoryPipelineName string = appServiceMemoryPipeline.name
