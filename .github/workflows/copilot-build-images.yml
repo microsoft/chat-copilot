@@ -1,4 +1,4 @@
-name: "Build and push images"
+name: copilot-deploy-pipeline
 
 on:
   push:
@@ -9,12 +9,14 @@ on:
     paths:
       - "webapi/**"
       - "webapp/**"
+      - ".github/workflows/copilot-build-images.yml"
   pull_request:
     branches:
       - "main"
     paths:
       - "webapi/**"
       - "webapp/**"
+      - ".github/workflows/copilot-build-images.yml"
 
 env:
   REGISTRY: ghcr.io
