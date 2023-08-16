@@ -50,14 +50,13 @@ jobs:
         run: |
           $VERSION_TAG = "${{ steps.gitversion.outputs.Major }}."
           $VERSION_TAG += "${{ steps.gitversion.outputs.Minor }}."
-          $VERSION_TAG += "$(Get-Date -Format "yyyyMMdd")."
-          $VERSION_TAG += "${{ steps.gitversion.outputs.CommitsSinceVersionSourcePadded }}"
+          $VERSION_TAG += "${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
           echo $VERSION_TAG
           Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
 
       - name: Package Copilot Chat WebAPI
         run: |
-          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Commit ${{ steps.gitversion.outputs.ShortSha }}"
+          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
 
       - name: Check formatting of Copilot Chat WebAPI
         run: |
