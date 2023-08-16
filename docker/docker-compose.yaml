@@ -1,7 +1,7 @@
 version: '3'
 services:
   chat-copilot-web:
-    image: huangyingting/chat-copilot-web
+    image: chat-copilot-web
     build: 
       context: ..
       dockerfile: docker/webapp/Dockerfile
@@ -13,7 +13,7 @@ services:
       chat-copilot-api:
         condition: service_started
   chat-copilot-api:
-    image: huangyingting/chat-copilot-api
+    image: chat-copilot-api
     build: 
       context: ..
       dockerfile: docker/webapi/Dockerfile
