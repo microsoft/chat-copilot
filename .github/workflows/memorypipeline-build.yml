@@ -1,8 +1,10 @@
 ﻿name: Build CopilotChatMemoryPipelineService
 
 on:
-  push:
-    branches: ["feature-semantic-memory"]
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "memorypipeline/**"
 
 permissions:
   contents: read
@@ -10,8 +12,6 @@ permissions:
 jobs:
   memory-pipeline:
     runs-on: ubuntu-latest
-
-    environment: feature-semantic-memory
 
     steps:
       - uses: actions/checkout@v3
@@ -22,14 +22,6 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 6.0.x
-
-      - name: Add custom nuget source
-        run: |
-          dotnet nuget add source "https://pkgs.dev.azure.com/msctoproj/Lightspeed/_packaging/SemanticMemoryPrivate/nuget/v3/index.json" \
-            --name SemanticMemoryPrivate \
-            --username az \
-            --password ${{ secrets.AZURE_DEVOPS_PAT }} \
-            --store-password-in-clear-text
 
       - name: Build CopilotChatMemoryPipelineService
         run: |
