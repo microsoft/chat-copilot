@@ -144,7 +144,6 @@ public class ChatHistoryController : ControllerBase
         foreach (var chatParticipant in chatParticipants)
         {
             ChatSession? chat = null;
-            // TODO: TryFindByIdAsync should check for deletion
             if (await this._sessionRepository.TryFindByIdAsync(chatParticipant.ChatId, v => chat = v))
             {
                 chats.Add(chat!);
@@ -302,20 +301,15 @@ public class ChatHistoryController : ControllerBase
         }
 
         // Await all the tasks in parallel and handle the exceptions
-        try
+        var cleanupTasks = participantsTasks.Concat(messageTasks).Concat(sourceTasks);
+        await Task.WhenAll(cleanupTasks);
+
+        // Iterate over the tasks and check their status and exception
+        foreach (var task in cleanupTasks)
         {
-            await Task.WhenAll(participantsTasks.Concat(messageTasks).Concat(sourceTasks));
-        }
-        catch (Exception)
-        {
-            // Iterate over the tasks and check their status and exception
-            foreach (var task in messageTasks.Concat(sourceTasks))
+            if (task.IsFaulted && task.Exception != null)
             {
-                if (task.IsFaulted && task.Exception != null)
-                {
-                    // Handle the exception as needed
-                    this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, task.Exception.Message);
-                }
+                this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, task.Exception.Message);
             }
         }
 

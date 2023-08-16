@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
 
@@ -10,7 +10,7 @@ namespace CopilotChat.WebApi.Models.Request;
 public class DeleteChatRequest
 {
     /// <summary>
-    /// Id of the user who sent this message.
+    /// Id of the user who initiated chat deletion.
     /// </summary>
     [JsonPropertyName("userId")]
     public string? UserId { get; set; }
