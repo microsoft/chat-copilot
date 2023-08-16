@@ -1,0 +1,26 @@
+version: '3'
+services:
+  chat-copilot-web:
+    image: huangyingting/chat-copilot-web
+    build: 
+      context: ..
+      dockerfile: docker/webapp/Dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - ../webapp/.env
+    depends_on:
+      chat-copilot-api:
+        condition: service_started
+  chat-copilot-api:
+    image: huangyingting/chat-copilot-api
+    build: 
+      context: ..
+      dockerfile: docker/webapi/Dockerfile
+    ports:
+      - 8080:8080
+    env_file:
+      - ../webapi/.env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
