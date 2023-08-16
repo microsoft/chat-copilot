@@ -11,15 +11,16 @@ using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
+using Microsoft.SemanticMemory.Client;
+using Microsoft.SemanticMemory.Client.Models;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
 /// <summary>
-/// This skill provides the functions to query the semantic chat memory.
+/// This skill provides the functions to query semantic memory.
 /// </summary>
-public class SemanticChatMemorySkill
+public class SemanticMemorySkill
 {
     private readonly PromptsOptions _promptOptions;
 
@@ -33,7 +34,7 @@ public class SemanticChatMemorySkill
     /// <summary>
     /// Create a new instance of SemanticChatMemorySkill.
     /// </summary>
-    public SemanticChatMemorySkill(
+    public SemanticMemorySkill(
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository chatSessionRepository, ILogger logger)
     {
@@ -45,15 +46,13 @@ public class SemanticChatMemorySkill
     /// <summary>
     /// Query relevant memories based on the query.
     /// </summary>
-    /// <param name="query">Query to match.</param>
-    /// <param name="context">The SKContext</param>
     /// <returns>A string containing the relevant memories.</returns>
     [SKFunction, Description("Query chat memories")]
     public async Task<string> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
         [Description("Chat ID to query history from")] string chatId,
         [Description("Maximum number of tokens")] int tokenLimit,
-        ISemanticTextMemory textMemory)
+        ISemanticMemoryClient memoryClient)
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
@@ -62,40 +61,47 @@ public class SemanticChatMemorySkill
         }
 
         var remainingToken = tokenLimit;
+        var indexName = "copilotchat"; // $$$ OPTIONS
 
         // Search for relevant memories.
-        List<MemoryQueryResult> relevantMemories = new();
-        foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
+        List<(SearchResult.Citation Citation, SearchResult.Citation.Partition Memory)> relevantMemories = new();
+        foreach (var memoryName in this._promptOptions.MemoryMap.Keys.Append("Document"))
         {
-            string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
             try
             {
-                var results = textMemory.SearchAsync(
-                    memoryCollectionName,
-                    query,
-                    limit: 100,
-                    minRelevanceScore: this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance));
-                await foreach (var memory in results)
+                // Search if there is already a memory item that has a high similarity score with the new item.
+                var filter = new MemoryFilter();
+                filter.ByTag("chatid", chatId);
+                filter.ByTag("memory", memoryName);
+                filter.MinRelevance = this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance);
+
+                var searchResult = await memoryClient.SearchAsync(
+                        query,
+                        indexName,
+                        filter)
+                    .ConfigureAwait(false);
+
+                foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))
                 {
-                    relevantMemories.Add(memory);
+                    relevantMemories.Add(result);
                 }
             }
             catch (SKException connectorException)
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-                this._logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
+                this._logger.LogError(connectorException, "Cannot search collection {0}", indexName);
             }
         }
 
-        relevantMemories = relevantMemories.OrderByDescending(m => m.Relevance).ToList();
+        relevantMemories = relevantMemories.OrderByDescending(m => m.Memory.Relevance).ToList();
 
         string memoryText = string.Empty;
-        foreach (var memory in relevantMemories)
+        foreach (var result in relevantMemories)
         {
-            var tokenCount = TokenUtilities.TokenCount(memory.Metadata.Text);
+            var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
             if (remainingToken - tokenCount > 0)
             {
-                memoryText += $"\n[{memory.Metadata.Description}] {memory.Metadata.Text}";
+                memoryText += $"\n[{result.Citation.SourceName}] {result.Memory.Text}";
                 remainingToken -= tokenCount;
             }
             else
@@ -131,7 +137,7 @@ public class SemanticChatMemorySkill
     /// <param name="memoryBalance">The balance between long term memory and working term memory.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException">Thrown when the memory name is invalid.</exception>
-    private double CalculateRelevanceThreshold(string memoryName, double memoryBalance)
+    private float CalculateRelevanceThreshold(string memoryName, float memoryBalance)
     {
         var upper = this._promptOptions.SemanticMemoryRelevanceUpper;
         var lower = this._promptOptions.SemanticMemoryRelevanceLower;
@@ -148,6 +154,10 @@ public class SemanticChatMemorySkill
         else if (memoryName == this._promptOptions.WorkingMemoryName)
         {
             return (upper - lower) * memoryBalance + lower;
+        }
+        else if (memoryName == "Document") // $$$
+        {
+            return lower;
         }
         else
         {

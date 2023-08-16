@@ -23,6 +23,7 @@ using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
+using Microsoft.SemanticMemory.Client;
 using Npgsql;
 using Pgvector.Npgsql;
 using static CopilotChat.WebApi.Options.MemoryStoreOptions;
@@ -96,8 +97,10 @@ internal static class SemanticKernelExtensions
     public static IKernel RegisterChatSkill(this IKernel kernel, IServiceProvider sp)
     {
         // Chat skill
-        kernel.ImportSkill(new ChatSkill(
-                kernel: kernel,
+        kernel.ImportSkill(
+            new ChatSkill(
+                kernel,
+                memoryClient: sp.GetRequiredService<ISemanticMemoryClient>(),
                 chatMessageRepository: sp.GetRequiredService<ChatMessageRepository>(),
                 chatSessionRepository: sp.GetRequiredService<ChatSessionRepository>(),
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),

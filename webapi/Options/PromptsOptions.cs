@@ -45,19 +45,19 @@ public class PromptsOptions
     /// Upper bound of the relevancy score of a semantic memory to be included in the final prompt.
     /// The actual relevancy score is determined by the memory balance.
     /// </summary>
-    internal double SemanticMemoryRelevanceUpper { get; } = 0.9;
+    internal float SemanticMemoryRelevanceUpper { get; } = 0.9F;
 
     /// <summary>
     /// Lower bound of the relevancy score of a semantic memory to be included in the final prompt.
     /// The actual relevancy score is determined by the memory balance.
     /// </summary>
-    internal double SemanticMemoryRelevanceLower { get; } = 0.6;
+    internal float SemanticMemoryRelevanceLower { get; } = 0.6F;
 
     /// <summary>
     /// Minimum relevance of a document memory to be included in the final prompt.
     /// The higher the value, the answer will be more relevant to the user intent.
     /// </summary>
-    internal double DocumentMemoryMinRelevance { get; } = 0.8;
+    internal float DocumentMemoryMinRelevance { get; } = 0.8F;
 
     // System
     [Required, NotEmptyOrWhitespace] public string KnowledgeCutoffDate { get; set; } = string.Empty;

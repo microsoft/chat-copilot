@@ -158,7 +158,7 @@ public class DocumentController : ControllerBase
         DocumentMessageContent documentMessageContent = new();
 
         // TODO: [Issue #49] Perform the import in parallel.
-        var importResults = await ImportAsync().ToArrayAsync();
+        var importResults = await ImportAsync();
 
         // Broadcast the document uploaded event to other users.
         if (documentImportForm.DocumentScope == DocumentScope.Chat)
@@ -191,18 +191,30 @@ public class DocumentController : ControllerBase
 
         return this.Ok("Documents imported successfully to global scope.");
 
-        async IAsyncEnumerable<ImportResult> ImportAsync()
+        async Task<IList<ImportResult>> ImportAsync()
         {
-            foreach (var formFile in documentImportForm.FormFiles)
-            {
-                var importResult = await this.ImportDocumentHelperAsync(memoryClient, formFile, documentImportForm);
-                documentMessageContent.AddDocument(
-                    formFile.FileName,
-                    this.GetReadableByteString(formFile.Length),
-                    importResult.IsSuccessful);
+            IEnumerable<ImportResult> importResults = new List<ImportResult>();
 
-                yield return importResult;
-            }
+            await Task.WhenAll(
+                documentImportForm.FormFiles.Select(
+                    async formFile =>
+                    await this.ImportDocumentHelperAsync(memoryClient, formFile, documentImportForm).ContinueWith(
+                        task =>
+                        {
+                            var importResult = task.Result;
+                            if (importResult != null)
+                            {
+                                documentMessageContent.AddDocument(
+                                    formFile.FileName,
+                                    this.GetReadableByteString(formFile.Length),
+                                    importResult.IsSuccessful);
+
+                                importResults = importResults.Append(importResult);
+                            }
+                        },
+                        TaskScheduler.Default)));
+
+            return importResults.ToArray();
         }
     }
 
@@ -411,9 +423,7 @@ public class DocumentController : ControllerBase
     {
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
-        var targetCollectionName = documentImportForm.DocumentScope == DocumentScope.Global
-            ? this._options.GlobalDocumentCollectionName
-            : this._options.ChatDocumentCollectionNamePrefix + documentImportForm.ChatId;
+        var indexName = "copilotchat"; // $$$ OPTIONS
 
         // Create memory source
         var memorySource = this.CreateMemorySource(formFile, documentImportForm);
@@ -423,9 +433,11 @@ public class DocumentController : ControllerBase
         {
             DocumentId = memorySource.Id,
             Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile(formFile.FileName, stream) },
-            UserId = targetCollectionName,
-            Tags = new TagCollection { "document" } // $$$ REVISIT
+            Index = indexName,
         };
+
+        uploadRequest.Tags.Add("chatid", documentImportForm.DocumentScope == DocumentScope.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString());
+        uploadRequest.Tags.Add("memory", "Document"); // $$$
 
         await memoryClient.ImportDocumentAsync(uploadRequest);
 

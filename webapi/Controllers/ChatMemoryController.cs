@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticMemory.Client;
+using Microsoft.SemanticMemory.Client.Models;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -56,7 +57,7 @@ public class ChatMemoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
-        [FromServices] ISemanticTextMemory semanticTextMemory,
+        [FromServices] ISemanticMemoryClient memoryClient,
         [FromRoute] string chatId,
         [FromRoute] string memoryName)
     {
@@ -84,24 +85,30 @@ public class ChatMemoryController : ControllerBase
         // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
-        string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(sanitizedChatId, sanitizedMemoryName);
+        var indexName = "copilotchat"; // $$$ OPTIONS
         try
         {
-            var results = semanticTextMemory.SearchAsync(
-                memoryCollectionName,
-                "abc",
-                limit: 100,
-                minRelevanceScore: 0.0);
-            await foreach (var memory in results)
+            // Search if there is already a memory item that has a high similarity score with the new item.
+            var filter = new MemoryFilter();
+            filter.ByTag("chatid", chatId);
+            filter.ByTag("memory", sanitizedMemoryName);
+            filter.MinRelevance = 0;
+
+            var searchResult = await memoryClient.SearchAsync(
+                    "*",
+                    indexName,
+                    filter)
+                .ConfigureAwait(false);
+
+            foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
             {
-                memories.Add(memory.Metadata.Text);
+                memories.Add(memory.Text);
             }
         }
         catch (SKException connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            var sanitizedMemoryCollectionName = memoryCollectionName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
-            this._logger.LogError(connectorException, "Cannot search collection {0}", sanitizedMemoryCollectionName);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", sanitizedMemoryName);
         }
 
         return this.Ok(memories);

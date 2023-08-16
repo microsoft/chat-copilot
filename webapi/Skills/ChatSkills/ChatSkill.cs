@@ -24,6 +24,7 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
+using Microsoft.SemanticMemory.Client;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -38,6 +39,11 @@ public class ChatSkill
     /// of the <see cref="ChatAsync"/> function will generate a new prompt dynamically.
     /// </summary>
     private readonly IKernel _kernel;
+
+    /// <summary>
+    /// Client for the semantic-memory service.
+    /// </summary>
+    private readonly ISemanticMemoryClient _memoryClient;
 
     /// <summary>
     /// A logger instance to log events.
@@ -67,12 +73,7 @@ public class ChatSkill
     /// <summary>
     /// A semantic chat memory skill instance to query semantic memories.
     /// </summary>
-    private readonly SemanticChatMemorySkill _semanticChatMemorySkill;
-
-    /// <summary>
-    /// A document memory skill instance to query document memories.
-    /// </summary>
-    private readonly DocumentMemorySkill _documentMemorySkill;
+    private readonly SemanticMemorySkill _semanticMemorySkill;
 
     /// <summary>
     /// A skill instance to acquire external information.
@@ -84,6 +85,7 @@ public class ChatSkill
     /// </summary>
     public ChatSkill(
         IKernel kernel,
+        ISemanticMemoryClient memoryClient,
         ChatMessageRepository chatMessageRepository,
         ChatSessionRepository chatSessionRepository,
         IHubContext<MessageRelayHub> messageRelayHubContext,
@@ -94,19 +96,18 @@ public class ChatSkill
     {
         this._logger = logger;
         this._kernel = kernel;
+        this._memoryClient = memoryClient;
         this._chatMessageRepository = chatMessageRepository;
         this._chatSessionRepository = chatSessionRepository;
         this._messageRelayHubContext = messageRelayHubContext;
         // Clone the prompt options to avoid modifying the original prompt options.
         this._promptOptions = promptOptions.Value.Copy();
 
-        this._semanticChatMemorySkill = new SemanticChatMemorySkill(
+        this._semanticMemorySkill = new SemanticMemorySkill(
             promptOptions,
-            chatSessionRepository, logger);
-        this._documentMemorySkill = new DocumentMemorySkill(
-            promptOptions,
-            documentImportOptions,
+            chatSessionRepository,
             logger);
+
         this._externalInformationSkill = new ExternalInformationSkill(
             promptOptions,
             planner);
@@ -374,16 +375,13 @@ public class ChatSkill
         var chatMemoriesTokenLimit = (int)(remainingToken * this._promptOptions.MemoriesResponseContextWeight);
         var documentContextTokenLimit = (int)(remainingToken * this._promptOptions.DocumentContextWeight);
 
-        string[] tasks = await Task.WhenAll<string>(
-            this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._kernel.Memory),
-            this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory)
-        );
+        string memories = await this._semanticMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._memoryClient); // $$$ GROPU
 
-        var chatMemories = tasks[0];
-        var documentMemories = tasks[1];
+        //var chatMemories = tasks[0];
+        //var documentMemories = tasks[1];
 
         // Fill in the chat history if there is any token budget left
-        var chatContextComponents = new List<string>() { chatMemories, documentMemories, planResult };
+        var chatContextComponents = new List<string>() { memories, planResult };
         var chatContextText = string.Join("\n\n", chatContextComponents.Where(c => !string.IsNullOrEmpty(c)));
         var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText);
         string chatHistory = string.Empty;
@@ -410,7 +408,7 @@ public class ChatSkill
 
         // Need to extract this from the rendered prompt because Time and Date are calculated during render
         var systemChatContinuation = Regex.Match(renderedPrompt, PromptsOptions.SYSTEM_CHAT_CONTINUATION_REGEX).Value;
-        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, systemChatContinuation);
+        var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, string.Empty, memories, plannerDetails, chatHistory, systemChatContinuation);
 
         // Calculate token usage of prompt template
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Logger, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
@@ -425,6 +423,7 @@ public class ChatSkill
         await this.UpdateBotResponseStatusOnClient(chatId, "Generating semantic chat memory");
         await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
             chatId,
+            this._memoryClient,
             this._kernel,
             chatContext,
             this._promptOptions,
@@ -490,30 +489,6 @@ public class ChatSkill
         }
 
         return userIntent;
-    }
-
-    /// <summary>
-    /// Helper function that queries chat memories from the chat memory store.
-    /// </summary>
-    /// <returns>The chat memories.</returns>
-    /// <param name="context">The SKContext.</param>
-    /// <param name="userIntent">The user intent.</param>
-    /// <param name="tokenLimit">Maximum number of tokens.</param>
-    private Task<string> QueryChatMemoriesAsync(SKContext context, string userIntent, int tokenLimit)
-    {
-        return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context.Variables["chatId"], tokenLimit, this._kernel.Memory);
-    }
-
-    /// <summary>
-    /// Helper function that queries document memories from the document memory store.
-    /// </summary>
-    /// <returns>The document memories.</returns>
-    /// <param name="context">The SKContext.</param>
-    /// <param name="userIntent">The user intent.</param>
-    /// <param name="tokenLimit">Maximum number of tokens.</param>
-    private Task<string> QueryDocumentsAsync(SKContext context, string userIntent, int tokenLimit)
-    {
-        return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context.Variables["chatId"], tokenLimit, this._kernel.Memory);
     }
 
     /// <summary>
