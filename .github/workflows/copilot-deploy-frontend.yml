@@ -82,12 +82,12 @@ jobs:
       - name: Set version tag
         id: versiontag
         run: |
-          $VERSION_TAG = "${{ steps.gitversion.outputs.Major }}."
-          $VERSION_TAG += "${{ steps.gitversion.outputs.Minor }}."
-          $VERSION_TAG += "${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
+          VERSION_TAG="${{ steps.gitversion.outputs.Major }}."
+          VERSION_TAG+="${{ steps.gitversion.outputs.Minor }}."
+          VERSION_TAG+="${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
           echo $VERSION_TAG
-          Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
+          echo "versiontag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Deploy SWA
         run: |
-          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect -version ${{ steps.versiontag.outputs.versiontag }} -version-info "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
+          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect --version ${{ steps.versiontag.outputs.versiontag }} --version-info "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(date +"%Y-%m-%d")"
