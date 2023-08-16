@@ -246,16 +246,16 @@ public class ChatHistoryController : ControllerBase
     /// <summary>
     /// Delete a chat session.
     /// </summary>
-    /// <param name="requestParamaters">Object that contains the parameters to delete the chat.</param>
+    /// <param name="requestParameters">Object that contains the parameters to delete the chat.</param>
     [HttpPost]
     [Route("chatSession/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteChatSessionAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, [FromBody] DeleteChatRequest requestParamaters)
+    public async Task<IActionResult> DeleteChatSessionAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, [FromBody] DeleteChatRequest requestParameters)
     {
-        string? chatId = requestParamaters.ChatId;
-        string? userId = requestParamaters.UserId;
+        string? chatId = requestParameters.ChatId;
+        string? userId = requestParameters.UserId;
 
         if (chatId == null || userId == null)
         {

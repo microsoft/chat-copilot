@@ -88,9 +88,7 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
                             }}
                         />
                     </Tooltip>
-                    {features[FeatureKeys.DeleteChats].enabled && (
-                        <DeleteChatDialog chatId={chatId} chatName={chatName} />
-                    )}
+                    <DeleteChatDialog chatId={chatId} chatName={chatName} />
                     {isGettingInvitationId && (
                         <InvitationCreateDialog
                             onCancel={() => {
