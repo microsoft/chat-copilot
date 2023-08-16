@@ -375,7 +375,7 @@ public class ChatSkill
         var chatMemoriesTokenLimit = (int)(remainingToken * this._promptOptions.MemoriesResponseContextWeight);
         var documentContextTokenLimit = (int)(remainingToken * this._promptOptions.DocumentContextWeight);
 
-        string memories = await this._semanticMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._memoryClient); // $$$ GROPU
+        string memories = await this._semanticMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._memoryClient); // $$$ GROUP
 
         //var chatMemories = tasks[0];
         //var documentMemories = tasks[1];
