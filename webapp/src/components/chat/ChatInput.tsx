@@ -14,7 +14,6 @@ import { AlertType } from '../../libs/models/AlertType';
 import { ChatMessageType } from '../../libs/models/ChatMessage';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { FeatureKeys } from '../../redux/features/app/AppState';
 import { addAlert } from '../../redux/features/app/appSlice';
 import { editConversationInput, updateBotResponseStatus } from '../../redux/features/conversations/conversationsSlice';
 import { Alerts } from '../shared/Alerts';
@@ -80,7 +79,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
     const { instance, inProgress } = useMsal();
     const dispatch = useAppDispatch();
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
-    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
     const fileHandler = useFile();
 
     const [value, setValue] = useState('');
@@ -211,28 +210,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                 />
             </div>
             <div className={classes.controls}>
-                {!features[FeatureKeys.SimplifiedExperience].enabled && (
-                    <div className={classes.functional}>
-                        {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
-                        <input
-                            type="file"
-                            ref={documentFileRef}
-                            style={{ display: 'none' }}
-                            accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
-                            multiple={true}
-                            onChange={() => {
-                                void fileHandler.handleImport(selectedId, documentFileRef);
-                            }}
-                        />
-                        <Button
-                            disabled={importingDocuments && importingDocuments.length > 0}
-                            appearance="transparent"
-                            icon={<AttachRegular />}
-                            onClick={() => documentFileRef.current?.click()}
-                        />
-                        {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
-                    </div>
-                )}
+                <div className={classes.functional}>
+                    {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
+                    <input
+                        type="file"
+                        ref={documentFileRef}
+                        style={{ display: 'none' }}
+                        accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
+                        multiple={true}
+                        onChange={() => {
+                            void fileHandler.handleImport(selectedId, documentFileRef);
+                        }}
+                    />
+                    <Button
+                        disabled={importingDocuments && importingDocuments.length > 0}
+                        appearance="transparent"
+                        icon={<AttachRegular />}
+                        onClick={() => documentFileRef.current?.click()}
+                    />
+                    {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
+                </div>
                 <div className={classes.essentials}>
                     {recognizer && (
                         <Button

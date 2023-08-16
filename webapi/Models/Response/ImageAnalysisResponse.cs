@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Services;
@@ -6,7 +6,7 @@ using CopilotChat.WebApi.Services;
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// Response definition to the /contentsafety/image:analyze 
+/// Response definition to the /contentsafety/image:analyze
 /// endpoint made by the AzureContentModerator.
 /// </summary>
 public class ImageAnalysisResponse
@@ -35,4 +35,3 @@ public class ImageAnalysisResponse
     [JsonPropertyName("violenceAnalysisResult")]
     public AnalysisResult? ViolenceAnalysisResult { get; set; }
 }
-

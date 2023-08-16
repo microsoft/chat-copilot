@@ -185,24 +185,24 @@ public static class CopilotChatServiceExtensions
         switch (ocrSupportConfig.Type)
         {
             case OcrSupportOptions.OcrSupportType.AzureFormRecognizer:
-                {
-                    services.AddSingleton<IOcrEngine>(sp => new AzureFormRecognizerOcrEngine(ocrSupportConfig.AzureFormRecognizer!.Endpoint!, new AzureKeyCredential(ocrSupportConfig.AzureFormRecognizer!.Key!)));
-                    break;
-                }
+            {
+                services.AddSingleton<IOcrEngine>(sp => new AzureFormRecognizerOcrEngine(ocrSupportConfig.AzureFormRecognizer!.Endpoint!, new AzureKeyCredential(ocrSupportConfig.AzureFormRecognizer!.Key!)));
+                break;
+            }
             case OcrSupportOptions.OcrSupportType.Tesseract:
-                {
-                    services.AddSingleton<IOcrEngine>(sp => new TesseractEngineWrapper(new TesseractEngine(ocrSupportConfig.Tesseract!.FilePath, ocrSupportConfig.Tesseract!.Language, EngineMode.Default)));
-                    break;
-                }
+            {
+                services.AddSingleton<IOcrEngine>(sp => new TesseractEngineWrapper(new TesseractEngine(ocrSupportConfig.Tesseract!.FilePath, ocrSupportConfig.Tesseract!.Language, EngineMode.Default)));
+                break;
+            }
             case OcrSupportOptions.OcrSupportType.None:
-                {
-                    services.AddSingleton<IOcrEngine>(sp => new NullOcrEngine());
-                    break;
-                }
+            {
+                services.AddSingleton<IOcrEngine>(sp => new NullOcrEngine());
+                break;
+            }
             default:
-                {
-                    throw new InvalidOperationException($"Unsupported OcrSupport:Type '{ocrSupportConfig.Type}'");
-                }
+            {
+                throw new InvalidOperationException($"Unsupported OcrSupport:Type '{ocrSupportConfig.Type}'");
+            }
         }
 
         return services;
@@ -223,58 +223,58 @@ public static class CopilotChatServiceExtensions
         switch (chatStoreConfig.Type)
         {
             case ChatStoreOptions.ChatStoreType.Volatile:
-                {
-                    chatSessionStorageContext = new VolatileContext<ChatSession>();
-                    chatMessageStorageContext = new VolatileContext<ChatMessage>();
-                    chatMemorySourceStorageContext = new VolatileContext<MemorySource>();
-                    chatParticipantStorageContext = new VolatileContext<ChatParticipant>();
-                    break;
-                }
+            {
+                chatSessionStorageContext = new VolatileContext<ChatSession>();
+                chatMessageStorageContext = new VolatileContext<ChatMessage>();
+                chatMemorySourceStorageContext = new VolatileContext<MemorySource>();
+                chatParticipantStorageContext = new VolatileContext<ChatParticipant>();
+                break;
+            }
 
             case ChatStoreOptions.ChatStoreType.Filesystem:
+            {
+                if (chatStoreConfig.Filesystem == null)
                 {
-                    if (chatStoreConfig.Filesystem == null)
-                    {
-                        throw new InvalidOperationException("ChatStore:Filesystem is required when ChatStore:Type is 'Filesystem'");
-                    }
-
-                    string fullPath = Path.GetFullPath(chatStoreConfig.Filesystem.FilePath);
-                    string directory = Path.GetDirectoryName(fullPath) ?? string.Empty;
-                    chatSessionStorageContext = new FileSystemContext<ChatSession>(
-                        new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
-                    chatMessageStorageContext = new FileSystemContext<ChatMessage>(
-                        new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_messages{Path.GetExtension(fullPath)}")));
-                    chatMemorySourceStorageContext = new FileSystemContext<MemorySource>(
-                        new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}")));
-                    chatParticipantStorageContext = new FileSystemContext<ChatParticipant>(
-                        new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_participants{Path.GetExtension(fullPath)}")));
-                    break;
+                    throw new InvalidOperationException("ChatStore:Filesystem is required when ChatStore:Type is 'Filesystem'");
                 }
+
+                string fullPath = Path.GetFullPath(chatStoreConfig.Filesystem.FilePath);
+                string directory = Path.GetDirectoryName(fullPath) ?? string.Empty;
+                chatSessionStorageContext = new FileSystemContext<ChatSession>(
+                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
+                chatMessageStorageContext = new FileSystemContext<ChatMessage>(
+                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_messages{Path.GetExtension(fullPath)}")));
+                chatMemorySourceStorageContext = new FileSystemContext<MemorySource>(
+                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}")));
+                chatParticipantStorageContext = new FileSystemContext<ChatParticipant>(
+                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_participants{Path.GetExtension(fullPath)}")));
+                break;
+            }
 
             case ChatStoreOptions.ChatStoreType.Cosmos:
+            {
+                if (chatStoreConfig.Cosmos == null)
                 {
-                    if (chatStoreConfig.Cosmos == null)
-                    {
-                        throw new InvalidOperationException("ChatStore:Cosmos is required when ChatStore:Type is 'Cosmos'");
-                    }
-#pragma warning disable CA2000 // Dispose objects before losing scope - objects are singletons for the duration of the process and disposed when the process exits.
-                    chatSessionStorageContext = new CosmosDbContext<ChatSession>(
-                        chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatSessionsContainer);
-                    chatMessageStorageContext = new CosmosDbContext<ChatMessage>(
-                        chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMessagesContainer);
-                    chatMemorySourceStorageContext = new CosmosDbContext<MemorySource>(
-                        chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMemorySourcesContainer);
-                    chatParticipantStorageContext = new CosmosDbContext<ChatParticipant>(
-                        chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatParticipantsContainer);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                    break;
+                    throw new InvalidOperationException("ChatStore:Cosmos is required when ChatStore:Type is 'Cosmos'");
                 }
+#pragma warning disable CA2000 // Dispose objects before losing scope - objects are singletons for the duration of the process and disposed when the process exits.
+                chatSessionStorageContext = new CosmosDbContext<ChatSession>(
+                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatSessionsContainer);
+                chatMessageStorageContext = new CosmosDbContext<ChatMessage>(
+                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMessagesContainer);
+                chatMemorySourceStorageContext = new CosmosDbContext<MemorySource>(
+                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMemorySourcesContainer);
+                chatParticipantStorageContext = new CosmosDbContext<ChatParticipant>(
+                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatParticipantsContainer);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                break;
+            }
 
             default:
-                {
-                    throw new InvalidOperationException(
-                        "Invalid 'ChatStore' setting 'chatStoreConfig.Type'.");
-                }
+            {
+                throw new InvalidOperationException(
+                    "Invalid 'ChatStore' setting 'chatStoreConfig.Type'.");
+            }
         }
 
         services.AddSingleton<ChatSessionRepository>(new ChatSessionRepository(chatSessionStorageContext));

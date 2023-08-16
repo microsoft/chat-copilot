@@ -8,7 +8,7 @@ import { FC, useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
 import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
-import { useChat } from './libs/hooks';
+import { useChat, useFile } from './libs/hooks';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
@@ -65,7 +65,7 @@ const App: FC = () => {
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
-    const contentModerator = useContentModerator();
+    const file = useFile();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -98,7 +98,7 @@ const App: FC = () => {
                         }
                     }),
                     // Check if content moderator is enabled
-                    contentModerator.getContentModerationStatus(),
+                    file.getContentModerationStatus(),
                     // Load service options
                     chat.getServiceOptions().then((serviceOptions) => {
                         if (serviceOptions) {

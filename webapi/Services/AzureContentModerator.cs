@@ -8,15 +8,15 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SemanticKernel.AI;
-using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
+using Microsoft.SemanticKernel.AI;
 
 namespace CopilotChat.WebApi.Services;
 
 public record AnalysisResult(
     [property: JsonPropertyName("category")] string Category,
-    [property: JsonPropertyName("riskLevel")] short RiskLevel
+    [property: JsonPropertyName("severity")] short Severity
 );
 
 public record ImageContent([property: JsonPropertyName("content")] string Content);
@@ -94,20 +94,22 @@ public sealed class AzureContentModerator : IDisposable
     /// <summary>
     /// Parse the analysis result and return the violated categories.
     /// </summary>
-    /// <param name="analysisResult">The content analysis result.</param>
+    /// <param name="imageAnalysisResponse">The content analysis result.</param>
     /// <param name="threshold">The violation threshold.</param>
     /// <returns>The list of violated category names. Will return an empty list if there is no violation.</returns>
-    public static List<string> ParseViolatedCategories(Dictionary<string, AnalysisResult> analysisResult, short threshold)
+    public static List<string> ParseViolatedCategories(ImageAnalysisResponse imageAnalysisResponse, short threshold)
     {
         var violatedCategories = new List<string>();
 
-        foreach (var category in analysisResult.Values)
+        foreach (var property in typeof(ImageAnalysisResponse).GetProperties())
         {
-            if (category.RiskLevel > threshold)
+            var analysisResult = property.GetValue(imageAnalysisResponse) as AnalysisResult;
+            if (analysisResult != null && analysisResult.Severity > threshold)
             {
-                violatedCategories.Add(category.Category);
+                violatedCategories.Add($"{property.Name} ({analysisResult.Severity})");
             }
         }
+
         return violatedCategories;
     }
 
@@ -135,8 +137,8 @@ public sealed class AzureContentModerator : IDisposable
         if (!response.IsSuccessStatusCode || body is null)
         {
             throw new AIException(
-                AIException.ErrorCodes.UnknownError,
-                $"Content moderator: Failed analyzing the image. {response.StatusCode}");
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? AIException.ErrorCodes.AccessDenied : AIException.ErrorCodes.UnknownError,
+                $"[Content Moderator] Failed to analyze image. {response.StatusCode}");
         }
 
         var result = JsonSerializer.Deserialize<ImageAnalysisResponse>(body!);
@@ -144,7 +146,7 @@ public sealed class AzureContentModerator : IDisposable
         {
             throw new AIException(
                 AIException.ErrorCodes.UnknownError,
-                $"Content moderator: Failed analyzing the image. {body}");
+                $"[Content Moderator] Failed to analyze image. {body}");
         }
         return result;
     }
