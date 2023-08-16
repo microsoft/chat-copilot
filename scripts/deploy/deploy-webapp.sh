@@ -54,7 +54,7 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-        -i|--version-nfo)
+        -i|--version-info)
         VERSION_INFO="$2"
         shift
         shift
