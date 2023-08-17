@@ -29,10 +29,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: ./docker/webapi/Dockerfile
-            image: ${{ github.repository }}-api
-          - dockerfile: ./docker/webapp/Dockerfile
-            image: ${{ github.repository }}-web
+          - file: ./docker/webapi/Dockerfile
+            image: ${{ github.repository }}-webapi
+            build-args: []
+          - file: ./docker/webapp/Dockerfile
+            image: ${{ github.repository }}-webapp
+            build-args: |
+              REACT_APP_BACKEND_URI=${{ env.REACT_APP_BACKEND_URI }}
+              REACT_APP_AAD_AUTHORITY=${{ env.REACT_APP_AAD_AUTHORITY }}
+              REACT_APP_AAD_CLIENT_ID=${{ env.REACT_APP_AAD_CLIENT_ID }}
+              REACT_APP_AAD_API_SCOPE=${{ env.REACT_APP_AAD_API_SCOPE }}
     permissions:
       contents: read
       packages: write
@@ -64,8 +70,8 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ${{ matrix.dockerfile }}
+          file: ${{ matrix.file }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: VERSION=${{ github.ref_name }}
+          build-args: ${{ matrix.build-args }}
