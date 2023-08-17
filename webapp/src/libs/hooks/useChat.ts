@@ -382,7 +382,7 @@ function getErrorDetails(e: any) {
     return e instanceof Error ? e.message : String(e);
 }
 
-export function getFriendlyChatName(convo: ChatState) {
+export function getFriendlyChatName(convo: ChatState): string {
     const messages = convo.messages;
 
     // Regex to match the Copilot timestamp format that is used as the default chat name.

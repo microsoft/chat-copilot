@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Authorization;
@@ -39,15 +41,24 @@ public class ServiceOptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetServiceOptions()
     {
-        return this.Ok(
-            new ServiceOptionsResponse()
+        var response = new ServiceOptionsResponse()
+        {
+            MemoryStore = new MemoryStoreOptionResponse()
             {
-                MemoryStore = new MemoryStoreOptionResponse()
-                {
-                    Types = Enum.GetNames(typeof(MemoryStoreOptions.MemoryStoreType)),
-                    SelectedType = this._memoryStoreOptions.Type.ToString()
-                }
-            }
-        );
+                Types = Enum.GetNames(typeof(MemoryStoreOptions.MemoryStoreType)),
+                SelectedType = this._memoryStoreOptions.Type.ToString()
+            },
+            Version = GetAssemblyFileVersion()
+        };
+
+        return this.Ok(response);
+    }
+
+    private static string GetAssemblyFileVersion()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(assembly.Location);
+
+        return fileVersion.FileVersion ?? string.Empty;
     }
 }

@@ -3,7 +3,7 @@ import { makeStyles } from '@fluentui/react-components';
 import { ErrorCircleRegular } from '@fluentui/react-icons';
 import { Tooltip } from '@fluentui/react-tooltip';
 import React, { useCallback, useState } from 'react';
-import { Constants } from '../../../Constants';
+import { COPY } from '../../../assets/strings';
 import { useChat, useFile } from '../../../libs/hooks';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
@@ -51,7 +51,7 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
     return (
         <div className={classes.root}>
             {conversations[chatId].disabled ? (
-                <Tooltip content={Constants.CHAT_DELETED_MESSAGE()} relationship="label">
+                <Tooltip content={COPY.CHAT_DELETED_MESSAGE()} relationship="label">
                     <Button
                         icon={<ErrorCircleRegular />}
                         appearance="transparent"

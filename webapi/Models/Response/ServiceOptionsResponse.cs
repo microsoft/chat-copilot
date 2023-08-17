@@ -13,6 +13,12 @@ public class ServiceOptionsResponse
     /// </summary>
     [JsonPropertyName("memoryStore")]
     public MemoryStoreOptionResponse MemoryStore { get; set; } = new MemoryStoreOptionResponse();
+
+    /// <summary>
+    /// Version of this application.
+    /// </summary>
+    [JsonPropertyName("version")]
+    public string Version { get; set; } = string.Empty;
 }
 
 /// <summary>

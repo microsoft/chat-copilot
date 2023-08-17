@@ -7,6 +7,7 @@ import debug from 'debug';
 import * as speechSdk from 'microsoft-cognitiveservices-speech-sdk';
 import React, { useRef } from 'react';
 import { Constants } from '../../Constants';
+import { COPY } from '../../assets/strings';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { AlertType } from '../../libs/models/AlertType';
@@ -113,7 +114,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
     React.useEffect(() => {
         const chatState = conversations[selectedId];
-        setValue(chatState.disabled ? Constants.CHAT_DELETED_MESSAGE() : chatState.input);
+        setValue(chatState.disabled ? COPY.CHAT_DELETED_MESSAGE() : chatState.input);
     }, [conversations, selectedId]);
 
     const handleSpeech = () => {

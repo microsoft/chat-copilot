@@ -34,22 +34,34 @@ jobs:
       - uses: actions/checkout@v3
         with:
           clean: true
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0
+
+      - name: Set version tag
+        id: versiontag
+        run: |
+          $VERSION_TAG = "${{ steps.gitversion.outputs.Major }}."
+          $VERSION_TAG += "${{ steps.gitversion.outputs.Minor }}."
+          $VERSION_TAG += "${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
+          echo $VERSION_TAG
+          Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
 
       - name: Package Copilot Chat WebAPI
         run: |
-          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy
+          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
 
       - name: Check formatting of Copilot Chat WebAPI
         run: |
           cd webapi/
           dotnet format --verify-no-changes --verbosity diagnostic
-
-      - name: Set version tag
-        id: versiontag
-        run: |
-          $VERSION_TAG="$(Get-Date -Format "MMddHHmmss")"
-          echo $VERSION_TAG
-          Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
 
       - name: Upload package to artifacts
         uses: actions/upload-artifact@v3
