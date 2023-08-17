@@ -32,7 +32,12 @@ public class MemoryStoreOptions
         /// <summary>
         /// Chroma DB persistent memory store.
         /// </summary>
-        Chroma
+        Chroma,
+
+        /// <summary>
+        /// Cosmos DB persistent memory store.
+        /// </summary>
+        Postgres,
     }
 
     /// <summary>
@@ -57,4 +62,10 @@ public class MemoryStoreOptions
     /// </summary>
     [RequiredOnPropertyValue(nameof(Type), MemoryStoreType.AzureCognitiveSearch)]
     public AzureCognitiveSearchOptions? AzureCognitiveSearch { get; set; }
+
+    /// <summary>
+    /// Gets or sets the configuration for the Cosmos memory store.
+    /// </summary>
+    [RequiredOnPropertyValue(nameof(Type), MemoryStoreType.Postgres)]
+    public PostgresOptions? Postgres { get; set; }
 }

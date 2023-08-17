@@ -31,6 +31,9 @@ const useClasses = makeStyles({
         display: 'flex',
         marginLeft: 'auto',
     },
+    dialog: {
+        maxWidth: '25%',
+    },
 });
 
 // The number of rows in the textarea.
@@ -89,7 +92,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
                     <PopoverTrigger disableButtonEnhancement>
                         <Button icon={<Info16 />} appearance="transparent" />
                     </PopoverTrigger>
-                    <PopoverSurface>{info}</PopoverSurface>
+                    <PopoverSurface className={classes.dialog}>{info}</PopoverSurface>
                 </Popover>
             </div>
             <Textarea

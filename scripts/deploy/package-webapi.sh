@@ -8,7 +8,7 @@ SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIRECTORY="$SCRIPT_ROOT"
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION --ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
+    echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Arguments:"
     echo "  -c, --configuration CONFIGURATION      Build configuration (default: Release)"

@@ -44,10 +44,14 @@ param(
     # SKU for the Azure App Service plan
     $WebAppServiceSku = "B1",
 
-    [ValidateSet("Volatile", "AzureCognitiveSearch", "Qdrant")]
+    [ValidateSet("Volatile", "AzureCognitiveSearch", "Qdrant", "Postgres")]
     [string]
     # What method to use to persist embeddings
     $MemoryStore = "AzureCognitiveSearch",
+
+    [SecureString]
+    # Password for the Postgres database
+    $SqlAdminPassword = "",
 
     [switch]
     # Don't deploy Cosmos DB for chat storage - Use volatile memory instead
@@ -87,6 +91,11 @@ if ($AIService -eq "OpenAI" -and !$AIApiKey) {
     exit 1
 }
 
+if ($MemoryStore -eq "Postgres" -and !$SqlAdminPassword) {
+    Write-Host "When MemoryStore is Postgres, SqlAdminPassword must be set"
+    exit 1
+}
+
 $jsonConfig = "
 {
     `\`"webAppServiceSku`\`": { `\`"value`\`": `\`"$WebAppServiceSku`\`" },
@@ -97,7 +106,8 @@ $jsonConfig = "
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },
-    `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) }
+    `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) },
+    `\`"sqlAdminPassword`\`": { `\`"value`\`": `\`"$(ConvertFrom-SecureString $SqlAdminPassword -AsPlainText)`\`" }
 }
 "
 
