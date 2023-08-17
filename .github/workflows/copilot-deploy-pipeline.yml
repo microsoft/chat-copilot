@@ -14,15 +14,19 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  build-webapi:
     uses: ./.github/workflows/copilot-build-backend.yml
+
+  build-memorypipeline:
+    uses: ./.github/workflows/copilot-build-memorypipeline.yml
 
   feature-semantic-memory:
     needs: build
     uses: ./.github/workflows/copilot-deploy-environment.yml
     with:
       ENVIRONMENT: feature-semantic-memory
-      ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
+      WEBAPI_ARTIFACT_NAME: ${{needs.build-webapi.outputs.artifact}}
+      MEMORYPIPELINE_ARTIFACT_NAME: ${{needs.build-memorypipeline.outputs.artifact}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
