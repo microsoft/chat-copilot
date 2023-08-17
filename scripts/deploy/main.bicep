@@ -378,7 +378,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
       }
       {
         name: 'SemanticMemory:Services:AzureBlobs:ConnectionString'
-        value: storage.listConnectionStrings().connectionStrings[0].connectionString
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
       }
       {
         name: 'SemanticMemory:Services:AzureBlobs:Container'
@@ -390,7 +390,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
       }
       {
         name: 'SemanticMemory:Services:AzureQueue:ConnectionString'
-        value: storage.listConnectionStrings().connectionStrings[0].connectionString
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
       }
       {
         name: 'SemanticMemory:Services:AzureCognitiveSearch:Auth'
