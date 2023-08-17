@@ -18,7 +18,7 @@ param(
     
     [string]
     # Output directory for published assets.
-    $OutputDirectory = "$PSScriptRoot"
+    $OutputDirectory = "$PSScriptRoot",
 
     [string]
     # Version to give to assemblies and files.
