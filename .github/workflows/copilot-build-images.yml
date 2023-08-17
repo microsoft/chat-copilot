@@ -31,10 +31,12 @@ jobs:
         include:
           - file: ./docker/webapi/Dockerfile
             image: ${{ github.repository }}-webapi
-            build-args: []
+            build-args: |
+
           - file: ./docker/webapp/Dockerfile
             image: ${{ github.repository }}-webapp
-            build-args: []
+            build-args: |
+
           - file: ./docker/webapp/Dockerfile.nginx
             image: ${{ github.repository }}-webapp-nginx
             build-args: |
