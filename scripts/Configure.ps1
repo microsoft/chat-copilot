@@ -31,7 +31,7 @@ The tenant (directory) associated with your AAD app registrations.
 See https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration#authority.
 
 .PARAMETER Instance
-The Azure cloud instance used for authenticating users. Defaults to https://login.microsoftonline.com/.
+The Azure cloud instance used for authenticating users. Defaults to https://login.microsoftonline.com.
 See https://learn.microsoft.com/en-us/azure/active-directory/develop/authentication-national-cloud#azure-ad-authentication-endpoints.
 #>
 

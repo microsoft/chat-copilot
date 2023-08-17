@@ -24,16 +24,6 @@ param(
     # Client application id for the frontend web app
     $FrontendClientId,
 
-    [Parameter(Mandatory)]
-    [string]
-    # Azure AD tenant id
-    $TenantId,
-
-    [Parameter(Mandatory = $false)]
-    [string]
-    # Azure cloud instance for authenticating users
-    $Instance = "https://login.microsoftonline.com",
-
     [string]
     # Version to display in UI.
     $Version = "",
@@ -64,6 +54,10 @@ $webapiUrl = $deployment.properties.outputs.webapiUrl.value
 $webapiName = $deployment.properties.outputs.webapiName.value
 $webapiClientId = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
     | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
+$webapiTenantId = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+    | Where-Object -Property name -EQ -Value Authentication:AzureAd:TenantId).value
+$webapiInstance = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+    | Where-Object -Property name -EQ -Value Authentication:AzureAd:Instance).value
 $webapiScope = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
     | Where-Object -Property name -EQ -Value Authentication:AzureAd:Scopes).value
 Write-Host "webappUrl: $webappUrl"
@@ -71,6 +65,8 @@ Write-Host "webappName: $webappName"
 Write-Host "webapiName: $webapiName"
 Write-Host "webapiUrl: $webapiUrl"
 Write-Host "webapiClientId: $webapiClientId"
+Write-Host "webapiTenantId: $webapiTenantId"
+Write-Host "webapiInstance: $webapiInstance"
 Write-Host "webapiScope: $webapiScope"
 
 # Set ASCII as default encoding for Out-File
@@ -80,7 +76,7 @@ $envFilePath = "$PSScriptRoot/../../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
 "REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_AUTHORITY=$($Instance.Trim("/"))/$TenantId" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_AUTHORITY=$($webapiInstance.Trim("/"))/$webapiTenantId" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_CLIENT_ID=$FrontendClientId" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_VERSION=$Version" | Out-File -FilePath $envFilePath -Append

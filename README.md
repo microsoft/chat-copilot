@@ -199,7 +199,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
     - `FRONTEND_APPLICATION_ID`: The `Application (client) ID` associated with the application registration for the frontend.
     - `BACKEND_APPLICATION_ID`: The `Application (client) ID` associated with the application registration for the backend.
     - `TENANT_ID` : Your Azure AD tenant ID
-    - `AZURE_AD_INSTANCE` _(optional)_: The Azure AD cloud instance for the authenticating users. Defaults to `https://login.microsoftonline.com/`.
+    - `AZURE_AD_INSTANCE` _(optional)_: The Azure AD cloud instance for the authenticating users. Defaults to `https://login.microsoftonline.com`.
 
 6. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 

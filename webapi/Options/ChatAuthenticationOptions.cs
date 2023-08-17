@@ -35,7 +35,7 @@ public class ChatAuthenticationOptions
     public class AzureAdOptions
     {
         /// <summary>
-        /// AAD instance url, i.e., https://login.microsoftonline.com/
+        /// AAD instance url, i.e., https://login.microsoftonline.com
         /// </summary>
         [Required, NotEmptyOrWhitespace]
         public string Instance { get; set; } = string.Empty;

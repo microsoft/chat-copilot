@@ -94,7 +94,7 @@ if [ "$FRONTEND_CLIENT_ID" ] && [ "$BACKEND_CLIENT_ID" ] && [ "$TENANT_ID" ]; th
     INSTANCE="$ENV_INSTANCE"
   fi
 else
-  if [ "$FRONTEND_CLIENT_ID" ] && [ "$BACKEND_CLIENT_ID" ] && [ "$TENANT_ID" ]; then
+  if [ -z "$FRONTEND_CLIENT_ID" ] && [ -z "$BACKEND_CLIENT_ID" ] && [ -z "$TENANT_ID" ]; then
     # Set auth type to None
     AUTH_TYPE="$ENV_NONE"
   else
@@ -177,7 +177,8 @@ echo "REACT_APP_BACKEND_URI=https://localhost:40443/" > $WEBAPP_ENV_FILEPATH
 if [ "$AUTH_TYPE" = "$ENV_AZURE_AD" ]; then
   echo "Configuring Azure AD authentication..."
   echo "REACT_APP_AUTH_TYPE=AzureAd" >> $WEBAPP_ENV_FILEPATH
-  # TODO: trim any trailing slash from instance
+  # Trim any trailing slash from instance before generating authority
+  INSTANCE=${INSTANCE%/}
   echo "REACT_APP_AAD_AUTHORITY=https://$INSTANCE/$TENANT_ID" >> $WEBAPP_ENV_FILEPATH
   echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >> $WEBAPP_ENV_FILEPATH
   echo "REACT_APP_AAD_API_SCOPE=api://$BACKEND_CLIENT_ID/access_as_user" >> $WEBAPP_ENV_FILEPATH
