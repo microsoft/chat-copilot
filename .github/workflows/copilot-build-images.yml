@@ -38,10 +38,10 @@ jobs:
           - file: ./docker/webapp/Dockerfile.nginx
             image: ${{ github.repository }}-webapp-nginx
             build-args: |
-              REACT_APP_BACKEND_URI=${{ env.REACT_APP_BACKEND_URI }}
-              REACT_APP_AAD_AUTHORITY=${{ env.REACT_APP_AAD_AUTHORITY }}
-              REACT_APP_AAD_CLIENT_ID=${{ env.REACT_APP_AAD_CLIENT_ID }}
-              REACT_APP_AAD_API_SCOPE=${{ env.REACT_APP_AAD_API_SCOPE }}
+              REACT_APP_BACKEND_URI=${{ vars.REACT_APP_BACKEND_URI }}
+              REACT_APP_AAD_AUTHORITY=${{ vars.REACT_APP_AAD_AUTHORITY }}
+              REACT_APP_AAD_CLIENT_ID=${{ vars.REACT_APP_AAD_CLIENT_ID }}
+              REACT_APP_AAD_API_SCOPE=${{ vars.REACT_APP_AAD_API_SCOPE }}
     permissions:
       contents: read
       packages: write
