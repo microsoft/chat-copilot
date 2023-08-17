@@ -52,7 +52,7 @@ public class DocumentImportForm
     public string UserName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Flag indicating whether user has content moderation enabled from the client.
+    /// Flag indicating whether user has content safety enabled from the client.
     /// </summary>
-    public bool UseContentModerator { get; set; } = false;
+    public bool UseContentSafety { get; set; } = false;
 }

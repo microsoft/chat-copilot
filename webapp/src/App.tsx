@@ -97,7 +97,7 @@ const App: FC = () => {
                             setAppState(AppState.Chat);
                         }
                     }),
-                    // Check if content moderator is enabled
+                    // Check if content safety is enabled
                     file.getContentModerationStatus(),
                     // Load service options
                     chat.getServiceOptions().then((serviceOptions) => {

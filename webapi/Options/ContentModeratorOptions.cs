@@ -6,26 +6,26 @@ using System.ComponentModel.DataAnnotations;
 namespace CopilotChat.WebApi.Options;
 
 /// <summary>
-/// Configuration options for content moderation.
+/// Configuration options for content safety.
 /// </summary>
-public class ContentModeratorOptions
+public class ContentSafetyOptions
 {
-    public const string PropertyName = "ContentModerator";
+    public const string PropertyName = "ContentSafety";
 
     /// <summary>
-    /// Whether to enable content moderation.
+    /// Whether to enable content safety.
     /// </summary>
     [Required, NotEmptyOrWhitespace]
     public bool Enabled { get; set; } = false;
 
     /// <summary>
-    /// Azure Content Moderator endpoints
+    /// Azure Content Safety endpoints
     /// </summary>
     [RequiredOnPropertyValue(nameof(Enabled), true)]
     public string Endpoint { get; set; } = string.Empty;
 
     /// <summary>
-    /// Key to access the content moderation service.
+    /// Key to access the content safety service.
     /// </summary>
     [RequiredOnPropertyValue(nameof(Enabled), true)]
     public string Key { get; set; } = string.Empty;

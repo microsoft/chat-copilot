@@ -9,7 +9,7 @@ export class DocumentImportService extends BaseService {
         userName: string,
         chatId: string,
         documents: File[],
-        useContentModerator: boolean,
+        useContentSafety: boolean,
         accessToken: string,
     ) => {
         const formData = new FormData();
@@ -17,7 +17,7 @@ export class DocumentImportService extends BaseService {
         formData.append('userName', userName);
         formData.append('chatId', chatId);
         formData.append('documentScope', 'Chat');
-        formData.append('useContentModerator', useContentModerator.toString());
+        formData.append('useContentSafety', useContentSafety.toString());
         for (const document of documents) {
             formData.append('formFiles', document);
         }
@@ -35,7 +35,7 @@ export class DocumentImportService extends BaseService {
     public getContentModerationStatusAsync = async (accessToken: string): Promise<boolean> => {
         return await this.getResponseAsync<boolean>(
             {
-                commandPath: 'contentModerator/status',
+                commandPath: 'contentSafety/status',
                 method: 'GET',
             },
             accessToken,

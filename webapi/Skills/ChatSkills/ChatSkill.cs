@@ -81,9 +81,9 @@ public class ChatSkill
     private readonly ExternalInformationSkill _externalInformationSkill;
 
     /// <summary>
-    /// Content moderator.
+    /// Azure content safety.
     /// </summary>
-    private readonly AzureContentModerator? _contentModerator = null;
+    private readonly AzureContentSafety? _contentSafety = null;
 
     /// <summary>
     /// Create a new instance of <see cref="ChatSkill"/>.
@@ -97,7 +97,7 @@ public class ChatSkill
         IOptions<DocumentMemoryOptions> documentImportOptions,
         CopilotChatPlanner planner,
         ILogger logger,
-        AzureContentModerator? contentModerator = null)
+        AzureContentSafety? contentSafety = null)
     {
         this._logger = logger;
         this._kernel = kernel;
@@ -117,7 +117,7 @@ public class ChatSkill
         this._externalInformationSkill = new ExternalInformationSkill(
             promptOptions,
             planner);
-        this._contentModerator = contentModerator;
+        this._contentSafety = contentSafety;
     }
 
     /// <summary>

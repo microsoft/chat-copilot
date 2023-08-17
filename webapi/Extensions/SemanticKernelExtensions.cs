@@ -60,8 +60,8 @@ internal static class SemanticKernelExtensions
         // Semantic memory
         services.AddSemanticTextMemory();
 
-        // Azure Content Moderator
-        services.AddContentModerator();
+        // Azure Content Safety
+        services.AddContentSafety();
 
         // Register skills
         services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
@@ -105,7 +105,7 @@ internal static class SemanticKernelExtensions
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
-                contentModerator: sp.GetService<AzureContentModerator>(),
+                contentSafety: sp.GetService<AzureContentSafety>(),
                 planner: sp.GetRequiredService<CopilotChatPlanner>(),
                 logger: sp.GetRequiredService<ILogger<ChatSkill>>()),
             nameof(ChatSkill));
@@ -238,16 +238,16 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Adds Azure Content Moderator
+    /// Adds Azure Content Safety
     /// </summary>
-    internal static void AddContentModerator(this IServiceCollection services)
+    internal static void AddContentSafety(this IServiceCollection services)
     {
         IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        ContentModeratorOptions options = configuration.GetSection(ContentModeratorOptions.PropertyName).Get<ContentModeratorOptions>();
+        ContentSafetyOptions options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>();
 
         if (options.Enabled)
         {
-            services.AddSingleton<AzureContentModerator>(sp => new AzureContentModerator(new Uri(options.Endpoint), options.Key, options));
+            services.AddSingleton<AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
         }
     }
 

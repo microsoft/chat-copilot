@@ -73,7 +73,6 @@ public class DocumentImportController : ControllerBase
     private readonly ILogger<DocumentImportController> _logger;
     private readonly DocumentMemoryOptions _options;
     private readonly OcrSupportOptions _ocrSupportOptions;
-    private readonly ContentModeratorOptions _contentModeratorOptions;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly ChatMessageRepository _messageRepository;
@@ -81,7 +80,7 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
-    private readonly AzureContentModerator? _contentModerator = null;
+    private readonly AzureContentSafety? _contentSafety = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -95,8 +94,8 @@ public class DocumentImportController : ControllerBase
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         IOcrEngine ocrEngine,
-        IOptions<ContentModeratorOptions> contentModeratorOptions,
-        AzureContentModerator? contentModerator = null)
+        IOptions<ContentSafetyOptions> contentSafetyOptions,
+        AzureContentSafety? contentSafety = null)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
@@ -106,20 +105,19 @@ public class DocumentImportController : ControllerBase
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
         this._ocrEngine = ocrEngine;
-        this._contentModeratorOptions = contentModeratorOptions.Value;
-        this._contentModerator = contentModerator;
+        this._contentSafety = contentSafety;
     }
 
     /// <summary>
-    /// Gets the status of content moderation.
+    /// Gets the status of content safety.
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Route("contentModerator/status")]
+    [Route("contentSafety/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public bool ContentModeratorStatus()
+    public bool ContentSafetyStatus()
     {
-        return this._contentModeratorOptions.Enabled;
+        return this._contentSafety!.ContentSafetyStatus(this._logger);
     }
 
     /// <summary>
@@ -284,7 +282,7 @@ public class DocumentImportController : ControllerBase
                 throw new ArgumentException($"File {formFile.FileName} size exceeds the limit.");
             }
 
-            // Make sure the file type is supported and validate any images if ContentModerator is enabled.
+            // Make sure the file type is supported and validate any images if ContentSafety is enabled.
             var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
             switch (fileType)
             {
@@ -295,33 +293,34 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
-                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
+                    if (this._ocrSupportOptions.Type == OcrSupportOptions.OcrSupportType.None)
                     {
-                        if (documentImportForm.UseContentModerator)
+                        if (documentImportForm.UseContentSafety)
                         {
-                            if (!this._contentModeratorOptions.Enabled)
+                            if (!this._contentSafety!.Options!.Enabled)
                             {
-                                throw new ArgumentException("Unable to analyze image. Content Moderation is currently disabled in the backend.");
+                                throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
                             }
 
+                            var violations = new List<string>();
                             try
                             {
                                 // Convert the form file to a base64 string
                                 var base64Image = await this.ConvertFormFileToBase64Async(formFile);
-                                var violations = new List<string>();
 
-                                // Call the content moderator controller to analyze the image
-                                var imageAnalysisResponse = await this._contentModerator!.ImageAnalysisAsync(base64Image, default);
-                                violations = AzureContentModerator.ParseViolatedCategories(imageAnalysisResponse, this._contentModeratorOptions.ViolationThreshold);
-                                if (violations.Count > 0)
-                                {
-                                    throw new ArgumentException($"Unable to upload image {formFile.FileName}. Detected undesirable content with potential risk: {string.Join(", ", violations)}");
-                                }
+                                // Call the content safety controller to analyze the image
+                                var imageAnalysisResponse = await this._contentSafety!.ImageAnalysisAsync(base64Image, default);
+                                violations = AzureContentSafety.ParseViolatedCategories(imageAnalysisResponse, this._contentSafety!.Options!.ViolationThreshold);
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
-                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Moderator. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
-                                throw new ArgumentException($"Failed to analyze image {formFile.FileName} with Content Moderator. {(ex as AIException)?.ErrorCode}");
+                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
+                                throw new ArgumentException($"Failed to analyze image {formFile.FileName} with Content Safety. {(ex as AIException)?.ErrorCode}");
+                            }
+
+                            if (violations.Count > 0)
+                            {
+                                throw new ArgumentException($"Unable to upload image {formFile.FileName}. Detected undesirable content with potential risk: {string.Join(", ", violations)}");
                             }
                         }
                         break;

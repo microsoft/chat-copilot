@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.AI;
 
 namespace CopilotChat.WebApi.Services;
@@ -22,11 +23,13 @@ public record AnalysisResult(
 public record ImageContent([property: JsonPropertyName("content")] string Content);
 
 public record ImageAnalysisRequest(
-    [property: JsonPropertyName("image")] ImageContent Image,
-    [property: JsonPropertyName("categories")] List<string> Categories
+    [property: JsonPropertyName("image")] ImageContent Image
 );
 
-public sealed class AzureContentModerator : IDisposable
+/// <summary>
+/// Moderator service to handle content safety.
+/// </summary>
+public sealed class AzureContentSafety : IDisposable
 {
     private const string HttpUserAgent = "Copilot Chat";
 
@@ -35,34 +38,26 @@ public sealed class AzureContentModerator : IDisposable
     private readonly HttpClientHandler? _httpClientHandler;
 
     /// <summary>
-    /// Options for the content moderator.
+    /// Options for the content safety.
     /// </summary>
-    private readonly ContentModeratorOptions? _contentModeratorOptions;
+    private readonly ContentSafetyOptions? _contentSafetyOptions;
 
     /// <summary>
-    /// Gets the options for the content moderator.
+    /// Gets the options for the content safety.
     /// </summary>
-    public ContentModeratorOptions? ContentModeratorOptions => this._contentModeratorOptions;
-
-    private static readonly List<string> s_categories = new()
-    {
-        "HateSpeech",
-        "Sexual",
-        "SelfHarm",
-        "Violence"
-    };
+    public ContentSafetyOptions? Options => this._contentSafetyOptions;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AzureContentModerator"/> class.
+    /// Initializes a new instance of the <see cref="AzureContentSafety"/> class.
     /// </summary>
     /// <param name="endpoint">Endpoint for service API call.</param>
     /// <param name="apiKey">The API key.</param>
-    /// <param name="contentModeratorOptions">Content moderator options from appsettings.</param>
+    /// <param name="contentSafetyOptions">Content safety options from appsettings.</param>
     /// <param name="httpClientHandler">Instance of <see cref="HttpClientHandler"/> to setup specific scenarios.</param>
-    public AzureContentModerator(Uri endpoint, string apiKey, ContentModeratorOptions contentModeratorOptions, HttpClientHandler httpClientHandler)
+    public AzureContentSafety(Uri endpoint, string apiKey, ContentSafetyOptions contentSafetyOptions, HttpClientHandler httpClientHandler)
     {
         this._endpoint = endpoint;
-        this._contentModeratorOptions = contentModeratorOptions;
+        this._contentSafetyOptions = contentSafetyOptions;
         this._httpClient = new(httpClientHandler);
 
         this._httpClient.DefaultRequestHeaders.Add("User-Agent", HttpUserAgent);
@@ -72,15 +67,15 @@ public sealed class AzureContentModerator : IDisposable
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AzureContentModerator"/> class.
+    /// Initializes a new instance of the <see cref="AzureContentSafety"/> class.
     /// </summary>
     /// <param name="endpoint">Endpoint for service API call.</param>
     /// <param name="apiKey">The API key.</param>
-    /// <param name="contentModeratorOptions">Content moderator options from appsettings.</param>
-    public AzureContentModerator(Uri endpoint, string apiKey, ContentModeratorOptions contentModeratorOptions)
+    /// <param name="contentSafetyOptions">Content safety options from appsettings.</param>
+    public AzureContentSafety(Uri endpoint, string apiKey, ContentSafetyOptions contentSafetyOptions)
     {
         this._endpoint = endpoint;
-        this._contentModeratorOptions = contentModeratorOptions;
+        this._contentSafetyOptions = contentSafetyOptions;
 
         this._httpClientHandler = new() { CheckCertificateRevocationList = true };
         this._httpClient = new(this._httpClientHandler);
@@ -89,6 +84,22 @@ public sealed class AzureContentModerator : IDisposable
 
         // Subscription Key header required to authenticate requests to Azure API Management (APIM) service
         this._httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", apiKey);
+    }
+
+    /// <summary>
+    /// Checks the state of the content safety.
+    /// </summary>
+    /// <param name="logger">Logger.</param>
+    /// <returns>True if content safety is enabled with non-null endpoint.</returns>
+    public bool ContentSafetyStatus(ILogger logger)
+    {
+        if (this._endpoint is null)
+        {
+            logger.LogWarning("Content Safety is missing a valid endpoint. Please check the configuration.");
+            return false;
+        }
+
+        return this._contentSafetyOptions?.Enabled ?? false;
     }
 
     /// <summary>
@@ -104,9 +115,9 @@ public sealed class AzureContentModerator : IDisposable
         foreach (var property in typeof(ImageAnalysisResponse).GetProperties())
         {
             var analysisResult = property.GetValue(imageAnalysisResponse) as AnalysisResult;
-            if (analysisResult != null && analysisResult.Severity > threshold)
+            if (analysisResult != null && analysisResult.Severity >= threshold)
             {
-                violatedCategories.Add($"{property.Name} ({analysisResult.Severity})");
+                violatedCategories.Add($"{analysisResult.Category} ({analysisResult.Severity})");
             }
         }
 
@@ -121,9 +132,10 @@ public sealed class AzureContentModerator : IDisposable
     /// <returns>SKContext containing the image analysis result.</returns>
     public async Task<ImageAnalysisResponse> ImageAnalysisAsync(string base64Image, CancellationToken cancellationToken)
     {
+        // TODO: Add error handling if URL or Key is invalid
         var image = base64Image.Replace("data:image/png;base64,", "", StringComparison.InvariantCultureIgnoreCase).Replace("data:image/jpeg;base64,", "", StringComparison.InvariantCultureIgnoreCase);
         ImageContent content = new(image);
-        ImageAnalysisRequest requestBody = new(content, s_categories);
+        ImageAnalysisRequest requestBody = new(content);
 
         using var httpRequestMessage = new HttpRequestMessage()
         {
@@ -138,7 +150,7 @@ public sealed class AzureContentModerator : IDisposable
         {
             throw new AIException(
                 response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? AIException.ErrorCodes.AccessDenied : AIException.ErrorCodes.UnknownError,
-                $"[Content Moderator] Failed to analyze image. {response.StatusCode}");
+                $"[Content Safety] Failed to analyze image. {response.StatusCode}");
         }
 
         var result = JsonSerializer.Deserialize<ImageAnalysisResponse>(body!);
@@ -146,7 +158,7 @@ public sealed class AzureContentModerator : IDisposable
         {
             throw new AIException(
                 AIException.ErrorCodes.UnknownError,
-                $"[Content Moderator] Failed to analyze image. {body}");
+                $"[Content Safety] Failed to analyze image. {body}");
         }
         return result;
     }

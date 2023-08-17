@@ -269,12 +269,12 @@ export const useChat = () => {
         } catch (e: any) {
             let errorDetails = getErrorDetails(e);
 
-            // Disable Content Moderator if request was unauthorized
-            const contentModeratorDisabledRegEx = /Failed to analyze image .* with Content Moderator.\s*AccessDenied/g;
-            if (contentModeratorDisabledRegEx.test(errorDetails)) {
+            // Disable Content Safety if request was unauthorized
+            const contentSafetyDisabledRegEx = /Failed to analyze image .* with Content Safety.\s*AccessDenied/g;
+            if (contentSafetyDisabledRegEx.test(errorDetails)) {
                 if (features[FeatureKeys.AzureContentSafety].enabled) {
                     errorDetails =
-                        'Unable to analyze image. Content Moderator is currently disabled or unauthorized service-side. Please contact your admin to enable.';
+                        'Unable to analyze image. Content Safety is currently disabled or unauthorized service-side. Please contact your admin to enable.';
                 }
 
                 dispatch(

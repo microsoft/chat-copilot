@@ -108,9 +108,9 @@ public static class CopilotChatServiceExtensions
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
-        // Content moderation options
-        services.AddOptions<ContentModeratorOptions>()
-            .Bind(configuration.GetSection(ContentModeratorOptions.PropertyName))
+        // Content safety options
+        services.AddOptions<ContentSafetyOptions>()
+            .Bind(configuration.GetSection(ContentSafetyOptions.PropertyName))
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
