@@ -368,8 +368,9 @@ public class ChatSkill
                 string trimmedUserIntent = userIntent.Replace("User Intent:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
                 SKContext autoApprovedContext = chatContext.Clone();
                 proposedPlan.State = PlanState.Approved;
+                proposedPlan.Plan.Steps[0].Parameters.Set("question", trimmedUserIntent);
                 autoApprovedContext.Variables.Set("proposedPlan", JsonSerializer.Serialize(proposedPlan));
-                autoApprovedContext.Variables.Set("userIntent", trimmedUserIntent); // Take from plan?
+                autoApprovedContext.Variables.Set("userIntent", trimmedUserIntent);
                 autoApprovedContext.Variables.Set("planUserIntent", trimmedUserIntent);
 
                 planResult = await this.AcquireExternalInformationAsync(autoApprovedContext, userIntent, externalInformationTokenLimit);
