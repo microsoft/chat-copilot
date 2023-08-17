@@ -292,7 +292,7 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
-                    if (this._ocrSupportOptions.Type == OcrSupportOptions.OcrSupportType.None)
+                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
                     {
                         if (documentImportForm.UseContentSafety)
                         {
