@@ -32,6 +32,7 @@ using Microsoft.SemanticKernel.Skills.MsGraph.Connectors.Client;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
 using PlayFab.Skills;
+using PlayFab.Skills.SegmentSkill;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -44,17 +45,23 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ILogger<ChatController> _logger;
     private readonly List<IDisposable> _disposables;
     private readonly AIServiceOptions _aiServiceOptions;
+    private readonly PlayFabOptions _playFabOptions;
     private readonly ITelemetryService _telemetryService;
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<AIServiceOptions> aiServiceOptions)
+    public ChatController(
+        ILogger<ChatController> logger,
+        ITelemetryService telemetryService,
+        IOptions<AIServiceOptions> aiServiceOptions,
+        IOptions<PlayFabOptions> playFabOptions)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
         this._aiServiceOptions = aiServiceOptions?.Value ?? throw new ArgumentNullException(nameof(aiServiceOptions));
+        this._playFabOptions = playFabOptions?.Value ?? throw new ArgumentNullException(nameof(playFabOptions));
     }
 
     /// <summary>
@@ -171,13 +178,18 @@ public class ChatController : ControllerBase, IDisposable
     /// </summary>
     private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
     {
-        // Register authenticated skills with the planner's kernel only if the request includes an auth header for the skill.
-
         // Register PlayFab Skills
         this._logger.LogInformation("Registering PlayFab plugins");
+
+        planner.Kernel.ImportSkill(
+            new SegmentSkill(planner.Kernel, this._playFabOptions.TitleApiEndpoint, this._playFabOptions.TitleSecretKey, this._playFabOptions.SwaggerEndpoint),
+            "Segments");
+
         planner.Kernel.ImportSkill(
             new GameInsightsSkill(planner.Kernel.Memory, _aiServiceOptions.Endpoint, _aiServiceOptions.Key, _aiServiceOptions.Models.Completion),
             "GameInsights");
+
+        // Register authenticated skills with the planner's kernel only if the request includes an auth header for the skill.
 
         // Klarna Shopping
         if (openApiSkillsAuthHeaders.TryGetValue("KLARNA", out string? KlarnaAuthHeader))

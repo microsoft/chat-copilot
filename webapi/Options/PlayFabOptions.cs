@@ -8,6 +8,7 @@ public class PlayFabOptions
 
     public string Endpoint { get; set; }
     public string TitleId { get; set; }
+    public string TitleApiEndpoint { get; set; }
     public string TitleSecretKey { get; set; }
     public string SwaggerEndpoint { get; set; }
     public string ReportsCosmosDBEndpoint { get; set; }

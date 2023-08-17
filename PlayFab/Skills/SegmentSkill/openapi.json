@@ -1,0 +1,1685 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "PlayFab APIs [Sample]",
+    "termsOfService": "https://playfab.com/terms/",
+    "contact": {
+      "url": "https://community.playfab.com/index.html"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://github.com/PlayFab/API_Specs/blob/master/LICENSE"
+    },
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://titleid.playfabapi.com",
+      "description": "The endpoint for PlayFab title-scoped APIs."
+    }
+  ],
+  "paths": {
+    "/Admin/GetSegments": {
+      "post": {
+        "summary": "Get segments",
+        "description": "Retrieves detailed information about segments, including their associated definitions and actions. For more details, refer to the official documentation: https://learn.microsoft.com/en-us/rest/api/playfab/admin/segments/get-segments?view=playfab-rest",
+        "operationId": "GetSegments",
+        "requestBody": {
+          "description": "Request body to retrieve segment information. The body should contain an array `SegmentIds`, that defaults to an empty array to return information for all segments. Specifying values in `SegmentIds` will return information for only those segments.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetSegmentsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response containing the details of the segments, or an error message if applicable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSegmentsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response containing an error message for the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorWrapper"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Admin/CreateSegment": {
+      "post": {
+        "summary": "Create segment",
+        "description": "Create a new segment by defining conditions on player properties and actions to target the segments for a title. For more details, refer to the official documentation: https://docs.microsoft.com/rest/api/playfab/admin/segments/createsegment.",
+        "operationId": "CreateSegment",
+        "requestBody": {
+          "description": "Request body to create a segment. The body should contain an object `SegmentModel`.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSegmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response containing the id of the created segment, or an error message if applicable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSegmentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorWrapper"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdCampaignSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "CampaignId": {
+            "description": "Unique identifier of the campaign.",
+            "type": "string",
+            "example": "ABC123"
+          },
+          "CampaignSource": {
+            "description": "Source of the campaign.",
+            "type": "string",
+            "example": "Kochava"
+          },
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for campaign filtering.",
+            "type": "string",
+            "example": "EqualTo"
+          }
+        },
+        "required": [
+          "CampaignId",
+          "CampaignSource",
+          "Comparison"
+        ],
+        "example": {
+          "CampaignId": "ABC123",
+          "CampaignSource": "Kochava",
+          "Comparison": "EqualTo"
+        }
+      },
+      "AllPlayersSegmentFilter": {
+        "type": "object",
+        "properties": {},
+        "description": "Filter that includes all players.",
+        "example": {}
+      },
+      "ApiErrorWrapper": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "The numerical HTTP status code indicating the failure.",
+            "type": "integer",
+            "example": 400
+          },
+          "status": {
+            "description": "The string HTTP status code indicating the failure.",
+            "type": "string",
+            "example": "BadRequest"
+          },
+          "error": {
+            "description": "The PlayFab error code associated with the failure.",
+            "type": "string",
+            "example": "InvalidParams"
+          },
+          "errorCode": {
+            "description": "The numerical PlayFab error code corresponding to the error.",
+            "type": "integer",
+            "example": 1000
+          },
+          "errorMessage": {
+            "description": "A descriptive message providing more information about the error.",
+            "type": "string",
+            "example": "Invalid input parameters"
+          },
+          "errorDetails": {
+            "description": "Additional details describing individual issues with the request object.",
+            "type": "object",
+            "example": {
+              "SegmentIds": [
+                "The SegmentIds field is required."
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "errorCode"
+        ],
+        "description": "A standardized wrapper around every failed API response containing the error details.",
+        "example": {
+          "code": 400,
+          "status": "BadRequest",
+          "error": "InvalidParams",
+          "errorCode": 1000,
+          "errorMessage": "Invalid input parameters",
+          "errorDetails": {
+            "SegmentIds": [
+              "The SegmentIds field is required."
+            ]
+          }
+        }
+      },
+      "BanPlayerSegmentAction": {
+        "type": "object",
+        "properties": {
+          "BanHours": {
+            "description": "Duration of the ban in hours.",
+            "type": "number",
+            "x-actualtype": "uint32",
+            "example": 24
+          },
+          "ReasonForBan": {
+            "description": "Reason provided for the player's ban.",
+            "type": "string",
+            "example": "Cheating"
+          }
+        },
+        "description": "Segment action that applies a ban to a player.",
+        "example": {
+          "BanHours": 2,
+          "ReasonForBan": "Inappropriate behavior"
+        }
+      },
+      "ChurnPredictionSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for churn prediction filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "GreaterThanOrEqualTo"
+          },
+          "RiskLevel": {
+            "$ref": "#/components/schemas/ChurnRiskLevel",
+            "description": "RiskLevel",
+            "type": "string",
+            "x-isenum": true,
+            "example": "MediumRisk"
+          }
+        },
+        "description": "Filter based on player churn prediction.",
+        "example": {
+          "Comparison": "LessThan",
+          "RiskLevel": "HighRisk"
+        }
+      },
+      "ChurnRiskLevel": {
+        "type": "string",
+        "enum": [
+          "NoData",
+          "LowRisk",
+          "MediumRisk",
+          "HighRisk"
+        ],
+        "description": "Possible churn risk levels for players.",
+        "example": "NoData"
+      },
+
+      "CreateSegmentRequest": {
+        "type": "object",
+        "properties": {
+          "SegmentModel": {
+            "$ref": "#/components/schemas/SegmentModel",
+            "description": "Segment model containing segment properties and conditions",
+            "type": "object",
+            "x-isclass": true
+          }
+        },
+        "required": [
+          "SegmentModel"
+        ],
+        "description": "Request object to create a segment with the provided definitions and actions.",
+        "example": {
+          "SegmentModel": {
+            "Name": "Segment with all available predicates",
+            "SegmentOrDefinitions": [
+              {
+                "SegmentAndDefinitions": [
+                  {
+                    "AllPlayersFilter": {}
+                  }
+                ]
+              },
+              {
+                "SegmentAndDefinitions": [
+                  {
+                    "AdCampaignFilter": {
+                      "Comparison": "EqualTo",
+                      "CampaignID": "MyCampaign",
+                      "CampaignSource": "MyCampaignSource"
+                    },
+                    "ChurnPredictionFilter": {
+                      "Comparison": "GreaterThan",
+                      "PredictedChurnRisk": "MediumRisk"
+                    },
+                    "FirstLoginDateFilter": {
+                      "Comparison": "LessThanOrEqualTo",
+                      "LoginDate": "2023-01-01"
+                    },
+                    "FirstLoginFilter": {
+                      "Comparison": "GreaterThan",
+                      "DurationInMinutes": 1440
+                    },
+                    "LastLoginDateFilter": {
+                      "Comparison": "GreaterThanOrEqualTo",
+                      "LoginDate": "2023-01-01"
+                    },
+                    "LastLoginFilter": {
+                      "Comparison": "GreaterThan",
+                      "DurationInMinutes": 1440
+                    },
+                    "LinkedUserAccountFilter": {
+                      "LoginProvider": "AndroidDevice"
+                    },
+                    "LinkedUserAccountHasEmailFilter": {
+                      "Comparison": "EqualTo",
+                      "LoginProvider": "IOSDevice"
+                    },
+                    "LocationFilter": {
+                      "CountryCode": "US"
+                    },
+                    "PushNotificationFilter": {
+                      "Comparison": "EqualTo",
+                      "PushNotificationPlatform": "ApplePushNotificationService"
+                    },
+                    "StatisticFilter": {
+                      "Comparison": "GreaterThan",
+                      "Name": "MyStatistic",
+                      "FilterValue": 100,
+                      "UseCurrentVersion": true,
+                      "Version": 1
+                    },
+                    "TagFilter": {
+                      "Comparison": "EqualTo",
+                      "TagValue": "MyTag"
+                    },
+                    "TotalValueToDateInUSDFilter": {
+                      "Comparison": "GreaterThan",
+                      "Amount": 100
+                    },
+                    "UserOriginationFilter": {
+                      "Comparison": "EqualTo",
+                      "Origination": "Steam"
+                    },
+                    "ValueToDateFilter": {
+                      "Comparison": "LessThan",
+                      "Amount": 10,
+                      "Currency": "USD"
+                    },
+                    "VirtualCurrencyBalanceFilter": {
+                      "Comparison": "GreaterThanOrEqualTo",
+                      "Amount": 10,
+                      "CurrencyCode": "MyTestCurrency"
+                    }
+                  }
+                ]
+              }
+            ],
+            "EnteredSegmentActions": [],
+            "LeftSegmentActions": []
+          }
+        }
+      },
+      "CreateSegmentResponse": {
+        "type": "object",
+        "properties": {
+          "SegmentId": {
+            "description": "The unique identifier of the newly created segment.",
+            "type": "string",
+            "example": "B05FC8CB558A6570"
+          }
+        },
+        "description": "Response object containing the id of the newly created segment."
+      },
+      "DeletePlayerSegmentAction": {
+        "type": "object",
+        "properties": {},
+        "description": "Segment action that deletes a player."
+      },
+      "DeletePlayerStatisticSegmentAction": {
+        "type": "object",
+        "properties": {
+          "StatisticName": {
+            "description": "Name of the statistic to delete for their player.",
+            "type": "string",
+            "example": "Score"
+          }
+        },
+        "description": "Segment action that deletes a specific statistic for a player.",
+        "example": {
+          "StatisticName": "LevelsCompleted"
+        }
+      },
+      "EmailNotificationSegmentAction": {
+        "type": "object",
+        "properties": {
+          "EmailTemplateId": {
+            "description": "Identifier for the email template to be sent.",
+            "type": "string",
+            "example": "welcome_template"
+          },
+          "EmailTemplateName": {
+            "description": "Name of the email template to be used.",
+            "type": "string",
+            "example": "Welcome Email"
+          }
+        },
+        "description": "Segment action that sends an email notification to the player.",
+        "example": {
+          "EmailTemplateId": "reset_password_template",
+          "EmailTemplateName": "Password Reset"
+        }
+      },
+      "ExecuteAzureFunctionSegmentAction": {
+        "type": "object",
+        "properties": {
+          "AzureFunction": {
+            "description": "The name or identifier of the Azure function to execute.",
+            "type": "string",
+            "example": "ProcessPlayerMatchReport"
+          },
+          "FunctionParameter": {
+            "description": "Parameters to be passed to the Azure function.",
+            "type": "object",
+            "example": {
+              "playerId": "123456",
+              "action": "generate"
+            }
+          },
+          "GenerateFunctionExecutedEvents": {
+            "description": "Flag indicating whether to generate PlayStream events for function execution.",
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "description": "Segment action that triggers the execution of an Azure function.",
+        "required": [
+          "GenerateFunctionExecutedEvents"
+        ],
+        "example": {
+          "AzureFunction": "UpdatePlayerStatistics",
+          "FunctionParameter": {
+            "playerId": "A1B2C3D4",
+            "statisticName": "HighScore"
+          },
+          "GenerateFunctionExecutedEvents": false
+        }
+      },
+      "ExecuteCloudScriptSegmentAction": {
+        "type": "object",
+        "properties": {
+          "CloudScriptFunction": {
+            "description": "The name or identifier of the CloudScript function to execute.",
+            "type": "string",
+            "example": "AwardBonus"
+          },
+          "CloudScriptPublishResultsToPlayStream": {
+            "description": "Flag indicating whether to generate PlayStream events for CloudScript execution.",
+            "type": "boolean",
+            "example": true
+          },
+          "FunctionParameter": {
+            "description": "Parameters to be passed to the CloudScript function.",
+            "type": "object",
+            "example": {
+              "playerId": "987654",
+              "bonusType": "gold"
+            }
+          },
+          "FunctionParameterJson": {
+            "description": "JSON text containing CloudScript function parameters.",
+            "type": "string",
+            "example": "{\"playerId\": \"123456\", \"action\": \"reward\"}"
+          }
+        },
+        "description": "Segment action that triggers the execution of a CloudScript function.",
+        "required": [
+          "CloudScriptPublishResultsToPlayStream"
+        ],
+        "example": {
+          "CloudScriptFunction": "UpdatePlayerStatistics",
+          "CloudScriptPublishResultsToPlayStream": false,
+          "FunctionParameter": {
+            "playerId": "A1B2C3D4",
+            "statisticName": "level"
+          },
+          "FunctionParameterJson": "{\"playerId\": \"A1B2C3D4\", \"statType\": \"level\"}"
+        }
+      },
+      "FirstLoginDateSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for first player login date filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "GreaterThan"
+          },
+          "LogInDate": {
+            "description": "Date representing the first player login date.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-08-01T12:00:00Z"
+          }
+        },
+        "required": [
+          "LogInDate"
+        ],
+        "description": "Filter based on the player's first login date.",
+        "example": {
+          "Comparison": "LessThan",
+          "LogInDate": "2023-07-15T08:00:00Z"
+        }
+      },
+      "FirstLoginTimespanSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for first player login duration filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "LessThan"
+          },
+          "DurationInMinutes": {
+            "description": "Duration of the timespan for the player's first login, in minutes.",
+            "type": "number",
+            "x-actualtype": "double",
+            "format": "double",
+            "example": 1440
+          }
+        },
+        "required": [
+          "DurationInMinutes"
+        ],
+        "description": "Filter based on the duration of the player's first login timespan.",
+        "example": {
+          "Comparison": "GreaterThan",
+          "DurationInMinutes": 1440
+        }
+      },
+      "GetSegmentsRequest": {
+        "type": "object",
+        "properties": {
+          "SegmentIds": {
+            "description": "Array of segment IDs to retrieve information for.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": {
+              "SegmentIds": []
+            }
+          }
+        },
+        "required": [
+          "SegmentIds"
+        ],
+        "description": "Request object to retrieve segment information based on provided segment IDs. To retrieve information for all segments, set `SegmentIds` to an empty array.",
+        "example": {
+          "SegmentIds": [
+            "B05FC8CB558A6570",
+            "97EF0E9302CBE996"
+          ]
+        }
+      },
+      "GetSegmentsResponse": {
+        "type": "object",
+        "properties": {
+          "Segments": {
+            "description": "List of segments for the specified title.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentModel"
+            }
+          }
+        },
+        "description": "Response object containing information about title segments."
+      },
+      "GrantItemSegmentAction": {
+        "type": "object",
+        "properties": {
+          "CatelogId": {
+            "description": "Identifier for the item's catalog.",
+            "type": "string",
+            "example": "potion_01"
+          },
+          "ItemId": {
+            "description": "Identifier for the specific item to grant.",
+            "type": "string",
+            "example": "health_10_potion"
+          },
+          "Quantity": {
+            "description": "Quantity of the item to grant.",
+            "type": "number",
+            "x-actualtype": "uint32",
+            "format": "double",
+            "example": 5
+          }
+        },
+        "required": [
+          "Quantity"
+        ],
+        "description": "Segment action that grants a specified quantity of an item to a player.",
+        "example": {
+          "CatelogId": "consumables",
+          "ItemId": "magic_potion",
+          "Quantity": 2
+        }
+      },
+      "GrantVirtualCurrencySegmentAction": {
+        "type": "object",
+        "properties": {
+          "Amount": {
+            "description": "Amount of virtual currency to grant to the player.",
+            "type": "number",
+            "x-actualtype": "int32",
+            "format": "double",
+            "example": 100
+          },
+          "CurrencyCode": {
+            "description": "Code representing the type of virtual currency to grant.",
+            "type": "string",
+            "example": "AU"
+          }
+        },
+        "required": [
+          "Amount"
+        ],
+        "description": "Segment action that grants a specified amount of virtual currency to a player.",
+        "example": {
+          "Amount": 50,
+          "CurrencyCode": "AU"
+        }
+      },
+      "IncrementPlayerStatisticSegmentAction": {
+        "type": "object",
+        "properties": {
+          "IncrementValue": {
+            "description": "Value by which the player statistic will be incremented.",
+            "type": "number",
+            "x-actualtype": "int32",
+            "format": "double",
+            "example": 1
+          },
+          "StatisticName": {
+            "description": "Name of the statistic to be incremented.",
+            "type": "string",
+            "example": "Score"
+          }
+        },
+        "required": [
+          "IncrementValue"
+        ],
+        "description": "Segment action that increments a specified player statistic by a certain value.",
+        "example": {
+          "IncrementValue": 5,
+          "StatisticName": "ExperiencePoints"
+        }
+      },
+      "LastLoginDateSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for last player login date filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "GreaterThan"
+          },
+          "LogInDate": {
+            "description": "Date representing the last player login date.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-08-05T18:30:00Z"
+          }
+        },
+        "required": [
+          "LogInDate"
+        ],
+        "description": "Filter based on the player's last login date.",
+        "example": {
+          "Comparison": "GreaterThanOrEqualTo",
+          "LogInDate": "2023-07-30T10:00:00Z"
+        }
+      },
+      "LastLoginTimespanSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for last player login duration filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "LessThan"
+          },
+          "DurationInMinutes": {
+            "description": "Duration of the timespan for the last player login, in minutes.",
+            "type": "number",
+            "x-actualtype": "double",
+            "format": "double",
+            "example": 60
+          }
+        },
+        "required": [
+          "DurationInMinutes"
+        ],
+        "description": "Filter based on the duration of the player's last login timespan.",
+        "example": {
+          "Comparison": "GreaterThanOrEqualTo",
+          "DurationInMinutes": 1440
+        }
+      },
+      "LinkedUserAccountSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "LoginProvider": {
+            "$ref": "#/components/schemas/SegmentLoginIdentityProvider",
+            "description": "Identity provider of the linked user account.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "Steam"
+          }
+        },
+        "description": "Filter based on the identity provider of the linked user account.",
+        "example": {
+          "LoginProvider": "Apple"
+        }
+      },
+      "LinkedUserAccountHasEmailSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for login provider filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "EqualTo"
+          },
+          "LoginProvider": {
+            "$ref": "#/components/schemas/SegmentLoginIdentityProvider",
+            "description": "Identity provider of the linked user account.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "Steam"
+          }
+        },
+        "description": "Filter based on whether linked user accounts have an associated email.",
+        "example": {
+          "Comparison": "EqualTo",
+          "LoginProvider": "AndroidDevice"
+        }
+      },
+      "LocationSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "CountryCode": {
+            "$ref": "#/components/schemas/SegmentCountryCode",
+            "description": "Country code for segment filtering based on location.",
+            "type": "string",
+            "x-isenum": true,
+            "pattern": "^[A-Z]{2}$",
+            "example": "US"
+          }
+        },
+        "description": "Filter based on the player's location country code.",
+        "example": {
+          "CountryCode": "CA"
+        }
+      },
+      "PushNotificationSegmentAction": {
+        "type": "object",
+        "properties": {
+          "PushNotificationTemplateId": {
+            "description": "Identifier for the push notification template.",
+            "type": "string",
+            "example": "welcome_notification"
+          }
+        },
+        "description": "Segment action that triggers a push notification using a specified template.",
+        "example": {
+          "PushNotificationTemplateId": "daily_reminder"
+        }
+      },
+      "PushNotificationSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "PushNotificationDevicePlatform": {
+            "$ref": "#/components/schemas/SegmentPushNotificationDevicePlatform",
+            "description": "Device platform for receiving push notifications.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "ApplePushNotificationService"
+          }
+        },
+        "description": "Filter based on the device platform for receiving push notifications.",
+        "example": {
+          "PushNotificationDevicePlatform": "GoogleCloudMessaging"
+        }
+      },
+      "SegmentAndDefinition": {
+        "type": "object",
+        "properties": {
+          "AdCampaignFilter": {
+            "$ref": "#/components/schemas/AdCampaignSegmentFilter",
+            "description": "Filter property for ad campaign filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "AllPlayersFilter": {
+            "$ref": "#/components/schemas/AllPlayersSegmentFilter",
+            "description": "Filter property for all players filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "ChurnPredictionFilter": {
+            "$ref": "#/components/schemas/ChurnPredictionSegmentFilter",
+            "description": "Filter property for player churn prediction filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "FirstLoginDateFilter": {
+            "$ref": "#/components/schemas/FirstLoginDateSegmentFilter",
+            "description": "Filter property for player's first login date filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "FirstLoginFilter": {
+            "$ref": "#/components/schemas/FirstLoginTimespanSegmentFilter",
+            "description": "Filter property for player's first login timespan filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "LastLoginDateFilter": {
+            "$ref": "#/components/schemas/LastLoginDateSegmentFilter",
+            "description": "Filter property for player's last login date filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "LastLoginFilter": {
+            "$ref": "#/components/schemas/LastLoginTimespanSegmentFilter",
+            "description": "Filter property for player's last login timespan filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "LinkedUserAccountFilter": {
+            "$ref": "#/components/schemas/LinkedUserAccountSegmentFilter",
+            "description": "Filter property for linked user account filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "LinkedUserAccountHasEmailFilter": {
+            "$ref": "#/components/schemas/LinkedUserAccountHasEmailSegmentFilter",
+            "description": "Filter property for linked user account with email filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "LocationFilter": {
+            "$ref": "#/components/schemas/LocationSegmentFilter",
+            "description": "Filter property for location filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "PushNotificationFilter": {
+            "$ref": "#/components/schemas/PushNotificationSegmentFilter",
+            "description": "Filter property for push notification filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "StatisticFilter": {
+            "$ref": "#/components/schemas/StatisticSegmentFilter",
+            "description": "Filter property for statistics filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "TagFilter": {
+            "$ref": "#/components/schemas/TagSegmentFilter",
+            "description": "Filter property for tags filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "TotalValueToDateInUSDFilter": {
+            "$ref": "#/components/schemas/TotalValueToDateInUSDSegmentFilter",
+            "description": "Filter property for total value to date in USD filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "UserOriginationFilter": {
+            "$ref": "#/components/schemas/UserOriginationSegmentFilter",
+            "description": "Filter property for user origination filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "ValueToDateFilter": {
+            "$ref": "#/components/schemas/ValueToDateSegmentFilter",
+            "description": "Filter property for value to date filter.",
+            "type": "object",
+            "x-isclass": true
+          },
+          "VirtualCurrencyBalanceFilter": {
+            "$ref": "#/components/schemas/VirtualCurrencyBalanceSegmentFilter",
+            "description": "Filter property for virtual currency balance filter.",
+            "type": "object",
+            "x-isclass": true
+          }
+        },
+        "description": "Combine various segment filters and their respective definitions for targeting specific players using an AND operator."
+      },
+      "SegmentCountryCode": {
+        "type": "string",
+        "description": "Represents a two-letter country code based on the ISO 3166-1 alpha-2 standard, indicating a player's location.",
+        "pattern": "^[A-Z]{2}$",
+        "enum": [
+          "AF",
+          "AX",
+          "AL",
+          "DZ",
+          "AS",
+          "AD",
+          "AO",
+          "AI",
+          "AQ",
+          "AG",
+          "AR",
+          "AM",
+          "AW",
+          "AU",
+          "AT",
+          "AZ",
+          "BS",
+          "BH",
+          "BD",
+          "BB",
+          "BY",
+          "BE",
+          "BZ",
+          "BJ",
+          "BM",
+          "BT",
+          "BO",
+          "BQ",
+          "BA",
+          "BW",
+          "BV",
+          "BR",
+          "IO",
+          "BN",
+          "BG",
+          "BF",
+          "BI",
+          "KH",
+          "CM",
+          "CA",
+          "CV",
+          "KY",
+          "CF",
+          "TD",
+          "CL",
+          "CN",
+          "CX",
+          "CC",
+          "CO",
+          "KM",
+          "CG",
+          "CD",
+          "CK",
+          "CR",
+          "CI",
+          "HR",
+          "CU",
+          "CW",
+          "CY",
+          "CZ",
+          "DK",
+          "DJ",
+          "DM",
+          "DO",
+          "EC",
+          "EG",
+          "SV",
+          "GQ",
+          "ER",
+          "EE",
+          "ET",
+          "FK",
+          "FO",
+          "FJ",
+          "FI",
+          "FR",
+          "GF",
+          "PF",
+          "TF",
+          "GA",
+          "GM",
+          "GE",
+          "DE",
+          "GH",
+          "GI",
+          "GR",
+          "GL",
+          "GD",
+          "GP",
+          "GU",
+          "GT",
+          "GG",
+          "GN",
+          "GW",
+          "GY",
+          "HT",
+          "HM",
+          "VA",
+          "HN",
+          "HK",
+          "HU",
+          "IS",
+          "IN",
+          "ID",
+          "IR",
+          "IQ",
+          "IE",
+          "IM",
+          "IL",
+          "IT",
+          "JM",
+          "JP",
+          "JE",
+          "JO",
+          "KZ",
+          "KE",
+          "KI",
+          "KP",
+          "KR",
+          "KW",
+          "KG",
+          "LA",
+          "LV",
+          "LB",
+          "LS",
+          "LR",
+          "LY",
+          "LI",
+          "LT",
+          "LU",
+          "MO",
+          "MK",
+          "MG",
+          "MW",
+          "MY",
+          "MV",
+          "ML",
+          "MT",
+          "MH",
+          "MQ",
+          "MR",
+          "MU",
+          "YT",
+          "MX",
+          "FM",
+          "MD",
+          "MC",
+          "MN",
+          "ME",
+          "MS",
+          "MA",
+          "MZ",
+          "MM",
+          "NA",
+          "NR",
+          "NP",
+          "NL",
+          "NC",
+          "NZ",
+          "NI",
+          "NE",
+          "NG",
+          "NU",
+          "NF",
+          "MP",
+          "NO",
+          "OM",
+          "PK",
+          "PW",
+          "PS",
+          "PA",
+          "PG",
+          "PY",
+          "PE",
+          "PH",
+          "PN",
+          "PL",
+          "PT",
+          "PR",
+          "QA",
+          "RE",
+          "RO",
+          "RU",
+          "RW",
+          "BL",
+          "SH",
+          "KN",
+          "LC",
+          "MF",
+          "PM",
+          "VC",
+          "WS",
+          "SM",
+          "ST",
+          "SA",
+          "SN",
+          "RS",
+          "SC",
+          "SL",
+          "SG",
+          "SX",
+          "SK",
+          "SI",
+          "SB",
+          "SO",
+          "ZA",
+          "GS",
+          "SS",
+          "ES",
+          "LK",
+          "SD",
+          "SR",
+          "SJ",
+          "SZ",
+          "SE",
+          "CH",
+          "SY",
+          "TW",
+          "TJ",
+          "TZ",
+          "TH",
+          "TL",
+          "TG",
+          "TK",
+          "TO",
+          "TT",
+          "TN",
+          "TR",
+          "TM",
+          "TC",
+          "TV",
+          "UG",
+          "UA",
+          "AE",
+          "GB",
+          "US",
+          "UM",
+          "UY",
+          "UZ",
+          "VU",
+          "VE",
+          "VN",
+          "VG",
+          "VI",
+          "WF",
+          "EH",
+          "YE",
+          "ZM",
+          "ZW"
+        ],
+        "example": "US"
+      },
+      "SegmentCurrency": {
+        "type": "string",
+        "description": "Represents a three-letter currency code based on the ISO 4217 standard, indicating the currency associated with a player.",
+        "pattern": "^[A-Z]{3}$",
+        "enum": [
+          "AED",
+          "AFN",
+          "ALL",
+          "AMD",
+          "ANG",
+          "AOA",
+          "ARS",
+          "AUD",
+          "AWG",
+          "AZN",
+          "BAM",
+          "BBD",
+          "BDT",
+          "BGN",
+          "BHD",
+          "BIF",
+          "BMD",
+          "BND",
+          "BOB",
+          "BRL",
+          "BSD",
+          "BTN",
+          "BWP",
+          "BYR",
+          "BZD",
+          "CAD",
+          "CDF",
+          "CHF",
+          "CLP",
+          "CNY",
+          "COP",
+          "CRC",
+          "CUC",
+          "CUP",
+          "CVE",
+          "CZK",
+          "DJF",
+          "DKK",
+          "DOP",
+          "DZD",
+          "EGP",
+          "ERN",
+          "ETB",
+          "EUR",
+          "FJD",
+          "FKP",
+          "GBP",
+          "GEL",
+          "GGP",
+          "GHS",
+          "GIP",
+          "GMD",
+          "GNF",
+          "GTQ",
+          "GYD",
+          "HKD",
+          "HNL",
+          "HRK",
+          "HTG",
+          "HUF",
+          "IDR",
+          "ILS",
+          "IMP",
+          "INR",
+          "IQD",
+          "IRR",
+          "ISK",
+          "JEP",
+          "JMD",
+          "JOD",
+          "JPY",
+          "KES",
+          "KGS",
+          "KHR",
+          "KMF",
+          "KPW",
+          "KRW",
+          "KWD",
+          "KYD",
+          "KZT",
+          "LAK",
+          "LBP",
+          "LKR",
+          "LRD",
+          "LSL",
+          "LYD",
+          "MAD",
+          "MDL",
+          "MGA",
+          "MKD",
+          "MMK",
+          "MNT",
+          "MOP",
+          "MRO",
+          "MUR",
+          "MVR",
+          "MWK",
+          "MXN",
+          "MYR",
+          "MZN",
+          "NAD",
+          "NGN",
+          "NIO",
+          "NOK",
+          "NPR",
+          "NZD",
+          "OMR",
+          "PAB",
+          "PEN",
+          "PGK",
+          "PHP",
+          "PKR",
+          "PLN",
+          "PYG",
+          "QAR",
+          "RON",
+          "RSD",
+          "RUB",
+          "RWF",
+          "SAR",
+          "SBD",
+          "SCR",
+          "SDG",
+          "SEK",
+          "SGD",
+          "SHP",
+          "SLL",
+          "SOS",
+          "SPL",
+          "SRD",
+          "STD",
+          "SVC",
+          "SYP",
+          "SZL",
+          "THB",
+          "TJS",
+          "TMT",
+          "TND",
+          "TOP",
+          "TRY",
+          "TTD",
+          "TVD",
+          "TWD",
+          "TZS",
+          "UAH",
+          "UGX",
+          "USD",
+          "UYU",
+          "UZS",
+          "VEF",
+          "VND",
+          "VUV",
+          "WST",
+          "XAF",
+          "XCD",
+          "XDR",
+          "XOF",
+          "XPF",
+          "YER",
+          "ZAR",
+          "ZMW",
+          "ZWD"
+        ],
+        "example": "USD"
+      },
+      "SegmentFilterComparison": {
+        "type": "string",
+        "description": "Enumeration of comparison operators used in segment filters to define conditions for filtering player data.",
+        "enum": [
+          "GreaterThan",
+          "LessThan",
+          "EqualTo",
+          "NotEqualTo",
+          "GreaterThanOrEqual",
+          "LessThanOrEqual",
+          "Exists",
+          "Contains",
+          "NotContains"
+        ],
+        "example": "GreaterThan"
+      },
+      "SegmentLoginIdentityProvider": {
+        "type": "string",
+        "description": "Enumeration of login identity providers representing different methods through which players can authenticate in the system.",
+        "enum": [
+          "Unknown",
+          "PlayFab",
+          "Custom",
+          "GameCenter",
+          "GooglePlay",
+          "Steam",
+          "XBoxLive",
+          "PSN",
+          "Kongregate",
+          "Facebook",
+          "IOSDevice",
+          "AndroidDevice",
+          "Twitch",
+          "WindowsHello",
+          "GameServer",
+          "CustomServer",
+          "NintendoSwitch",
+          "FacebookInstantGames",
+          "OpenIdConnect",
+          "Apple",
+          "NintendoSwitchAccount"
+        ],
+        "example": "PlayFab"
+      },
+      "SegmentModel": {
+        "type": "object",
+        "properties": {
+          "Description": {
+            "description": "A detailed description of the segment.",
+            "type": "string"
+          },
+          "EnteredSegmentActions": {
+            "description": "Actions associated with players who have entered the segment.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentTrigger"
+            },
+            "default": []
+          },
+          "LastUpdateTime": {
+            "description": "Date and time when the segment was last updated.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "LeftSegmentActions": {
+            "description": "Actions associated with players who have left the segment.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentTrigger"
+            },
+            "default": []
+          },
+          "Name": {
+            "description": "The name of the segment.",
+            "type": "string"
+          },
+          "SegmentId": {
+            "description": "The unique identifier of the segment in hexadecimal format.",
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]+$"
+          },
+          "SegmentOrDefinitions": {
+            "description": "A collection of segment definitions.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentOrDefinition"
+            },
+            "default": []
+          }
+        },
+        "required": [
+          "LastUpdateTime"
+        ],
+        "example": {
+          "Descriptions": "This segment includes active players in the past month",
+          "EnteredSegmentActions": [],
+          "LastUpdateTime": "2023-08-09T12:00:00Z",
+          "LeftSegmentActions": [],
+          "Name": "Active Players",
+          "SegmentId": "B05FC8CB558A6570",
+          "SegmentOrDefinitions": []
+        }
+      },
+      "SegmentOrDefinition": {
+        "type": "object",
+        "properties": {
+          "SegmentAndDefinitions": {
+            "description": "List of segment definitions evaluated together using an AND operator.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentAndDefinition"
+            },
+            "x-isclass": true,
+            "default": []
+          }
+        },
+        "description": "List of segment definitions evaluated together using an OR operator.",
+        "example": {
+          "SegmentAndDefinitions": []
+        }
+      },
+      "SegmentPushNotificationDevicePlatform": {
+        "type": "string",
+        "description": "The platform used for push notifications",
+        "enum": [
+          "ApplePushNotificationService",
+          "GoogleCloudMessaging"
+        ],
+        "example": "ApplePushNotificationService"
+      },
+      "SegmentTrigger": {
+        "type": "object",
+        "properties": {
+          "BanPlayerAction": {
+            "$ref": "#/components/schemas/BanPlayerSegmentAction",
+            "description": "Action to ban a player as a segment trigger.",
+            "type": "object"
+          },
+          "DeletePlayerAction": {
+            "$ref": "#/components/schemas/DeletePlayerSegmentAction",
+            "description": "Action to delete a player as a segment trigger.",
+            "type": "object"
+          },
+          "DeletePlayerStatisticAction": {
+            "$ref": "#/components/schemas/DeletePlayerStatisticSegmentAction",
+            "description": "Action to delete a player's statistic as a segment trigger.",
+            "type": "object"
+          },
+          "EmailNotificationAction": {
+            "$ref": "#/components/schemas/EmailNotificationSegmentAction",
+            "description": "Action to send an email notification as a segment trigger.",
+            "type": "object"
+          },
+          "ExecuteAzureFunctionAction": {
+            "$ref": "#/components/schemas/ExecuteAzureFunctionSegmentAction",
+            "description": "Action to execute an Azure function as a segment trigger.",
+            "type": "object"
+          },
+          "ExecuteCloudScriptAction": {
+            "$ref": "#/components/schemas/ExecuteCloudScriptSegmentAction",
+            "description": "Action to execute CloudScript as a segment trigger.",
+            "type": "object"
+          },
+          "GrantItemAction": {
+            "$ref": "#/components/schemas/GrantItemSegmentAction",
+            "description": "Action to grant an item as a segment trigger.",
+            "type": "object"
+          },
+          "GrantVirtualCurrencyAction": {
+            "$ref": "#/components/schemas/GrantVirtualCurrencySegmentAction",
+            "description": "Action to grant virtual currency as a segment trigger.",
+            "type": "object"
+          },
+          "IncrementPlayerStatisticAction": {
+            "$ref": "#/components/schemas/IncrementPlayerStatisticSegmentAction",
+            "description": "Action to increment a player's statistic as a segment trigger.",
+            "type": "object"
+          },
+          "PushNotificationAction": {
+            "$ref": "#/components/schemas/PushNotificationSegmentAction",
+            "description": "Action to send a push notification as a segment trigger.",
+            "type": "object"
+          }
+        },
+        "description": "Actions associated with a segment trigger."
+      },
+      "StatisticSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for player statistic filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "LessThanOrEqualTo"
+          },
+          "FilterValue": {
+            "description": "Value of the statistic.",
+            "type": "string",
+            "example": "10"
+          },
+          "Name": {
+            "description": "Name of the statistic.",
+            "type": "string",
+            "example": "LevelsCompleted"
+          },
+          "UseCurrentVersion": {
+            "description": "Flag indicating whether to use the current version of the statistic",
+            "type": "boolean",
+            "example": true
+          },
+          "Version": {
+            "description": "Version number of the statistic.",
+            "type": "number",
+            "x-actualtype": "int32",
+            "format": "int",
+            "example": 1
+          }
+        },
+        "description": "Filter based on the player's statistic value.",
+        "example": {
+          "Comparison": "LessThanOrEqualTo",
+          "FilterValue": "10",
+          "Name": "LevelsCompleted",
+          "UseCurrentVersion": true,
+          "Version": 1
+        }
+      },
+      "TagSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for player tag filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "EqualTo"
+          },
+          "TagValue": {
+            "description": "Value of the tag.",
+            "type": "string",
+            "example": "mytag"
+          }
+        },
+        "description": "Filter based on the player's tag value.",
+        "example": {
+          "Comparison": "NotEqualTo",
+          "TagValue": "mytag"
+        }
+      },
+      "TotalValueToDateInUSDSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for player total value to date in USD filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "GreaterThanOrEqualTo"
+          },
+          "Amount": {
+            "description": "The total accumulated value in USD up to the present.",
+            "type": "string",
+            "example": "250.75"
+          }
+        },
+        "description": "Filter based on the player's total value to date in USD.",
+        "example": {
+          "Comparison": "LessThan",
+          "Amount": "100.00"
+        }
+      },
+      "UserOriginationSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "LoginProvider": {
+            "$ref": "#/components/schemas/SegmentLoginIdentityProvider",
+            "description": "The identity provider from which the user originated or logged in.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "PlayFab"
+          }
+        },
+        "description": "Filter based on the player's origination.",
+        "example": {
+          "LoginProvider": "GooglePlay"
+        }
+      },
+      "ValueToDateSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type used for player value to date filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "GreaterThanOrEqualTo"
+          },
+          "Amount": {
+            "description": "Value to date amount.",
+            "type": "string",
+            "format": "double",
+            "example": "1000.50"
+          },
+
+          "Currency": {
+            "$ref": "#/components/schemas/SegmentCurrency",
+            "description": "The currency used for calculating value to date.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "USD"
+          }
+        },
+        "description": "Filter based on the player's value to date for the specified currency.",
+        "example": {
+          "Comparison": "LessThan",
+          "Amount": "100.00",
+          "Currency": "USD"
+        }
+      },
+      "VirtualCurrencyBalanceSegmentFilter": {
+        "type": "object",
+        "properties": {
+          "Comparison": {
+            "$ref": "#/components/schemas/SegmentFilterComparison",
+            "description": "Comparison type for player virtual currency balance filtering.",
+            "type": "string",
+            "x-isenum": true,
+            "example": "GreaterThanOrEqualTo"
+          },
+          "Amount": {
+            "description": "Total amount of virtual currency.",
+            "type": "number",
+            "x-actualtype": "int32",
+            "example": 250
+          },
+          "CurrencyCode": {
+            "description": "The currency code identifier for the virtual currency.",
+            "type": "string",
+            "example": "AU"
+          }
+        },
+        "required": [
+          "Amount"
+        ],
+        "description": "Filter based on the player's virtual currency balance for the specified virtual currency.",
+        "example": {
+          "Comparison": "LessThan",
+          "Amount": 100,
+          "CurrencyCode": "AU"
+        }
+      }
+    }
+  }
+}
