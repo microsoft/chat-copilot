@@ -31,7 +31,7 @@ public class ContentSafetyOptions
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
-    /// Set the violation threshold. See https://github.com/Azure/Project-Carnegie-Private-Preview for details.
+    /// Set the violation threshold. See https://learn.microsoft.com/en-us/azure/ai-services/content-safety/quickstart-image for details.
     /// </summary>
     [Range(0, 6)]
     public short ViolationThreshold { get; set; } = 4;

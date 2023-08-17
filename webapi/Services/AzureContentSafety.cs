@@ -40,12 +40,12 @@ public sealed class AzureContentSafety : IDisposable
     /// <summary>
     /// Options for the content safety.
     /// </summary>
-    private readonly ContentSafetyOptions? _contentSafetyOptions;
+    private readonly ContentSafetyOptions _contentSafetyOptions;
 
     /// <summary>
     /// Gets the options for the content safety.
     /// </summary>
-    public ContentSafetyOptions? Options => this._contentSafetyOptions;
+    public ContentSafetyOptions Options => this._contentSafetyOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureContentSafety"/> class.
@@ -99,7 +99,7 @@ public sealed class AzureContentSafety : IDisposable
             return false;
         }
 
-        return this._contentSafetyOptions?.Enabled ?? false;
+        return this._contentSafetyOptions.Enabled;
     }
 
     /// <summary>
@@ -132,7 +132,6 @@ public sealed class AzureContentSafety : IDisposable
     /// <returns>SKContext containing the image analysis result.</returns>
     public async Task<ImageAnalysisResponse> ImageAnalysisAsync(string base64Image, CancellationToken cancellationToken)
     {
-        // TODO: Add error handling if URL or Key is invalid
         var image = base64Image.Replace("data:image/png;base64,", "", StringComparison.InvariantCultureIgnoreCase).Replace("data:image/jpeg;base64,", "", StringComparison.InvariantCultureIgnoreCase);
         ImageContent content = new(image);
         ImageAnalysisRequest requestBody = new(content);

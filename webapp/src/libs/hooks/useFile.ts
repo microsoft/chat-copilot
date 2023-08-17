@@ -85,9 +85,9 @@ export const useFile = () => {
         }
     };
 
-    const getContentModerationStatus = async () => {
+    const getContentSafetyStatus = async () => {
         try {
-            const result = await documentImportService.getContentModerationStatusAsync(
+            const result = await documentImportService.getContentSafetyStatusAsync(
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
 
@@ -105,6 +105,6 @@ export const useFile = () => {
         loadFile,
         downloadFile,
         handleImport,
-        getContentModerationStatus,
+        getContentSafetyStatus,
     };
 };

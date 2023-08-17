@@ -81,7 +81,7 @@ public class ChatSkill
     private readonly ExternalInformationSkill _externalInformationSkill;
 
     /// <summary>
-    /// Azure content safety.
+    /// Azure content safety moderator.
     /// </summary>
     private readonly AzureContentSafety? _contentSafety = null;
 

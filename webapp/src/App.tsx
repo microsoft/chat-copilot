@@ -98,7 +98,7 @@ const App: FC = () => {
                         }
                     }),
                     // Check if content safety is enabled
-                    file.getContentModerationStatus(),
+                    file.getContentSafetyStatus(),
                     // Load service options
                     chat.getServiceOptions().then((serviceOptions) => {
                         if (serviceOptions) {

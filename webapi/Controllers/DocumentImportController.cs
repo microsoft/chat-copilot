@@ -94,7 +94,6 @@ public class DocumentImportController : ControllerBase
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         IOcrEngine ocrEngine,
-        IOptions<ContentSafetyOptions> contentSafetyOptions,
         AzureContentSafety? contentSafety = null)
     {
         this._logger = logger;
@@ -297,7 +296,7 @@ public class DocumentImportController : ControllerBase
                     {
                         if (documentImportForm.UseContentSafety)
                         {
-                            if (!this._contentSafety!.Options!.Enabled)
+                            if (!this._contentSafety!.ContentSafetyStatus(this._logger))
                             {
                                 throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
                             }
