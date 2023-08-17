@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
+  </PropertyGroup>  
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.3" />
@@ -12,6 +12,12 @@
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.19.230804.2-preview" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Skills\SegmentSkill\openapi.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

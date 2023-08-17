@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Configuration;
 using PlayFab.Examples.Common.Configuration;
 using PlayFab.Examples.Example01.DataQnA;
+using PlayFab.Examples.Example02_Generative;
 
 namespace PlayFab.Examples;
 
@@ -19,7 +20,7 @@ public static class Program
 
         // Run PlayFab Examples
         await Example01_DataQnA.RunAsync().SafeWaitAsync(cancelToken);
-        //await PlayFabExamples.Example02_Generative.Example02_Generative.RunAsync().SafeWaitAsync(cancelToken);
+        await Example02_GenerativeSegments.RunAsync().SafeWaitAsync(cancelToken);
         //await PlayFabExamples.Example03_SegmentQuery.Example03_SegmentQuery.RunAsync().SafeWaitAsync(cancelToken);
     }
 
