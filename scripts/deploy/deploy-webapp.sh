@@ -10,12 +10,14 @@ usage() {
     echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -rg RESOURCE_GROUP -c FRONTEND_CLIENT_ID -t AZURE_AD_TENANT_ID [OPTIONS]"
     echo ""
     echo "Arguments:"
+    echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION        Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
-    echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -c, --client-id FRONTEND_CLIENT_ID     Client application ID for the frontend web app (mandatory)"
     echo "  -t, --tenant-id AZURE_AD_TENANT_ID     Azure AD tenant ID (mandatory)"
-    echo "  -i, --instance AZURE_AD_INSTANCE       Azure cloud instance for authenticating users. Defaults to (https://login.microsoftonline.com/) if not specified."
+    echo "  -i, --instance AZURE_AD_INSTANCE       Azure cloud instance for authenticating users. Defaults to (https://login.microsoftonline.com) if not specified."
+    echo "  -v  --version VERSION                  Version to display in UI (default: 1.0.0)"
+    echo "  -i  --version-info INFO                Additional info to put in version details"
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
 }
 
@@ -50,6 +52,16 @@ while [[ $# -gt 0 ]]; do
         ;;
         -i|--instance)
         INSTANCE="$2"
+        shift
+        shift
+        ;;
+        -v|--version)
+        VERSION="$2"
+        shift
+        shift
+        ;;
+        -i|--version-info)
+        VERSION_INFO="$2"
         shift
         shift
         ;;
@@ -108,6 +120,8 @@ echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
 echo "REACT_APP_AAD_AUTHORITY=$INSTANCE/$TENANT_ID" >> $ENV_FILE_PATH
 echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >> $ENV_FILE_PATH
 echo "REACT_APP_AAD_API_SCOPE=api://$WEB_API_CLIENT_ID/$WEB_API_SCOPE" >> $ENV_FILE_PATH
+echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
+echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
 
 echo "Writing swa-cli.config.json..."
 SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../../webapp/swa-cli.config.json"

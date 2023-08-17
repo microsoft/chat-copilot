@@ -8,13 +8,15 @@ SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIRECTORY="$SCRIPT_ROOT"
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION --ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
+    echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Arguments:"
     echo "  -c, --configuration CONFIGURATION      Build configuration (default: Release)"
     echo "  -d, --dotnet DOTNET_FRAMEWORK_VERSION  Target dotnet framework (default: net6.0)"
     echo "  -r, --runtime TARGET_RUNTIME           Runtime identifier (default: linux-x64)"
-    echo "  -p, --output OUTPUT_DIRECTORY          Output directory (default: $SCRIPT_ROOT)"
+    echo "  -o, --output OUTPUT_DIRECTORY          Output directory (default: $SCRIPT_ROOT)"
+    echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
+    echo "  -i  --info INFO                        Additional info to put in version details"
     echo "  -nz, --no-zip                          Do not zip package (default: false)"
 }
 
@@ -42,6 +44,16 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
+        -v|--version)
+        VERSION="$2"
+        shift
+        shift
+        ;;
+        -i|--info)
+        INFO="$2"
+        shift
+        shift
+        ;;
         -nz|--no-zip)
         NO_ZIP=true
         shift
@@ -58,6 +70,8 @@ done
 : "${CONFIGURATION:="Release"}"
 : "${DOTNET:="net6.0"}"
 : "${RUNTIME:="linux-x64"}"
+: "${VERSION:="1.0.0"}"
+: "${INFO:=""}"
 : "${OUTPUT_DIRECTORY:="$SCRIPT_ROOT"}"
 
 PUBLISH_OUTPUT_DIRECTORY="$OUTPUT_DIRECTORY/publish"
@@ -72,7 +86,7 @@ if [[ ! -d "$PUBLISH_ZIP_DIRECTORY" ]]; then
 fi
 
 echo "Build configuration: $CONFIGURATION"
-dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" --configuration $CONFIGURATION --framework $DOTNET --runtime $RUNTIME --self-contained --output "$PUBLISH_OUTPUT_DIRECTORY"
+dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" --configuration $CONFIGURATION --framework $DOTNET --runtime $RUNTIME --self-contained --output "$PUBLISH_OUTPUT_DIRECTORY" /p:AssemblyVersion=$VERSION /p:FileVersion=$VERSION /p:InformationalVersion=$INFO
 if [ $? -ne 0 ]; then
     exit 1
 fi

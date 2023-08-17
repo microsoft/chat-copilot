@@ -484,3 +484,9 @@ webapp/public/.well-known*
 
 # Auto-generated solution file from Visual Studio
 webapi/CopilotChatWebApi.sln
+
+# Files created for deployments
+/deploy/
+
+# Tesseract OCR language data files
+*.traineddata

@@ -5,16 +5,16 @@
 set -e
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -c BACKEND_CLIENT_ID -t AZURE_AD_TENANT_ID -ai AI_SERVICE_TYPE -aikey AI_SERVICE_KEY [OPTIONS]"
+    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -c BACKEND_CLIENT_ID -t AZURE_AD_TENANT_ID -ai AI_SERVICE_TYPE [OPTIONS]"
     echo ""
     echo "Arguments:"
     echo "  -d, --deployment-name DEPLOYMENT_NAME      Name for the deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION            Subscription to which to make the deployment (mandatory)"
     echo "  -c, --client-id BACKEND_CLIENT_ID          Azure AD client ID for the Web API backend app registration (mandatory)"
     echo "  -t, --tenant-id AZURE_AD_TENANT_ID         Azure AD tenant ID for authenticating users (mandatory)"
-    echo "  -ai, --ai-service AI_SERVICE_TYPE          Type of AI service to use (i.e., OpenAI or AzureOpenAI)"
-    echo "  -aikey, --ai-service-key AI_SERVICE_KEY    API key for existing Azure OpenAI resource or OpenAI account"
+    echo "  -ai, --ai-service AI_SERVICE_TYPE          Type of AI service to use (i.e., OpenAI or AzureOpenAI) (mandatory)"
     echo "  -aiend, --ai-endpoint AI_ENDPOINT          Endpoint for existing Azure OpenAI resource"
+    echo "  -aikey, --ai-service-key AI_SERVICE_KEY    API key for existing Azure OpenAI resource or OpenAI account"
     echo "  -rg, --resource-group RESOURCE_GROUP       Resource group to which to make the deployment (default: \"rg-\$DEPLOYMENT_NAME\")"
     echo "  -r, --region REGION                        Region to which to make the deployment (default: \"South Central US\")"
     echo "  -wr, --web-app-region WEB_APP_REGION       Region to deploy to the static web app into. This must be a region that supports static web apps. (default: \"West US 2\")"
@@ -22,7 +22,8 @@ usage() {
     echo "  -i, --instance AZURE_AD_INSTANCE           Azure AD cloud instance for authenticating users"
     echo "                                             (default: \"https://login.microsoftonline.com/\")"
     echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
-    echo "                                             \"AzureCognitiveSearch\" (default), \"Qdrant\" and \"Volatile\""
+    echo "                                             \"AzureCognitiveSearch\" (default), \"Qdrant\", \"Postgres\" and \"Volatile\""
+    echo "  -sap, --sql-admin-password                 Password for the PostgreSQL Server admin user"
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
     echo "  -dd, --debug-deployment                    Switches on verbose template deployment output"
@@ -97,6 +98,11 @@ while [[ $# -gt 0 ]]; do
         MEMORY_STORE=="$2"
         shift
         ;;
+        -sap|--sql-admin-password)
+        SQL_ADMIN_PASSWORD="$2"
+        shift
+        shift
+        ;;
         -nc|--no-cosmos-db)
         NO_COSMOS_DB=true
         shift
@@ -160,6 +166,13 @@ if [[ "${AI_SERVICE_TYPE,,}" = "openai" ]] && [[ -z "$AI_SERVICE_KEY" ]]; then
     exit 1
 fi
 
+# If MEMORY_STORE is Postges, then SQL_ADMIN_PASSWORD is mandatory
+if [[ "${MEMORY_STORE,,}" = "postgres" ]] && [[ -z "$SQL_ADMIN_PASSWORD" ]]; then
+    echo "When --memory-store is 'Postgres', --sql-admin-password must be set."
+    usage
+    exit 1
+fi
+
 # If resource group is not set, then set it to rg-DEPLOYMENT_NAME
 if [ -z "$RESOURCE_GROUP" ]; then
     RESOURCE_GROUP="rg-${DEPLOYMENT_NAME}"
@@ -198,6 +211,7 @@ JSON_CONFIG=$(cat << EOF
     "webApiClientId": { "value": "$BACKEND_CLIENT_ID" },
     "deployNewAzureOpenAI": { "value": $([ "$NO_NEW_AZURE_OPENAI" = true ] && echo "false" || echo "true") },
     "memoryStore": { "value": "$MEMORY_STORE" },
+    "sqlAdminPassword": { "value": "$SQL_ADMIN_PASSWORD" },
     "deployCosmosDB": { "value": $([ "$NO_COSMOS_DB" = true ] && echo "false" || echo "true") },
     "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") }
 }

@@ -7,10 +7,7 @@ import * as React from 'react';
 import { FC, useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
-import BackendProbe from './components/views/BackendProbe';
-import { ChatView } from './components/views/ChatView';
-import Loading from './components/views/Loading';
-import { Login } from './components/views/Login';
+import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
 import { useChat } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
@@ -52,6 +49,8 @@ export const useClasses = makeStyles({
 
 enum AppState {
     ProbeForBackend,
+    SettingUserInfo,
+    ErrorLoadingUserInfo,
     LoadingChats,
     Chat,
     SigningOut,
@@ -70,18 +69,37 @@ const App: FC = () => {
     const chat = useChat();
 
     useEffect(() => {
-        if (isAuthenticated && !activeUserInfo) {
-            const account = instance.getActiveAccount();
-            if (!account) {
-                dispatch(addAlert({ type: AlertType.Error, message: 'Unable to get active logged in account.' }));
-            } else {
-                dispatch(
-                    setActiveUserInfo({
-                        id: account.homeAccountId,
-                        email: account.username, // username in an AccountInfo object is the email address
-                        username: account.name ?? account.username,
-                    }),
-                );
+        if (isAuthenticated) {
+            if (appState === AppState.SettingUserInfo) {
+                if (activeUserInfo === undefined) {
+                    const account = instance.getActiveAccount();
+                    if (!account) {
+                        setAppState(AppState.ErrorLoadingUserInfo);
+                    } else {
+                        dispatch(
+                            setActiveUserInfo({
+                                id: account.homeAccountId,
+                                email: account.username, // username in an AccountInfo object is the email address
+                                username: account.name ?? account.username,
+                            }),
+                        );
+
+                        // Privacy disclaimer for internal Microsoft users
+                        if (account.username.split('@')[1] === 'microsoft.com') {
+                            dispatch(
+                                addAlert({
+                                    message:
+                                        'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
+                                    type: AlertType.Info,
+                                }),
+                            );
+                        }
+
+                        setAppState(AppState.LoadingChats);
+                    }
+                } else {
+                    setAppState(AppState.LoadingChats);
+                }
             }
         }
 
@@ -147,24 +165,36 @@ const Chat = ({
         <div className={classes.container}>
             <div className={classes.header}>
                 <Subtitle1 as="h1">Chat Copilot</Subtitle1>
-                <div className={classes.cornerItems}>
-                    <div data-testid="logOutMenuList" className={classes.cornerItems}>
-                        <PluginGallery />
-                        <UserSettingsMenu
-                            setLoadingState={() => {
-                                setAppState(AppState.SigningOut);
-                            }}
-                        />
+                {appState > AppState.SettingUserInfo && (
+                    <div className={classes.cornerItems}>
+                        <div data-testid="logOutMenuList" className={classes.cornerItems}>
+                            <PluginGallery />
+                            <UserSettingsMenu
+                                setLoadingState={() => {
+                                    setAppState(AppState.SigningOut);
+                                }}
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
             {appState === AppState.ProbeForBackend && (
                 <BackendProbe
                     uri={process.env.REACT_APP_BACKEND_URI as string}
                     onBackendFound={() => {
-                        setAppState(AppState.LoadingChats);
+                        if (AuthHelper.IsAuthAAD) {
+                            setAppState(AppState.SettingUserInfo);
+                        } else {
+                            setAppState(AppState.LoadingChats);
+                        }
                     }}
                 />
+            )}
+            {appState === AppState.SettingUserInfo && (
+                <Loading text={'Hang tight while we fetch your information...'} />
+            )}
+            {appState === AppState.ErrorLoadingUserInfo && (
+                <Error text={'Oops, something went wrong. Please try signing out and signing back in.'} />
             )}
             {appState === AppState.LoadingChats && <Loading text="Loading Chats..." />}
             {appState === AppState.Chat && <ChatView />}

@@ -1,6 +1,6 @@
 # Copilot Chat Web API
 
-This ASP.Net web application provides a web service hosting the Semantic Kernel, enabling secure
+This ASP.Net web application provides a web service hosting the [Semantic Kernel](https://github.com/microsoft/semantic-kernel), enabling secure
 and modular access to its features for the Copilot Chat application without embedding kernel code and settings,
 while allowing user interfaces to be developed using frontend frameworks such as React and Angular.
 

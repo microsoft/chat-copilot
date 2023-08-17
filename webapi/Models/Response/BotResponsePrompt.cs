@@ -37,7 +37,7 @@ public class BotResponsePrompt
     /// Relevant additional knowledge extracted using a planner.
     /// </summary>
     [JsonPropertyName("externalInformation")]
-    public string ExternalInformation { get; set; } = string.Empty;
+    public SemanticDependency<StepwiseThoughtProcess> ExternalInformation { get; set; }
 
     /// <summary>
     /// Most recent messages from chat history.
@@ -52,9 +52,9 @@ public class BotResponsePrompt
     public string SystemChatContinuation { get; set; } = string.Empty;
 
     /// <summary>
-    /// Raw content of the prompt. Used to pass rendered prompt around ChatSkill.
+    /// Raw content of the rendered prompt.
     /// </summary>
-    [JsonIgnore]
+    [JsonPropertyName("rawContent")]
     public string RawContent { get; set; } = string.Empty;
 
     public BotResponsePrompt(
@@ -65,7 +65,7 @@ public class BotResponsePrompt
         string userIntent,
         string chatMemories,
         string documentMemories,
-        string externalInformation,
+        SemanticDependency<StepwiseThoughtProcess> externalInformation,
         string chatHistory,
         string systemChatContinuation
         )

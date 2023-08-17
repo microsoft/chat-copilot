@@ -48,14 +48,19 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
     return (
         <div className={classes.root}>
             <Tooltip content={'Edit chat name'} relationship="label">
-                <Button icon={<Edit />} appearance="transparent" aria-label="Edit" onClick={onEditTitleClick} />
+                <Button
+                    icon={<Edit />}
+                    appearance="transparent"
+                    aria-label="Edit chat name"
+                    onClick={onEditTitleClick}
+                />
             </Tooltip>
             <Tooltip content={'Download chat session'} relationship="label">
                 <Button
                     disabled={!features[FeatureKeys.BotAsDocs].enabled}
                     icon={<ArrowDownload16 />}
                     appearance="transparent"
-                    aria-label="Edit"
+                    aria-label="Download chat session"
                     onClick={onDownloadBotClick}
                 />
             </Tooltip>
@@ -64,7 +69,7 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
                     disabled={!features[FeatureKeys.MultiUserChat].enabled}
                     icon={<Share20 />}
                     appearance="transparent"
-                    aria-label="Edit"
+                    aria-label="Share live chat code"
                     onClick={() => {
                         setIsGettingInvitationId(true);
                     }}

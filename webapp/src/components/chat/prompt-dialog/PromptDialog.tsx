@@ -12,6 +12,10 @@ import {
     DialogTrigger,
     Label,
     Link,
+    SelectTabEventHandler,
+    Tab,
+    TabList,
+    TabValue,
     Tooltip,
     makeStyles,
     shorthands,
@@ -19,13 +23,14 @@ import {
 } from '@fluentui/react-components';
 import { Info16Regular } from '@fluentui/react-icons';
 import React from 'react';
-import { Constants } from '../../../Constants';
-import { BotResponsePrompt, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
+import { BotResponsePrompt, DependencyDetails, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
+import { PlanType } from '../../../libs/models/Plan';
+import { StepwiseThoughtProcess } from '../../../libs/models/StepwiseThoughtProcess';
 import { useDialogClasses } from '../../../styles';
 import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 import { formatParagraphTextContent } from '../../utils/TextUtils';
-import { StepwiseThoughtProcess } from './stepwise-planner/StepwiseThoughtProcess';
+import { StepwiseThoughtProcessView } from './stepwise-planner/StepwiseThoughtProcessView';
 
 const useClasses = makeStyles({
     prompt: {
@@ -47,23 +52,50 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
 
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>('formatted');
+    const onTabSelect: SelectTabEventHandler = (_event, data) => {
+        setSelectedTab(data.value);
+    };
+
     let prompt: string | BotResponsePrompt;
     try {
         prompt = JSON.parse(message.prompt ?? '{}') as BotResponsePrompt;
     } catch (e) {
         prompt = message.prompt ?? '';
     }
+
     let promptDetails;
     if (typeof prompt === 'string') {
-        promptDetails = prompt.split('\n').map((paragraph, idx) => <p key={`prompt-details-${idx}`}>{paragraph}</p>);
+        promptDetails = formatParagraphTextContent(prompt);
     } else {
         promptDetails = Object.entries(prompt).map(([key, value]) => {
-            const isStepwiseThoughtProcess = Constants.STEPWISE_RESULT_NOT_FOUND_REGEX.test(value as string);
-            return value ? (
+            let isStepwiseThoughtProcess = false;
+            if (key === 'externalInformation') {
+                const information = value as DependencyDetails;
+                if (information.context) {
+                    // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
+                    const details = information.context as StepwiseThoughtProcess;
+                    isStepwiseThoughtProcess = details.plannerType === PlanType.Stepwise;
+                }
+
+                if (!isStepwiseThoughtProcess) {
+                    value = information.result;
+                }
+            }
+
+            if (
+                key === 'chatMemories' &&
+                value &&
+                !(value as string).includes('User has also shared some document snippets:')
+            ) {
+                value += '\nNo relevant document memories.';
+            }
+
+            return value && key !== 'rawContent' ? (
                 <div className={classes.prompt} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
                     {isStepwiseThoughtProcess ? (
-                        <StepwiseThoughtProcess stepwiseResult={value as string} />
+                        <StepwiseThoughtProcessView thoughtProcess={value as DependencyDetails} />
                     ) : (
                         formatParagraphTextContent(value as string)
                     )}
@@ -84,7 +116,19 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                     <DialogTitle>Prompt</DialogTitle>
                     <DialogContent>
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
-                        {promptDetails}
+                        {message.prompt && typeof prompt !== 'string' && (
+                            <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
+                                <Tab data-testid="formatted" id="formatted" value="formatted">
+                                    Formatted
+                                </Tab>
+                                <Tab data-testid="rawContent" id="rawContent" value="rawContent">
+                                    Raw Content
+                                </Tab>
+                            </TabList>
+                        )}
+                        {selectedTab === 'formatted' && promptDetails}
+                        {selectedTab === 'rawContent' &&
+                            formatParagraphTextContent((prompt as BotResponsePrompt).rawContent)}
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">
