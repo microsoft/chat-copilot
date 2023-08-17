@@ -17,9 +17,20 @@ jobs:
   build:
     uses: ./.github/workflows/copilot-build-backend.yml
 
-  int:
-    needs: build
-    uses: ./.github/workflows/copilot-deploy-environment.yml
+  deploy-int-infra:
+    uses: ./.github/workflows/copilot-deploy-infra.yml
+    with:
+      ENVIRONMENT: int
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+
+  deploy-int-binaries:
+    needs: [build, deploy-int-infra]
+    uses: ./.github/workflows/copilot-deploy-binaries.yml
     with:
       ENVIRONMENT: int
       ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
@@ -31,9 +42,21 @@ jobs:
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
       APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
 
-  stable:
-    uses: ./.github/workflows/copilot-deploy-environment.yml
-    needs: [build, int]
+  deploy-stable-infra:
+    needs: deploy-int-binaries
+    uses: ./.github/workflows/copilot-deploy-infra.yml
+    with:
+      ENVIRONMENT: stable
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+
+  deploy-stable-binaries:
+    uses: ./.github/workflows/copilot-deploy-binaries.yml
+    needs: deploy-stable-infra
     with:
       ENVIRONMENT: stable
       ARTIFACT_NAME: ${{needs.build.outputs.artifact}}
