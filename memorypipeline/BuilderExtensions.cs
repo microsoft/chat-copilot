@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel.AI.Embeddings;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticMemory.Core.AI.AzureOpenAI;
 using Microsoft.SemanticMemory.Core.AI.OpenAI;
 using Microsoft.SemanticMemory.Core.AppBuilders;
@@ -12,13 +13,12 @@ using Microsoft.SemanticMemory.Core.Configuration;
 using Microsoft.SemanticMemory.Core.ContentStorage.AzureBlobs;
 using Microsoft.SemanticMemory.Core.ContentStorage.FileSystemStorage;
 using Microsoft.SemanticMemory.Core.Handlers;
-using Microsoft.SemanticMemory.Core.MemoryStorage.AzureCognitiveSearch;
 using Microsoft.SemanticMemory.Core.MemoryStorage;
+using Microsoft.SemanticMemory.Core.MemoryStorage.AzureCognitiveSearch;
+using Microsoft.SemanticMemory.Core.Pipeline;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue.AzureQueues;
 using Microsoft.SemanticMemory.Core.Pipeline.Queue.FileBasedQueues;
-using Microsoft.SemanticMemory.Core.Pipeline;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 
 namespace CopilotChat.MemoryPipeline;
 
