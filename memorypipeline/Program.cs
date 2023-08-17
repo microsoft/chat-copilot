@@ -5,10 +5,10 @@
 // ********************************************************
 
 using System;
+using CopilotChat.MemoryPipeline;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticMemory.Core.Diagnostics;
-using CopilotChat.MemoryPipeline;
 
 var app = WebApplication.CreateBuilder().AddMemoryServices().Build();
 

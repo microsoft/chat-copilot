@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/copilot-build-memorypipeline.yml
 
   feature-semantic-memory:
-    needs: build
+    needs: [build-webapi, build-memorypipeline]
     uses: ./.github/workflows/copilot-deploy-environment.yml
     with:
       ENVIRONMENT: feature-semantic-memory
