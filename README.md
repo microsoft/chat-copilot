@@ -266,7 +266,7 @@ You will need the following items to run the sample:
    sudo apt install --assume-yes dotnet-sdk-7.0;
    ```
 
-## Check out our other repos!
+# Check out our other repos!
 
 If you would like to learn more about Semantic Kernel and AI, you may also be interested in other repos the Semantic Kernel team supports:
 
@@ -287,7 +287,7 @@ To learn more and get started:
 
 - Read the [documentation](https://learn.microsoft.com/en-us/semantic-kernel/chat-copilot/)
 - Join the [Discord community](https://aka.ms/SKDiscord)
-- [Contribute](CONTRIBUTING.md) to the project.
+- [Contribute](CONTRIBUTING.md) to the project
 - Follow the team on our [blog](https://aka.ms/sk/blog)
 
 ## Code of Conduct
