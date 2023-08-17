@@ -270,7 +270,7 @@ export const useChat = () => {
             let errorDetails = getErrorDetails(e);
 
             // Disable Content Safety if request was unauthorized
-            const contentSafetyDisabledRegEx = /Failed to analyze image .* with Content Safety.\s*AccessDenied/g;
+            const contentSafetyDisabledRegEx = /Access denied: \[Content Safety] Failed to analyze image./g;
             if (contentSafetyDisabledRegEx.test(errorDetails)) {
                 if (features[FeatureKeys.AzureContentSafety].enabled) {
                     errorDetails =

@@ -80,7 +80,7 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
-    private readonly AzureContentSafety? _contentSafety = null;
+    private readonly AzureContentSafety? _contentSafetyService = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -104,7 +104,7 @@ public class DocumentImportController : ControllerBase
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
         this._ocrEngine = ocrEngine;
-        this._contentSafety = contentSafety;
+        this._contentSafetyService = contentSafety;
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class DocumentImportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public bool ContentSafetyStatus()
     {
-        return this._contentSafety!.ContentSafetyStatus(this._logger);
+        return this._contentSafetyService!.ContentSafetyStatus(this._logger);
     }
 
     /// <summary>
@@ -292,11 +292,11 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
-                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
+                    if (this._ocrSupportOptions.Type == OcrSupportOptions.OcrSupportType.None)
                     {
                         if (documentImportForm.UseContentSafety)
                         {
-                            if (!this._contentSafety!.ContentSafetyStatus(this._logger))
+                            if (!this._contentSafetyService!.ContentSafetyStatus(this._logger))
                             {
                                 throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
                             }
@@ -308,13 +308,13 @@ public class DocumentImportController : ControllerBase
                                 var base64Image = await this.ConvertFormFileToBase64Async(formFile);
 
                                 // Call the content safety controller to analyze the image
-                                var imageAnalysisResponse = await this._contentSafety!.ImageAnalysisAsync(base64Image, default);
-                                violations = AzureContentSafety.ParseViolatedCategories(imageAnalysisResponse, this._contentSafety!.Options!.ViolationThreshold);
+                                var imageAnalysisResponse = await this._contentSafetyService!.ImageAnalysisAsync(base64Image, default);
+                                violations = AzureContentSafety.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService!.Options!.ViolationThreshold);
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
                                 this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
-                                throw new ArgumentException($"Failed to analyze image {formFile.FileName} with Content Safety. {(ex as AIException)?.ErrorCode}");
+                                throw new AggregateException($"Failed to analyze image {formFile.FileName} with Content Safety.", ex);
                             }
 
                             if (violations.Count > 0)
