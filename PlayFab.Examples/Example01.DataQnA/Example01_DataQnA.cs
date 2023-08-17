@@ -33,7 +33,7 @@ internal class Example01_DataQnA
         CancellationToken cancellationToken = CancellationToken.None;
         string[] questions = new string[]
         {
-            "If the number of monthly active players in France increases by 30%, what would be the percentage increase to the overall monthly active players?",
+            "How can I increase my in-game item sales?",
             "Which country (excluding 'unknown') should I focus on the most to improve retention?",
             "What is my 2-day retention average? Was my 2-day retention in the last few days better or worse than that?",
             "How many players played my game yesterday?",
