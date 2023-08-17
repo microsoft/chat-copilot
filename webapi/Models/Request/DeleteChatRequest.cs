@@ -14,10 +14,4 @@ public class DeleteChatRequest
     /// </summary>
     [JsonPropertyName("userId")]
     public string? UserId { get; set; }
-
-    /// <summary>
-    /// Id of the chat to delete.
-    /// </summary>
-    [JsonPropertyName("chatId")]
-    public string? ChatId { get; set; }
 }

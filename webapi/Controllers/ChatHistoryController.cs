@@ -245,20 +245,21 @@ public class ChatHistoryController : ControllerBase
     /// <summary>
     /// Delete a chat session.
     /// </summary>
-    /// <param name="requestParameters">Object that contains the parameters to delete the chat.</param>
-    [HttpPost]
-    [Route("chatSession/delete")]
+    /// <param name="userId">Unique Id of user who initiated the request.</param>
+    /// <param name="sessionId">The chat id.</param>
+    [HttpDelete]
+    [Route("chatSession/{sessionId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteChatSessionAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, [FromBody] DeleteChatRequest requestParameters)
+    public async Task<IActionResult> DeleteChatSessionAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, [FromBody] DeleteChatRequest requestBody, Guid sessionId)
     {
-        string? chatId = requestParameters.ChatId;
-        string? userId = requestParameters.UserId;
+        var chatId = sessionId.ToString();
+        var userId = requestBody.UserId;
 
-        if (chatId == null || userId == null)
+        if (userId == null)
         {
-            return this.BadRequest("Chat session parameters cannot be null.");
+            return this.BadRequest("UserId cannot be null.");
         }
 
         ChatSession? chatToDelete = null;
@@ -276,43 +277,66 @@ public class ChatHistoryController : ControllerBase
         await this._sessionRepository.DeleteAsync(chatToDelete);
         await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatDeletedClientCall, chatId, userId);
 
+        var deleteResourcesResult = await this.DeleteChatResourcesAsync(messageRelayHubContext, sessionId) as StatusCodeResult;
+        if (deleteResourcesResult?.StatusCode != 204)
+        {
+            return this.StatusCode(424, $"Failed to delete resources for chat id '{chatId}'.");
+        }
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    /// Deletes all associated resources (messages, memories, participants) associated with a chat session.
+    /// </summary>
+    /// <param name="sessionId">The chat id.</param>
+    /// <param name="deletionTasks">Tasks defining the items to be deleted. If this is null or empty, all items will be deleted.</param>
+    [HttpDelete]
+    [Route("chatSession/{sessionId:guid}/resources")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteChatResourcesAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, Guid sessionId)
+    {
+        var chatId = sessionId.ToString();
+        var cleanupTasks = new List<Task>();
+
         // Create and store the tasks for deleting all users tied to the chat.
         var participants = await this._participantRepository.FindByChatIdAsync(chatId);
-        var participantsTasks = new List<Task>();
         foreach (var participant in participants)
         {
-            participantsTasks.Add(this._participantRepository.DeleteAsync(participant));
+            cleanupTasks.Add(this._participantRepository.DeleteAsync(participant));
         }
 
         // Create and store the tasks for deleting chat messages.
         var messages = await this._messageRepository.FindByChatIdAsync(chatId);
-        var messageTasks = new List<Task>();
         foreach (var message in messages)
         {
-            messageTasks.Add(this._messageRepository.DeleteAsync(message));
+            cleanupTasks.Add(this._messageRepository.DeleteAsync(message));
         }
 
         // Create and store the tasks for deleting memory sources.
         var sources = await this._sourceRepository.FindByChatIdAsync(chatId, false);
-        var sourceTasks = new List<Task>();
         foreach (var source in sources)
         {
-            sourceTasks.Add(this._sourceRepository.DeleteAsync(source));
+            cleanupTasks.Add(this._sourceRepository.DeleteAsync(source));
         }
 
         // Await all the tasks in parallel and handle the exceptions
-        var cleanupTasks = participantsTasks.Concat(messageTasks).Concat(sourceTasks);
         await Task.WhenAll(cleanupTasks);
+        // var failedTasks = false;
 
         // Iterate over the tasks and check their status and exception
         foreach (var task in cleanupTasks)
         {
             if (task.IsFaulted && task.Exception != null)
             {
+                // failedTasks = true;
                 this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, task.Exception.Message);
             }
         }
 
-        return this.NoContent();
+        return this.StatusCode(500);
+
+        // return failedTasks ? this.StatusCode(500) : this.NoContent();
     }
 }

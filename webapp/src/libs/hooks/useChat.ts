@@ -356,7 +356,11 @@ export const useChat = () => {
                 await createChat();
             }
         } catch (e: any) {
-            const errorMessage = `Unable to delete chat. Details: ${(e as Error).message}`;
+            let errorMessage = `Unable to delete chat. Details: ${(e as Error).message}`;
+            if ((e as Error).message.includes('Error: 424')) {
+                errorMessage = "Chat was deleted, but some or all resources couldn't be deleted. Please try again.";
+            }
+
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };

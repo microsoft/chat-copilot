@@ -160,6 +160,7 @@ public static class CopilotChatServiceExtensions
                     policy =>
                     {
                         policy.WithOrigins(allowedOrigins)
+                            .AllowAnyMethod()
                             .AllowAnyHeader();
                     });
             });
