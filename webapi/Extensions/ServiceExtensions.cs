@@ -59,6 +59,13 @@ public static class CopilotChatServiceExtensions
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
+        // PlayFab store configuration
+        services.AddOptions<PlayFabOptions>()
+            .Bind(configuration.GetSection(PlayFabOptions.PropertyName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart()
+            .PostConfigure(TrimStringProperties);
+
         // Chat log storage configuration
         services.AddOptions<ChatStoreOptions>()
             .Bind(configuration.GetSection(ChatStoreOptions.PropertyName))

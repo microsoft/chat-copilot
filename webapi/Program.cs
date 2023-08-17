@@ -3,9 +3,11 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
@@ -16,6 +18,8 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using PlayFab.Reports;
 
 namespace CopilotChat.WebApi;
 
@@ -45,6 +49,18 @@ public sealed class Program
             .AddPersistentChatStore()
             .AddPersistentOcrSupport()
             .AddSemanticKernelServices();
+
+        // Add playfab related services
+        builder.Services.AddSingleton<IReportDataAccess>(serviceProvider =>
+        {
+            PlayFabOptions playFabOptions = serviceProvider.GetRequiredService<IOptions<PlayFabOptions>>().Value;
+            return new ReportDataAccess(playFabOptions.ReportsCosmosDBEndpoint,
+                playFabOptions.ReportsCosmosDBKey,
+                playFabOptions.ReportsCosmosDBDatabaseName,
+                playFabOptions.ReportsCosmosDBContainerName);
+        });
+
+        builder.Services.AddSingleton<IReportDataManager, ReportDataManager>();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();

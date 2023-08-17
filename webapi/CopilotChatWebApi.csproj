@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
@@ -13,27 +13,20 @@
     <PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.3" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Chroma"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Postgres"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph"
-      Version="0.19.230804.2-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI"
-      Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Chroma" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Postgres" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.19.230804.2-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.19.230804.2-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.19.230804.2-preview" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.13.2" />
     <PackageReference Include="PdfPig" Version="0.1.8" />
+    <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
@@ -82,6 +75,10 @@
     <AssemblyAttribute Include="System.CLSCompliantAttribute">
       <_Parameter1>false</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PlayFab\PlayFab.csproj" />
   </ItemGroup>
 
   <ItemGroup>

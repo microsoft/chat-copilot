@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI;
@@ -29,6 +31,7 @@ using Microsoft.SemanticKernel.Skills.MsGraph.Connectors;
 using Microsoft.SemanticKernel.Skills.MsGraph.Connectors.Client;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
+using PlayFab.Skills;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -40,16 +43,18 @@ public class ChatController : ControllerBase, IDisposable
 {
     private readonly ILogger<ChatController> _logger;
     private readonly List<IDisposable> _disposables;
+    private readonly AIServiceOptions _aiServiceOptions;
     private readonly ITelemetryService _telemetryService;
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService)
+    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<AIServiceOptions> aiServiceOptions)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
+        this._aiServiceOptions = aiServiceOptions?.Value ?? throw new ArgumentNullException(nameof(aiServiceOptions));
     }
 
     /// <summary>
@@ -167,6 +172,12 @@ public class ChatController : ControllerBase, IDisposable
     private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
     {
         // Register authenticated skills with the planner's kernel only if the request includes an auth header for the skill.
+
+        // Register PlayFab Skills
+        this._logger.LogInformation("Registering PlayFab plugins");
+        planner.Kernel.ImportSkill(
+            new GameInsightsSkill(planner.Kernel.Memory, _aiServiceOptions.Endpoint, _aiServiceOptions.Key, _aiServiceOptions.Models.Completion),
+            "GameInsights");
 
         // Klarna Shopping
         if (openApiSkillsAuthHeaders.TryGetValue("KLARNA", out string? KlarnaAuthHeader))
