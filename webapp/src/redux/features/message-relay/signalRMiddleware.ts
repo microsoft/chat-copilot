@@ -5,7 +5,7 @@ import { AlertType } from '../../../libs/models/AlertType';
 import { addAlert } from '../app/appSlice';
 import { IChatMessage } from './../../../libs/models/ChatMessage';
 import { StoreMiddlewareAPI, getSelectedChatID } from './../../app/store';
-import { GetOrCreateHubConnection } from './signalRHubConnection';
+import { getOrCreateHubConnection } from './signalRHubConnection';
 
 // The action sent to the SignalR middleware.
 interface SignalRAction extends AnyAction {
@@ -23,7 +23,7 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
         const result = next(action);
 
         // Get the SignalR connection instance
-        const hubConnection = GetOrCreateHubConnection(store);
+        const hubConnection = getOrCreateHubConnection(store);
 
         // The following actions will be captured by the SignalR middleware and broadcasted to all clients.
         switch (action.type) {

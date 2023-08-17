@@ -189,7 +189,7 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
 let hubConnection: signalR.HubConnection | undefined = undefined;
 
 // This function will return the singleton instance of the SignalR connection
-export const GetOrCreateHubConnection = (store: StoreMiddlewareAPI) => {
+export const getOrCreateHubConnection = (store: StoreMiddlewareAPI) => {
     if (hubConnection === undefined) {
         hubConnection = setupSignalRConnectionToChatHub();
 
