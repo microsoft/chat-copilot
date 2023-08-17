@@ -4,7 +4,9 @@ VisualStudioVersion = 17.6.33706.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotChatWebApi", "webapi\CopilotChatWebApi.csproj", "{5252E68F-B653-44CE-9A32-360A75C54E0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayFab", "PlayFab\PlayFab.csproj", "{322B3F7C-AA58-4698-8568-6B955E5B7D1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayFab", "PlayFab\PlayFab.csproj", "{322B3F7C-AA58-4698-8568-6B955E5B7D1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayFab.Examples", "PlayFab.Examples\PlayFab.Examples.csproj", "{ECB2BE95-BBF7-4E7A-B6CD-C3D35CF408D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{322B3F7C-AA58-4698-8568-6B955E5B7D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{322B3F7C-AA58-4698-8568-6B955E5B7D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{322B3F7C-AA58-4698-8568-6B955E5B7D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECB2BE95-BBF7-4E7A-B6CD-C3D35CF408D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECB2BE95-BBF7-4E7A-B6CD-C3D35CF408D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECB2BE95-BBF7-4E7A-B6CD-C3D35CF408D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECB2BE95-BBF7-4E7A-B6CD-C3D35CF408D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
