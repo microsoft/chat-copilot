@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "6070796301968880491"
+      "templateHash": "2178528583160089568"
     }
   },
   "parameters": {
@@ -432,86 +432,6 @@
           {
             "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
             "value": "~2"
-          },
-          {
-            "name": "SemanticMemory:ContentStorageType",
-            "value": "AzureBlobs"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "Distributed"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
-            "value": "AzureQueue"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes",
-            "value": "[format('[''{0}'']', parameters('aiService'))]"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:VectorDbTypes",
-            "value": "[format('[''{0}'']', parameters('memoryStore'))]"
-          },
-          {
-            "name": "SemanticMemory:Retrieval:VectorDbType",
-            "value": "[parameters('memoryStore')]"
-          },
-          {
-            "name": "SemanticMemory:Retrieval:EmbeddingGeneratorType",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "SemanticMemory:Retrieval:TextGeneratorType",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureBlobs:Auth",
-            "value": "ConnectionString"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureBlobs:ConnectionString",
-            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureBlobs:Container",
-            "value": "chatmemory"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureQueue:Auth",
-            "value": "ConnectionString"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureQueue:ConnectionString",
-            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureCognitiveSearch:Auth",
-            "value": "ApiKey"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureCognitiveSearch:Endpoint",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
-          },
-          {
-            "name": "MemoryStore:AzureCognitiveSearch:Key",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Auth",
-            "value": "ApiKey"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint",
-            "value": "[if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:APIKey",
-            "value": "[if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Deployment",
-            "value": "[parameters('embeddingModel')]"
           }
         ]
       },
@@ -523,8 +443,7 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
+        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]"
       ]
     },
     {
