@@ -5,16 +5,12 @@ import { BaseService } from './BaseService';
 
 export class DocumentImportService extends BaseService {
     public importDocumentAsync = async (
-        userId: string,
-        userName: string,
         chatId: string,
         documents: File[],
         useContentSafety: boolean,
         accessToken: string,
     ) => {
         const formData = new FormData();
-        formData.append('userId', userId);
-        formData.append('userName', userName);
         formData.append('chatId', chatId);
         formData.append('documentScope', 'Chat');
         formData.append('useContentSafety', useContentSafety.toString());

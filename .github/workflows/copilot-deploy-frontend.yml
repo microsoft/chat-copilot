@@ -16,8 +16,6 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-      APPLICATION_AUTHORITY:
-        required: true
 
 permissions:
   contents: read
@@ -90,4 +88,4 @@ jobs:
 
       - name: Deploy SWA
         run: |
-          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect --version ${{ steps.versiontag.outputs.versiontag }} --version-info "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(date +"%Y-%m-%d")"
+          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --client-id ${{vars.FRONTEND_CLIENT_ID}} --no-redirect --version ${{ steps.versiontag.outputs.versiontag }} --version-info "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(date +"%Y-%m-%d")"

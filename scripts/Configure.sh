@@ -22,11 +22,6 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
-    -c|--clientid) # Required argument
-      CLIENT_ID="$2"
-      shift
-      shift
-      ;;
     -e|--endpoint) # Required argument for Azure OpenAI
       ENDPOINT="$2"
       shift
@@ -47,8 +42,23 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    -fc|--frontend-clientid)
+      FRONTEND_CLIENT_ID="$2"
+      shift
+      shift
+      ;;
+    -bc|--backend-clientid)
+      BACKEND_CLIENT_ID="$2"
+      shift
+      shift
+      ;;
     -t|--tenantid)
       TENANT_ID="$2"
+      shift
+      shift
+      ;;
+    -i|--instance)
+      INSTANCE="$2"
       shift
       shift
       ;;
@@ -72,11 +82,24 @@ fi
 if [ -z "$API_KEY" ]; then
   echo "Please specify an API key with -a or --apikey."; exit 1;
 fi
-if [ -z "$CLIENT_ID" ]; then
-  echo "Please specify a client (application) ID with -c or --clientid."; exit 1;
-fi
 if [ "$AI_SERVICE" = "$ENV_AZURE_OPEN_AI" ] && [ -z "$ENDPOINT" ]; then
   echo "When using `--aiservice AzureOpenAI`, please specify an endpoint with -e or --endpoint."; exit 1;
+fi
+
+if [ "$FRONTEND_CLIENT_ID" ] && [ "$BACKEND_CLIENT_ID" ] && [ "$TENANT_ID" ]; then
+  # Set auth type to AzureAd
+  AUTH_TYPE="$ENV_AZURE_AD"
+  # If instance empty, use default
+  if [ -z "$INSTANCE" ]; then
+    INSTANCE="$ENV_INSTANCE"
+  fi
+else
+  if [ -z "$FRONTEND_CLIENT_ID" ] && [ -z "$BACKEND_CLIENT_ID" ] && [ -z "$TENANT_ID" ]; then
+    # Set auth type to None
+    AUTH_TYPE="$ENV_NONE"
+  else
+    echo "To use Azure AD authentication, please set --frontend-clientid, --backend-clientid, and --tenantid."; exit 1;
+  fi
 fi
 
 # Set remaining values from .env if not passed as argument
@@ -89,7 +112,7 @@ if [ "$AI_SERVICE" = "$ENV_OPEN_AI" ]; then
   fi
   # TO DO: Validate model values if set by command line.
 else # elif [ "$AI_SERVICE" = "$ENV_AZURE_OPEN_AI" ]; then
-    if [ -z "$COMPLETION_MODEL" ]; then
+  if [ -z "$COMPLETION_MODEL" ]; then
     COMPLETION_MODEL="$ENV_COMPLETION_MODEL_AZURE_OPEN_AI"
   fi
   if [ -z "$PLANNER_MODEL" ]; then
@@ -101,9 +124,6 @@ fi
 if [ -z "$EMBEDDING_MODEL" ]; then
   EMBEDDING_MODEL="$ENV_EMBEDDING_MODEL"
   # TO DO: Validate model values if set by command line.
-fi
-if [ -z "$TENANT_ID" ]; then
-  TENANT_ID="$ENV_TENANT_ID"
 fi
 
 echo "#########################"
@@ -132,7 +152,7 @@ echo "Setting 'AIService:Key' user secret for $AI_SERVICE..."
 dotnet user-secrets set --project $WEBAPI_PROJECT_PATH  AIService:Key $API_KEY
 if [ $? -ne 0 ]; then exit 1; fi
 
-APPSETTINGS_OVERRIDES="{ \"AIService\": { \"Type\": \"${AI_SERVICE}\", \"Endpoint\": \"${ENDPOINT}\", \"Models\": { \"Completion\": \"${COMPLETION_MODEL}\", \"Embedding\": \"${EMBEDDING_MODEL}\", \"Planner\": \"${PLANNER_MODEL}\" } } }"
+APPSETTINGS_OVERRIDES="{ \"AIService\": { \"Type\": \"${AI_SERVICE}\", \"Endpoint\": \"${ENDPOINT}\", \"Models\": { \"Completion\": \"${COMPLETION_MODEL}\", \"Embedding\": \"${EMBEDDING_MODEL}\", \"Planner\": \"${PLANNER_MODEL}\" } }, \"Authentication\": { \"Type\": \"${AUTH_TYPE}\", \"AzureAd\": { \"Instance\": \"${INSTANCE}\", \"TenantId\": \"${TENANT_ID}\", \"ClientId\": \"${BACKEND_CLIENT_ID}\", \"Scopes\": \"${ENV_SCOPES}\" } } }"
 APPSETTINGS_OVERRIDES_FILEPATH="${WEBAPI_PROJECT_PATH}/appsettings.${ENV_ASPNETCORE}.json"
 
 echo "Setting up 'appsettings.${ENV_ASPNETCORE}.json' for $AI_SERVICE..."
@@ -153,8 +173,16 @@ WEBAPP_ENV_FILEPATH="${WEBAPP_PROJECT_PATH}/.env"
 
 echo "Setting up '.env' for webapp..."
 echo "REACT_APP_BACKEND_URI=https://localhost:40443/" > $WEBAPP_ENV_FILEPATH
-echo "REACT_APP_AAD_AUTHORITY=https://login.microsoftonline.com/$TENANT_ID" >> $WEBAPP_ENV_FILEPATH
-echo "REACT_APP_AAD_CLIENT_ID=$CLIENT_ID" >> $WEBAPP_ENV_FILEPATH
+
+if [ "$AUTH_TYPE" = "$ENV_AZURE_AD" ]; then
+  echo "Configuring Azure AD authentication..."
+  echo "REACT_APP_AUTH_TYPE=AzureAd" >> $WEBAPP_ENV_FILEPATH
+  # Trim any trailing slash from instance before generating authority
+  INSTANCE=${INSTANCE%/}
+  echo "REACT_APP_AAD_AUTHORITY=https://$INSTANCE/$TENANT_ID" >> $WEBAPP_ENV_FILEPATH
+  echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >> $WEBAPP_ENV_FILEPATH
+  echo "REACT_APP_AAD_API_SCOPE=api://$BACKEND_CLIENT_ID/access_as_user" >> $WEBAPP_ENV_FILEPATH
+fi
 
 echo "($WEBAPP_ENV_FILEPATH)"
 echo "========"

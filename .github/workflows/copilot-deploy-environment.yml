@@ -16,11 +16,7 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-      WEB_API_KEY:
-        required: true
       AZURE_OPENAI_ENDPOINT:
-        required: true
-      APPLICATION_AUTHORITY:
         required: true
 
 permissions:
@@ -36,7 +32,6 @@ jobs:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
       AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
 
   deploy-backend:
@@ -61,4 +56,3 @@ jobs:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
       AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
