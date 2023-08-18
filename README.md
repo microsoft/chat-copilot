@@ -185,7 +185,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
     **Powershell**
 
     ```powershell
-    .\Configure.ps1 -AiService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -FrontendClientId {FRONTEND_CLIENT_ID} -BackendClientId {BACKEND_CLIENT_ID} -TenantId {TENANT_ID} -Instance {AZURE_AD_INSTANCE}
+    .\Configure.ps1 -AiService {AI_SERVICE} -APIKey {API_KEY} -Endpoint {AZURE_OPENAI_ENDPOINT} -FrontendClientId {FRONTEND_APPLICATION_ID} -BackendClientId {BACKEND_APPLICATION_ID} -TenantId {TENANT_ID} -Instance {AZURE_AD_INSTANCE}
     ```
 
     **Bash**

@@ -153,13 +153,13 @@ npm install -g @azure/static-web-apps-cli
 
 ```powershell
 
-./deploy-webapp.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME} -ApplicationClientId {YOUR_FRONTEND_APPLICATION_ID}
+./deploy-webapp.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME} -FrontendClientId {YOUR_FRONTEND_APPLICATION_ID}
 ```
 
 ## Bash
 
 ```bash
-./deploy-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --application-id {YOUR_FRONTEND_APPLICATION_ID}
+./deploy-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --client-id {YOUR_FRONTEND_APPLICATION_ID}
 ```
 
 Your Chat Copilot application is now deployed!
