@@ -75,7 +75,7 @@ public class ReportDataManager : IReportDataManager
         var playFabReports = new List<PlayFabReport>();
 
         // Report 1 - Daily Overview Report
-        if (latestReports.TryGetValue("DailyOverviewReport", out GameReport? dailyOvervieReport))
+        if (latestReports.TryGetValue("DailyOverviewReport", out GameReport? dailyOverviewReport))
         {
             PlayFabReportColumn[] dailyOverviewReportColumns = new[]
             {
@@ -98,8 +98,8 @@ public class ReportDataManager : IReportDataManager
             {
                 Columns = dailyOverviewReportColumns,
                 Description = "Granular single day data capturing game reports for each hour. The report has 24 rows where every row reprsents one hour of the day.",
-                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(dailyOvervieReport.ReportData, dailyOverviewReportColumns),
-                ReportName = dailyOvervieReport.ReportName
+                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(dailyOverviewReport.ReportData, dailyOverviewReportColumns),
+                ReportName = dailyOverviewReport.ReportName
             });
         }
 
@@ -133,7 +133,7 @@ public class ReportDataManager : IReportDataManager
         }
 
         // Report 3 - Daily Top Items Report
-        if (latestReports.TryGetValue("DailyTopItemsReport", out GameReport? dailyTopItemsReportReport))
+        if (latestReports.TryGetValue("DailyTopItemsReport", out GameReport? dailyTopItemsReport))
         {
             string ParseItemName(string str) => str.Replace("[\"", "").Replace("\"]", "");
             PlayFabReportColumn[] dailyTopItemsReportColumns = new[]
@@ -147,14 +147,14 @@ public class ReportDataManager : IReportDataManager
             {
                 Columns = dailyTopItemsReportColumns,
                 Description = "The dataset provides an of a sales reports for last day, delivering total sales and total revenue for individual products.",
-                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(dailyTopItemsReportReport.ReportData, dailyTopItemsReportColumns),
-                ReportName = dailyTopItemsReportReport.ReportName
+                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(dailyTopItemsReport.ReportData, dailyTopItemsReportColumns),
+                ReportName = dailyTopItemsReport.ReportName
             });
         }
 
         // Report 4 - Rolling 30 Day Retention Report
         string ParseDailyReportDate(string str) => DateTime.Parse(str, CultureInfo.InvariantCulture).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
-        if (latestReports.TryGetValue("DailyTopItemsReport", out GameReport? thirtyDayRetentionReport))
+        if (latestReports.TryGetValue("ThirtyDayRetentionReport", out GameReport? thirtyDayRetentionReport))
         {
             PlayFabReportColumn[] thirtyDayRetentionReportColumns = new[]
             {
