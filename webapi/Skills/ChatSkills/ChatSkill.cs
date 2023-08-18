@@ -383,16 +383,25 @@ public class ChatSkill
         var documentMemories = tasks[1];
 
         // Fill in the chat history if there is any token budget left
-        var chatContextComponents = new List<string>() { chatMemories, documentMemories, planResult };
+        var chatContextComponents = new List<string>() { chatMemories, documentMemories };
         var chatContextText = string.Join("\n\n", chatContextComponents.Where(c => !string.IsNullOrEmpty(c)));
-        var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText);
+        var chatHistoryTokenLimit = remainingToken - TokenUtilities.TokenCount(chatContextText) - TokenUtilities.TokenCount(planResult);
+
         string chatHistory = string.Empty;
+
+        // Append the chat history, if allowed.
         if (chatHistoryTokenLimit > 0)
         {
             await this.UpdateBotResponseStatusOnClient(chatId, "Extracting chat history");
             chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenLimit);
             chatContext.ThrowIfFailed();
             chatContextText = $"{chatContextText}\n{chatHistory}";
+        }
+
+        // Append the plan result last, if exists, to imply precedence.
+        if (!string.IsNullOrWhiteSpace(planResult))
+        {
+            chatContextText = $"{chatContextText}\n{planResult}";
         }
 
         // Set variables needed in prompt
