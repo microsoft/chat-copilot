@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "5855966673872677252"
+      "templateHash": "13694158288922324261"
     }
   },
   "parameters": {
@@ -494,7 +494,7 @@
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
           },
           {
-            "name": "MemoryStore:AzureCognitiveSearch:APIKey",
+            "name": "SemanticMemory:Services:AzureCognitiveSearch:APIKey",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
@@ -633,7 +633,7 @@
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
           },
           {
-            "name": "MemoryStore:AzureCognitiveSearch:APIKey",
+            "name": "SemanticMemory:Services:AzureCognitiveSearch:APIKey",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
