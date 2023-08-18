@@ -315,6 +315,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
         value: '~2'
       }
+      {
+        name: 'SemanticMemory:ContentStorageType'
+        value: 'AzureBlobs'
+      }
     ]
   }
 }
