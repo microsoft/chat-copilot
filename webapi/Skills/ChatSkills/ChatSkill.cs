@@ -14,6 +14,7 @@ using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -80,6 +81,11 @@ public class ChatSkill
     private readonly ExternalInformationSkill _externalInformationSkill;
 
     /// <summary>
+    /// Azure content safety moderator.
+    /// </summary>
+    private readonly AzureContentSafety? _contentSafety = null;
+
+    /// <summary>
     /// Create a new instance of <see cref="ChatSkill"/>.
     /// </summary>
     public ChatSkill(
@@ -90,7 +96,8 @@ public class ChatSkill
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
         CopilotChatPlanner planner,
-        ILogger logger)
+        ILogger logger,
+        AzureContentSafety? contentSafety = null)
     {
         this._logger = logger;
         this._kernel = kernel;
@@ -110,6 +117,7 @@ public class ChatSkill
         this._externalInformationSkill = new ExternalInformationSkill(
             promptOptions,
             planner);
+        this._contentSafety = contentSafety;
     }
 
     /// <summary>

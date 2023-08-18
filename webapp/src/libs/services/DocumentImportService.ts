@@ -9,6 +9,7 @@ export class DocumentImportService extends BaseService {
         userName: string,
         chatId: string,
         documents: File[],
+        useContentSafety: boolean,
         accessToken: string,
     ) => {
         const formData = new FormData();
@@ -16,6 +17,7 @@ export class DocumentImportService extends BaseService {
         formData.append('userName', userName);
         formData.append('chatId', chatId);
         formData.append('documentScope', 'Chat');
+        formData.append('useContentSafety', useContentSafety.toString());
         for (const document of documents) {
             formData.append('formFiles', document);
         }
@@ -25,6 +27,16 @@ export class DocumentImportService extends BaseService {
                 commandPath: 'importDocuments',
                 method: 'POST',
                 body: formData,
+            },
+            accessToken,
+        );
+    };
+
+    public getContentSafetyStatusAsync = async (accessToken: string): Promise<boolean> => {
+        return await this.getResponseAsync<boolean>(
+            {
+                commandPath: 'contentSafety/status',
+                method: 'GET',
             },
             accessToken,
         );
