@@ -108,6 +108,12 @@ public static class CopilotChatServiceExtensions
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
 
+        // Content safety options
+        services.AddOptions<ContentSafetyOptions>()
+            .Bind(configuration.GetSection(ContentSafetyOptions.PropertyName))
+            .ValidateOnStart()
+            .PostConfigure(TrimStringProperties);
+
         return services;
     }
 
