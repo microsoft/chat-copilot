@@ -75,7 +75,7 @@ export const useChat = () => {
         const chatTitle = `Copilot @ ${new Date().toLocaleString()}`;
         try {
             await chatService
-                .createChatAsync(userId, chatTitle, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
+                .createChatAsync(chatTitle, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
                 .then((result: ICreateChatSessionResponse) => {
                     const newChat: ChatState = {
                         id: result.chatSession.id,
@@ -103,14 +103,6 @@ export const useChat = () => {
         const ask = {
             input: value,
             variables: [
-                {
-                    key: 'userId',
-                    value: userId,
-                },
-                {
-                    key: 'userName',
-                    value: fullName,
-                },
                 {
                     key: 'chatId',
                     value: chatId,
@@ -159,6 +151,10 @@ export const useChat = () => {
 
                     const chatUsers = await chatService.getAllChatParticipantsAsync(chatSession.id, accessToken);
 
+                    if (!features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1) {
+                        continue;
+                    }
+
                     loadedConversations[chatSession.id] = {
                         id: chatSession.id,
                         title: chatSession.title,
@@ -203,7 +199,7 @@ export const useChat = () => {
     const uploadBot = async (bot: Bot) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            await botService.uploadAsync(bot, userId, accessToken).then(async (chatSession: IChatSession) => {
+            await botService.uploadAsync(bot, accessToken).then(async (chatSession: IChatSession) => {
                 const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
                 const newChat = {
@@ -259,8 +255,6 @@ export const useChat = () => {
     const importDocument = async (chatId: string, files: File[]) => {
         try {
             await documentImportService.importDocumentAsync(
-                userId,
-                fullName,
                 chatId,
                 files,
                 features[FeatureKeys.AzureContentSafety].enabled,
