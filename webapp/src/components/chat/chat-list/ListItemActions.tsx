@@ -24,11 +24,10 @@ const useClasses = makeStyles({
 
 interface IListItemActionsProps {
     chatId: string;
-    chatName: string;
     onEditTitleClick: () => void;
 }
 
-export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatName, onEditTitleClick }) => {
+export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, onEditTitleClick }) => {
     const classes = useClasses();
     const { features } = useAppSelector((state: RootState) => state.app);
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
@@ -41,12 +40,12 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
         // TODO: [Issue #47] Add a loading indicator
         void chat.downloadBot(chatId).then((content) => {
             downloadFile(
-                `chat-history-${chatName}-${new Date().toISOString()}.json`,
+                `chat-history-${chatId}-${new Date().toISOString()}.json`,
                 JSON.stringify(content),
                 'text/json',
             );
         });
-    }, [chat, chatId, chatName, downloadFile]);
+    }, [chat, chatId, downloadFile]);
 
     return (
         <div className={classes.root}>
@@ -88,7 +87,7 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, chatN
                             }}
                         />
                     </Tooltip>
-                    <DeleteChatDialog chatId={chatId} chatName={chatName} />
+                    <DeleteChatDialog chatId={chatId} />
                     {isGettingInvitationId && (
                         <InvitationCreateDialog
                             onCancel={() => {

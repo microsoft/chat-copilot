@@ -277,7 +277,7 @@ public class ChatHistoryController : ControllerBase
         var deleteResourcesResult = await this.DeleteChatResourcesAsync(messageRelayHubContext, sessionId) as StatusCodeResult;
         if (deleteResourcesResult?.StatusCode != 204)
         {
-            return this.StatusCode(424, $"Failed to delete resources for chat id '{chatId}'.");
+            return this.StatusCode(500, $"Failed to delete resources for chat id '{chatId}'.");
         }
 
         // Delete chat session and broadcast update to all participants.
@@ -291,10 +291,6 @@ public class ChatHistoryController : ControllerBase
     /// Deletes all associated resources (messages, memories, participants) associated with a chat session.
     /// </summary>
     /// <param name="sessionId">The chat id.</param>
-    [HttpDelete]
-    [Route("chatSession/{sessionId:guid}/resources")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     private async Task<IActionResult> DeleteChatResourcesAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, Guid sessionId)
     {
         var chatId = sessionId.ToString();

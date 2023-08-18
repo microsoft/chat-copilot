@@ -10,6 +10,8 @@ import {
     DialogTrigger,
 } from '@fluentui/react-dialog';
 import { useChat } from '../../../../libs/hooks';
+import { getFriendlyChatName } from '../../../../libs/hooks/useChat';
+import { useAppSelector } from '../../../../redux/app/hooks';
 import { Delete16 } from '../../../shared/BundledIcons';
 
 const useClasses = makeStyles({
@@ -23,12 +25,14 @@ const useClasses = makeStyles({
 
 interface IEditChatNameProps {
     chatId: string;
-    chatName: string;
 }
 
-export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatId, chatName }) => {
+export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatId }) => {
     const classes = useClasses();
     const chat = useChat();
+
+    const { conversations } = useAppSelector((state) => state.conversations);
+    const chatName = getFriendlyChatName(conversations[chatId]);
 
     const onDeleteChat = () => {
         void chat.deleteChat(chatId);

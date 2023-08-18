@@ -355,8 +355,8 @@ export const useChat = () => {
                 }
             })
             .catch((e: any) => {
-                const errorDetails = (e as Error).message.includes('Error: 424')
-                    ? "Some or all resources associated with chat couldn't be deleted. Please try again."
+                const errorDetails = (e as Error).message.includes('Failed to delete resources for chat id')
+                    ? "Some or all resources associated with this chat couldn't be deleted. Please try again."
                     : `Details: ${(e as Error).message}`;
                 dispatch(
                     addAlert({
@@ -407,5 +407,5 @@ export function getFriendlyChatName(convo: ChatState): string {
         : convo.title;
 
     // Truncate the title if it is too long
-    return friendlyTitle.length > 80 ? friendlyTitle.substring(0, 80) + '...' : friendlyTitle;
+    return friendlyTitle.length > 60 ? friendlyTitle.substring(0, 60) + '...' : friendlyTitle;
 }
