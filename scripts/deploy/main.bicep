@@ -443,7 +443,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
   parent: appServiceMemoryPipeline
   name: 'web'
   properties: {
-    alwaysOn: false
+    alwaysOn: true
     detailedErrorLoggingEnabled: true
     minTlsVersion: '1.2'
     netFrameworkVersion: 'v6.0'

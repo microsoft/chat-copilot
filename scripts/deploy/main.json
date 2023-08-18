@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "13694158288922324261"
+      "templateHash": "8903276624787704814"
     }
   },
   "parameters": {
@@ -578,7 +578,7 @@
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'web')]",
       "properties": {
-        "alwaysOn": false,
+        "alwaysOn": true,
         "detailedErrorLoggingEnabled": true,
         "minTlsVersion": "1.2",
         "netFrameworkVersion": "v6.0",
