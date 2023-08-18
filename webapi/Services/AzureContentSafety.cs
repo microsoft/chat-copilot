@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.AI;
 
@@ -29,7 +31,7 @@ public record ImageAnalysisRequest(
 /// <summary>
 /// Moderator service to handle content safety.
 /// </summary>
-public sealed class AzureContentSafety : IDisposable
+public sealed class AzureContentSafety : IContentSafetyService
 {
     private const string HttpUserAgent = "Copilot Chat";
 
@@ -42,9 +44,7 @@ public sealed class AzureContentSafety : IDisposable
     /// </summary>
     private readonly ContentSafetyOptions _contentSafetyOptions;
 
-    /// <summary>
-    /// Gets the options for the content safety.
-    /// </summary>
+    /// <inheritdoc/>
     public ContentSafetyOptions Options => this._contentSafetyOptions;
 
     /// <summary>
@@ -86,11 +86,7 @@ public sealed class AzureContentSafety : IDisposable
         this._httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", apiKey);
     }
 
-    /// <summary>
-    /// Checks the state of the content safety.
-    /// </summary>
-    /// <param name="logger">Logger.</param>
-    /// <returns>True if content safety is enabled with non-null endpoint.</returns>
+    /// <inheritdoc/>
     public bool ContentSafetyStatus(ILogger logger)
     {
         if (this._endpoint is null)
@@ -102,14 +98,10 @@ public sealed class AzureContentSafety : IDisposable
         return this._contentSafetyOptions.Enabled;
     }
 
-    /// <summary>
-    /// Parse the analysis result and return the violated categories.
-    /// </summary>
-    /// <param name="imageAnalysisResponse">The content analysis result.</param>
-    /// <param name="threshold">The violation threshold.</param>
-    /// <returns>The list of violated category names. Will return an empty list if there is no violation.</returns>
-    public static List<string> ParseViolatedCategories(ImageAnalysisResponse imageAnalysisResponse, short threshold)
+    /// <inheritdoc/>
+    public List<string> ParseViolatedCategories(ImageAnalysisResponse imageAnalysisResponse, short? threshold)
     {
+        threshold = threshold != null ? threshold : this._contentSafetyOptions.ViolationThreshold;
         var violatedCategories = new List<string>();
 
         foreach (var property in typeof(ImageAnalysisResponse).GetProperties())
@@ -124,14 +116,11 @@ public sealed class AzureContentSafety : IDisposable
         return violatedCategories;
     }
 
-    /// <summary>
-    /// Invokes a sync API to perform harmful content analysis on image.
-    /// <param name="base64Image">Base64 envoding content of image</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// </summary>
-    /// <returns>SKContext containing the image analysis result.</returns>
-    public async Task<ImageAnalysisResponse> ImageAnalysisAsync(string base64Image, CancellationToken cancellationToken)
+    /// <inheritdoc/>
+    public async Task<ImageAnalysisResponse> ImageAnalysisAsync(IFormFile formFile, CancellationToken cancellationToken)
     {
+        // Convert the form file to a base64 string
+        var base64Image = await this.ConvertFormFileToBase64Async(formFile);
         var image = base64Image.Replace("data:image/png;base64,", "", StringComparison.InvariantCultureIgnoreCase).Replace("data:image/jpeg;base64,", "", StringComparison.InvariantCultureIgnoreCase);
         ImageContent content = new(image);
         ImageAnalysisRequest requestBody = new(content);
@@ -168,4 +157,21 @@ public sealed class AzureContentSafety : IDisposable
         this._httpClient.Dispose();
         this._httpClientHandler?.Dispose();
     }
+
+    #region Private Methods
+
+    /// <summary>
+    /// Helper method to convert a form file to a base64 string.
+    /// </summary>
+    /// <param name="file">An IFormFile object.</param>
+    /// <returns>A Base64 string of the content of the image.</returns>
+    private async Task<string> ConvertFormFileToBase64Async(IFormFile formFile)
+    {
+        using var memoryStream = new MemoryStream();
+        await formFile.CopyToAsync(memoryStream);
+        var bytes = memoryStream.ToArray();
+        return Convert.ToBase64String(bytes);
+    }
+
+    #endregion
 }

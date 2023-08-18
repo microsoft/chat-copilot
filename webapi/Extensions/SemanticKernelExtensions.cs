@@ -269,7 +269,7 @@ internal static class SemanticKernelExtensions
 
         if (options.Enabled)
         {
-            services.AddSingleton<AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
+            services.AddSingleton<IContentSafetyService, AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
         }
     }
 

@@ -80,7 +80,7 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
-    private readonly AzureContentSafety? _contentSafetyService = null;
+    private readonly IContentSafetyService? _contentSafetyService = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -94,7 +94,7 @@ public class DocumentImportController : ControllerBase
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         IOcrEngine ocrEngine,
-        AzureContentSafety? contentSafety = null)
+        IContentSafetyService? contentSafety = null)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
@@ -304,12 +304,9 @@ public class DocumentImportController : ControllerBase
                             var violations = new List<string>();
                             try
                             {
-                                // Convert the form file to a base64 string
-                                var base64Image = await this.ConvertFormFileToBase64Async(formFile);
-
                                 // Call the content safety controller to analyze the image
-                                var imageAnalysisResponse = await this._contentSafetyService!.ImageAnalysisAsync(base64Image, default);
-                                violations = AzureContentSafety.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService!.Options!.ViolationThreshold);
+                                var imageAnalysisResponse = await this._contentSafetyService!.ImageAnalysisAsync(formFile, default);
+                                violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService!.Options!.ViolationThreshold);
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
@@ -527,19 +524,6 @@ public class DocumentImportController : ControllerBase
     {
         var textFromFile = await this._ocrEngine.ReadTextFromImageFileAsync(file);
         return textFromFile;
-    }
-
-    /// <summary>
-    /// Helper method to convert a form file to a base64 string.
-    /// </summary>
-    /// <param name="file">An IFormFile object.</param>
-    /// <returns>A Base64 string of the content of the image.</returns>
-    private async Task<string> ConvertFormFileToBase64Async(IFormFile formFile)
-    {
-        using var memoryStream = new MemoryStream();
-        await formFile.CopyToAsync(memoryStream);
-        var bytes = memoryStream.ToArray();
-        return Convert.ToBase64String(bytes);
     }
 
     /// <summary>
