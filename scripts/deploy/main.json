@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "4985605525377232917"
+      "templateHash": "6304146110530758008"
     }
   },
   "parameters": {
@@ -452,6 +452,18 @@
           {
             "name": "SemanticMemory:DataIngestion:VectorDbTypes",
             "value": "[format('[''{0}'']', parameters('memoryStore'))]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureBlobs:Auth",
+            "value": "ConnectionString"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureBlobs:ConnectionString",
+            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureBlobs:Container",
+            "value": "chatmemory"
           }
         ]
       },
@@ -463,7 +475,8 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]"
+        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
       ]
     },
     {

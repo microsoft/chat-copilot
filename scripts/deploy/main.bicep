@@ -335,6 +335,18 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         name: 'SemanticMemory:DataIngestion:VectorDbTypes'
         value: '[\'${memoryStore}\']'
       }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:ConnectionString'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Container'
+        value: 'chatmemory'
+      }
     ]
   }
 }
