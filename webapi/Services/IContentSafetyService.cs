@@ -9,6 +9,8 @@ using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
+namespace CopilotChat.WebApi.Services;
+
 /// <summary>
 /// Defines a service that performs content safety analysis on images.
 /// </summary>
