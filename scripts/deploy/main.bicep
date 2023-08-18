@@ -319,6 +319,22 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         name: 'SemanticMemory:ContentStorageType'
         value: 'AzureBlobs'
       }
+      {
+        name: 'SemanticMemory:OrchestrationType:OrchestrationType'
+        value: 'Distributed'
+      }
+      {
+        name: 'SemanticMemory:OrchestrationType:DistributedOrchestration:QueueType'
+        value: 'AzureQueue'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes'
+        value: '[\'${aiService}\']'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:VectorDbTypes'
+        value: '[\'${memoryStore}\']'
+      }
     ]
   }
 }

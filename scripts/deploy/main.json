@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "10782643491683917088"
+      "templateHash": "4985605525377232917"
     }
   },
   "parameters": {
@@ -436,6 +436,22 @@
           {
             "name": "SemanticMemory:ContentStorageType",
             "value": "AzureBlobs"
+          },
+          {
+            "name": "SemanticMemory:OrchestrationType:OrchestrationType",
+            "value": "Distributed"
+          },
+          {
+            "name": "SemanticMemory:OrchestrationType:DistributedOrchestration:QueueType",
+            "value": "AzureQueue"
+          },
+          {
+            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes",
+            "value": "[format('[''{0}'']', parameters('aiService'))]"
+          },
+          {
+            "name": "SemanticMemory:DataIngestion:VectorDbTypes",
+            "value": "[format('[''{0}'']', parameters('memoryStore'))]"
           }
         ]
       },
