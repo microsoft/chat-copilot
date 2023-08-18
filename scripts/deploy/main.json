@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "5965623121765774163"
+      "templateHash": "5855966673872677252"
     }
   },
   "parameters": {
@@ -452,6 +452,18 @@
           {
             "name": "SemanticMemory:DataIngestion:VectorDbTypes",
             "value": "[format('[''{0}'']', parameters('memoryStore'))]"
+          },
+          {
+            "name": "SemanticMemory:Retrieval:VectorDbType",
+            "value": "[parameters('memoryStore')]"
+          },
+          {
+            "name": "SemanticMemory:Retrieval:EmbeddingGeneratorType",
+            "value": "[parameters('aiService')]"
+          },
+          {
+            "name": "SemanticMemory:Retrieval:TextGeneratorType",
+            "value": "[parameters('aiService')]"
           },
           {
             "name": "SemanticMemory:Services:AzureBlobs:Auth",
