@@ -52,22 +52,16 @@ $webappUrl = $deployment.properties.outputs.webappUrl.value
 $webappName = $deployment.properties.outputs.webappName.value
 $webapiUrl = $deployment.properties.outputs.webapiUrl.value
 $webapiName = $deployment.properties.outputs.webapiName.value
-$webapiClientId = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
-    | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
-$webapiTenantId = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
-    | Where-Object -Property name -EQ -Value Authentication:AzureAd:TenantId).value
-$webapiInstance = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
-    | Where-Object -Property name -EQ -Value Authentication:AzureAd:Instance).value
-$webapiScope = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
-    | Where-Object -Property name -EQ -Value Authentication:AzureAd:Scopes).value
 Write-Host "webappUrl: $webappUrl"
 Write-Host "webappName: $webappName"
 Write-Host "webapiName: $webapiName"
 Write-Host "webapiUrl: $webapiUrl"
-Write-Host "webapiClientId: $webapiClientId"
-Write-Host "webapiTenantId: $webapiTenantId"
-Write-Host "webapiInstance: $webapiInstance"
-Write-Host "webapiScope: $webapiScope"
+
+$webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+$webapiClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
+$webapiTenantId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:TenantId).value
+$webapiInstance = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:Instance).value
+$webapiScope = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:Scopes).value
 
 # Set ASCII as default encoding for Out-File
 $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'

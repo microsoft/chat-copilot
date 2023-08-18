@@ -91,14 +91,11 @@ echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
 
-eval WEB_API_CLIENT_ID=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authentication:AzureAd:ClientId").value')
-echo "WEB_API_CLIENT_ID: $WEB_API_CLIENT_ID"
-eval WEB_API_TENANT_ID=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authentication:AzureAd:TenantId").value')
-echo "WEB_API_TENANT_ID: $WEB_API_TENANT_ID"
-eval WEB_API_INSTANCE=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authentication:AzureAd:Instance").value')
-echo "WEB_API_INSTANCE: $WEB_API_INSTANCE"
-eval WEB_API_SCOPE=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authentication:AzureAd:Scopes").value')
-echo "WEB_API_SCOPE: $WEB_API_SCOPE"
+eval WEB_API_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP)
+eval WEB_API_CLIENT_ID=$($WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:ClientId").value')
+eval WEB_API_TENANT_ID=$($WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:TenantId").value')
+eval WEB_API_INSTANCE=$($WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:Instance").value')
+eval WEB_API_SCOPE=$($WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:Scopes").value')
 
 ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
