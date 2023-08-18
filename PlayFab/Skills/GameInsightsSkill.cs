@@ -98,6 +98,11 @@ Today Date: {{$date.today}}
             systemMessageInlineData.AppendLine();
         }
 
+        if (playFabReports.Count == 0)
+        {
+            return "I don't have enough data to answer this question.";
+        }
+
         var chatCompletion = new ChatCompletionsOptions()
         {
             Messages =

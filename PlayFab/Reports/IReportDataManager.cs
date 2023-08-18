@@ -56,7 +56,7 @@ public class ReportDataManager : IReportDataManager
     {
         DateTime today = DateTime.UtcNow;
         IList<GameReport> gameReports = await _reportDataAccess.GetByQueryAsync(
-            $"SELECT * FROM c WHERE c.TitleId='{titleId}' and c.ReportDate>='{today.AddDays(-3):yyyy-MM-dd}'",
+            $"SELECT TOP 30 * FROM c WHERE c.TitleId='{titleId}' ORDER BY c.ReportDate DESC",
             cancellationToken);
 
         Dictionary<string, GameReport> latestReports = gameReports
@@ -72,9 +72,13 @@ public class ReportDataManager : IReportDataManager
             latestReports.Add(gameEngagementRollupReport.ReportName, gameEngagementRollupReport);
         }
 
+        var playFabReports = new List<PlayFabReport>();
+
         // Report 1 - Daily Overview Report
-        PlayFabReportColumn[] dailyOverviewReportColumns = new[]
+        if (latestReports.TryGetValue("DailyOverviewReport", out GameReport? dailyOvervieReport))
         {
+            PlayFabReportColumn[] dailyOverviewReportColumns = new[]
+            {
                 new PlayFabReportColumn { Name = "Timestamp", Description = "The date and time of a one-hour window when the report was compiled, presented in Coordinated Universal Time (UTC)." },
                 new PlayFabReportColumn { Name = "TotalLogins", Description = "The aggregate count of player logins during the specified hour, revealing the volume of player interactions." },
                 new PlayFabReportColumn { Name = "UniqueLogins", Description = "The distinct number of players who logged into the game within the same hour, indicating individual engagement." },
@@ -90,17 +94,20 @@ public class ReportDataManager : IReportDataManager
                 new PlayFabReportColumn { Name = "NewUsers", Description = "The count of new players who started engaging with the game during the specified hour period." },
             };
 
-        PlayFabReport dailyOverviewReport = new()
-        {
-            Columns = dailyOverviewReportColumns,
-            Description = "Granular single day data capturing game reports for each hour. The report has 24 rows where every row reprsents one hour of the day.",
-            CsvData = PlayFabReport.CreateCsvReportFromJsonArray(latestReports["DailyOverviewReport"].ReportData, dailyOverviewReportColumns),
-            ReportName = "DailyOverviewReport"
-        };
+            playFabReports.Add(new()
+            {
+                Columns = dailyOverviewReportColumns,
+                Description = "Granular single day data capturing game reports for each hour. The report has 24 rows where every row reprsents one hour of the day.",
+                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(dailyOvervieReport.ReportData, dailyOverviewReportColumns),
+                ReportName = dailyOvervieReport.ReportName
+            });
+        }
 
         // Report 2 - Rolling 30 Day Overview Report
-        PlayFabReportColumn[] rollingThirtyDayOverviewReportColumns = new[]
+        if (latestReports.TryGetValue("RollingThirtyDayOverviewReport", out GameReport? rollingThirtyDayOverviewReport))
         {
+            PlayFabReportColumn[] rollingThirtyDayOverviewReportColumns = new[]
+            {
                 new PlayFabReportColumn { Name = "Timestamp", Description = "The date and time of a one-hour window when the report was compiled, presented in Coordinated Universal Time (UTC)." },
                 new PlayFabReportColumn { Name = "TotalLogins", Description = "The aggregate count of player logins during the specified hour, revealing the volume of player interactions." },
                 new PlayFabReportColumn { Name = "UniqueLogins", Description = "The distinct number of players who logged into the game within the same hour, indicating individual engagement." },
@@ -116,35 +123,41 @@ public class ReportDataManager : IReportDataManager
                 new PlayFabReportColumn { Name = "NewUsers", Description = "The count of new players who started engaging with the game during the specified hour period." },
             };
 
-        PlayFabReport rollingThirtyDayOverviewReport = new()
-        {
-            Columns = rollingThirtyDayOverviewReportColumns,
-            Description = "Daily data for the last 30 days capturing game reports for each day. The report has 30 rows where every row reprsents one the day of the last 30 days.",
-            CsvData = PlayFabReport.CreateCsvReportFromJsonArray(latestReports["RollingThirtyDayOverviewReport"].ReportData, rollingThirtyDayOverviewReportColumns),
-            ReportName = "RollingThirtyDayOverviewReport"
-        };
+            playFabReports.Add(new()
+            {
+                Columns = rollingThirtyDayOverviewReportColumns,
+                Description = "Daily data for the last 30 days capturing game reports for each day. The report has 30 rows where every row reprsents one the day of the last 30 days.",
+                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(rollingThirtyDayOverviewReport.ReportData, rollingThirtyDayOverviewReportColumns),
+                ReportName = rollingThirtyDayOverviewReport.ReportName
+            });
+        }
 
         // Report 3 - Daily Top Items Report
-        string ParseItemName(string str) => str.Replace("[\"", "").Replace("\"]", "");
-        PlayFabReportColumn[] dailyTopItemsReportColumns = new[]
+        if (latestReports.TryGetValue("DailyTopItemsReport", out GameReport? dailyTopItemsReportReport))
         {
+            string ParseItemName(string str) => str.Replace("[\"", "").Replace("\"]", "");
+            PlayFabReportColumn[] dailyTopItemsReportColumns = new[]
+            {
                 new PlayFabReportColumn { Name = "ItemName", SourceParser=ParseItemName, Description = "The name of the product, representing a distinct item available for purchase." },
                 new PlayFabReportColumn { Name = "TotalSales", Description = "The cumulative count of sales for the specific item, indicating its popularity and market demand." },
                 new PlayFabReportColumn { Name = "TotalRevenue", Description = "The total monetary value of revenue generated from sales of the item in US dollars." },
             };
 
-        PlayFabReport dailyTopItemsReport = new()
-        {
-            Columns = dailyTopItemsReportColumns,
-            Description = "The dataset provides an of a sales reports for last day, delivering total sales and total revenue for individual products.",
-            CsvData = PlayFabReport.CreateCsvReportFromJsonArray(latestReports["DailyTopItemsReport"].ReportData, dailyTopItemsReportColumns),
-            ReportName = "DailyTopItemsReport"
-        };
+            playFabReports.Add(new()
+            {
+                Columns = dailyTopItemsReportColumns,
+                Description = "The dataset provides an of a sales reports for last day, delivering total sales and total revenue for individual products.",
+                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(dailyTopItemsReportReport.ReportData, dailyTopItemsReportColumns),
+                ReportName = dailyTopItemsReportReport.ReportName
+            });
+        }
 
         // Report 4 - Rolling 30 Day Retention Report
         string ParseDailyReportDate(string str) => DateTime.Parse(str, CultureInfo.InvariantCulture).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
-        PlayFabReportColumn[] thirtyDayRetentionReportColumns = new[]
+        if (latestReports.TryGetValue("DailyTopItemsReport", out GameReport? thirtyDayRetentionReport))
         {
+            PlayFabReportColumn[] thirtyDayRetentionReportColumns = new[]
+            {
                 new PlayFabReportColumn { Name = "CohortDate", SourceName="Ts", SourceParser=ParseDailyReportDate, Description = "The timestamp indicating when the retention data was collected" },
                 new PlayFabReportColumn { Name = "CohortSize", Description = "The initial size of the cohort, representing the number of players at the beginning of the retention period." },
                 new PlayFabReportColumn { Name = "DaysLater", SourceName="PeriodsLater", Description = "The number of days later at which the retention is being measured." },
@@ -152,17 +165,20 @@ public class ReportDataManager : IReportDataManager
                 new PlayFabReportColumn { Name = "PercentRetained", Description = "The percentage of players retained in the cohort after the specified number of days." },
             };
 
-        PlayFabReport thirtyDayRetentionReport = new()
-        {
-            Columns = thirtyDayRetentionReportColumns,
-            Description = "Retention report for daily cohorts of players in the last 30 days.",
-            CsvData = PlayFabReport.CreateCsvReportFromJsonArray(latestReports["ThirtyDayRetentionReport"].ReportData, thirtyDayRetentionReportColumns),
-            ReportName = "ThirtyDayRetentionReport"
-        };
+            playFabReports.Add(new()
+            {
+                Columns = thirtyDayRetentionReportColumns,
+                Description = "Retention report for daily cohorts of players in the last 30 days.",
+                CsvData = PlayFabReport.CreateCsvReportFromJsonArray(thirtyDayRetentionReport.ReportData, thirtyDayRetentionReportColumns),
+                ReportName = thirtyDayRetentionReport.ReportName
+            });
+        }
 
         // Report 5 - Engagement Mertics Report
-        PlayFabReportColumn[] engagementMetricsRollupReportColumns = new[]
+        if (latestReports.TryGetValue("EngagementMetricsRollupReportCSV", out GameReport? engagementMetricsRollupReport))
         {
+            PlayFabReportColumn[] engagementMetricsRollupReportColumns = new[]
+            {
                 new PlayFabReportColumn { Name = "ReportDate", Description = "The date for the week for which the data is recorded." },
                 new PlayFabReportColumn { Name = "Region", Description = "The geographic region to which the data pertains. Examples include Greater China, France, Japan, United Kingdom, United States, Latin America, India, Middle East & Africa, Germany, Canada, Western Europe, Asia Pacific, and Central & Eastern Europe. 'All' is a special region which means this rows aggregates data across all the other regions" },
                 new PlayFabReportColumn { Name = "MonthlyActiveUsers", Description = "The total number of unique users who engaged with the game at least once during the month." },
@@ -172,34 +188,27 @@ public class ReportDataManager : IReportDataManager
                 new PlayFabReportColumn { Name = "Retention7Day", Description = "The percentage of users who returned to the game seven days after their first engagement." },
             };
 
-        PlayFabReport engagementMetricsRollupReport = new()
-        {
-            Columns = engagementMetricsRollupReportColumns,
-            Description = """
+            playFabReports.Add(new()
+            {
+                Columns = engagementMetricsRollupReportColumns,
+                Description = """
 Weekly aggregated data related to the user activity and retention for the last 30 days.
 Data is broken down by different geographic regions, including France, Greater China, Japan, United Kingdom, United States, Latin America, India, Middle East & Africa, Germany, Canada, Western Europe, Asia Pacific, and Central & Eastern Europe.
 There is a special row for each week with the Region set to 'All', which means this row aggregates data across all the regions for that week.
 """,
-            CsvData = string.Join(
+                CsvData = string.Join(
                 Environment.NewLine,
-                latestReports["EngagementMetricsRollupReportCSV"].ReportData
+                engagementMetricsRollupReport.ReportData
                     .Split("\"", StringSplitOptions.RemoveEmptyEntries)
                     .Where(line => line != ",")
                     .Select(line => line.Split(",", StringSplitOptions.RemoveEmptyEntries))
                     .Where(row => row[2] == "All" && row[4] == "All") // Platform and Segment
                     .Select(row => $"{ParseDailyReportDate(row[1])},{row[3]},{row[5]},{row[6]},{row[7]},{row[11]},{row[12]}")
                     .ToList()),
-            ReportName = "EngagementMetricsRollupReport"
-        };
+                ReportName = "EngagementMetricsRollupReport"
+            });
+        }
 
-        var playFabReports = new PlayFabReport[]
-        {
-            dailyOverviewReport,
-            rollingThirtyDayOverviewReport,
-            dailyTopItemsReport,
-            thirtyDayRetentionReport,
-            engagementMetricsRollupReport
-        };
-        return playFabReports;
+        return playFabReports.ToArray();
     }
 }
