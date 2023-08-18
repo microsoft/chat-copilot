@@ -65,7 +65,7 @@ param(
 
     [SecureString]
     # Password for the Postgres database
-    $SqlAdminPassword = "",
+    $SqlAdminPassword,
 
     [switch]
     # Don't deploy Cosmos DB for chat storage - Use volatile memory instead
@@ -124,7 +124,7 @@ $jsonConfig = "
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },
     `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) },
-    `\`"sqlAdminPassword`\`": { `\`"value`\`": `\`"$(ConvertFrom-SecureString $SqlAdminPassword -AsPlainText)`\`" }
+    `\`"sqlAdminPassword`\`": { `\`"value`\`": `\`"$(If ($SqlAdminPassword) {ConvertFrom-SecureString $SqlAdminPassword -AsPlainText} Else {$null})`\`" }
 }
 "
 

@@ -5,10 +5,11 @@ import { Button, Spinner, Textarea, makeStyles, mergeClasses, shorthands, tokens
 import { AttachRegular, MicRegular, SendRegular } from '@fluentui/react-icons';
 import debug from 'debug';
 import * as speechSdk from 'microsoft-cognitiveservices-speech-sdk';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Constants } from '../../Constants';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
-import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
+import { useFile } from '../../libs/hooks';
+import { GetResponseOptions } from '../../libs/hooks/useChat';
 import { AlertType } from '../../libs/models/AlertType';
 import { ChatMessageType } from '../../libs/models/ChatMessage';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
@@ -76,16 +77,17 @@ interface ChatInputProps {
 export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeave, onSubmit }) => {
     const classes = useClasses();
     const { instance, inProgress } = useMsal();
-    const chat = useChat();
     const dispatch = useAppDispatch();
-    const [value, setValue] = React.useState('');
-    const [recognizer, setRecognizer] = React.useState<speechSdk.SpeechRecognizer>();
-    const [isListening, setIsListening] = React.useState(false);
-    const [documentImporting, setDocumentImporting] = React.useState(false);
-    const documentFileRef = useRef<HTMLInputElement | null>(null);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+    const fileHandler = useFile();
 
+    const [value, setValue] = useState('');
+    const [recognizer, setRecognizer] = useState<speechSdk.SpeechRecognizer>();
+    const [isListening, setIsListening] = useState(false);
+    const { importingDocuments } = conversations[selectedId];
+
+    const documentFileRef = useRef<HTMLInputElement | null>(null);
     const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
     React.useEffect(() => {
         // Focus on the text area when the selected conversation changes
@@ -130,26 +132,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
         }
     };
 
-    const handleImport = (dragAndDropFiles?: FileList) => {
-        const files = dragAndDropFiles ?? documentFileRef.current?.files;
-
-        if (files && files.length > 0) {
-            setDocumentImporting(true);
-            // Deep copy the FileList into an array so that the function
-            // maintains a list of files to import before the import is complete.
-            const filesArray = Array.from(files);
-            void chat.importDocument(selectedId, filesArray).finally(() => {
-                setDocumentImporting(false);
-            });
-        }
-
-        // Reset the file input so that the onChange event will
-        // be triggered even if the same file is selected again.
-        if (documentFileRef.current?.value) {
-            documentFileRef.current.value = '';
-        }
-    };
-
     const handleSubmit = (value: string, messageType: ChatMessageType = ChatMessageType.Message) => {
         if (value.trim() === '') {
             return; // only submit if value is not empty
@@ -172,7 +154,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
     const handleDrop = (e: React.DragEvent<HTMLTextAreaElement>) => {
         onDragLeave(e);
-        handleImport(e.dataTransfer.files);
+        void fileHandler.handleImport(selectedId, documentFileRef, undefined, e.dataTransfer.files);
     };
 
     return (
@@ -239,18 +221,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                         accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
                         multiple={true}
                         onChange={() => {
-                            handleImport();
+                            void fileHandler.handleImport(selectedId, documentFileRef);
                         }}
                     />
                     <Button
-                        disabled={documentImporting}
+                        disabled={importingDocuments && importingDocuments.length > 0}
                         appearance="transparent"
                         icon={<AttachRegular />}
                         onClick={() => documentFileRef.current?.click()}
                         title="Attach file"
                         aria-label="Attach file button"
                     />
-                    {documentImporting && <Spinner size="tiny" />}
+                    {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
                 </div>
                 <div className={classes.essentials}>
                     {recognizer && (

@@ -38,4 +38,9 @@ public class DocumentImportForm
     /// If the document scope is set to global, this value is ignored.
     /// </summary>
     public Guid ChatId { get; set; } = Guid.Empty;
+
+    /// <summary>
+    /// Flag indicating whether user has content safety enabled from the client.
+    /// </summary>
+    public bool UseContentSafety { get; set; } = false;
 }

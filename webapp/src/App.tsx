@@ -9,7 +9,7 @@ import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
 import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
-import { useChat } from './libs/hooks';
+import { useChat, useFile } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
@@ -67,6 +67,7 @@ const App: FC = () => {
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
+    const file = useFile();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -111,6 +112,9 @@ const App: FC = () => {
                         setAppState(AppState.Chat);
                     }
                 }),
+
+                // Check if content safety is enabled
+                file.getContentSafetyStatus(),
 
                 // Load service options
                 chat.getServiceOptions().then((serviceOptions) => {

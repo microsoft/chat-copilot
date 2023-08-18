@@ -4,7 +4,7 @@ import { useMsal } from '@azure/msal-react';
 import { Constants } from '../../Constants';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addAlert, updateTokenUsage } from '../../redux/features/app/appSlice';
+import { addAlert, toggleFeatureState, updateTokenUsage } from '../../redux/features/app/appSlice';
 import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
@@ -257,10 +257,26 @@ export const useChat = () => {
             await documentImportService.importDocumentAsync(
                 chatId,
                 files,
+                features[FeatureKeys.AzureContentSafety].enabled,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
         } catch (e: any) {
-            const errorMessage = `Failed to upload document. Details: ${getErrorDetails(e)}`;
+            let errorDetails = getErrorDetails(e);
+
+            // Disable Content Safety if request was unauthorized
+            const contentSafetyDisabledRegEx = /Access denied: \[Content Safety] Failed to analyze image./g;
+            if (contentSafetyDisabledRegEx.test(errorDetails)) {
+                if (features[FeatureKeys.AzureContentSafety].enabled) {
+                    errorDetails =
+                        'Unable to analyze image. Content Safety is currently disabled or unauthorized service-side. Please contact your admin to enable.';
+                }
+
+                dispatch(
+                    toggleFeatureState({ feature: FeatureKeys.AzureContentSafety, deactivate: true, enable: false }),
+                );
+            }
+
+            const errorMessage = `Failed to upload document(s). Details: ${errorDetails}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };
