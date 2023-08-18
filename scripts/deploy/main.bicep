@@ -347,6 +347,26 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         name: 'SemanticMemory:Services:AzureBlobs:Container'
         value: 'chatmemory'
       }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:ConnectionString'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Endpoint'
+        value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
+      }
+      {
+        name: 'MemoryStore:AzureCognitiveSearch:APIKey'
+        value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
+      }
     ]
   }
 }
@@ -434,7 +454,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
       }
       {
-        name: 'MemoryStore:AzureCognitiveSearch:Key'
+        name: 'MemoryStore:AzureCognitiveSearch:APIKey'
         value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
       }
       {

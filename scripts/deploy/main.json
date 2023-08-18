@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "6304146110530758008"
+      "templateHash": "3963542300943964785"
     }
   },
   "parameters": {
@@ -464,6 +464,26 @@
           {
             "name": "SemanticMemory:Services:AzureBlobs:Container",
             "value": "chatmemory"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureQueue:Auth",
+            "value": "ConnectionString"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureQueue:ConnectionString",
+            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureCognitiveSearch:Auth",
+            "value": "ApiKey"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureCognitiveSearch:Endpoint",
+            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
+          },
+          {
+            "name": "MemoryStore:AzureCognitiveSearch:APIKey",
+            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           }
         ]
       },
@@ -569,7 +589,7 @@
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
           },
           {
-            "name": "MemoryStore:AzureCognitiveSearch:Key",
+            "name": "MemoryStore:AzureCognitiveSearch:APIKey",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
