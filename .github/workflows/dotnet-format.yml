@@ -1,8 +1,4 @@
-﻿#
-# This workflow runs the dotnet formatter on all c-sharp code.
-#
-
-name: dotnet-format
+﻿name: dotnet-format
 
 on:
   pull_request:
@@ -17,6 +13,10 @@ concurrency:
 
 jobs:
   check-format:
+    runs-on: ubuntu-latest
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+
     steps:
       - name: Check out code
         uses: actions/checkout@v3
