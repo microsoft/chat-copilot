@@ -50,4 +50,9 @@ public class DocumentImportForm
     /// Will be used to create the chat message representing the document upload.
     /// </summary>
     public string UserName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Flag indicating whether user has content safety enabled from the client.
+    /// </summary>
+    public bool UseContentSafety { get; set; } = false;
 }

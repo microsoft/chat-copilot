@@ -4,7 +4,7 @@ import { useMsal } from '@azure/msal-react';
 import { Constants } from '../../Constants';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addAlert, updateTokenUsage } from '../../redux/features/app/appSlice';
+import { addAlert, toggleFeatureState, updateTokenUsage } from '../../redux/features/app/appSlice';
 import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
@@ -31,6 +31,7 @@ import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
 import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
 import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
+import { FeatureKeys } from '../../redux/features/app/AppState';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -43,7 +44,7 @@ export const useChat = () => {
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
-    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
     const botService = new BotService(process.env.REACT_APP_BACKEND_URI as string);
     const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
@@ -262,10 +263,26 @@ export const useChat = () => {
                 fullName,
                 chatId,
                 files,
+                features[FeatureKeys.AzureContentSafety].enabled,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
         } catch (e: any) {
-            const errorMessage = `Failed to upload document. Details: ${getErrorDetails(e)}`;
+            let errorDetails = getErrorDetails(e);
+
+            // Disable Content Safety if request was unauthorized
+            const contentSafetyDisabledRegEx = /Access denied: \[Content Safety] Failed to analyze image./g;
+            if (contentSafetyDisabledRegEx.test(errorDetails)) {
+                if (features[FeatureKeys.AzureContentSafety].enabled) {
+                    errorDetails =
+                        'Unable to analyze image. Content Safety is currently disabled or unauthorized service-side. Please contact your admin to enable.';
+                }
+
+                dispatch(
+                    toggleFeatureState({ feature: FeatureKeys.AzureContentSafety, deactivate: true, enable: false }),
+                );
+            }
+
+            const errorMessage = `Failed to upload document(s). Details: ${errorDetails}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };

@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
@@ -79,6 +80,7 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
+    private readonly IContentSafetyService? _contentSafetyService = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -91,7 +93,8 @@ public class DocumentImportController : ControllerBase
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
-        IOcrEngine ocrEngine)
+        IOcrEngine ocrEngine,
+        IContentSafetyService? contentSafety = null)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
@@ -101,6 +104,19 @@ public class DocumentImportController : ControllerBase
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
         this._ocrEngine = ocrEngine;
+        this._contentSafetyService = contentSafety;
+    }
+
+    /// <summary>
+    /// Gets the status of content safety.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("contentSafety/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public bool ContentSafetyStatus()
+    {
+        return this._contentSafetyService!.ContentSafetyStatus(this._logger);
     }
 
     /// <summary>
@@ -265,7 +281,7 @@ public class DocumentImportController : ControllerBase
                 throw new ArgumentException($"File {formFile.FileName} size exceeds the limit.");
             }
 
-            // Make sure the file type is supported.
+            // Make sure the file type is supported and validate any images if ContentSafety is enabled.
             var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
             switch (fileType)
             {
@@ -276,16 +292,38 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
-                {
                     if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
                     {
+                        if (documentImportForm.UseContentSafety)
+                        {
+                            if (!this._contentSafetyService!.ContentSafetyStatus(this._logger))
+                            {
+                                throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
+                            }
+
+                            var violations = new List<string>();
+                            try
+                            {
+                                // Call the content safety controller to analyze the image
+                                var imageAnalysisResponse = await this._contentSafetyService!.ImageAnalysisAsync(formFile, default);
+                                violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService!.Options!.ViolationThreshold);
+                            }
+                            catch (Exception ex) when (!ex.IsCriticalException())
+                            {
+                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
+                                throw new AggregateException($"Failed to analyze image {formFile.FileName} with Content Safety.", ex);
+                            }
+
+                            if (violations.Count > 0)
+                            {
+                                throw new ArgumentException($"Unable to upload image {formFile.FileName}. Detected undesirable content with potential risk: {string.Join(", ", violations)}");
+                            }
+                        }
                         break;
                     }
-
                     throw new ArgumentException($"Unsupported image file type: {fileType} when " +
                         $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
                         nameof(OcrSupportOptions.OcrSupportType.None));
-                }
                 default:
                     throw new ArgumentException($"Unsupported file type: {fileType}");
             }
@@ -315,11 +353,12 @@ public class DocumentImportController : ControllerBase
             case SupportedFileType.Jpg:
             case SupportedFileType.Png:
             case SupportedFileType.Tiff:
-            {
                 documentContent = await this.ReadTextFromImageFileAsync(formFile);
+                if (documentContent.Trim().Length == 0)
+                {
+                    throw new ArgumentException($"Image {{{formFile.FileName}}} does not contain text.");
+                }
                 break;
-            }
-
             default:
                 // This should never happen. Validation should have already caught this.
                 return ImportResult.Fail();
