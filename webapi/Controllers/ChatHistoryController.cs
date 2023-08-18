@@ -273,15 +273,16 @@ public class ChatHistoryController : ControllerBase
             return this.NotFound($"No chat session found for chat id '{chatId}'.");
         }
 
-        // Delete message and broadcast update to all participants.
-        await this._sessionRepository.DeleteAsync(chatToDelete);
-        await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatDeletedClientCall, chatId, userId);
-
+        // Delete any resources associated with the chat session.
         var deleteResourcesResult = await this.DeleteChatResourcesAsync(messageRelayHubContext, sessionId) as StatusCodeResult;
         if (deleteResourcesResult?.StatusCode != 204)
         {
             return this.StatusCode(424, $"Failed to delete resources for chat id '{chatId}'.");
         }
+
+        // Delete chat session and broadcast update to all participants.
+        await this._sessionRepository.DeleteAsync(chatToDelete);
+        await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatDeletedClientCall, chatId, userId);
 
         return this.NoContent();
     }
@@ -290,12 +291,11 @@ public class ChatHistoryController : ControllerBase
     /// Deletes all associated resources (messages, memories, participants) associated with a chat session.
     /// </summary>
     /// <param name="sessionId">The chat id.</param>
-    /// <param name="deletionTasks">Tasks defining the items to be deleted. If this is null or empty, all items will be deleted.</param>
     [HttpDelete]
     [Route("chatSession/{sessionId:guid}/resources")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteChatResourcesAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, Guid sessionId)
+    private async Task<IActionResult> DeleteChatResourcesAsync([FromServices] IHubContext<MessageRelayHub> messageRelayHubContext, Guid sessionId)
     {
         var chatId = sessionId.ToString();
         var cleanupTasks = new List<Task>();
@@ -323,20 +323,18 @@ public class ChatHistoryController : ControllerBase
 
         // Await all the tasks in parallel and handle the exceptions
         await Task.WhenAll(cleanupTasks);
-        // var failedTasks = false;
+        var failedTasks = false;
 
         // Iterate over the tasks and check their status and exception
         foreach (var task in cleanupTasks)
         {
             if (task.IsFaulted && task.Exception != null)
             {
-                // failedTasks = true;
+                failedTasks = true;
                 this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, task.Exception.Message);
             }
         }
 
-        return this.StatusCode(500);
-
-        // return failedTasks ? this.StatusCode(500) : this.NoContent();
+        return failedTasks ? this.StatusCode(500) : this.NoContent();
     }
 }

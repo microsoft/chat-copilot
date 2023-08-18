@@ -14,6 +14,7 @@ export interface Alert {
     message: string;
     type: AlertType;
     id?: string;
+    onRetry?: () => void;
 }
 
 interface Feature {

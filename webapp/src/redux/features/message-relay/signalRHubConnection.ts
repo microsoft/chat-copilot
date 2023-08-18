@@ -189,14 +189,16 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
 
     // User Id is that of the user who initiated the deletion.
     hubConnection.on(SignalRCallbackMethods.ChatDeleted, (chatId: string, userId: string) => {
-        if (!(chatId in store.getState().conversations.conversations)) {
+        const conversations = store.getState().conversations.conversations;
+        if (!(chatId in conversations)) {
             store.dispatch({
-                message: `Chat ${chatId} not found in store. Chat deleted signal from server was not processed. ${COPY.REFRESH_APP_ADVISORY}`,
+                message: `Chat ${chatId} not found in store. ChatDeleted signal from server was not processed. ${COPY.REFRESH_APP_ADVISORY}`,
                 type: AlertType.Error,
             });
         } else {
-            const friendlyChatName = getFriendlyChatName(store.getState().conversations.conversations[chatId]);
+            const friendlyChatName = getFriendlyChatName(conversations[chatId]);
             const deletedByAnotherUser = userId !== store.getState().app.activeUserInfo?.id;
+
             store.dispatch(
                 addAlert({
                     message: deletedByAnotherUser
@@ -205,6 +207,7 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
                     type: AlertType.Warning,
                 }),
             );
+
             if (deletedByAnotherUser)
                 store.dispatch({
                     type: 'conversations/disableConversation',

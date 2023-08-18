@@ -343,26 +343,29 @@ export const useChat = () => {
     };
 
     const deleteChat = async (chatId: string) => {
-        try {
-            await chatService.deleteChatAsync(
-                chatId,
-                loggedInUser.id,
-                await AuthHelper.getSKaaSAccessToken(instance, inProgress),
-            );
-            dispatch(deleteConversation(chatId));
+        const friendlyChatName = getFriendlyChatName(conversations[chatId]);
+        await chatService
+            .deleteChatAsync(chatId, loggedInUser.id, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
+            .then(() => {
+                dispatch(deleteConversation(chatId));
 
-            // If there is only one chat left, create a new chat
-            if (Object.keys(conversations).length <= 1) {
-                await createChat();
-            }
-        } catch (e: any) {
-            let errorMessage = `Unable to delete chat. Details: ${(e as Error).message}`;
-            if ((e as Error).message.includes('Error: 424')) {
-                errorMessage = "Chat was deleted, but some or all resources couldn't be deleted. Please try again.";
-            }
-
-            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
-        }
+                // If there is only one chat left, create a new chat
+                if (Object.keys(conversations).length <= 1) {
+                    void createChat();
+                }
+            })
+            .catch((e: any) => {
+                const errorDetails = (e as Error).message.includes('Error: 424')
+                    ? "Some or all resources associated with chat couldn't be deleted. Please try again."
+                    : `Details: ${(e as Error).message}`;
+                dispatch(
+                    addAlert({
+                        message: `Unable to delete chat {${friendlyChatName}}. ${errorDetails}`,
+                        type: AlertType.Error,
+                        onRetry: () => void deleteChat(chatId),
+                    }),
+                );
+            });
     };
 
     return {
