@@ -24,6 +24,7 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
+using PlayFab.Skills;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -355,18 +356,42 @@ public class ChatSkill
             );
 
         // If plan is suggested, send back to user for approval before running
-        var proposedPlan = this._externalInformationSkill.ProposedPlan;
+        ProposedPlan? proposedPlan = this._externalInformationSkill.ProposedPlan;
         if (proposedPlan != null)
         {
-            var prompt = proposedPlan.Plan.Description;
-            chatContext.Variables.Set("prompt", prompt);
+            bool shouldSkipUserConsent = (proposedPlan.Plan.Steps.Count == 1 &&
+                proposedPlan.Plan.Steps[0].SkillName == "GameInsights" &&
+                proposedPlan.Plan.Steps[0].Name == "GetAnswerForGameQuestion");
 
-            // Save a new response to the chat history with the proposed plan content
-            return await this.SaveNewResponseAsync(
-                JsonSerializer.Serialize<ProposedPlan>(proposedPlan), prompt, chatId, userId,
-                // TODO: [Issue #2106] Accommodate plan token usage differently
-                this.GetTokenUsagesAsync(chatContext)
-            );
+            if (shouldSkipUserConsent)
+            {
+                string trimmedUserIntent = userIntent.Replace("User Intent:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+                SKContext autoApprovedContext = chatContext.Clone();
+                proposedPlan.State = PlanState.Approved;
+                proposedPlan.Plan.Steps[0].Parameters.Set("question", trimmedUserIntent);
+                autoApprovedContext.Variables.Set("proposedPlan", JsonSerializer.Serialize(proposedPlan));
+                autoApprovedContext.Variables.Set("userIntent", trimmedUserIntent);
+                autoApprovedContext.Variables.Set("planUserIntent", trimmedUserIntent);
+
+                planResult = await this.AcquireExternalInformationAsync(autoApprovedContext, userIntent, externalInformationTokenLimit);
+                chatContext.ThrowIfFailed();
+                plannerDetails = new SemanticDependency<StepwiseThoughtProcess>(
+                    planResult,
+                    this._externalInformationSkill.StepwiseThoughtProcess
+                );
+            }
+            else
+            {
+                var prompt = proposedPlan.Plan.Description;
+                chatContext.Variables.Set("prompt", prompt);
+
+                // Save a new response to the chat history with the proposed plan content
+                return await this.SaveNewResponseAsync(
+                    JsonSerializer.Serialize<ProposedPlan>(proposedPlan), prompt, chatId, userId,
+                    // TODO: [Issue #2106] Accommodate plan token usage differently
+                    this.GetTokenUsagesAsync(chatContext)
+                );
+            }
         }
 
         // Query relevant semantic and document memories
