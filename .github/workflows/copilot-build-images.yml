@@ -1,23 +1,20 @@
 name: copilot-deploy-pipeline
 
 on:
-  push:
-    branches:
-      - "main"
-    tags:
-      - "v*"
-    paths:
-      - "webapi/**"
-      - "webapp/**"
-      - ".github/workflows/copilot-build-images.yml"
-  pull_request:
-    branches:
-      - "main"
-    paths:
-      - "webapi/**"
-      - "webapp/**"
-      - ".github/workflows/copilot-build-images.yml"
-
+  workflow_call:
+    inputs:
+      REACT_APP_BACKEND_URI:
+        required: true
+        type: string
+      REACT_APP_AAD_AUTHORITY:
+        required: true
+        type: string
+      REACT_APP_AAD_CLIENT_ID:
+        required: true
+        type: string
+      REACT_APP_AAD_API_SCOPE:
+        required: false
+        type: string
 env:
   REGISTRY: ghcr.io
 
@@ -40,10 +37,10 @@ jobs:
           - file: ./docker/webapp/Dockerfile.nginx
             image: ${{ github.repository }}-webapp-nginx
             build-args: |
-              REACT_APP_BACKEND_URI=${{ vars.REACT_APP_BACKEND_URI }}
-              REACT_APP_AAD_AUTHORITY=${{ vars.REACT_APP_AAD_AUTHORITY }}
-              REACT_APP_AAD_CLIENT_ID=${{ vars.REACT_APP_AAD_CLIENT_ID }}
-              REACT_APP_AAD_API_SCOPE=${{ vars.REACT_APP_AAD_API_SCOPE }}
+              REACT_APP_BACKEND_URI=${{ inputs.REACT_APP_BACKEND_URI }}
+              REACT_APP_AAD_AUTHORITY=${{ inputs.REACT_APP_AAD_AUTHORITY }}
+              REACT_APP_AAD_CLIENT_ID=${{ inputs.REACT_APP_AAD_CLIENT_ID }}
+              REACT_APP_AAD_API_SCOPE=${{ inputs.REACT_APP_AAD_API_SCOPE }}
     permissions:
       contents: read
       packages: write
