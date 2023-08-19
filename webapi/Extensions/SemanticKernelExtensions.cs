@@ -233,7 +233,7 @@ internal static class SemanticKernelExtensions
             case MemoryStoreOptions.MemoryStoreType.Postgres:
                 if (config.Postgres == null)
                 {
-                    throw new InvalidOperationException("MemoryStore type is Cosmos and Cosmos configuration is null.");
+                    throw new InvalidOperationException("MemoryStore type is Postgres and Postgres configuration is null.");
                 }
 
                 var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
