@@ -1,4 +1,4 @@
-name: copilot-deploy-pipeline
+name: copilot-build-images
 
 on:
   workflow_call:
