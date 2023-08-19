@@ -1,5 +1,5 @@
 # source webapp/.env
-# docker build --build-arg REACT_APP_BACKEND_URI=$REACT_APP_BACKEND_URI --build-arg REACT_APP_AAD_AUTHORITY=$REACT_APP_AAD_AUTHORITY --build-arg REACT_APP_AAD_CLIENT_ID=$REACT_APP_AAD_CLIENT_ID --build-arg  REACT_APP_AAD_API_SCOPE=$REACT_APP_AAD_API_SCOPE -f docker/webapp/Dockerfile.nginx -t chat-copilot-web-nginx .
+# docker build --build-arg REACT_APP_BACKEND_URI=$REACT_APP_BACKEND_URI --build-arg REACT_APP_AAD_AUTHORITY=$REACT_APP_AAD_AUTHORITY --build-arg REACT_APP_AAD_CLIENT_ID=$REACT_APP_AAD_CLIENT_ID --build-arg  REACT_APP_AAD_API_SCOPE=$REACT_APP_AAD_API_SCOPE -f docker/webapp/Dockerfile.nginx -t chat-copilot-webapp-nginx .
 
 # builder
 FROM node:lts-alpine as builder

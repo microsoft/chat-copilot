@@ -1,3 +1,5 @@
+# docker build -f docker/webapp/Dockerfile -t chat-copilot-webapp .
+
 # builder
 FROM node:lts-alpine as builder
 WORKDIR /app

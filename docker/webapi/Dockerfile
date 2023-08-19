@@ -1,3 +1,5 @@
+# docker build -f docker/webapi/Dockerfile -t chat-copilot-webapi .
+
 # Learn about building .NET container images:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
