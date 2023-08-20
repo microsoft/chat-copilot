@@ -81,7 +81,7 @@ public class DocumentImportController : ControllerBase
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
     private readonly IAuthInfo _authInfo;
-    private readonly IContentSafetyService? _contentSafetyService = null;
+    private readonly IContentSafetyService? _contentSafetyService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -119,7 +119,7 @@ public class DocumentImportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public bool ContentSafetyStatus()
     {
-        return this._contentSafetyService!.ContentSafetyStatus(this._logger);
+        return this._contentSafetyService?.ContentSafetyStatus(this._logger) ?? false;
     }
 
     /// <summary>
@@ -298,7 +298,7 @@ public class DocumentImportController : ControllerBase
                     {
                         if (documentImportForm.UseContentSafety)
                         {
-                            if (!this._contentSafetyService!.ContentSafetyStatus(this._logger))
+                            if (this._contentSafetyService == null || !this._contentSafetyService.ContentSafetyStatus(this._logger))
                             {
                                 throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
                             }
@@ -307,8 +307,8 @@ public class DocumentImportController : ControllerBase
                             try
                             {
                                 // Call the content safety controller to analyze the image
-                                var imageAnalysisResponse = await this._contentSafetyService!.ImageAnalysisAsync(formFile, default);
-                                violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService!.Options!.ViolationThreshold);
+                                var imageAnalysisResponse = await this._contentSafetyService.ImageAnalysisAsync(formFile, default);
+                                violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService.Options.ViolationThreshold);
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
