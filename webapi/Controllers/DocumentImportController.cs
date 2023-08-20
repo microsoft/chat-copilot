@@ -119,7 +119,7 @@ public class DocumentImportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public bool ContentSafetyStatus()
     {
-        return this._contentSafetyService!.ContentSafetyStatus(this._logger);
+        return this._contentSafetyService?.ContentSafetyStatus(this._logger) ?? false;
     }
 
     /// <summary>
