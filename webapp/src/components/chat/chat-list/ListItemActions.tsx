@@ -65,6 +65,7 @@ export const ListItemActions: React.FC<IListItemActionsProps> = ({ chatId, onEdi
                             appearance="transparent"
                             aria-label="Edit chat name"
                             onClick={onEditTitleClick}
+                            data-testid="editChatTitleButtonSimplified"
                         />
                     </Tooltip>
                     <Tooltip content={'Download chat session'} relationship="label">

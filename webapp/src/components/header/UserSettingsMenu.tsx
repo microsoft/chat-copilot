@@ -68,6 +68,7 @@ export const UserSettingsMenu: FC<IUserSettingsProps> = ({ setLoadingState }) =>
                                         ? { status: 'available' }
                                         : undefined
                                 }
+                                data-testid="userSettingsButton"
                             />
                         }
                     </MenuTrigger>
@@ -101,7 +102,7 @@ export const UserSettingsMenu: FC<IUserSettingsProps> = ({ setLoadingState }) =>
                 </Menu>
             ) : (
                 <Button
-                    data-testid="settingsButton"
+                    data-testid="settingsButtonWithoutAuth"
                     style={{ color: 'white' }}
                     appearance="transparent"
                     icon={<Settings24Regular color="white" />}
