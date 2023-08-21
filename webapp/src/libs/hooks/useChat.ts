@@ -356,7 +356,7 @@ export const useChat = () => {
     const deleteChat = async (chatId: string) => {
         const friendlyChatName = getFriendlyChatName(conversations[chatId]);
         await chatService
-            .deleteChatAsync(chatId, loggedInUser.id, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
+            .deleteChatAsync(chatId, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
             .then(() => {
                 dispatch(deleteConversation(chatId));
 
