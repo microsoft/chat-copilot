@@ -19,10 +19,6 @@ jobs:
 
   build-memorypipeline:
     uses: ./.github/workflows/copilot-build-memorypipeline.yml
-      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
-      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
-      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
-      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
 
   feature-semantic-memory:
     needs: [build-webapi, build-memorypipeline]
