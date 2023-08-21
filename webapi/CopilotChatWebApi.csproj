@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.19.230804.2-preview" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.13.2" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.13.3" />
     <PackageReference Include="PdfPig" Version="0.1.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
