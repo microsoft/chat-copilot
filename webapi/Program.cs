@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
@@ -44,6 +45,9 @@ public sealed class Program
             .AddPlannerServices()
             .AddPersistentChatStore()
             .AddPersistentOcrSupport()
+            .AddUtilities()
+            .AddCopilotChatAuthentication(builder.Configuration)
+            .AddCopilotChatAuthorization()
             .AddSemanticKernelServices();
 
         // Add SignalR as the real time relay service
@@ -61,11 +65,14 @@ public sealed class Program
 
         // Add in the rest of the services.
         builder.Services
-            .AddAuthorization(builder.Configuration)
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
             .AddCorsPolicy()
-            .AddControllers();
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
         builder.Services.AddHealthChecks();
 
         // Configure middleware and endpoints
@@ -73,7 +80,8 @@ public sealed class Program
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
+        app.MapControllers()
+            .RequireAuthorization();
         app.MapHealthChecks("/healthz");
 
         // Add CopilotChat hub for real time communication

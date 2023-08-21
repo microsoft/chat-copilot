@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
@@ -14,7 +15,6 @@ using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills;
 using CopilotChat.WebApi.Storage;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -80,7 +80,8 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
-    private readonly IContentSafetyService? _contentSafetyService = null;
+    private readonly IAuthInfo _authInfo;
+    private readonly IContentSafetyService? _contentSafetyService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -94,6 +95,7 @@ public class DocumentImportController : ControllerBase
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         IOcrEngine ocrEngine,
+        IAuthInfo authInfo,
         IContentSafetyService? contentSafety = null)
     {
         this._logger = logger;
@@ -104,6 +106,7 @@ public class DocumentImportController : ControllerBase
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
         this._ocrEngine = ocrEngine;
+        this._authInfo = authInfo;
         this._contentSafetyService = contentSafety;
     }
 
@@ -116,13 +119,12 @@ public class DocumentImportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public bool ContentSafetyStatus()
     {
-        return this._contentSafetyService!.ContentSafetyStatus(this._logger);
+        return this._contentSafetyService?.ContentSafetyStatus(this._logger) ?? false;
     }
 
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
     [Route("importDocuments")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -175,7 +177,7 @@ public class DocumentImportController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
-            var userId = documentImportForm.UserId;
+            var userId = this._authInfo.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
@@ -185,7 +187,7 @@ public class DocumentImportController : ControllerBase
         await messageRelayHubContext.Clients.All.SendAsync(
             GlobalDocumentUploadedClientCall,
             documentMessageContent.ToFormattedStringNamesOnly(),
-            documentImportForm.UserName
+            this._authInfo.Name
         );
 
         return this.Ok("Documents imported successfully to global scope.");
@@ -252,7 +254,7 @@ public class DocumentImportController : ControllerBase
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
         if (documentImportForm.DocumentScope == DocumentImportForm.DocumentScopes.Chat
-                && !(await this.UserHasAccessToChatAsync(documentImportForm.UserId, documentImportForm.ChatId)))
+                && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, documentImportForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -296,7 +298,7 @@ public class DocumentImportController : ControllerBase
                     {
                         if (documentImportForm.UseContentSafety)
                         {
-                            if (!this._contentSafetyService!.ContentSafetyStatus(this._logger))
+                            if (this._contentSafetyService == null || !this._contentSafetyService.ContentSafetyStatus(this._logger))
                             {
                                 throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
                             }
@@ -305,8 +307,8 @@ public class DocumentImportController : ControllerBase
                             try
                             {
                                 // Call the content safety controller to analyze the image
-                                var imageAnalysisResponse = await this._contentSafetyService!.ImageAnalysisAsync(formFile, default);
-                                violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService!.Options!.ViolationThreshold);
+                                var imageAnalysisResponse = await this._contentSafetyService.ImageAnalysisAsync(formFile, default);
+                                violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService.Options.ViolationThreshold);
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
@@ -337,7 +339,10 @@ public class DocumentImportController : ControllerBase
     /// <param name="formFile">The form file.</param>
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns>Import result.</returns>
-    private async Task<ImportResult> ImportDocumentHelperAsync(IKernel kernel, IFormFile formFile, DocumentImportForm documentImportForm)
+    private async Task<ImportResult> ImportDocumentHelperAsync(
+        IKernel kernel,
+        IFormFile formFile,
+        DocumentImportForm documentImportForm)
     {
         var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
         var documentContent = string.Empty;
@@ -410,7 +415,7 @@ public class DocumentImportController : ControllerBase
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
+        var userId = this._authInfo.UserId;
 
         return new MemorySource(
             chatId,
@@ -453,8 +458,8 @@ public class DocumentImportController : ControllerBase
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
-        var userName = documentImportForm.UserName;
+        var userId = this._authInfo.UserId;
+        var userName = this._authInfo.Name;
 
         var chatMessage = ChatMessage.CreateDocumentMessage(
             userId,

@@ -30,11 +30,6 @@ export class BaseService {
             headers.append('Content-Type', 'application/json');
         }
 
-        // API key auth for private hosted instances
-        if (process.env.REACT_APP_SK_API_KEY) {
-            headers.append('x-sk-api-key', process.env.REACT_APP_SK_API_KEY);
-        }
-
         if (enabledPlugins && enabledPlugins.length > 0) {
             // For each enabled plugin, pass its auth information as a customer header
             // to the backend so the server can authenticate to the plugin

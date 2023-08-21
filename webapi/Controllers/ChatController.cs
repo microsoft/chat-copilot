@@ -9,12 +9,14 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
-using Microsoft.AspNetCore.Authorization;
+using CopilotChat.WebApi.Storage;
+using CopilotChat.WebApi.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -58,28 +60,55 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="kernel">Semantic kernel obtained through dependency injection.</param>
     /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
     /// <param name="planner">Planner to use to create function sequences.</param>
+    /// <param name="askConverter">Converter to use for converting Asks.</param>
+    /// <param name="chatSessionRepository">Repository of chat sessions.</param>
+    /// <param name="chatParticipantRepository">Repository of chat participants.</param>
+    /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Authorize]
     [Route("chat")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChatAsync(
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] CopilotChatPlanner planner,
+        [FromServices] AskConverter askConverter,
+        [FromServices] ChatSessionRepository chatSessionRepository,
+        [FromServices] ChatParticipantRepository chatParticipantRepository,
+        [FromServices] IAuthInfo authInfo,
         [FromBody] Ask ask)
     {
         this._logger.LogDebug("Chat request received.");
 
-        // Put ask's variables in the context we will use.
-        var contextVariables = new ContextVariables(ask.Input);
-        foreach (var input in ask.Variables)
+        // Verify that the chat exists and that the user has access to it.
+        const string ChatIdKey = "chatId";
+        var chatIdFromContext = ask.Variables.FirstOrDefault(x => x.Key == ChatIdKey);
+        if (chatIdFromContext.Key is ChatIdKey)
         {
-            contextVariables.Set(input.Key, input.Value);
+            var chatId = chatIdFromContext.Value;
+            var chat = await chatSessionRepository.FindByIdAsync(chatId);
+            if (chat == null)
+            {
+                return this.NotFound("Failed to find chat session for the chatId specified in variables.");
+            }
+
+            bool isUserInChat = await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId);
+            if (!isUserInChat)
+            {
+                return this.Forbid("User does not have access to the chatId specified in variables.");
+            }
         }
+        else
+        {
+            return this.BadRequest("ChatId not specified.");
+        }
+
+        // Put ask's variables in the context we will use.
+        var contextVariables = askConverter.GetContextVariables(ask);
 
         // Register plugins that have been enabled
         var openApiSkillsAuthHeaders = this.GetPluginAuthHeaders(this.HttpContext.Request.Headers);

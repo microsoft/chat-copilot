@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
-using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Storage;
 
 namespace CopilotChat.WebApi.Models.Storage;
@@ -14,19 +13,16 @@ public class ChatSession : IStorageEntity
     /// <summary>
     /// Chat ID that is persistent and unique.
     /// </summary>
-    [JsonPropertyName("id")]
     public string Id { get; set; }
 
     /// <summary>
     /// Title of the chat.
     /// </summary>
-    [JsonPropertyName("title")]
     public string Title { get; set; }
 
     /// <summary>
     /// Timestamp of the chat creation.
     /// </summary>
-    [JsonPropertyName("createdOn")]
     public DateTimeOffset CreatedOn { get; set; }
 
     /// <summary>
