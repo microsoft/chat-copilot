@@ -15,7 +15,7 @@ public class ContentSafetyOptions
     /// <summary>
     /// Whether to enable content safety.
     /// </summary>
-    [Required, NotEmptyOrWhitespace]
+    [Required]
     public bool Enabled { get; set; } = false;
 
     /// <summary>
