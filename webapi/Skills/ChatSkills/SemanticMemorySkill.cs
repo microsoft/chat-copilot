@@ -64,7 +64,7 @@ public class SemanticMemorySkill
         var indexName = "copilotchat"; // $$$ OPTIONS
 
         // Search for relevant memories.
-        List<(SearchResult.Citation Citation, SearchResult.Citation.Partition Memory)> relevantMemories = new();
+        List<(Citation Citation, Citation.Partition Memory)> relevantMemories = new();
         foreach (var memoryName in this._promptOptions.MemoryMap.Keys.Append("Document"))
         {
             try
