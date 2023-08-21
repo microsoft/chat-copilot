@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
@@ -61,11 +62,67 @@ public class SemanticMemorySkill
         }
 
         var remainingToken = tokenLimit;
-        var indexName = "copilotchat"; // $$$ OPTIONS
 
         // Search for relevant memories.
         List<(SearchResult.Citation Citation, SearchResult.Citation.Partition Memory)> relevantMemories = new();
-        foreach (var memoryName in this._promptOptions.MemoryMap.Keys.Append("Document"))
+        foreach (var memoryName in this._promptOptions.MemoryMap.Keys.Append(this._promptOptions.DocumentMemoryName))
+        {
+            await SearchMemoryAsync(memoryName).ConfigureAwait(false);
+        }
+
+        var builderMemory = new StringBuilder();
+
+        if (relevantMemories.Count > 0)
+        {
+            var memoryMap = ProcessMemories();
+
+            foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
+            {
+                FormatMemories(memoryName);
+            }
+
+            FormatSnippets();
+
+            void FormatMemories(string memoryName)
+            {
+                if (!memoryMap.TryGetValue(memoryName, out var memories))
+                {
+                    return;
+                }
+
+                foreach (var memory in memories)
+                {
+                    var memoryText = $"[{memoryName}] {memory}\n";
+                    builderMemory.Append(memoryText);
+                }
+            }
+
+            void FormatSnippets()
+            {
+                if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories))
+                {
+                    return;
+                }
+
+                foreach ((var memory, var citation) in memories)
+                {
+                    var memoryText = $"[{citation.SourceName}] {memory}\n";
+                    builderMemory.Append(memoryText);
+                }
+            }
+        }
+
+        var memoryText = builderMemory.ToString();
+
+        if (string.IsNullOrWhiteSpace(memoryText))
+        {
+            // No relevant memories found
+            return string.Empty;
+        }
+
+        return $"Past memories (format: [memory type] <label>: <details>):\n{memoryText}";
+
+        async Task SearchMemoryAsync(string memoryName)
         {
             try
             {
@@ -77,7 +134,7 @@ public class SemanticMemorySkill
 
                 var searchResult = await memoryClient.SearchAsync(
                         query,
-                        indexName,
+                        this._promptOptions.MemoryIndexName,
                         filter)
                     .ConfigureAwait(false);
 
@@ -89,34 +146,38 @@ public class SemanticMemorySkill
             catch (SKException connectorException)
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-                this._logger.LogError(connectorException, "Cannot search collection {0}", indexName);
+                this._logger.LogError(connectorException, "Cannot search collection {0}", this._promptOptions.MemoryIndexName);
             }
         }
 
-        relevantMemories = relevantMemories.OrderByDescending(m => m.Memory.Relevance).ToList();
-
-        string memoryText = string.Empty;
-        foreach (var result in relevantMemories)
+        IDictionary<string, List<(string, SearchResult.Citation)>> ProcessMemories()
         {
-            var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
-            if (remainingToken - tokenCount > 0)
-            {
-                memoryText += $"\n[{result.Citation.SourceName}] {result.Memory.Text}";
-                remainingToken -= tokenCount;
-            }
-            else
-            {
-                break;
-            }
-        }
+            var memoryMap = new Dictionary<string, List<(string, SearchResult.Citation)>>(StringComparer.OrdinalIgnoreCase);
 
-        if (string.IsNullOrEmpty(memoryText))
-        {
-            // No relevant memories found
-            return string.Empty;
-        }
+            foreach (var result in relevantMemories.OrderByDescending(m => m.Memory.Relevance))
+            {
+                var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
+                if (remainingToken - tokenCount > 0)
+                {
+                    var memoryName = this._promptOptions.DocumentMemoryName; // $$$ TAGS
+                    if (!memoryMap.TryGetValue(memoryName, out var memories))
+                    {
+                        memories = new List<(string, SearchResult.Citation)>();
+                        memoryMap.Add(memoryName, memories);
+                    }
 
-        return $"Past memories (format: [memory type] <label>: <details>):\n{memoryText.Trim()}";
+                    memories.Add((result.Memory.Text, result.Citation));
+
+                    remainingToken -= tokenCount;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return memoryMap;
+        }
     }
 
     #region Private
@@ -155,9 +216,9 @@ public class SemanticMemorySkill
         {
             return (upper - lower) * memoryBalance + lower;
         }
-        else if (memoryName == "Document") // $$$
+        else if (memoryName == this._promptOptions.DocumentMemoryName)
         {
-            return lower;
+            return this._promptOptions.DocumentMemoryMinRelevance;
         }
         else
         {

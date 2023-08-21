@@ -40,9 +40,6 @@ public static class CopilotChatServiceExtensions
         // Authorization configuration
         AddOptions<AuthorizationOptions>(AuthorizationOptions.PropertyName);
 
-        // Memory store configuration
-        AddOptions<MemoryStoreOptions>(MemoryStoreOptions.PropertyName);
-
         // Chat log storage configuration
         AddOptions<ChatStoreOptions>(ChatStoreOptions.PropertyName);
 
@@ -120,9 +117,8 @@ public static class CopilotChatServiceExtensions
     /// <summary>
     /// Add CORS settings.
     /// </summary>
-    internal static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+    internal static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
     {
-        IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         string[] allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
         if (allowedOrigins.Length > 0)
         {
@@ -146,30 +142,31 @@ public static class CopilotChatServiceExtensions
     /// <exception cref="InvalidOperationException"></exception>
     public static IServiceCollection AddPersistentOcrSupport(this IServiceCollection services)
     {
-        OcrSupportOptions ocrSupportConfig = services.BuildServiceProvider().GetRequiredService<IOptions<OcrSupportOptions>>().Value;
+        services.AddSingleton<IOcrEngine>(
+            sp =>
+            {
+                OcrSupportOptions ocrSupportConfig = sp.GetRequiredService<IOptions<OcrSupportOptions>>().Value;
 
-        switch (ocrSupportConfig.Type)
-        {
-            case OcrSupportOptions.OcrSupportType.AzureFormRecognizer:
-            {
-                services.AddSingleton<IOcrEngine>(sp => new AzureFormRecognizerOcrEngine(ocrSupportConfig.AzureFormRecognizer!.Endpoint!, new AzureKeyCredential(ocrSupportConfig.AzureFormRecognizer!.Key!)));
-                break;
-            }
-            case OcrSupportOptions.OcrSupportType.Tesseract:
-            {
-                services.AddSingleton<IOcrEngine>(sp => new TesseractEngineWrapper(new TesseractEngine(ocrSupportConfig.Tesseract!.FilePath, ocrSupportConfig.Tesseract!.Language, EngineMode.Default)));
-                break;
-            }
-            case OcrSupportOptions.OcrSupportType.None:
-            {
-                services.AddSingleton<IOcrEngine>(sp => new NullOcrEngine());
-                break;
-            }
-            default:
-            {
-                throw new InvalidOperationException($"Unsupported OcrSupport:Type '{ocrSupportConfig.Type}'");
-            }
-        }
+                switch (ocrSupportConfig.Type)
+                {
+                    case OcrSupportOptions.OcrSupportType.AzureFormRecognizer:
+                    {
+                        return new AzureFormRecognizerOcrEngine(ocrSupportConfig.AzureFormRecognizer!.Endpoint!, new AzureKeyCredential(ocrSupportConfig.AzureFormRecognizer!.Key!));
+                    }
+                    case OcrSupportOptions.OcrSupportType.Tesseract:
+                    {
+                        return new TesseractEngineWrapper(new TesseractEngine(ocrSupportConfig.Tesseract!.FilePath, ocrSupportConfig.Tesseract!.Language, EngineMode.Default));
+                    }
+                    case OcrSupportOptions.OcrSupportType.None:
+                    {
+                        return new NullOcrEngine();
+                    }
+                    default:
+                    {
+                        throw new InvalidOperationException($"Unsupported OcrSupport:Type '{ocrSupportConfig.Type}'");
+                    }
+                }
+            });
 
         return services;
     }

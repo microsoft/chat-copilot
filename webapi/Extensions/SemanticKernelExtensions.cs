@@ -16,17 +16,15 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using Microsoft.SemanticKernel.Connectors.Memory.Chroma;
-using Microsoft.SemanticKernel.Connectors.Memory.Postgres;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticMemory.Client;
-using Npgsql;
-using Pgvector.Npgsql;
-using static CopilotChat.WebApi.Options.MemoryStoreOptions;
+using Microsoft.SemanticMemory.Core.Configuration;
+using Microsoft.SemanticMemory.Core.MemoryStorage.AzureCognitiveSearch;
+using Microsoft.SemanticMemory.Core.MemoryStorage.Qdrant;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -45,6 +43,9 @@ internal static class SemanticKernelExtensions
     /// </summary>
     internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
     {
+        // Semantic Memory
+        services.AddSemanticTextMemory();
+
         // Semantic Kernel
         services.AddScoped<IKernel>(sp =>
         {
@@ -52,15 +53,11 @@ internal static class SemanticKernelExtensions
                 .WithLogger(sp.GetRequiredService<ILogger<IKernel>>())
                 .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
                 .WithCompletionBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
-                .WithEmbeddingBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
                 .Build();
 
             sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
             return kernel;
         });
-
-        // Semantic memory
-        services.AddSemanticTextMemory();
 
         // Register skills
         services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
@@ -73,9 +70,9 @@ internal static class SemanticKernelExtensions
     /// </summary>
     public static IServiceCollection AddPlannerServices(this IServiceCollection services)
     {
-        IOptions<PlannerOptions>? plannerOptions = services.BuildServiceProvider().GetService<IOptions<PlannerOptions>>();
         services.AddScoped<CopilotChatPlanner>(sp =>
         {
+            var plannerOptions = sp.GetRequiredService<IOptions<PlannerOptions>>();
             IKernel plannerKernel = Kernel.Builder
                 .WithLogger(sp.GetRequiredService<ILogger<IKernel>>())
                 .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
@@ -157,103 +154,102 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Add the semantic memory.
+    /// Add the semantic memory used by the planner.
     /// </summary>
     private static void AddSemanticTextMemory(this IServiceCollection services)
     {
-        MemoryStoreOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<MemoryStoreOptions>>().Value;
+        services.AddScoped<ISemanticTextMemory>(
+            sp =>
+                new SemanticTextMemory(
+                    sp.GetRequiredService<IMemoryStore>(),
+                    sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
+                        .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
 
-        switch (config.Type)
-        {
-            case MemoryStoreType.Volatile:
-                services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
-                break;
+        services.AddSingleton<IMemoryStore>(
+            sp =>
+            {
+                var configMemory = sp.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
 
-            case MemoryStoreType.Qdrant:
-                if (config.Qdrant == null)
+                var memoryType = Enum.Parse<MemoryStoreType>(configMemory.Retrieval.VectorDbType, ignoreCase: true);
+                switch (memoryType)
                 {
-                    throw new InvalidOperationException("MemoryStore type is Qdrant and Qdrant configuration is null.");
-                }
+                    //case MemoryStoreType.Volatile: // TODO: $$$
+                    //    services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
+                    //    break;
 
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                    if (!string.IsNullOrWhiteSpace(config.Qdrant.Key))
+                    case MemoryStoreType.Qdrant:
                     {
-                        httpClient.DefaultRequestHeaders.Add("api-key", config.Qdrant.Key);
+                        var configStorage = sp.GetService<QdrantConfig>();
+                        if (configStorage == null)
+                        {
+                            throw new InvalidOperationException("MemoryStore type is Qdrant and Qdrant configuration is null.");
+                        }
+
+                        HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
+                        if (!string.IsNullOrWhiteSpace(configStorage.APIKey))
+                        {
+                            httpClient.DefaultRequestHeaders.Add("api-key", configStorage.APIKey);
+                        }
+
+                        return new QdrantMemoryStore(
+                            httpClient,
+                            1536, // $$$ configStorage.VectorSize,
+                            configStorage.Endpoint,
+                            logger: sp.GetRequiredService<ILogger<IQdrantVectorDbClient>>()
+                        );
                     }
 
-                    var endPointBuilder = new UriBuilder(config.Qdrant.Host);
-                    endPointBuilder.Port = config.Qdrant.Port;
+                    case MemoryStoreType.AzureCognitiveSearch:
+                    {
+                        var configStorage = sp.GetService<AzureCognitiveSearchConfig>();
+                        if (configStorage == null)
+                        {
+                            throw new InvalidOperationException("MemoryStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
+                        }
 
-                    return new QdrantMemoryStore(
-                        httpClient: httpClient,
-                        config.Qdrant.VectorSize,
-                        endPointBuilder.ToString(),
-                        logger: sp.GetRequiredService<ILogger<IQdrantVectorDbClient>>()
-                    );
-                });
-                break;
+                        return new AzureCognitiveSearchMemoryStore(configStorage.Endpoint, configStorage.APIKey);
+                    }
 
-            case MemoryStoreType.AzureCognitiveSearch:
-                if (config.AzureCognitiveSearch == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
+                    case MemoryStoreType.Chroma: // TODO: $$$
+                    /*
+                        if (config.Chroma == null)
+                        {
+                            throw new InvalidOperationException("MemoryStore type is Chroma and Chroma configuration is null.");
+                        }
+
+                        HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
+                        var endPointBuilder = new UriBuilder(config.Chroma.Host);
+                        endPointBuilder.Port = config.Chroma.Port;
+
+                        return new ChromaMemoryStore(
+                            httpClient: httpClient,
+                            endpoint: endPointBuilder.ToString(),
+                            logger: sp.GetRequiredService<ILogger<IChromaClient>>()
+                        );
+                     */
+
+                    case MemoryStoreType.Postgres: // TODO: $$$
+                    /*
+                        if (config.Postgres == null)
+                        {
+                            throw new InvalidOperationException("MemoryStore type is Cosmos and Cosmos configuration is null.");
+                        }
+
+                        var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
+                        dataSourceBuilder.UseVector();
+
+                        return new PostgresMemoryStore(
+                            dataSource: dataSourceBuilder.Build(),
+                            vectorSize: config.Postgres.VectorSize
+                        );
+
+                        break;
+                     */
+
+                    default:
+                        throw new InvalidOperationException($"Invalid 'MemoryStore' type '{configMemory.Retrieval.VectorDbType}'.");
                 }
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    return new AzureCognitiveSearchMemoryStore(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key);
-                });
-                break;
-
-            case MemoryStoreOptions.MemoryStoreType.Chroma:
-                if (config.Chroma == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is Chroma and Chroma configuration is null.");
-                }
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                    var endPointBuilder = new UriBuilder(config.Chroma.Host);
-                    endPointBuilder.Port = config.Chroma.Port;
-
-                    return new ChromaMemoryStore(
-                        httpClient: httpClient,
-                        endpoint: endPointBuilder.ToString(),
-                        logger: sp.GetRequiredService<ILogger<IChromaClient>>()
-                    );
-                });
-                break;
-
-            case MemoryStoreOptions.MemoryStoreType.Postgres:
-                if (config.Postgres == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is Cosmos and Cosmos configuration is null.");
-                }
-
-                var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
-                dataSourceBuilder.UseVector();
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    return new PostgresMemoryStore(
-                        dataSource: dataSourceBuilder.Build(),
-                        vectorSize: config.Postgres.VectorSize
-                    );
-                });
-
-                break;
-
-            default:
-                throw new InvalidOperationException($"Invalid 'MemoryStore' type '{config.Type}'.");
-        }
-
-        services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-            sp.GetRequiredService<IMemoryStore>(),
-            sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
+            });
     }
 
     /// <summary>
@@ -267,22 +263,6 @@ internal static class SemanticKernelExtensions
                 => kernelBuilder.WithAzureChatCompletionService(options.Models.Completion, options.Endpoint, options.Key),
             AIServiceOptions.AIServiceType.OpenAI
                 => kernelBuilder.WithOpenAIChatCompletionService(options.Models.Completion, options.Key),
-            _
-                => throw new ArgumentException($"Invalid {nameof(options.Type)} value in '{AIServiceOptions.PropertyName}' settings."),
-        };
-    }
-
-    /// <summary>
-    /// Add the embedding backend to the kernel config
-    /// </summary>
-    private static KernelBuilder WithEmbeddingBackend(this KernelBuilder kernelBuilder, AIServiceOptions options)
-    {
-        return options.Type switch
-        {
-            AIServiceOptions.AIServiceType.AzureOpenAI
-                => kernelBuilder.WithAzureTextEmbeddingGenerationService(options.Models.Embedding, options.Endpoint, options.Key),
-            AIServiceOptions.AIServiceType.OpenAI
-                => kernelBuilder.WithOpenAITextEmbeddingGenerationService(options.Models.Embedding, options.Key),
             _
                 => throw new ArgumentException($"Invalid {nameof(options.Type)} value in '{AIServiceOptions.PropertyName}' settings."),
         };

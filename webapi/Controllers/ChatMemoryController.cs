@@ -85,7 +85,6 @@ public class ChatMemoryController : ControllerBase
         // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
-        var indexName = "copilotchat"; // $$$ OPTIONS
         try
         {
             // Search if there is already a memory item that has a high similarity score with the new item.
@@ -96,7 +95,7 @@ public class ChatMemoryController : ControllerBase
 
             var searchResult = await memoryClient.SearchAsync(
                     "*",
-                    indexName,
+                    this._promptOptions.MemoryIndexName,
                     filter)
                 .ConfigureAwait(false);
 

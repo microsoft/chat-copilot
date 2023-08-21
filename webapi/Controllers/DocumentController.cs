@@ -32,6 +32,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class DocumentController : ControllerBase
 {
     private readonly ILogger<DocumentController> _logger;
+    private readonly PromptsOptions _promptOptions;
     private readonly DocumentMemoryOptions _options;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
@@ -46,6 +47,7 @@ public class DocumentController : ControllerBase
     public DocumentController(
         ILogger<DocumentController> logger,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
+        IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository sessionRepository,
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
@@ -53,6 +55,7 @@ public class DocumentController : ControllerBase
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
+        this._promptOptions = promptOptions.Value;
         this._sessionRepository = sessionRepository;
         this._sourceRepository = sourceRepository;
         this._messageRepository = messageRepository;
@@ -397,7 +400,7 @@ public class DocumentController : ControllerBase
         {
             throw new ArgumentException("No files identified.");
         }
-        else if (fileReferences.Count() > this._options.FileCountLimit) // $$$ NEEDED
+        else if (fileReferences.Count() > this._options.FileCountLimit)
         {
             throw new ArgumentException($"Too many files requested. Max file count is {this._options.FileCountLimit}.");
         }
@@ -423,8 +426,6 @@ public class DocumentController : ControllerBase
     {
         this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
-        var indexName = "copilotchat"; // $$$ OPTIONS
-
         // Create memory source
         var memorySource = this.CreateMemorySource(formFile, documentImportForm);
 
@@ -433,11 +434,11 @@ public class DocumentController : ControllerBase
         {
             DocumentId = memorySource.Id,
             Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile(formFile.FileName, stream) },
-            Index = indexName,
+            Index = this._promptOptions.MemoryIndexName,
         };
 
         uploadRequest.Tags.Add("chatid", documentImportForm.DocumentScope == DocumentScope.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString());
-        uploadRequest.Tags.Add("memory", "Document"); // $$$
+        uploadRequest.Tags.Add("memory", this._promptOptions.DocumentMemoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest);
 

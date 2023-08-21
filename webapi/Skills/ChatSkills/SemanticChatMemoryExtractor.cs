@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -102,7 +101,6 @@ internal static class SemanticChatMemoryExtractor
         /// </summary>
         async Task CreateMemoryAsync(string memoryName, string memory)
         {
-            var indexName = "copilotchat"; // $$$ OPTIONS
             try
             {
                 // Search if there is already a memory item that has a high similarity score with the new item.
@@ -112,7 +110,7 @@ internal static class SemanticChatMemoryExtractor
 
                 var searchResult = await memoryClient.SearchAsync(
                         memory,
-                        indexName,
+                        options.MemoryIndexName,
                         filter,
                         cancellationToken)
                     .ConfigureAwait(false);
@@ -126,12 +124,15 @@ internal static class SemanticChatMemoryExtractor
                     stream.Position = 0;
 
                     var id = Guid.NewGuid().ToString();
-                    //var documentName = Path.ChangeExtension(memoryName, ".txt"); $$$ 
                     var uploadRequest = new DocumentUploadRequest
                     {
                         DocumentId = id,
-                        Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile("memory.txt", stream) }, // $$$ NAME ???
-                        Index = indexName,
+                        Index = options.MemoryIndexName,
+                        Files = new()
+                        {
+                            // Document file name not relevant, but required.
+                            new DocumentUploadRequest.UploadedFile("memory.txt", stream)
+                        },
                     };
 
                     uploadRequest.Tags.Add("chatid", chatId);
@@ -143,7 +144,7 @@ internal static class SemanticChatMemoryExtractor
             catch (SKException connectorException)
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-                logger.LogError(connectorException, "Unexpected failure searching {0}", indexName);
+                logger.LogError(connectorException, "Unexpected failure searching {0}", options.MemoryIndexName);
             }
         }
     }
