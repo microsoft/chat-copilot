@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -17,7 +16,6 @@ namespace CopilotChat.WebApi.Controllers;
 /// Controller responsible for returning the service options to the client.
 /// </summary>
 [ApiController]
-[Authorize]
 public class ServiceOptionsController : ControllerBase
 {
     private readonly ILogger<ServiceOptionsController> _logger;

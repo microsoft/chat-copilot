@@ -1,6 +1,6 @@
-# Deploying Copilot Chat
+# Deploying Chat Copilot
 
-This document details how to deploy CopilotChat's required resources to your Azure subscription.
+This document details how to deploy Chat Copilot's required resources to your Azure subscription.
 
 ## Things to know
 
@@ -11,15 +11,74 @@ This document details how to deploy CopilotChat's required resources to your Azu
 
 - `F1` and `D1` SKUs for the App Service Plans are not currently supported for this deployment in order to support private networking.
 
+- Chat Copilot deployments use Azure Active Directory for authentication. All endpoints (except `/healthz`) require authentication to access.
+
 # Configure your environment
 
 Before you get started, make sure you have the following requirements in place:
 
+- [Azure AD Tenant](https://learn.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 - Azure CLI (i.e., az) (if you already installed Azure CLI, make sure to update your installation to the latest version)
   - Windows, go to https://aka.ms/installazurecliwindows
   - Linux, run "`curl -L https://aka.ms/InstallAzureCli | bash`"
 - Azure Static Web App CLI (i.e., swa) can be installed by running "`npm install -g @azure/static-web-apps-cli`"
 - (Linux only) `zip` can be installed by running "`sudo apt install zip`"
+
+## App registrations (identity)
+
+You will need two Azure Active Directory (AAD) application registrations -- one for the frontend web app and one for the backend API.
+
+> For details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+
+> NOTE: Other account types can be used to allow multitenant and personal Microsoft accounts to use your application if you desire. Doing so may result in more users and therefore higher costs.
+
+### Frontend app registration
+
+- Select `Single-page application (SPA)` as platform type, and set the redirect URI to `http://localhost:3000`
+- Select `Accounts in this organizational directory only ({YOUR TENANT} only - Single tenant)` as supported account types.
+- Make a note of the `Application (client) ID` from the Azure Portal for use in the `Deploy Frontend` step below.
+
+### Backend app registration
+
+- Do not set a redirect URI
+- Select `Accounts in this organizational directory only ({YOUR TENANT} only - Single tenant)` as supported account types.
+- Make a note of the `Application (client) ID` from the Azure Portal for use in the `Deploy Azure infrastructure` step below.
+
+### Linking the frontend to the backend
+1. Expose an API within the backend app registration
+   1. Select *Expose an API* from the menu
+
+   2. Add an *Application ID URI*
+      1. This will generate an `api://` URI
+
+      2. Click *Save* to store the generated URI
+
+   3. Add a scope for `access_as_user`
+      1. Click *Add scope*
+
+      2. Set *Scope name* to `access_as_user`
+
+      3. Set *Who can consent* to *Admins and users*
+
+      4. Set *Admin consent display name* and *User consent display name* to `Access Chat Copilot as a user`
+
+      5. Set *Admin consent description* and *User consent description* to `Allows the accesses to the Chat Copilot web API as a user`
+
+4. Add permissions to web app frontend to access web api as user
+   1. Open app registration for web app frontend
+
+   2. Go to *API Permissions*
+
+   3. Click *Add a permission*
+
+   4. Select the tab *My APIs*
+
+   5. Choose the app registration representing the web api backend
+
+   6. Select permissions `access_as_user`
+
+   7. Click *Add permissions*
+
 
 # Deploy Azure Infrastructure
 
@@ -28,7 +87,7 @@ The examples below assume you are using an existing Azure OpenAI resource. See t
 ## PowerShell
 
 ```powershell
-./deploy-azure.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -DeploymentName {YOUR_DEPLOYMENT_NAME} -AIService {AzureOpenAI or OpenAI} -AIApiKey {YOUR_AI_KEY} -AIEndpoint {YOUR_AZURE_OPENAI_ENDPOINT}
+./deploy-azure.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -DeploymentName {YOUR_DEPLOYMENT_NAME} -AIService {AzureOpenAI or OpenAI} -AIApiKey {YOUR_AI_KEY} -AIEndpoint {YOUR_AZURE_OPENAI_ENDPOINT} -BackendClientId {YOUR_BACKEND_APPLICATION_ID} -TenantId {YOUR_TENANT_ID}
 ```
 
 - To use an existing Azure OpenAI resource, set `-AIService` to `AzureOpenAI` and include `-AIApiKey` and `-AIEndpoint`.
@@ -39,7 +98,7 @@ The examples below assume you are using an existing Azure OpenAI resource. See t
 
 ```bash
 chmod +x ./deploy-azure.sh
-./deploy-azure.sh --subscription {YOUR_SUBSCRIPTION_ID} --deployment-name {YOUR_DEPLOYMENT_NAME} --ai-service {AzureOpenAI or OpenAI} --ai-service-key {YOUR_AI_KEY} --ai-endpoint {YOUR_AZURE_OPENAI_ENDPOINT}
+./deploy-azure.sh --subscription {YOUR_SUBSCRIPTION_ID} --deployment-name {YOUR_DEPLOYMENT_NAME} --ai-service {AzureOpenAI or OpenAI} --ai-service-key {YOUR_AI_KEY} --ai-endpoint {YOUR_AZURE_OPENAI_ENDPOINT} --client-id {YOUR_BACKEND_APPLICATION_ID} --tenant-id {YOUR_TENANT_ID}
 ```
 
 - To use an existing Azure OpenAI resource, set `--ai-service` to `AzureOpenAI` and include `--ai-service-key` and `--ai-endpoint`.
@@ -84,16 +143,6 @@ chmod +x ./deploy-webapi.sh
 
 ## Prerequisites
 
-### App registration (identity)
-
-You will need an Azure Active Directory (AAD) application registration.
-
-> For details on creating an application registration, go [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
-
-- Select `Single-page application (SPA)` as platform type, and set the redirect URI to `http://localhost:3000`
-- Select `Accounts in any organizational directory and personal Microsoft Accounts` as supported account types for this sample.
-- Make a note of the `Application (client) ID` from the Azure Portal for use in the `Deploy` below.
-
 ### Install Azure's Static Web Apps CLI
 
 ```bash
@@ -104,16 +153,16 @@ npm install -g @azure/static-web-apps-cli
 
 ```powershell
 
-./deploy-webapp.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME} -ApplicationClientId {YOUR_APPLICATION_ID}
+./deploy-webapp.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME} -FrontendClientId {YOUR_FRONTEND_APPLICATION_ID}
 ```
 
 ## Bash
 
 ```bash
-./deploy-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --application-id {YOUR_APPLICATION_ID}
+./deploy-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --client-id {YOUR_FRONTEND_APPLICATION_ID}
 ```
 
-Your CopilotChat application is now deployed!
+Your Chat Copilot application is now deployed!
 
 # Appendix
 
@@ -123,14 +172,6 @@ Make sure to include your frontend's URL as an allowed origin in your deployment
 
 To do this, go on the Azure portal, select your Semantic Kernel App Service, then click on "CORS" under the "API" section of the resource menu on the left of the page.
 This will get you to the CORS page where you can add your allowed hosts.
-
-## Authorization
-
-All of endpoints (except `/healthz`) require authorization to access.
-By default, an API key is required for access which can be found in the `Authorization:ApiKey` configuration setting.
-To authorize requests with the API key, add the API key value to a `x-sk-api-key` header in your requests.
-
-To view your CopilotChat API key:
 
 ### PowerShell
 

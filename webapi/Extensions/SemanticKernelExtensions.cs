@@ -6,9 +6,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -62,6 +64,9 @@ internal static class SemanticKernelExtensions
         // Semantic memory
         services.AddSemanticTextMemory();
 
+        // Azure Content Safety
+        services.AddContentSafety();
+
         // Register skills
         services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
 
@@ -106,6 +111,7 @@ internal static class SemanticKernelExtensions
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
+                contentSafety: sp.GetService<AzureContentSafety>(),
                 planner: sp.GetRequiredService<CopilotChatPlanner>(),
                 logger: sp.GetRequiredService<ILogger<ChatSkill>>()),
             nameof(ChatSkill));
@@ -230,7 +236,7 @@ internal static class SemanticKernelExtensions
             case MemoryStoreOptions.MemoryStoreType.Postgres:
                 if (config.Postgres == null)
                 {
-                    throw new InvalidOperationException("MemoryStore type is Cosmos and Cosmos configuration is null.");
+                    throw new InvalidOperationException("MemoryStore type is Postgres and Postgres configuration is null.");
                 }
 
                 var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
@@ -254,6 +260,20 @@ internal static class SemanticKernelExtensions
             sp.GetRequiredService<IMemoryStore>(),
             sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
                 .ToTextEmbeddingsService(logger: sp.GetRequiredService<ILogger<AIServiceOptions>>())));
+    }
+
+    /// <summary>
+    /// Adds Azure Content Safety
+    /// </summary>
+    internal static void AddContentSafety(this IServiceCollection services)
+    {
+        IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        ContentSafetyOptions options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>();
+
+        if (options.Enabled)
+        {
+            services.AddSingleton<IContentSafetyService, AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
+        }
     }
 
     /// <summary>

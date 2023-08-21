@@ -7,14 +7,13 @@ set -e
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
-    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -rg RESOURCE_GROUP -a APPLICATION_ID [OPTIONS]"
+    echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -rg RESOURCE_GROUP -c FRONTEND_CLIENT_ID [OPTIONS]"
     echo ""
     echo "Arguments:"
     echo "  -d, --deployment-name DEPLOYMENT_NAME  Name of the deployment from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION        Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP   Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
-    echo "  -a, --application-id APPLICATION_ID    Client application ID (mandatory)"
-    echo "  -au, --authority                       Authority to use for client applications that are not configured as multi-tenant. Defaults to (https://login.microsoftonline.com/common) if not specified."
+    echo "  -c, --client-id FRONTEND_CLIENT_ID     Client application ID for the frontend web app (mandatory)"
     echo "  -v  --version VERSION                  Version to display in UI (default: 1.0.0)"
     echo "  -i  --version-info INFO                Additional info to put in version details"
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
@@ -39,13 +38,8 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-        -a|--application-id)
-        APPLICATION_ID="$2"
-        shift
-        shift
-        ;;
-        -au|--authority)
-        AUTHORITY="$2"
+        -c|--client-id)
+        FRONTEND_CLIENT_ID="$2"
         shift
         shift
         ;;
@@ -72,7 +66,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check mandatory arguments
-if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$RESOURCE_GROUP" ]] || [[ -z "$APPLICATION_ID" ]]; then
+if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$RESOURCE_GROUP" ]] || [[ -z "$FRONTEND_CLIENT_ID" ]]; then
     usage
     exit 1
 fi
@@ -81,10 +75,6 @@ az account show --output none
 if [ $? -ne 0 ]; then
     echo "Log into your Azure account"
     az login --use-device-code
-fi
-
-if [[ -z "$AUTHORITY" ]]; then
-    AUTHORITY="https://login.microsoftonline.com/common"
 fi
 
 az account set -s "$SUBSCRIPTION"
@@ -100,15 +90,22 @@ eval WEB_API_URL=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiUrl.
 echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
-echo "Getting webapi key..."
-eval WEB_API_KEY=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP | jq '.[] | select(.name=="Authorization:ApiKey").value')
+
+WEB_API_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --output json)
+eval WEB_API_CLIENT_ID=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:ClientId").value')
+eval WEB_API_TENANT_ID=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:TenantId").value')
+eval WEB_API_INSTANCE=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:Instance").value')
+eval WEB_API_SCOPE=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:Scopes").value')
 
 ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
 echo "REACT_APP_BACKEND_URI=https://$WEB_API_URL/" > $ENV_FILE_PATH
-echo "REACT_APP_AAD_AUTHORITY=$AUTHORITY" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_CLIENT_ID=$APPLICATION_ID" >> $ENV_FILE_PATH
-echo "REACT_APP_SK_API_KEY=$WEB_API_KEY" >> $ENV_FILE_PATH
+echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
+# Trim any trailing slash from instance before generating authority
+WEB_API_INSTANCE=${WEB_API_INSTANCE%/}
+echo "REACT_APP_AAD_AUTHORITY=$WEB_API_INSTANCE/$WEB_API_TENANT_ID" >> $ENV_FILE_PATH
+echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >> $ENV_FILE_PATH
+echo "REACT_APP_AAD_API_SCOPE=api://$WEB_API_CLIENT_ID/$WEB_API_SCOPE" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
 
@@ -156,7 +153,7 @@ if [[ "$CORS_RESULT" == "null" ]]; then
 fi
 
 echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
-eval OBJECT_ID=$(az ad app show --id $APPLICATION_ID | jq -r '.id')
+eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
 
 if [ "$NO_REDIRECT" != true ]; then
     REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')

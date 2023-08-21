@@ -5,17 +5,15 @@ import { BaseService } from './BaseService';
 
 export class DocumentImportService extends BaseService {
     public importDocumentAsync = async (
-        userId: string,
-        userName: string,
         chatId: string,
         documents: File[],
+        useContentSafety: boolean,
         accessToken: string,
     ) => {
         const formData = new FormData();
-        formData.append('userId', userId);
-        formData.append('userName', userName);
         formData.append('chatId', chatId);
         formData.append('documentScope', 'Chat');
+        formData.append('useContentSafety', useContentSafety.toString());
         for (const document of documents) {
             formData.append('formFiles', document);
         }
@@ -25,6 +23,16 @@ export class DocumentImportService extends BaseService {
                 commandPath: 'document/import',
                 method: 'POST',
                 body: formData,
+            },
+            accessToken,
+        );
+    };
+
+    public getContentSafetyStatusAsync = async (accessToken: string): Promise<boolean> => {
+        return await this.getResponseAsync<boolean>(
+            {
+                commandPath: 'contentSafety/status',
+                method: 'GET',
             },
             accessToken,
         );

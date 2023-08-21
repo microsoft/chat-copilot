@@ -8,10 +8,6 @@ export const Constants = {
     },
     msal: {
         method: 'redirect', // 'redirect' | 'popup'
-        auth: {
-            clientId: process.env.REACT_APP_AAD_CLIENT_ID as string,
-            authority: process.env.REACT_APP_AAD_AUTHORITY as string,
-        },
         cache: {
             cacheLocation: 'localStorage',
             storeAuthStateInCookie: false,

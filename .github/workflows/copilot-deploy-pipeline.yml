@@ -6,7 +6,7 @@ on:
     branches: ["feature-semantic-memory"]
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -19,6 +19,10 @@ jobs:
 
   build-memorypipeline:
     uses: ./.github/workflows/copilot-build-memorypipeline.yml
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
+      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}
 
   feature-semantic-memory:
     needs: [build-webapi, build-memorypipeline]
@@ -31,6 +35,4 @@ jobs:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
       AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      WEB_API_KEY: ${{secrets.WEB_API_KEY}}
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
-      APPLICATION_AUTHORITY: ${{secrets.APPLICATION_AUTHORITY}}

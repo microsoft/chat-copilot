@@ -31,14 +31,7 @@ public class DocumentImportForm
     public Guid ChatId { get; set; } = Guid.Empty;
 
     /// <summary>
-    /// The ID of the user who is importing the document to a chat session.
-    /// Will be use to validate if the user has access to the chat session.
+    /// Flag indicating whether user has content safety enabled from the client.
     /// </summary>
-    public string UserId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Name of the user who sent this message.
-    /// Will be used to create the chat message representing the document upload.
-    /// </summary>
-    public string UserName { get; set; } = string.Empty;
+    public bool UseContentSafety { get; set; } = false;
 }
