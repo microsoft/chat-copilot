@@ -272,26 +272,25 @@ public class ChatHistoryController : ControllerBase
     /// <summary>
     /// Delete a chat session.
     /// </summary>
-    /// <param name="userId">Unique Id of user who initiated the request.</param>
-    /// <param name="sessionId">The chat id.</param>
+    /// <param name="chatId">The chat id.</param>
     [HttpDelete]
-    [Route("chatSession/{sessionId:guid}")]
+    [Route("chatSession/{chatId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> DeleteChatSessionAsync(
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
-        [FromServices] IAuthInfo authInfo,
-        Guid sessionId,
+        Guid chatId,
         CancellationToken cancellationToken)
     {
-        var chatId = sessionId.ToString();
+        var chatIdString = chatId.ToString();
         ChatSession? chatToDelete = null;
         try
         {
             // Make sure the chat session exists
-            chatToDelete = await this._sessionRepository.FindByIdAsync(chatId);
+            chatToDelete = await this._sessionRepository.FindByIdAsync(chatIdString);
         }
         catch (KeyNotFoundException)
         {
@@ -299,7 +298,7 @@ public class ChatHistoryController : ControllerBase
         }
 
         // Delete any resources associated with the chat session.
-        var deleteResourcesResult = await this.DeleteChatResourcesAsync(sessionId, cancellationToken) as StatusCodeResult;
+        var deleteResourcesResult = await this.DeleteChatResourcesAsync(chatIdString, cancellationToken) as StatusCodeResult;
         if (deleteResourcesResult?.StatusCode != 204)
         {
             return this.StatusCode(500, $"Failed to delete resources for chat id '{chatId}'.");
@@ -307,7 +306,7 @@ public class ChatHistoryController : ControllerBase
 
         // Delete chat session and broadcast update to all participants.
         await this._sessionRepository.DeleteAsync(chatToDelete);
-        await messageRelayHubContext.Clients.Group(chatId).SendAsync(ChatDeletedClientCall, chatId, authInfo.UserId, cancellationToken: cancellationToken);
+        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(ChatDeletedClientCall, chatIdString, this._authInfo.UserId, cancellationToken: cancellationToken);
 
         return this.NoContent();
     }
@@ -315,10 +314,9 @@ public class ChatHistoryController : ControllerBase
     /// <summary>
     /// Deletes all associated resources (messages, memories, participants) associated with a chat session.
     /// </summary>
-    /// <param name="sessionId">The chat id.</param>
-    private async Task<IActionResult> DeleteChatResourcesAsync(Guid sessionId, CancellationToken cancellationToken)
+    /// <param name="chatId">The chat id.</param>
+    private async Task<IActionResult> DeleteChatResourcesAsync(string chatId, CancellationToken cancellationToken)
     {
-        var chatId = sessionId.ToString();
         var cleanupTasks = new List<Task>();
 
         // Create and store the tasks for deleting all users tied to the chat.
