@@ -352,7 +352,6 @@ public class ChatHistoryController : ControllerBase
             cleanupTasks.Add(this._memoryStore.DeleteCollectionAsync(collection, cancellationToken));
         }
 
-
         // Create a task that represents the completion of all cleanupTasks
         Task aggregationTask = Task.WhenAll(cleanupTasks);
         try
