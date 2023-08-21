@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Options;
@@ -28,7 +25,6 @@ using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
 using Npgsql;
 using Pgvector.Npgsql;
-using PlayFab.Reports;
 using static CopilotChat.WebApi.Options.MemoryStoreOptions;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -38,8 +34,6 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class SemanticKernelExtensions
 {
-    private static Task<IList<string>> collectionNames;
-
     /// <summary>
     /// Delegate to register skills with a Semantic Kernel
     /// </summary>
@@ -131,34 +125,13 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register the skills with the kernel.
     /// </summary>
-    private static async Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
     {
         // Copilot chat skills
         kernel.RegisterChatSkill(sp);
 
         // Time skill
         kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
-
-        CancellationToken ct = CancellationToken.None;
-
-        // Initialize the memory (only once) when not exist
-        IList<string> collectionNames = await kernel.Memory.GetCollectionsAsync(ct);
-        if (!collectionNames.Contains("TitleID-Reports"))
-        {
-            IReportDataManager reportDataManager = sp.GetService<IReportDataManager>();
-            PlayFabOptions playFabOptions = sp.GetRequiredService<IOptions<PlayFabOptions>>().Value;
-            IList<PlayFabReport> playFabReports = await reportDataManager.GetPlayFabReportsAsync(playFabOptions.TitleId, CancellationToken.None);
-            foreach (PlayFabReport report in playFabReports)
-            {
-                string reportText = report.GetDetailedDescription();
-                await kernel.Memory.SaveInformationAsync(
-                    collection: "TitleID-Reports",
-                    text: reportText,
-                    id: report.ReportName,
-                    additionalMetadata: JsonSerializer.Serialize(report),
-                    cancellationToken: ct);
-            }
-        }
 
         // Semantic skills
         ServiceOptions options = sp.GetRequiredService<IOptions<ServiceOptions>>().Value;
@@ -176,6 +149,8 @@ internal static class SemanticKernelExtensions
                 }
             }
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

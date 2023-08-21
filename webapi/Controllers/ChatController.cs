@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
@@ -31,6 +32,7 @@ using Microsoft.SemanticKernel.Skills.MsGraph.Connectors;
 using Microsoft.SemanticKernel.Skills.MsGraph.Connectors.Client;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Skills.OpenAPI.Extensions;
+using PlayFab.Reports;
 using PlayFab.Skills;
 using PlayFab.Skills.SegmentSkill;
 
@@ -82,6 +84,8 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] CopilotChatPlanner planner,
+        [FromServices] IReportDataManager reportDataManager,
+        [FromServices] IOptions<PlayFabOptions> playFabOptions,
         [FromBody] Ask ask)
     {
         this._logger.LogDebug("Chat request received.");
@@ -96,6 +100,10 @@ public class ChatController : ControllerBase, IDisposable
         // Register plugins that have been enabled
         var openApiSkillsAuthHeaders = this.GetPluginAuthHeaders(this.HttpContext.Request.Headers);
         await this.RegisterPlannerSkillsAsync(planner, openApiSkillsAuthHeaders, contextVariables);
+
+        // Initialize the memory (once per kernel)
+        CancellationToken ct = this.HttpContext.RequestAborted;
+        await this.InitializeMemoryAsync(kernel, reportDataManager, playFabOptions.Value.TitleId, ct);
 
         // Get the function to invoke
         ISKFunction? function = null;
@@ -278,6 +286,33 @@ public class ChatController : ControllerBase, IDisposable
             else
             {
                 this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Initializes the kernel memory (if not already initialized)
+    /// </summary>
+    /// <param name="kernel">The kernel whose memory would be initialized</param>
+    /// <param name="reportDataManager">The reports data manager that has the relevant title's reports</param>
+    /// <param name="titleId">The title to initialize memory with</param>
+    /// <param name="ct">A cancellation token</param>
+    /// <returns>The async task</returns>
+    private async Task InitializeMemoryAsync(IKernel kernel, IReportDataManager reportDataManager, string titleId, CancellationToken ct)
+    {
+        IList<string> collectionNames = await kernel.Memory.GetCollectionsAsync(ct);
+        if (!collectionNames.Contains("TitleID-Reports"))
+        {
+            IList<PlayFabReport> playFabReports = await reportDataManager.GetPlayFabReportsAsync(titleId, ct);
+            foreach (PlayFabReport report in playFabReports)
+            {
+                string reportText = report.GetDetailedDescription();
+                await kernel.Memory.SaveInformationAsync(
+                    collection: "TitleID-Reports",
+                    text: reportText,
+                    id: report.ReportName,
+                    additionalMetadata: JsonSerializer.Serialize(report),
+                    cancellationToken: ct);
             }
         }
     }
