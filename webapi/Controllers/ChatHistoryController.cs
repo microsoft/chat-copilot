@@ -300,7 +300,7 @@ public class ChatHistoryController : ControllerBase
         // Delete any resources associated with the chat session.
         try
         {
-            var deleteResourcesResult = await this.DeleteChatResourcesAsync(chatIdString, cancellationToken) as StatusCodeResult;
+            await this.DeleteChatResourcesAsync(chatIdString, cancellationToken) as StatusCodeResult;
         }
         catch (AggregateException)
         {
@@ -359,7 +359,7 @@ public class ChatHistoryController : ControllerBase
             // Await the completion of all tasks in parallel
             await aggregationTask;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any exceptions that occurred during the tasks
             if (aggregationTask?.Exception?.InnerExceptions != null && aggregationTask.Exception.InnerExceptions.Count != 0)
@@ -371,8 +371,8 @@ public class ChatHistoryController : ControllerBase
 
                 throw aggregationTask.Exception;
             }
-        }
 
-        return this.NoContent();
+            throw new AggregateException($"Resource deletion failed for chat {chatId}.", ex);
+        }
     }
 }
