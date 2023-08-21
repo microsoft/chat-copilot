@@ -25,19 +25,17 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        if: github.event_name == 'pull_request'
         uses: jitterbit/get-changed-files@v1
         continue-on-error: true
 
       - name: No C# files changed
         id: no-csharp
-        if: github.event_name == 'pull_request' && steps.changed-files.outputs.added_modified == ''
+        if: steps.changed-files.outputs.added_modified == ''
         run: echo "No C# files changed"
 
       # This step will loop over the changed files and find the nearest .csproj file for each one, then store the unique csproj files in a variable
       - name: Find csproj files
         id: find-csproj
-        if: github.event_name != 'pull_request' || steps.changed-files.outputs.added_modified != '' || steps.changed-files.outcome == 'failure'
         run: |
           csproj_files=()
           if [[ ${{ steps.changed-files.outcome }} == 'success' ]]; then
@@ -55,6 +53,7 @@ jobs:
             done
           else
             # if the changed-files step failed, run dotnet on the whole sln instead of specific projects
+            echo "Running dotnet format on whole solution"
             csproj_files=$(find ./ -type f -name "*.sln" | tr '\n' ' ');
           fi
           csproj_files=($(printf "%s\n" "${csproj_files[@]}" | sort -u))
