@@ -483,7 +483,7 @@ public class DocumentController : ControllerBase
             Index = this._promptOptions.MemoryIndexName,
         };
 
-        uploadRequest.Tags.Add("chatid", documentImportForm.DocumentScope == DocumentScope.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString());
+        uploadRequest.Tags.Add("chatid", documentImportForm.DocumentScope == DocumentScopes.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString());
         uploadRequest.Tags.Add("memory", this._promptOptions.DocumentMemoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest);
