@@ -300,7 +300,7 @@ public class ChatHistoryController : ControllerBase
         // Delete any resources associated with the chat session.
         try
         {
-            await this.DeleteChatResourcesAsync(chatIdString, cancellationToken) as StatusCodeResult;
+            await this.DeleteChatResourcesAsync(chatIdString, cancellationToken);
         }
         catch (AggregateException)
         {
@@ -318,7 +318,7 @@ public class ChatHistoryController : ControllerBase
     /// Deletes all associated resources (messages, memories, participants) associated with a chat session.
     /// </summary>
     /// <param name="chatId">The chat id.</param>
-    private async Task<IActionResult> DeleteChatResourcesAsync(string chatId, CancellationToken cancellationToken)
+    private async Task DeleteChatResourcesAsync(string chatId, CancellationToken cancellationToken)
     {
         var cleanupTasks = new List<Task>();
 
