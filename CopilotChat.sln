@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotChatWebApi", "webapi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotChatMemoryPipeline", "memorypipeline\CopilotChatMemoryPipeline.csproj", "{EE1C907E-E90A-4AB5-9094-6CCE5F0DEDF8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImportDocument", "tools\importdocument\ImportDocument.csproj", "{F67EF16F-9A8A-4DC6-A9A1-E64CDFE4F285}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{EE1C907E-E90A-4AB5-9094-6CCE5F0DEDF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE1C907E-E90A-4AB5-9094-6CCE5F0DEDF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE1C907E-E90A-4AB5-9094-6CCE5F0DEDF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F67EF16F-9A8A-4DC6-A9A1-E64CDFE4F285}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F67EF16F-9A8A-4DC6-A9A1-E64CDFE4F285}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F67EF16F-9A8A-4DC6-A9A1-E64CDFE4F285}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F67EF16F-9A8A-4DC6-A9A1-E64CDFE4F285}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

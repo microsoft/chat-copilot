@@ -162,7 +162,7 @@ public class DocumentImportController : ControllerBase
                 }, TaskScheduler.Default)));
 
         // Broadcast the document uploaded event to other users.
-        if (documentImportForm.DocumentScope == DocumentScope.Chat)
+        if (documentImportForm.DocumentScope == DocumentScopes.Chat)
         {
             var chatMessage = await this.TryCreateDocumentUploadMessage(
                 documentMessageContent,
@@ -423,8 +423,7 @@ public class DocumentImportController : ControllerBase
             userId,
             MemorySourceType.File,
             formFile.Length,
-            null
-        );
+            null);
     }
 
     /// <summary>
@@ -448,8 +447,6 @@ public class DocumentImportController : ControllerBase
     /// <summary>
     /// Try to create a chat message that represents document upload.
     /// </summary>
-    /// <param name="chatId">The chat id</param>
-    /// <param name="userName">The user id</param>
     /// <param name="documentMessageContent">The document message content</param>
     /// <param name="documentImportForm">The document upload form that contains additional necessary info</param>
     /// <returns>A ChatMessage object if successful, null otherwise</returns>
@@ -465,8 +462,7 @@ public class DocumentImportController : ControllerBase
             userId,
             userName,
             chatId,
-            documentMessageContent
-        );
+            documentMessageContent);
 
         try
         {
@@ -576,7 +572,7 @@ public class DocumentImportController : ControllerBase
         DocumentImportForm documentImportForm,
         string memorySourceId)
     {
-        var targetCollectionName = documentImportForm.DocumentScope == DocumentScope.Global
+        var targetCollectionName = documentImportForm.DocumentScope == DocumentScopes.Global
             ? this._options.GlobalDocumentCollectionName
             : this._options.ChatDocumentCollectionNamePrefix + documentImportForm.ChatId;
         var importResult = new ImportResult(targetCollectionName);

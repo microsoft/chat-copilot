@@ -20,7 +20,7 @@ public class DocumentImportForm
     /// <summary>
     /// Scope of the document. This determines the collection name in the document memory.
     /// </summary>
-    public DocumentScope DocumentScope { get; set; } = DocumentScope.Chat;
+    public DocumentScopes DocumentScope { get; set; } = DocumentScopes.Chat;
 
     /// <summary>
     /// The ID of the chat that owns the document.

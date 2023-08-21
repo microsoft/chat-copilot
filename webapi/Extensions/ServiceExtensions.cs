@@ -86,8 +86,6 @@ public static class CopilotChatServiceExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart()
             .PostConfigure(TrimStringProperties);
-
-        return services;
     }
 
     internal static IServiceCollection AddUtilities(this IServiceCollection services)
