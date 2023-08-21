@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,6 @@ namespace CopilotChat.WebApi.Controllers;
 /// Controller for retrieving semantic memory data of chat sessions.
 /// </summary>
 [ApiController]
-[Authorize]
 public class ChatMemoryController : ControllerBase
 {
     private readonly ILogger<ChatMemoryController> _logger;
@@ -56,6 +56,7 @@ public class ChatMemoryController : ControllerBase
     [Route("chatMemory/{chatId:guid}/{memoryName}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
         [FromServices] ISemanticMemoryClient memoryClient,
         [FromRoute] string chatId,
@@ -63,8 +64,8 @@ public class ChatMemoryController : ControllerBase
     {
         // Sanitize the log input by removing new line characters.
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
-        var sanitizedChatId = chatId.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
-        var sanitizedMemoryName = memoryName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+        var sanitizedChatId = GetSanitizedParameter(chatId);
+        var sanitizedMemoryName = GetSanitizedParameter(memoryName);
 
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
@@ -114,6 +115,11 @@ public class ChatMemoryController : ControllerBase
     }
 
     #region Private
+
+    private static string GetSanitizedParameter(string parameterValue)
+    {
+        return parameterValue.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+    }
 
     /// <summary>
     /// Validates the memory name.

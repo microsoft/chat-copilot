@@ -1,4 +1,4 @@
-﻿name: memorypipeline-build
+﻿name: copilot-build-memorypipeline
 
 on:
   pull_request:

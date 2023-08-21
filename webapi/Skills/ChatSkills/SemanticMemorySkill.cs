@@ -64,7 +64,7 @@ public class SemanticMemorySkill
         var remainingToken = tokenLimit;
 
         // Search for relevant memories.
-        List<(SearchResult.Citation Citation, SearchResult.Citation.Partition Memory)> relevantMemories = new();
+        List<(Citation Citation, Citation.Partition Memory)> relevantMemories = new();
         foreach (var memoryName in this._promptOptions.MemoryMap.Keys.Append(this._promptOptions.DocumentMemoryName))
         {
             await SearchMemoryAsync(memoryName).ConfigureAwait(false);
@@ -150,9 +150,9 @@ public class SemanticMemorySkill
             }
         }
 
-        IDictionary<string, List<(string, SearchResult.Citation)>> ProcessMemories()
+        IDictionary<string, List<(string, Citation)>> ProcessMemories()
         {
-            var memoryMap = new Dictionary<string, List<(string, SearchResult.Citation)>>(StringComparer.OrdinalIgnoreCase);
+            var memoryMap = new Dictionary<string, List<(string, Citation)>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var result in relevantMemories.OrderByDescending(m => m.Memory.Relevance))
             {
@@ -162,7 +162,7 @@ public class SemanticMemorySkill
                     var memoryName = this._promptOptions.DocumentMemoryName; // $$$ TAGS
                     if (!memoryMap.TryGetValue(memoryName, out var memories))
                     {
-                        memories = new List<(string, SearchResult.Citation)>();
+                        memories = new List<(string, Citation)>();
                         memoryMap.Add(memoryName, memories);
                     }
 

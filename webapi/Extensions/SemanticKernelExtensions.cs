@@ -6,9 +6,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -59,6 +61,9 @@ internal static class SemanticKernelExtensions
             return kernel;
         });
 
+        // Azure Content Safety
+        services.AddContentSafety();
+
         // Register skills
         services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
 
@@ -103,6 +108,7 @@ internal static class SemanticKernelExtensions
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
+                contentSafety: sp.GetService<AzureContentSafety>(),
                 planner: sp.GetRequiredService<CopilotChatPlanner>(),
                 logger: sp.GetRequiredService<ILogger<ChatSkill>>()),
             nameof(ChatSkill));
@@ -250,6 +256,20 @@ internal static class SemanticKernelExtensions
                         throw new InvalidOperationException($"Invalid 'MemoryStore' type '{configMemory.Retrieval.VectorDbType}'.");
                 }
             });
+    }
+
+    /// <summary>
+    /// Adds Azure Content Safety
+    /// </summary>
+    internal static void AddContentSafety(this IServiceCollection services)
+    {
+        IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>();
+
+        if (options?.Enabled ?? false)
+        {
+            services.AddSingleton<IContentSafetyService, AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
+        }
     }
 
     /// <summary>

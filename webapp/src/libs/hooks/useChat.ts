@@ -4,7 +4,7 @@ import { useMsal } from '@azure/msal-react';
 import { Constants } from '../../Constants';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { addAlert, updateTokenUsage } from '../../redux/features/app/appSlice';
+import { addAlert, toggleFeatureState, updateTokenUsage } from '../../redux/features/app/appSlice';
 import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
@@ -31,6 +31,7 @@ import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
 import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
 import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
+import { FeatureKeys } from '../../redux/features/app/AppState';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -43,7 +44,7 @@ export const useChat = () => {
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
-    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
     const botService = new BotService(process.env.REACT_APP_BACKEND_URI as string);
     const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
@@ -74,7 +75,7 @@ export const useChat = () => {
         const chatTitle = `Copilot @ ${new Date().toLocaleString()}`;
         try {
             await chatService
-                .createChatAsync(userId, chatTitle, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
+                .createChatAsync(chatTitle, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
                 .then((result: ICreateChatSessionResponse) => {
                     const newChat: ChatState = {
                         id: result.chatSession.id,
@@ -102,14 +103,6 @@ export const useChat = () => {
         const ask = {
             input: value,
             variables: [
-                {
-                    key: 'userId',
-                    value: userId,
-                },
-                {
-                    key: 'userName',
-                    value: fullName,
-                },
                 {
                     key: 'chatId',
                     value: chatId,
@@ -158,6 +151,10 @@ export const useChat = () => {
 
                     const chatUsers = await chatService.getAllChatParticipantsAsync(chatSession.id, accessToken);
 
+                    if (!features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1) {
+                        continue;
+                    }
+
                     loadedConversations[chatSession.id] = {
                         id: chatSession.id,
                         title: chatSession.title,
@@ -202,7 +199,7 @@ export const useChat = () => {
     const uploadBot = async (bot: Bot) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            await botService.uploadAsync(bot, userId, accessToken).then(async (chatSession: IChatSession) => {
+            await botService.uploadAsync(bot, accessToken).then(async (chatSession: IChatSession) => {
                 const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
                 const newChat = {
@@ -258,14 +255,28 @@ export const useChat = () => {
     const importDocument = async (chatId: string, files: File[]) => {
         try {
             await documentImportService.importDocumentAsync(
-                userId,
-                fullName,
                 chatId,
                 files,
+                features[FeatureKeys.AzureContentSafety].enabled,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
         } catch (e: any) {
-            const errorMessage = `Failed to upload document. Details: ${getErrorDetails(e)}`;
+            let errorDetails = getErrorDetails(e);
+
+            // Disable Content Safety if request was unauthorized
+            const contentSafetyDisabledRegEx = /Access denied: \[Content Safety] Failed to analyze image./g;
+            if (contentSafetyDisabledRegEx.test(errorDetails)) {
+                if (features[FeatureKeys.AzureContentSafety].enabled) {
+                    errorDetails =
+                        'Unable to analyze image. Content Safety is currently disabled or unauthorized service-side. Please contact your admin to enable.';
+                }
+
+                dispatch(
+                    toggleFeatureState({ feature: FeatureKeys.AzureContentSafety, deactivate: true, enable: false }),
+                );
+            }
+
+            const errorMessage = `Failed to upload document(s). Details: ${errorDetails}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };

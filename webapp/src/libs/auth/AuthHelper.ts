@@ -9,13 +9,36 @@ import {
 } from '@azure/msal-browser';
 import debug from 'debug';
 import { Constants } from '../../Constants';
+import { ActiveUserInfo } from '../../redux/features/app/AppState';
+import { IChatUser } from '../models/ChatUser';
 import { TokenHelper } from './TokenHelper';
 
 const log = debug(Constants.debug.root).extend('authHelper');
 
+export const enum AuthType {
+    AAD = 'AzureAd',
+}
+
+// This is the default user information when authentication is set to 'None'.
+// It must match what is defined in PassthroughAuthenticationHandler.cs on the backend.
+export const DefaultChatUser: IChatUser = {
+    id: 'c05c61eb-65e4-4223-915a-fe72b0c9ece1',
+    emailAddress: 'user@contoso.com',
+    fullName: 'Default User',
+    online: true,
+    isTyping: false,
+};
+
+export const DefaultActiveUserInfo: ActiveUserInfo = {
+    id: DefaultChatUser.id,
+    email: DefaultChatUser.emailAddress,
+    username: DefaultChatUser.fullName,
+};
+
 const msalConfig: Configuration = {
     auth: {
-        ...Constants.msal.auth,
+        clientId: process.env.REACT_APP_AAD_CLIENT_ID ?? '',
+        authority: process.env.REACT_APP_AAD_AUTHORITY,
         redirectUri: window.origin,
     },
     cache: Constants.msal.cache,
@@ -83,10 +106,17 @@ const logoutAsync = (instance: IPublicClientApplication) => {
     }
 };
 
+/**
+ * Determines if the app is configured to use Azure AD for authorization
+ */
+const IsAuthAAD = process.env.REACT_APP_AUTH_TYPE === AuthType.AAD;
+
 // SKaaS = Semantic Kernel as a Service
 // Gets token with scopes to authorize SKaaS specifically
 const getSKaaSAccessToken = async (instance: IPublicClientApplication, inProgress: InteractionStatus) => {
-    return await TokenHelper.getAccessTokenUsingMsal(inProgress, instance, Constants.msal.semanticKernelScopes);
+    return IsAuthAAD
+        ? await TokenHelper.getAccessTokenUsingMsal(inProgress, instance, Constants.msal.semanticKernelScopes)
+        : '';
 };
 
 export const AuthHelper = {
@@ -96,4 +126,5 @@ export const AuthHelper = {
     ssoSilentRequest,
     loginAsync,
     logoutAsync,
+    IsAuthAAD,
 };

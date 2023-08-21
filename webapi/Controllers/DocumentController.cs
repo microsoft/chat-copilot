@@ -5,18 +5,20 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticMemory.Client;
 using Microsoft.SemanticMemory.Client.Models;
 
@@ -31,6 +33,9 @@ namespace CopilotChat.WebApi.Controllers;
 [ApiController]
 public class DocumentController : ControllerBase
 {
+    private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
+    private const string ReceiveMessageClientCall = "ReceiveMessage";
+
     private readonly ILogger<DocumentController> _logger;
     private readonly PromptsOptions _promptOptions;
     private readonly DocumentMemoryOptions _options;
@@ -38,8 +43,8 @@ public class DocumentController : ControllerBase
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
-    private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
-    private const string ReceiveMessageClientCall = "ReceiveMessage";
+    private readonly IAuthInfo _authInfo;
+    private readonly IContentSafetyService? _contentSafetyService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -51,7 +56,9 @@ public class DocumentController : ControllerBase
         ChatSessionRepository sessionRepository,
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
-        ChatParticipantRepository participantRepository)
+        ChatParticipantRepository participantRepository,
+        IAuthInfo authInfo,
+        IContentSafetyService? contentSafety = null)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
@@ -60,13 +67,26 @@ public class DocumentController : ControllerBase
         this._sourceRepository = sourceRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
+        this._authInfo = authInfo;
+        this._contentSafetyService = contentSafety;
+    }
+
+    /// <summary>
+    /// Gets the status of content safety.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("document/safetystatus")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public bool ContentSafetyStatus()
+    {
+        return this._contentSafetyService?.ContentSafetyStatus(this._logger) ?? false;
     }
 
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
-    [Route("document/status")]
+    [Route("document/importstatus")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -84,9 +104,9 @@ public class DocumentController : ControllerBase
             return this.BadRequest(ex.Message);
         }
 
-        var userId = documentStatusForm.UserId;
+        var userId = this._authInfo.UserId;
         var chatId = documentStatusForm.ChatId.ToString();
-        var targetCollectionName = documentStatusForm.DocumentScope == DocumentScope.Global
+        var targetCollectionName = documentStatusForm.DocumentScope == DocumentScopes.Global
             ? this._options.GlobalDocumentCollectionName
             : this._options.ChatDocumentCollectionNamePrefix + chatId;
 
@@ -136,7 +156,6 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
     [Route("document/import")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -164,7 +183,7 @@ public class DocumentController : ControllerBase
         var importResults = await ImportAsync();
 
         // Broadcast the document uploaded event to other users.
-        if (documentImportForm.DocumentScope == DocumentScope.Chat)
+        if (documentImportForm.DocumentScope == DocumentScopes.Chat)
         {
             var chatMessage = await this.TryCreateDocumentUploadMessage(
                 documentMessageContent,
@@ -179,7 +198,7 @@ public class DocumentController : ControllerBase
             }
 
             var chatId = documentImportForm.ChatId.ToString();
-            var userId = documentImportForm.UserId;
+            var userId = this._authInfo.UserId;
             await messageRelayHubContext.Clients.Group(chatId)
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
@@ -189,7 +208,7 @@ public class DocumentController : ControllerBase
         await messageRelayHubContext.Clients.All.SendAsync(
             GlobalDocumentUploadedClientCall,
             documentMessageContent.ToFormattedStringNamesOnly(),
-            documentImportForm.UserName
+            this._authInfo.Name
         );
 
         return this.Ok("Documents imported successfully to global scope.");
@@ -327,8 +346,8 @@ public class DocumentController : ControllerBase
     private async Task ValidateDocumentImportFormAsync(DocumentImportForm documentImportForm)
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
-        if (documentImportForm.DocumentScope == DocumentScope.Chat
-                && !(await this.UserHasAccessToChatAsync(documentImportForm.UserId, documentImportForm.ChatId)))
+        if (documentImportForm.DocumentScope == DocumentScopes.Chat
+                && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, documentImportForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -376,6 +395,33 @@ public class DocumentController : ControllerBase
             //    default:
             //        throw new ArgumentException($"Unsupported file type: {fileType}");
             //}
+
+            // $$$ ISIMAGE ???
+            if (documentImportForm.UseContentSafety)
+            {
+                if (this._contentSafetyService == null || !this._contentSafetyService.ContentSafetyStatus(this._logger))
+                {
+                    throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
+                }
+
+                var violations = new List<string>();
+                try
+                {
+                    // Call the content safety controller to analyze the image
+                    var imageAnalysisResponse = await this._contentSafetyService.ImageAnalysisAsync(formFile, default);
+                    violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService.Options.ViolationThreshold);
+                }
+                catch (Exception ex) when (!ex.IsCriticalException())
+                {
+                    this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
+                    throw new AggregateException($"Failed to analyze image {formFile.FileName} with Content Safety.", ex);
+                }
+
+                if (violations.Count > 0)
+                {
+                    throw new ArgumentException($"Unable to upload image {formFile.FileName}. Detected undesirable content with potential risk: {string.Join(", ", violations)}");
+                }
+            }
         }
     }
 
@@ -388,7 +434,7 @@ public class DocumentController : ControllerBase
     private async Task ValidateDocumentStatusFormAsync(DocumentStatusForm documentStatusForm)
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
-        if (documentStatusForm.DocumentScope == DocumentScope.Chat
+        if (documentStatusForm.DocumentScope == DocumentScopes.Chat
                 && !(await this.UserHasAccessToChatAsync(documentStatusForm.UserId, documentStatusForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
@@ -465,7 +511,7 @@ public class DocumentController : ControllerBase
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
+        var userId = this._authInfo.UserId;
 
         return new MemorySource(
             chatId,
@@ -483,18 +529,15 @@ public class DocumentController : ControllerBase
     /// <returns>True if upsert is successful. False otherwise.</returns>
     private async Task<bool> TryUpsertMemorySourceAsync(MemorySource memorySource)
     {
-#pragma warning disable CA1031 // Try* contract is to never throw
         try
         {
             await this._sourceRepository.UpsertAsync(memorySource);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException)
         {
-            this._logger.LogError(ex, "Unable to persiste memory.");
             return false;
         }
-#pragma warning restore CA1031
     }
 
     /// <summary>
@@ -508,8 +551,8 @@ public class DocumentController : ControllerBase
         DocumentImportForm documentImportForm)
     {
         var chatId = documentImportForm.ChatId.ToString();
-        var userId = documentImportForm.UserId;
-        var userName = documentImportForm.UserName;
+        var userId = this._authInfo.UserId;
+        var userName = this._authInfo.Name;
 
         var chatMessage = ChatMessage.CreateDocumentMessage(
             userId,
@@ -517,18 +560,15 @@ public class DocumentController : ControllerBase
             chatId,
             documentMessageContent);
 
-#pragma warning disable CA1031 // Try* contract not allowed to throw
         try
         {
             await this._messageRepository.CreateAsync(chatMessage);
             return chatMessage;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException)
         {
-            this._logger.LogError(ex, "Unable to create document upload message.");
             return null;
         }
-#pragma warning restore CA1031
     }
 
     /// <summary>

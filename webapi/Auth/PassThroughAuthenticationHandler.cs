@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 
 namespace CopilotChat.WebApi.Auth;
 
@@ -15,6 +16,8 @@ namespace CopilotChat.WebApi.Auth;
 public class PassThroughAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public const string AuthenticationScheme = "PassThrough";
+    private const string DefaultUserId = "c05c61eb-65e4-4223-915a-fe72b0c9ece1";
+    private const string DefaultUserName = "Default User";
 
     /// <summary>
     /// Constructor
@@ -31,8 +34,11 @@ public class PassThroughAuthenticationHandler : AuthenticationHandler<Authentica
     {
         this.Logger.LogInformation("Allowing request to pass through");
 
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(AuthenticationScheme));
-        var ticket = new AuthenticationTicket(principal, this.Scheme.Name);
+        Claim userIdClaim = new(ClaimConstants.Sub, DefaultUserId);
+        Claim nameClaim = new(ClaimConstants.Name, DefaultUserName);
+        ClaimsIdentity identity = new(new Claim[] { userIdClaim, nameClaim }, AuthenticationScheme);
+        ClaimsPrincipal principal = new(identity);
+        AuthenticationTicket ticket = new(principal, this.Scheme.Name);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }

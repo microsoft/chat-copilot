@@ -21,13 +21,8 @@ param(
 
     [Parameter(Mandatory)]
     [string]
-    # Client application id
-    $ApplicationClientId,
-
-    [Parameter(Mandatory=$false)]
-    [string]
-    # Authority for client applications that are not configured as multi-tenant.
-    $Authority="https://login.microsoftonline.com/common",
+    # Client application id for the frontend web app
+    $FrontendClientId,
 
     [string]
     # Version to display in UI.
@@ -57,11 +52,16 @@ $webappUrl = $deployment.properties.outputs.webappUrl.value
 $webappName = $deployment.properties.outputs.webappName.value
 $webapiUrl = $deployment.properties.outputs.webapiUrl.value
 $webapiName = $deployment.properties.outputs.webapiName.value
-$webapiApiKey = ($(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON) | Where-Object -Property name -EQ -Value Authorization:ApiKey).value
 Write-Host "webappUrl: $webappUrl"
 Write-Host "webappName: $webappName"
 Write-Host "webapiName: $webapiName"
 Write-Host "webapiUrl: $webapiUrl"
+
+$webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+$webapiClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
+$webapiTenantId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:TenantId).value
+$webapiInstance = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:Instance).value
+$webapiScope = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:Scopes).value
 
 # Set ASCII as default encoding for Out-File
 $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
@@ -69,9 +69,10 @@ $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
 $envFilePath = "$PSScriptRoot/../../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
-"REACT_APP_AAD_AUTHORITY=$Authority" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_CLIENT_ID=$ApplicationClientId" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_SK_API_KEY=$webapiApiKey" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_AUTHORITY=$($webapiInstance.Trim("/"))/$webapiTenantId" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_CLIENT_ID=$FrontendClientId" | Out-File -FilePath $envFilePath -Append
+"REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_VERSION=$Version" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_BUILD_INFO=$VersionInfo" | Out-File -FilePath $envFilePath -Append
 
@@ -113,7 +114,7 @@ if (-not ((az webapp cors show --name $webapiName --resource-group $ResourceGrou
 }
 
 Write-Host "Ensuring '$origin' is included in AAD app registration's redirect URIs..."
-$objectId = (az ad app show --id $ApplicationClientId | ConvertFrom-Json).id
+$objectId = (az ad app show --id $FrontendClientId | ConvertFrom-Json).id
 $redirectUris = (az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$objectId" --headers 'Content-Type=application/json' | ConvertFrom-Json).spa.redirectUris
 if ($redirectUris -notcontains "$origin") {
     $redirectUris += "$origin"
