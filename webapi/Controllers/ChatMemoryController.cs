@@ -64,8 +64,8 @@ public class ChatMemoryController : ControllerBase
     {
         // Sanitize the log input by removing new line characters.
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
-        var sanitizedChatId = chatId.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
-        var sanitizedMemoryName = memoryName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+        var sanitizedChatId = GetSanitizedParameter(chatId);
+        var sanitizedMemoryName = GetSanitizedParameter(memoryName);
 
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
@@ -116,6 +116,11 @@ public class ChatMemoryController : ControllerBase
     }
 
     #region Private
+
+    private static string GetSanitizedParameter(string parameterValue)
+    {
+        return parameterValue.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
+    }
 
     /// <summary>
     /// Validates the memory name.
