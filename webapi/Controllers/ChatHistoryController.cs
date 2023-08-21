@@ -279,6 +279,7 @@ public class ChatHistoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> DeleteChatSessionAsync(
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] IAuthInfo authInfo,
@@ -286,12 +287,6 @@ public class ChatHistoryController : ControllerBase
         CancellationToken cancellationToken)
     {
         var chatId = sessionId.ToString();
-
-        if (!(await this._participantRepository.IsUserInChatAsync(authInfo.UserId, chatId)))
-        {
-            return this.Forbid("User is unauthorized to delete this chat.");
-        }
-
         ChatSession? chatToDelete = null;
         try
         {
