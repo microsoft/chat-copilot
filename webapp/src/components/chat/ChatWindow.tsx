@@ -152,15 +152,6 @@ export const ChatWindow: React.FC = () => {
                         <Tab data-testid="chatTab" id="chat" value="chat" aria-label="Chat Tab" title="Chat Tab">
                             Chat
                         </Tab>
-                        <Tab
-                            data-testid="documentsTab"
-                            id="documents"
-                            value="documents"
-                            aria-label="Documents Tab"
-                            title="Documents Tab"
-                        >
-                            Documents
-                        </Tab>
                         {features[FeatureKeys.PluginsPlannersAndPersonas].enabled && (
                             <>
                                 <Tab

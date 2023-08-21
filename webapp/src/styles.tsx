@@ -17,7 +17,7 @@ export const semanticKernelBrandRamp: BrandVariants = {
     40: '#591732',
     50: '#701A3E',
     60: '#861F4B',
-    70: '#982C57',
+    70: '#323A44',
     80: '#A53E63',
     90: '#B15070',
     100: '#BC627E',

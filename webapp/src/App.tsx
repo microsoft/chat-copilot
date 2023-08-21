@@ -1,12 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, useMsal } from '@azure/msal-react';
-import { FluentProvider, Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
+import { FluentProvider, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 import * as React from 'react';
 import { FC, useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
-import { PluginGallery } from './components/open-api-plugins/PluginGallery';
 import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
 import { useChat } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
@@ -15,6 +14,8 @@ import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
 import { addAlert, setActiveUserInfo, setServiceOptions } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
+
+import playFabLogo from './assets/playfab-icons/playfab-mark.png';
 
 export const useClasses = makeStyles({
     container: {
@@ -29,13 +30,30 @@ export const useClasses = makeStyles({
         backgroundColor: tokens.colorBrandForeground2,
         color: tokens.colorNeutralForegroundOnBrand,
         display: 'flex',
-        '& h1': {
-            paddingLeft: tokens.spacingHorizontalXL,
+        '& div': {
             display: 'flex',
+            alignItems: 'center',
         },
         height: '48px',
         justifyContent: 'space-between',
         width: '100%',
+    },
+    logo: {
+        width: '23px',
+        height: '26px',
+        backgroundSize: '23px 26px',
+        paddingLeft: '23px',
+    },
+    title: {
+        height: '24px',
+        marginLeft: '12px',
+        paddingLeft: '12px',
+        fontSize: '16px',
+        fontWeight: 'normal',
+        borderLeftColor: 'white',
+        borderLeftWidth: '1px',
+        borderLeftStyle: 'solid',
+        lineHeight: '20px',
     },
     persona: {
         marginRight: tokens.spacingHorizontalXXL,
@@ -132,7 +150,10 @@ const App: FC = () => {
             <UnauthenticatedTemplate>
                 <div className={classes.container}>
                     <div className={classes.header}>
-                        <Subtitle1 as="h1">Chat Copilot</Subtitle1>
+                        <div>
+                            <img className={classes.logo} src={playFabLogo} />
+                            <h1 className={classes.title}>PlayFab Copilot</h1>
+                        </div>
                     </div>
                     {appState === AppState.SigningOut && <Loading text="Signing you out..." />}
                     {appState !== AppState.SigningOut && <Login />}
@@ -141,11 +162,13 @@ const App: FC = () => {
             <AuthenticatedTemplate>
                 <div className={classes.container}>
                     <div className={classes.header}>
-                        <Subtitle1 as="h1">Chat Copilot</Subtitle1>
+                        <div>
+                            <img className={classes.logo} src={playFabLogo} />
+                            <h1 className={classes.title}>PlayFab Copilot</h1>
+                        </div>
                         {appState > AppState.SettingUserInfo && (
                             <div className={classes.cornerItems}>
                                 <div data-testid="logOutMenuList" className={classes.cornerItems}>
-                                    <PluginGallery />
                                     <UserSettingsMenu
                                         setLoadingState={() => {
                                             setAppState(AppState.SigningOut);
