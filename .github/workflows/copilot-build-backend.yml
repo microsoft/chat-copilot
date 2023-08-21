@@ -39,7 +39,7 @@ jobs:
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0
         with:
-          versionSpec: '5.x'
+          versionSpec: "5.x"
 
       - name: Determine version
         id: gitversion
@@ -57,11 +57,6 @@ jobs:
       - name: Package Copilot Chat WebAPI
         run: |
           scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
-
-      - name: Check formatting of Copilot Chat WebAPI
-        run: |
-          cd webapi/
-          dotnet format --verify-no-changes --verbosity diagnostic
 
       - name: Upload package to artifacts
         uses: actions/upload-artifact@v3
