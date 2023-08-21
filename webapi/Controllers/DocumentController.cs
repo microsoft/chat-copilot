@@ -74,7 +74,7 @@ public class DocumentController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Route("document/issafetyenabled")]
+    [Route("document/safetystatus")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public bool ContentSafetyStatus()
     {
@@ -84,8 +84,7 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
-    [Route("document/status")]
+    [Route("document/importstatus")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -155,7 +154,6 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Authorize]
     [Route("document/import")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
