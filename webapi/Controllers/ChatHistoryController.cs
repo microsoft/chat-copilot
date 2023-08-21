@@ -298,8 +298,11 @@ public class ChatHistoryController : ControllerBase
         }
 
         // Delete any resources associated with the chat session.
-        var deleteResourcesResult = await this.DeleteChatResourcesAsync(chatIdString, cancellationToken) as StatusCodeResult;
-        if (deleteResourcesResult?.StatusCode != 204)
+        try
+        {
+            var deleteResourcesResult = await this.DeleteChatResourcesAsync(chatIdString, cancellationToken) as StatusCodeResult;
+        }
+        catch (AggregateException)
         {
             return this.StatusCode(500, $"Failed to delete resources for chat id '{chatId}'.");
         }
@@ -349,20 +352,28 @@ public class ChatHistoryController : ControllerBase
             cleanupTasks.Add(this._memoryStore.DeleteCollectionAsync(collection, cancellationToken));
         }
 
-        // Await all the tasks in parallel and handle the exceptions
-        await Task.WhenAll(cleanupTasks);
-        var failedTasks = false;
 
-        // Iterate over the tasks and check their status and exception
-        foreach (var task in cleanupTasks)
+        // Create a task that represents the completion of all cleanupTasks
+        Task aggregationTask = Task.WhenAll(cleanupTasks);
+        try
         {
-            if (task.IsFaulted && task.Exception != null)
+            // Await the completion of all tasks in parallel
+            await aggregationTask;
+        }
+        catch (Exception)
+        {
+            // Handle any exceptions that occurred during the tasks
+            if (aggregationTask?.Exception?.InnerExceptions != null && aggregationTask.Exception.InnerExceptions.Count != 0)
             {
-                failedTasks = true;
-                this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, task.Exception.Message);
+                foreach (var innerEx in aggregationTask.Exception.InnerExceptions)
+                {
+                    this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, innerEx.Message);
+                }
+
+                throw aggregationTask.Exception;
             }
         }
 
-        return failedTasks ? this.StatusCode(500) : this.NoContent();
+        return this.NoContent();
     }
 }
