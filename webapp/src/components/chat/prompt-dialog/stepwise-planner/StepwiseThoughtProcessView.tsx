@@ -9,7 +9,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { useState } from 'react';
-import { Constants } from '../../../../Constants';
+import { COPY } from '../../../../assets/strings';
 import { DependencyDetails } from '../../../../libs/models/BotResponsePrompt';
 import { StepwiseStep } from '../../../../libs/models/StepwiseStep';
 import { StepwiseThoughtProcess } from '../../../../libs/models/StepwiseThoughtProcess';
@@ -36,7 +36,7 @@ export const StepwiseThoughtProcessView: React.FC<IStepwiseThoughtProcessViewPro
     const stepwiseDetails = thoughtProcess.context as StepwiseThoughtProcess;
     const steps = JSON.parse(stepwiseDetails.stepsTaken) as StepwiseStep[];
 
-    const testResultNotFound = thoughtProcess.result.matchAll(Constants.STEPWISE_RESULT_NOT_FOUND_REGEX);
+    const testResultNotFound = thoughtProcess.result.matchAll(COPY.STEPWISE_RESULT_NOT_FOUND_REGEX);
     const matchGroups = Array.from(testResultNotFound);
     const resultNotFound = matchGroups.length > 0;
     if (resultNotFound) {

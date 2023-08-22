@@ -16,4 +16,5 @@ export interface ChatState {
     botResponseStatus: string | undefined;
     userDataLoaded: boolean;
     importingDocuments?: string[];
+    disabled: boolean;
 }

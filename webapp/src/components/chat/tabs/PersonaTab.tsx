@@ -20,14 +20,16 @@ export const PersonaTab: React.FC = () => {
     const [longTermMemory, setLongTermMemory] = React.useState<string>('');
 
     React.useEffect(() => {
-        void Promise.all([
-            chat.getSemanticMemories(selectedId, 'WorkingMemory').then((memories) => {
-                setShortTermMemory(memories.join('\n'));
-            }),
-            chat.getSemanticMemories(selectedId, 'LongTermMemory').then((memories) => {
-                setLongTermMemory(memories.join('\n'));
-            }),
-        ]);
+        if (!conversations[selectedId].disabled) {
+            void Promise.all([
+                chat.getSemanticMemories(selectedId, 'WorkingMemory').then((memories) => {
+                    setShortTermMemory(memories.join('\n'));
+                }),
+                chat.getSemanticMemories(selectedId, 'LongTermMemory').then((memories) => {
+                    setLongTermMemory(memories.join('\n'));
+                }),
+            ]);
+        }
         // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedId]);

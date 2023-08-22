@@ -157,7 +157,6 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                     {showActions && (
                         <ListItemActions
                             chatId={id}
-                            chatName={header}
                             onEditTitleClick={() => {
                                 setEditingTitle(true);
                             }}
