@@ -9,6 +9,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@fluentui/react-dialog';
+import { useChat } from '../../../../libs/hooks';
+import { getFriendlyChatName } from '../../../../libs/hooks/useChat';
+import { useAppSelector } from '../../../../redux/app/hooks';
 import { Delete16 } from '../../../shared/BundledIcons';
 
 const useClasses = makeStyles({
@@ -22,11 +25,18 @@ const useClasses = makeStyles({
 
 interface IEditChatNameProps {
     chatId: string;
-    chatName: string;
 }
 
-export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatName }) => {
+export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatId }) => {
     const classes = useClasses();
+    const chat = useChat();
+
+    const { conversations } = useAppSelector((state) => state.conversations);
+    const chatName = getFriendlyChatName(conversations[chatId]);
+
+    const onDeleteChat = () => {
+        void chat.deleteChat(chatId);
+    };
 
     return (
         <Dialog modalType="alert">
@@ -37,22 +47,17 @@ export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatName }) => 
             </DialogTrigger>
             <DialogSurface className={classes.root}>
                 <DialogBody>
-                    <DialogTitle>Are you sure you want to delete chat {chatName}?</DialogTitle>
-                    <DialogContent
-                    // TODO:  [sk Issue #1642] Check with Matthew on proper copy here
-                    >
-                        This will permanently delete the chat for you but not for Chat Copilot. You need to delete
-                        anything that you have shared (files, tasks, etc.) separately.
+                    <DialogTitle>Are you sure you want to delete chat: {chatName}?</DialogTitle>
+                    <DialogContent>
+                        This action will permanently delete the chat, and any associated resources and memories, for all
+                        participants, including Chat Copilot.
                     </DialogContent>
                     <DialogActions className={classes.actions}>
                         <DialogTrigger action="close" disableButtonEnhancement>
                             <Button appearance="secondary">Cancel</Button>
                         </DialogTrigger>
                         <DialogTrigger action="close" disableButtonEnhancement>
-                            <Button
-                                appearance="primary"
-                                // onClick={ TODO:  [sk Issue #1642] Handle delete chat }
-                            >
+                            <Button appearance="primary" onClick={onDeleteChat}>
                                 Delete
                             </Button>
                         </DialogTrigger>

@@ -94,25 +94,26 @@ export const DocumentsTab: React.FC = () => {
     const documentFileRef = useRef<HTMLInputElement | null>(null);
 
     React.useEffect(() => {
-        const importingResources = importingDocuments
-            ? importingDocuments.map((document, index) => {
-                  return {
-                      id: `in-progress-${index}`,
-                      chatId: selectedId,
-                      sourceType: 'N/A',
-                      name: document,
-                      sharedBy: 'N/A',
-                      createdOn: 0,
-                      tokens: 0,
-                  } as ChatMemorySource;
-              })
-            : [];
-        setResources(importingResources);
+        if (!conversations[selectedId].disabled) {
+            const importingResources = importingDocuments
+                ? importingDocuments.map((document, index) => {
+                      return {
+                          id: `in-progress-${index}`,
+                          chatId: selectedId,
+                          sourceType: 'N/A',
+                          name: document,
+                          sharedBy: 'N/A',
+                          createdOn: 0,
+                          tokens: 0,
+                      } as ChatMemorySource;
+                  })
+                : [];
+            setResources(importingResources);
 
-        void chat.getChatMemorySources(selectedId).then((sources) => {
-            setResources([...importingResources, ...sources]);
-        });
-
+            void chat.getChatMemorySources(selectedId).then((sources) => {
+                setResources([...importingResources, ...sources]);
+            });
+        }
         // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importingDocuments, selectedId]);
@@ -140,7 +141,9 @@ export const DocumentsTab: React.FC = () => {
                     <Button
                         className={classes.uploadButton}
                         icon={<DocumentArrowUp20Regular />}
-                        disabled={importingDocuments && importingDocuments.length > 0}
+                        disabled={
+                            conversations[selectedId].disabled || (importingDocuments && importingDocuments.length > 0)
+                        }
                         onClick={() => documentFileRef.current?.click()}
                     >
                         Upload
@@ -150,7 +153,11 @@ export const DocumentsTab: React.FC = () => {
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
                     <Label size="large">Vector Database</Label>
-                    <RadioGroup defaultValue={serviceOptions.memoryStore.selectedType} layout="horizontal">
+                    <RadioGroup
+                        defaultValue={serviceOptions.memoryStore.selectedType}
+                        layout="horizontal"
+                        disabled={conversations[selectedId].disabled}
+                    >
                         {serviceOptions.memoryStore.types.map((storeType) => {
                             return (
                                 <Radio

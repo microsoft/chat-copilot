@@ -90,6 +90,7 @@ export const MemoryBiasSlider: React.FC = () => {
                     onChange={(_, data) => {
                         sliderValueChange(data.value);
                     }}
+                    disabled={conversations[selectedId].disabled}
                 />
                 <Label>Long Term</Label>
             </div>
