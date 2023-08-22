@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
+using Microsoft.SemanticMemory.Core.Configuration;
 using Tesseract;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -65,6 +66,9 @@ public static class CopilotChatServiceExtensions
 
         // Content safety options
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
+
+        // Content safety options
+        AddOptions<SemanticMemoryConfig>("SemanticMemory"); // $$$
 
         return services;
 
