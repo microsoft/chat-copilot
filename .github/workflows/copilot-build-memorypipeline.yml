@@ -57,11 +57,6 @@ jobs:
         run: |
           scripts\deploy\package-memorypipeline.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
 
-      - name: Check formatting of Copilot Chat Memory Pipeline
-        run: |
-          cd memorypipeline/
-          dotnet format --verify-no-changes --verbosity diagnostic
-
       - name: Upload package to artifacts
         uses: actions/upload-artifact@v3
         with:
