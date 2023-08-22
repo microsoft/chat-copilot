@@ -64,6 +64,15 @@ You will need two Azure Active Directory (AAD) application registrations -- one 
 
       5. Set *Admin consent description* and *User consent description* to `Allows the accesses to the Chat Copilot web API as a user`
 
+   4. Add the web app frontend as an authorized client application
+      1. Click *Add a client application*
+
+      2. For *Client ID*, enter the frontend's application (client) ID
+
+      3. Check the checkbox under *Authorized scopes*
+
+      4. Click *Add application*
+
 4. Add permissions to web app frontend to access web api as user
    1. Open app registration for web app frontend
 

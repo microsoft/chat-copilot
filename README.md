@@ -163,6 +163,15 @@ By default, Chat Copilot runs locally without authentication, using a guest user
       4. Set _Admin consent display name_ and _User consent display name_ to `Access copilot chat as a user`
 
       5. Set _Admin consent description_ and _User consent description_ to `Allows the accesses to the Copilot chat web API as a user`
+   
+   4. Add the web app frontend as an authorized client application
+      1. Click *Add a client application*
+
+      2. For *Client ID*, enter the frontend's application (client) ID
+
+      3. Check the checkbox under *Authorized scopes*
+
+      4. Click *Add application*
 
 4. Add permissions to web app frontend to access web api as user
 
