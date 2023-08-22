@@ -13,11 +13,8 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class SemanticMemoryExtensions
 {
     /// <summary>
-    /// Add Semantic Memory services
+    /// Inject <see cref="ISemanticMemoryClient"/>.
     /// </summary>
-    /// <remarks>
-    /// Forced to conform with the current state of semantic-memory.
-    /// </remarks>
     public static void AddSemanticMemoryServices(this WebApplicationBuilder builder)
     {
         ISemanticMemoryClient memory =

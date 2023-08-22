@@ -45,7 +45,7 @@ internal static class SemanticKernelExtensions
     /// </summary>
     internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
     {
-        //// Semantic Memory (for Planner)
+        // Semantic Memory (for Planner)
         services.AddSemanticTextMemory();
 
         // Semantic Kernel

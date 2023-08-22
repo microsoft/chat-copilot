@@ -67,8 +67,8 @@ public static class CopilotChatServiceExtensions
         // Content safety options
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
-        // Content safety options
-        AddOptions<SemanticMemoryConfig>("SemanticMemory"); // $$$
+        // Semantic memory options
+        AddOptions<SemanticMemoryConfig>("SemanticMemory");
 
         return services;
 
