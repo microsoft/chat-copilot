@@ -104,11 +104,12 @@ public class ReportDataManager : IReportDataManager
         }
 
         // Report 2 - Rolling 30 Day Overview Report
+        string ParseDailyReportDate(string str) => DateTime.Parse(str, CultureInfo.InvariantCulture).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
         if (latestReports.TryGetValue("RollingThirtyDayOverviewReport", out GameReport? rollingThirtyDayOverviewReport))
         {
             PlayFabReportColumn[] rollingThirtyDayOverviewReportColumns = new[]
             {
-                new PlayFabReportColumn { Name = "Timestamp", Description = "The date and time of a one-hour window when the report was compiled, presented in Coordinated Universal Time (UTC)." },
+                new PlayFabReportColumn { Name = "Timestamp", SourceParser=ParseDailyReportDate, Description = "The date of a one-day window when the report was compiled, presented in Coordinated Universal Time (UTC)." },
                 new PlayFabReportColumn { Name = "TotalLogins", Description = "The aggregate count of player logins during the specified hour, revealing the volume of player interactions." },
                 new PlayFabReportColumn { Name = "UniqueLogins", Description = "The distinct number of players who logged into the game within the same hour, indicating individual engagement." },
                 new PlayFabReportColumn { Name = "UniquePayers", Description = "The count of unique players who conducted in-game purchases, reflecting the game's monetization reach." },
@@ -153,12 +154,11 @@ public class ReportDataManager : IReportDataManager
         }
 
         // Report 4 - Rolling 30 Day Retention Report
-        string ParseDailyReportDate(string str) => DateTime.Parse(str, CultureInfo.InvariantCulture).ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
         if (latestReports.TryGetValue("ThirtyDayRetentionReport", out GameReport? thirtyDayRetentionReport))
         {
             PlayFabReportColumn[] thirtyDayRetentionReportColumns = new[]
             {
-                new PlayFabReportColumn { Name = "CohortDate", SourceName="Ts", SourceParser=ParseDailyReportDate, Description = "The timestamp indicating when the retention data was collected" },
+                new PlayFabReportColumn { Name = "CohortDate", SourceName="Ts", SourceParser=ParseDailyReportDate, Description = "The date indicating when the retention data was collected." },
                 new PlayFabReportColumn { Name = "CohortSize", Description = "The initial size of the cohort, representing the number of players at the beginning of the retention period." },
                 new PlayFabReportColumn { Name = "DaysLater", SourceName="PeriodsLater", Description = "The number of days later at which the retention is being measured." },
                 new PlayFabReportColumn { Name = "TotalRetained", Description = "The total number of players retained in the specified cohort after the specified number of days." },
