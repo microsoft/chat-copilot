@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
@@ -127,15 +128,13 @@ public class SemanticMemorySkill
             try
             {
                 // Search if there is already a memory item that has a high similarity score with the new item.
-                var filter = new MemoryFilter();
-                filter.ByTag("chatid", chatId);
-                filter.ByTag("memory", memoryName);
-                filter.MinRelevance = this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance);
-
-                var searchResult = await memoryClient.SearchAsync(
-                        query,
+                var searchResult =
+                    await memoryClient.SearchMemoryAsync(
                         this._promptOptions.MemoryIndexName,
-                        filter)
+                        query,
+                        this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
+                        chatId,
+                        memoryName)
                     .ConfigureAwait(false);
 
                 foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))

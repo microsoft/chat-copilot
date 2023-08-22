@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
@@ -20,7 +21,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticMemory.Client;
-using Microsoft.SemanticMemory.Client.Models;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -475,18 +475,15 @@ public class DocumentController : ControllerBase
         // Create memory source
         var memorySource = this.CreateMemorySource(formFile, documentImportForm);
 
+        var chatId = documentImportForm.DocumentScope == DocumentScopes.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString();
         using var stream = formFile.OpenReadStream();
-        var uploadRequest = new DocumentUploadRequest
-        {
-            DocumentId = memorySource.Id,
-            Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile(formFile.FileName, stream) },
-            Index = this._promptOptions.MemoryIndexName,
-        };
-
-        uploadRequest.Tags.Add("chatid", documentImportForm.DocumentScope == DocumentScopes.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString());
-        uploadRequest.Tags.Add("memory", this._promptOptions.DocumentMemoryName);
-
-        await memoryClient.ImportDocumentAsync(uploadRequest);
+        await memoryClient.StoreDocumentAsync(
+            this._promptOptions.MemoryIndexName,
+            memorySource.Id,
+            chatId,
+            this._promptOptions.DocumentMemoryName,
+            formFile.FileName,
+            stream);
 
         var importResult = new ImportResult(memorySource.Id);
 

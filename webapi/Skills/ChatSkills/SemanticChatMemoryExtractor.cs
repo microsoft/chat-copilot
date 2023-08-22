@@ -2,9 +2,9 @@
 
 using System;
 using System.Globalization;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -12,7 +12,6 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticMemory.Client;
-using Microsoft.SemanticMemory.Client.Models;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -104,41 +103,18 @@ internal static class SemanticChatMemoryExtractor
             try
             {
                 // Search if there is already a memory item that has a high similarity score with the new item.
-                var filter = new MemoryFilter();
-                filter.ByTag("chatid", chatId);
-                filter.ByTag("memory", memoryName);
-
-                var searchResult = await memoryClient.SearchAsync(
-                        memory,
+                var searchResult =
+                    await memoryClient.SearchMemoryAsync(
                         options.MemoryIndexName,
-                        filter,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                        memory,
+                        0.8F, // $$$
+                        chatId,
+                        memoryName,
+                        cancellationToken);
 
                 if (searchResult.Results.Count == 0)
                 {
-                    using var stream = new MemoryStream();
-                    using var writer = new StreamWriter(stream);
-                    await writer.WriteAsync(memory);
-                    await writer.FlushAsync();
-                    stream.Position = 0;
-
-                    var id = Guid.NewGuid().ToString();
-                    var uploadRequest = new DocumentUploadRequest
-                    {
-                        DocumentId = id,
-                        Index = options.MemoryIndexName,
-                        Files = new()
-                        {
-                            // Document file name not relevant, but required.
-                            new DocumentUploadRequest.UploadedFile("memory.txt", stream)
-                        },
-                    };
-
-                    uploadRequest.Tags.Add("chatid", chatId);
-                    uploadRequest.Tags.Add("memory", memoryName);
-
-                    await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
+                    await memoryClient.StoreMemoryAsync(options.MemoryIndexName, chatId, memoryName, memory, cancelToken: cancellationToken);
                 }
             }
             catch (SKException connectorException)

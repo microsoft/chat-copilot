@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
@@ -94,10 +95,13 @@ public class ChatMemoryController : ControllerBase
             filter.ByTag("memory", sanitizedMemoryName);
             filter.MinRelevance = 0;
 
-            var searchResult = await memoryClient.SearchAsync(
-                    "*",
+            var searchResult =
+                await memoryClient.SearchMemoryAsync(
                     this._promptOptions.MemoryIndexName,
-                    filter)
+                    "*",
+                    relevanceThreshold: 0,
+                    chatId,
+                    sanitizedMemoryName)
                 .ConfigureAwait(false);
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
