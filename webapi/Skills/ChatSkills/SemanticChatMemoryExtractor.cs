@@ -12,8 +12,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticMemory.Client;
-using Microsoft.SemanticMemory.Client.Models;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 

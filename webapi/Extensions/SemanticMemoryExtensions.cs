@@ -2,8 +2,7 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticMemory.Client;
-using Microsoft.SemanticMemory.Core.AppBuilders;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Extensions;
 

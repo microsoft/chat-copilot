@@ -13,15 +13,13 @@ using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI;
-using Microsoft.SemanticMemory.Client;
-using Microsoft.SemanticMemory.Client.Models;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 

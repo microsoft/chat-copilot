@@ -13,8 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticMemory.Client;
-using Microsoft.SemanticMemory.Client.Models;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 

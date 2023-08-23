@@ -25,7 +25,7 @@ using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
-using Microsoft.SemanticMemory.Client;
+using Microsoft.SemanticMemory;
 using Npgsql;
 using Pgvector.Npgsql;
 using static CopilotChat.WebApi.Options.MemoryStoreOptions;

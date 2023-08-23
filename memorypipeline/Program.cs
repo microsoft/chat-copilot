@@ -8,7 +8,7 @@ using System;
 using CopilotChat.MemoryPipeline;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticMemory.Core.Diagnostics;
+using Microsoft.SemanticMemory.Diagnostics;
 
 var app = WebApplication.CreateBuilder().AddMemoryServices().Build();
 
