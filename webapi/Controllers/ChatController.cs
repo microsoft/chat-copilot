@@ -86,6 +86,7 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] CopilotChatPlanner planner,
         [FromServices] IReportDataManager reportDataManager,
         [FromServices] IOptions<PlayFabOptions> playFabOptions,
+        [FromServices] IKernelFactory kernelFactory,
         [FromBody] Ask ask)
     {
         this._logger.LogDebug("Chat request received.");
@@ -99,7 +100,7 @@ public class ChatController : ControllerBase, IDisposable
 
         // Register plugins that have been enabled
         var openApiSkillsAuthHeaders = this.GetPluginAuthHeaders(this.HttpContext.Request.Headers);
-        await this.RegisterPlannerSkillsAsync(planner, openApiSkillsAuthHeaders, contextVariables);
+        await this.RegisterPlannerSkillsAsync(planner, kernelFactory, openApiSkillsAuthHeaders, contextVariables);
 
         // Initialize the memory (once per kernel)
         CancellationToken ct = this.HttpContext.RequestAborted;
@@ -184,13 +185,13 @@ public class ChatController : ControllerBase, IDisposable
     /// <summary>
     /// Register skills with the planner's kernel.
     /// </summary>
-    private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
+    private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, IKernelFactory kernelFactory, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
     {
         // Register PlayFab Skills
         this._logger.LogInformation("Registering PlayFab plugins");
 
         planner.Kernel.ImportSkill(
-            new SegmentSkill(planner.Kernel, this._playFabOptions.TitleApiEndpoint, this._playFabOptions.TitleSecretKey, this._playFabOptions.SwaggerEndpoint),
+            new SegmentSkill(kernelFactory.CreateNewKernel(), this._playFabOptions.TitleApiEndpoint, this._playFabOptions.TitleSecretKey, this._playFabOptions.SwaggerEndpoint),
             "Segments");
 
         planner.Kernel.ImportSkill(

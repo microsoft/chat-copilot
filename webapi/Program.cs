@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
@@ -19,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel;
 using PlayFab.Reports;
 
 namespace CopilotChat.WebApi;
@@ -61,6 +62,10 @@ public sealed class Program
         });
 
         builder.Services.AddSingleton<IReportDataManager, ReportDataManager>();
+
+        // Add KernelFactory
+        builder.Services.AddSingleton<IKernelFactory>(serviceProvider =>
+            new KernelFactory(serviceProvider.GetRequiredService<ILogger>(), serviceProvider.GetRequiredService<IOptions<AIServiceOptions>>()));
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();

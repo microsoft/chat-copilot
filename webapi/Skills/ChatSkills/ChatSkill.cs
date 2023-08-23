@@ -33,6 +33,12 @@ namespace CopilotChat.WebApi.Skills.ChatSkills;
 /// </summary>
 public class ChatSkill
 {
+    private static readonly HashSet<string> NoConsentFunctions = new()
+    {
+        "GetAnswerForGameQuestion",
+        "GetSegments",
+    };
+
     /// <summary>
     /// A kernel instance to create a completion function since each invocation
     /// of the <see cref="ChatAsync"/> function will generate a new prompt dynamically.
@@ -317,9 +323,7 @@ public class ChatSkill
         ProposedPlan? proposedPlan = this._externalInformationSkill.ProposedPlan;
         if (proposedPlan != null)
         {
-            bool shouldSkipUserConsent = (proposedPlan.Plan.Steps.Count == 1 &&
-                proposedPlan.Plan.Steps[0].SkillName == "GameInsights" &&
-                proposedPlan.Plan.Steps[0].Name == "GetAnswerForGameQuestion");
+            bool shouldSkipUserConsent = (proposedPlan.Plan.Steps.Count == 1 && NoConsentFunctions.Contains(proposedPlan.Plan.Steps[0].Name));
 
             if (shouldSkipUserConsent)
             {

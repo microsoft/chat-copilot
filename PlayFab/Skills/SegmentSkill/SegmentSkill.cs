@@ -24,6 +24,8 @@ public sealed class SegmentSkill
     /// </summary>
     private static readonly bool UseLocalFile = true;
 
+    private static readonly string HttpContentType = "application/json";
+
     #endregion
 
     #region Data Members
@@ -63,6 +65,79 @@ public sealed class SegmentSkill
 
     #endregion
 
+    [SKFunction, Description("Gets the segment details as specified by the user's input prompt or question.")]
+    public async Task<string> GetSegments(
+        [Description("The original user input.")]
+        string input)
+    {
+        SKContext context = this._kernel.CreateNewContext();
+
+        const string payload = "{ \"SegmentIds\": [] }";
+
+        ContextVariables contextVariables = new();
+        contextVariables.Set("server_url", this._titleApiEndpoint);
+        contextVariables.Set("content_type", HttpContentType);
+        contextVariables.Set("payload", payload);
+
+        SKContext result1 = await this.ExecutePlayFabOpenApiFunctionAsync("GetSegments", contextVariables);
+
+        string formattedContent = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result1.Result), Formatting.Indented);
+        JObject segmentsDataObject = JObject.Parse(formattedContent);
+        string? content = ((Newtonsoft.Json.Linq.JValue)segmentsDataObject.GetValue("content")).Value.ToString();
+        JObject segmentsDataObject2 = JObject.Parse(content);
+        string segmentsArrayContent = segmentsDataObject2.GetValue("data").SelectTokens("$.Segments").First().ToString();
+
+        string FunctionDefinition = @"
+You are an AI assistant for analyzing the details of segments and answering user's questions about their segments.
+
+You have access to all the current segments for a title.
+Only include the details of the segment that matches the user's request in your answer if it exists in Current Segments.
+Do not include information on how to create such a segment.
+If no segment matches the user's request, say that there is no segment and return an example payload for creating such a segment.
+
+Current Segments:
+{{$segments}}
+
+Example:
+Question: Do I have a segment for players from the United States?
+Current Segments:
+[
+  {
+    ""SegmentId"": ""66DAA8494227D143"",
+    ""Name"": ""All Players"",
+    ""LastUpdateTime"": ""2023-08-18T19:08:56.412Z"",
+    ""SegmentOrDefinitions"": [
+      {
+        ""SegmentAndDefinitions"": [
+          {
+            ""AllPlayersFilter"": {}
+          }
+        ]
+      }
+    ],
+    ""EnteredSegmentActions"": [],
+    ""LeftSegmentActions"": []
+  },
+]
+Answer:
+No, there is no segment for players from the United States. To create one, create a segment with the following filter:
+{
+  ""LocationFilter"": {
+    ""CountryCode"": ""US""
+  }
+}
+
+Question:
+{{$input}}
+"
+.Replace("{{$segments}}", segmentsArrayContent);
+
+        ISKFunction playfabJsonFunction = this._kernel.CreateSemanticFunction(FunctionDefinition, functionName: "GetSegmentsSemantic", temperature: 0.1, topP: 0.1);
+        SKContext result = await playfabJsonFunction.InvokeAsync(input);
+
+        return result.Result;
+    }
+
     /// <summary>
     /// Create segment function for given input prompt / question.
     /// </summary>
@@ -74,7 +149,7 @@ public sealed class SegmentSkill
         string input)
     {
         SKContext context = this._kernel.CreateNewContext();
-        string miniJson = await this.GetMinifiedOpenApiJson();
+        string miniJson = GetMinifiedOpenApiJson();
 
         string FunctionDefinition = @"
 You are an AI assistant for generating PlayFab input payload for given api. You have access to the full OpenAPI 3.0.1 specification.
@@ -114,10 +189,10 @@ Question:
 {{$input}}"
 .Replace("{{$apiSpec}}", miniJson, StringComparison.OrdinalIgnoreCase);
 
-        ISKFunction playfabJsonFunction = this._kernel.CreateSemanticFunction(FunctionDefinition, temperature: 0.1, topP: 0.1);
+        ISKFunction playfabJsonFunction = this._kernel.CreateSemanticFunction(FunctionDefinition, functionName: "CreateSegmentSemantic", temperature: 0.1, topP: 0.1);
         SKContext result = await playfabJsonFunction.InvokeAsync(input);
         string payload = result.Result.Substring(result.Result.IndexOf('{'), result.Result.LastIndexOf('}') - result.Result.IndexOf('{') + 1);
-        List<Segment> segments = await this.GetSegments();
+        List<Segment> segments = await this.GetAllSegmentsAsync();
 
         JObject segmentModelObject = JObject.Parse(payload);
         string segmentName = segmentModelObject.SelectToken("$.SegmentModel.Name").ToString();
@@ -138,7 +213,7 @@ Question:
         contextVariables.Set("content_type", "application/json");
         contextVariables.Set("payload", payload);
 
-        IDictionary<string, ISKFunction> playfabApiSkills = await this.GetPlayFabSkill();
+        IDictionary<string, ISKFunction> playfabApiSkills = await this.ImportPlayFabApisToKernel();
         SKContext result2 = await this._kernel.RunAsync(contextVariables, playfabApiSkills["CreateSegment"]);
 
         string formattedContent = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result2.Result), Formatting.Indented);
@@ -148,57 +223,44 @@ Question:
     }
 
     /// <summary>
-    /// Minimizing json by removing spaces and new lines.
+    /// Execute the requested PlayFab OpenAPI function.
     /// </summary>
-    /// <returns>Minimized json content.</returns>
-    /// <exception cref="FileNotFoundException">File not found exception.</exception>
-    private Task<string> GetMinifiedOpenApiJson()
+    /// <param name="apiName">The name of the PlayFab API to execute.</param>
+    /// <param name="contextVariables">The context variables containing parameters for the API request.</param>
+    /// <returns>The <see cref="SKContext"/> result of the operation.</returns>
+    private async Task<SKContext> ExecutePlayFabOpenApiFunctionAsync(string apiName, ContextVariables contextVariables)
     {
-        string playfabApiFile = GetPlayFabAPIFilePath();
+        IDictionary<string, ISKFunction> playfabApiSkills = await this.ImportPlayFabApisToKernel();
 
-        var playfabOpenAPIContent = File.ReadAllText(playfabApiFile);
-        return Task.FromResult(JsonConvert.SerializeObject(JsonConvert.DeserializeObject(playfabOpenAPIContent), Formatting.None));
+        return await this._kernel.RunAsync(contextVariables, playfabApiSkills[apiName]);
     }
 
     /// <summary>
-    /// Get open api json file path.
+    /// Get the details of all PlayFab segments associated with this title.
     /// </summary>
-    /// <returns>Open api json file path.</returns>
-    /// <exception cref="FileNotFoundException">File not found exception.</exception>
-    private static string GetPlayFabAPIFilePath()
+    /// <returns>The list of segments and their details.</returns>
+    private async Task<List<Segment>> GetAllSegmentsAsync()
     {
-        var playfabApiFile = @"../PlayFab/Skills/SegmentSkill/openapi.json";
+        const string payload = "{ \"SegmentIds\": [] }";
 
-        if (!File.Exists(playfabApiFile))
-        {
-            playfabApiFile = @"./Skills/SegmentSkill/openapi.json";
-
-            if (!File.Exists(playfabApiFile))
-            {
-                throw new FileNotFoundException($"Invalid URI. The specified path '{playfabApiFile}' does not exist.");
-            }
-        }
-
-        return playfabApiFile;
-    }
-
-    /// <summary>
-    /// Get current title segments.
-    /// </summary>
-    /// <returns>List of segments.</returns>
-    private async Task<List<Segment>> GetSegments()
-    {
         ContextVariables contextVariables = new();
-        contextVariables.Set("content_type", "application/json");
         contextVariables.Set("server_url", this._titleApiEndpoint);
-        contextVariables.Set("content_type", "application/json");
-        contextVariables.Set("payload", "{ \"SegmentIds\": [] }");
+        contextVariables.Set("content_type", HttpContentType);
+        contextVariables.Set("payload", payload);
 
-        using HttpClient httpClient = new();
-        IDictionary<string, ISKFunction> playfabApiSkills = await this.GetPlayFabSkill();
-        SKContext result = await this._kernel.RunAsync(contextVariables, playfabApiSkills["GetSegments"]);
+        SKContext result = await this.ExecutePlayFabOpenApiFunctionAsync("GetSegments", contextVariables);
 
-        string formattedContent = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(result.Result), Formatting.Indented);
+        return this.ExtractSegmentDetailsFromResult(result.Result);
+    }
+
+    /// <summary>
+    /// Extract the segment detail information from the PlayFab API result executed by the kernel.
+    /// </summary>
+    /// <param name="segmentsResult"></param>
+    /// <returns></returns>
+    private List<Segment> ExtractSegmentDetailsFromResult(string segmentsResult)
+    {
+        string formattedContent = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(segmentsResult), Formatting.Indented);
         JObject segmentsDataObject = JObject.Parse(formattedContent);
         string? content = ((Newtonsoft.Json.Linq.JValue)segmentsDataObject.GetValue("content")).Value.ToString();
         JObject segmentsDataObject2 = JObject.Parse(content);
@@ -227,7 +289,7 @@ Question:
         return segmentName;
     }
 
-    private async Task<IDictionary<string, ISKFunction>> GetPlayFabSkill()
+    private async Task<IDictionary<string, ISKFunction>> ImportPlayFabApisToKernel()
     {
         IDictionary<string, ISKFunction> playfabApiSkills;
 
@@ -239,16 +301,47 @@ Question:
         string skillName = "PlayFabApiSkill";
         if (UseLocalFile)
         {
-            //todo: remove hardcoding of path
             var playfabApiFile = GetPlayFabAPIFilePath();
             playfabApiSkills = await this._kernel.ImportAIPluginAsync(skillName, playfabApiFile, new OpenApiSkillExecutionParameters(HttpClient, authCallback: titleSecretKeyProvider.AuthenticateRequestAsync));
         }
         else
         {
             var playfabApiRawFileUrl = new Uri(this._swaggerEndpoint);
-            playfabApiSkills = await this._kernel.ImportAIPluginAsync("PlayFabApiSkill", playfabApiRawFileUrl, new OpenApiSkillExecutionParameters(HttpClient, authCallback: titleSecretKeyProvider.AuthenticateRequestAsync));
+            playfabApiSkills = await this._kernel.ImportAIPluginAsync(skillName, playfabApiRawFileUrl, new OpenApiSkillExecutionParameters(HttpClient, authCallback: titleSecretKeyProvider.AuthenticateRequestAsync));
         }
 
         return playfabApiSkills;
+    }
+
+    /// <summary>
+    /// Minimizes the JSON content of an OpenAPI specification file by removing newlines and extra whitespaces.
+    /// This is done to reduce the number of tokens taken up by this content when passed into a prompt.
+    /// </summary>
+    /// <returns>The minimized JSON content.</returns>
+    /// <exception cref="FileNotFoundException">File not found exception.</exception>
+    private static string GetMinifiedOpenApiJson()
+    {
+        string playfabApiFile = GetPlayFabAPIFilePath();
+        var playfabOpenAPIContent = File.ReadAllText(playfabApiFile);
+
+        return JsonConvert.SerializeObject(JsonConvert.DeserializeObject(playfabOpenAPIContent), Formatting.None);
+    }
+
+    /// <summary>
+    /// Get open api json file path.
+    /// </summary>
+    /// <returns>Open api json file path.</returns>
+    /// <exception cref="FileNotFoundException">File not found exception.</exception>
+    private static string GetPlayFabAPIFilePath()
+    {
+        // TODO: remove hardcoding of path
+        var playfabApiFile = @"../PlayFab/Skills/SegmentSkill/openapi.json";
+
+        if (!File.Exists(playfabApiFile))
+        {
+            throw new FileNotFoundException($"Invalid URI. The specified path '{playfabApiFile}' does not exist.");
+        }
+
+        return playfabApiFile;
     }
 }

@@ -85,7 +85,7 @@
             }
           },
           "400": {
-            "description": "",
+            "description": "Error response containing an error message for the request.",
             "content": {
               "application/json": {
                 "schema": {
