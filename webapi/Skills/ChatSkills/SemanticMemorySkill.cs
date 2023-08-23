@@ -27,6 +27,8 @@ public class SemanticMemorySkill
 
     private readonly ChatSessionRepository _chatSessionRepository;
 
+    private readonly ISemanticMemoryClient _memoryClient;
+
     /// <summary>
     /// High level logger.
     /// </summary>
@@ -37,10 +39,13 @@ public class SemanticMemorySkill
     /// </summary>
     public SemanticMemorySkill(
         IOptions<PromptsOptions> promptOptions,
-        ChatSessionRepository chatSessionRepository, ILogger logger)
+        ChatSessionRepository chatSessionRepository,
+        ISemanticMemoryClient memoryClient,
+        ILogger logger)
     {
         this._promptOptions = promptOptions.Value;
         this._chatSessionRepository = chatSessionRepository;
+        this._memoryClient = memoryClient;
         this._logger = logger;
     }
 
@@ -52,8 +57,7 @@ public class SemanticMemorySkill
     public async Task<string> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
         [Description("Chat ID to query history from")] string chatId,
-        [Description("Maximum number of tokens")] int tokenLimit,
-        ISemanticMemoryClient memoryClient)
+        [Description("Maximum number of tokens")] int tokenLimit)
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
@@ -106,7 +110,7 @@ public class SemanticMemorySkill
 
                 foreach ((var memory, var citation) in memories)
                 {
-                    var memoryText = $"[{citation.SourceName}] {memory}\n";
+                    var memoryText = $"Source name: {citation.SourceName}\nContent:\n[CONTENT START]\n{memory}\n[CONTENT END]";
                     builderMemory.Append(memoryText);
                 }
             }
@@ -120,15 +124,14 @@ public class SemanticMemorySkill
             return string.Empty;
         }
 
-        return $"Past memories (format: [memory type] <label>: <details>):\n{memoryText}";
+        return $"Relevant memories:\n{memoryText}";
 
         async Task SearchMemoryAsync(string memoryName)
         {
             try
             {
-                // Search if there is already a memory item that has a high similarity score with the new item.
                 var searchResult =
-                    await memoryClient.SearchMemoryAsync(
+                    await this._memoryClient.SearchMemoryAsync(
                         this._promptOptions.MemoryIndexName,
                         query,
                         this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),

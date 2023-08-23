@@ -113,6 +113,7 @@ public class ChatSkill
         this._semanticMemorySkill = new SemanticMemorySkill(
             promptOptions,
             chatSessionRepository,
+            memoryClient,
             logger);
 
         this._externalInformationSkill = new ExternalInformationSkill(
@@ -383,7 +384,7 @@ public class ChatSkill
         var chatMemoriesTokenLimit = (int)(remainingToken * this._promptOptions.MemoriesResponseContextWeight);
         var documentContextTokenLimit = (int)(remainingToken * this._promptOptions.DocumentContextWeight);
 
-        string memories = await this._semanticMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit, this._memoryClient);
+        string memories = await this._semanticMemorySkill.QueryMemoriesAsync(userIntent, chatId, chatMemoriesTokenLimit);
 
         // Fill in the chat history if there is any token budget left
         var chatContextComponents = new List<string>() { memories, planResult };
