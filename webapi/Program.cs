@@ -70,7 +70,7 @@ public sealed class Program
         builder.Services
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
-            .AddCorsPolicy()
+            .AddCorsPolicy(builder.Configuration)
             .AddControllers()
             .AddJsonOptions(options =>
             {

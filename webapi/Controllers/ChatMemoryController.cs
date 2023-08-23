@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
@@ -85,7 +86,6 @@ public class ChatMemoryController : ControllerBase
         // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
-        var indexName = "copilotchat"; // $$$ OPTIONS
         try
         {
             // Search if there is already a memory item that has a high similarity score with the new item.
@@ -94,10 +94,13 @@ public class ChatMemoryController : ControllerBase
             filter.ByTag("memory", sanitizedMemoryName);
             filter.MinRelevance = 0;
 
-            var searchResult = await memoryClient.SearchAsync(
+            var searchResult =
+                await memoryClient.SearchMemoryAsync(
+                    this._promptOptions.MemoryIndexName,
                     "*",
-                    indexName,
-                    filter)
+                    relevanceThreshold: 0,
+                    chatId,
+                    sanitizedMemoryName)
                 .ConfigureAwait(false);
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))

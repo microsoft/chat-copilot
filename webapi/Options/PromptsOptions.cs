@@ -92,6 +92,12 @@ public class PromptsOptions
     [Required, NotEmptyOrWhitespace] public string SystemAudience { get; set; } = string.Empty;
     [Required, NotEmptyOrWhitespace] public string SystemAudienceContinuation { get; set; } = string.Empty;
 
+    // Memory storage
+    [Required, NotEmptyOrWhitespace] public string MemoryIndexName { get; set; } = string.Empty;
+
+    // Document memory
+    [Required, NotEmptyOrWhitespace] public string DocumentMemoryName { get; set; } = string.Empty;
+
     // Memory extraction
     [Required, NotEmptyOrWhitespace] public string SystemCognitive { get; set; } = string.Empty;
     [Required, NotEmptyOrWhitespace] public string MemoryFormat { get; set; } = string.Empty;

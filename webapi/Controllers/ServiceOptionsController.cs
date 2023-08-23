@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticMemory.Configuration;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -20,14 +21,14 @@ public class ServiceOptionsController : ControllerBase
 {
     private readonly ILogger<ServiceOptionsController> _logger;
 
-    private readonly MemoryStoreOptions _memoryStoreOptions;
+    private readonly SemanticMemoryConfig memoryOptions;
 
     public ServiceOptionsController(
         ILogger<ServiceOptionsController> logger,
-        IOptions<MemoryStoreOptions> memoryStoreOptions)
+        IOptions<SemanticMemoryConfig> memoryOptions)
     {
         this._logger = logger;
-        this._memoryStoreOptions = memoryStoreOptions.Value;
+        this.memoryOptions = memoryOptions.Value;
     }
 
     // TODO: [Issue #95] Include all service options in a single response.
@@ -43,8 +44,8 @@ public class ServiceOptionsController : ControllerBase
         {
             MemoryStore = new MemoryStoreOptionResponse()
             {
-                Types = Enum.GetNames(typeof(MemoryStoreOptions.MemoryStoreType)),
-                SelectedType = this._memoryStoreOptions.Type.ToString()
+                Types = Enum.GetNames(typeof(MemoryStoreType)),
+                SelectedType = this.memoryOptions.Retrieval.EmbeddingGeneratorType,
             },
             Version = GetAssemblyFileVersion()
         };

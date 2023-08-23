@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -101,48 +100,27 @@ internal static class SemanticChatMemoryExtractor
         /// </summary>
         async Task CreateMemoryAsync(string memoryName, string memory)
         {
-            var indexName = "copilotchat"; // $$$ OPTIONS
             try
             {
                 // Search if there is already a memory item that has a high similarity score with the new item.
-                var filter = new MemoryFilter();
-                filter.ByTag("chatid", chatId);
-                filter.ByTag("memory", memoryName);
-
-                var searchResult = await memoryClient.SearchAsync(
+                var searchResult =
+                    await memoryClient.SearchMemoryAsync(
+                        options.MemoryIndexName,
                         memory,
-                        indexName,
-                        filter,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                        0.8F, // $$$
+                        chatId,
+                        memoryName,
+                        cancellationToken);
 
                 if (searchResult.Results.Count == 0)
                 {
-                    using var stream = new MemoryStream();
-                    using var writer = new StreamWriter(stream);
-                    await writer.WriteAsync(memory);
-                    await writer.FlushAsync();
-                    stream.Position = 0;
-
-                    var id = Guid.NewGuid().ToString();
-                    //var documentName = Path.ChangeExtension(memoryName, ".txt"); $$$ 
-                    var uploadRequest = new DocumentUploadRequest
-                    {
-                        DocumentId = id,
-                        Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile("memory.txt", stream) }, // $$$ NAME ???
-                        Index = indexName,
-                    };
-
-                    uploadRequest.Tags.Add("chatid", chatId);
-                    uploadRequest.Tags.Add("memory", memoryName);
-
-                    await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
+                    await memoryClient.StoreMemoryAsync(options.MemoryIndexName, chatId, memoryName, memory, cancelToken: cancellationToken);
                 }
             }
             catch (SKException connectorException)
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-                logger.LogError(connectorException, "Unexpected failure searching {0}", indexName);
+                logger.LogError(connectorException, "Unexpected failure searching {0}", options.MemoryIndexName);
             }
         }
     }
