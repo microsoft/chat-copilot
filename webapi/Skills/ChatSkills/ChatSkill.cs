@@ -775,7 +775,7 @@ public class ChatSkill
     private async Task SetSystemDescriptionAsync(string chatId)
     {
         ChatSession? chatSession = null;
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
         {
             throw new ArgumentException("Chat session does not exist.");
         }
