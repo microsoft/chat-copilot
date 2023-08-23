@@ -24,7 +24,6 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine;
-using PlayFab.Skills;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -158,47 +157,6 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Extract the list of participants from the conversation history.
-    /// Note that only those who have spoken will be included.
-    /// </summary>
-    [SKFunction, Description("Extract audience list")]
-    [SKParameter("chatId", "Chat ID to extract history from")]
-    public async Task<string> ExtractAudienceAsync(SKContext context)
-    {
-        var tokenLimit = this._promptOptions.CompletionTokenLimit;
-        var historyTokenBudget =
-            tokenLimit -
-            this._promptOptions.ResponseTokenLimit -
-            TokenUtilities.TokenCount(string.Join("\n", new string[]
-                {
-                    this._promptOptions.SystemAudience,
-                    this._promptOptions.SystemAudienceContinuation,
-                })
-            );
-
-        // Clone the context to avoid modifying the original context variables.
-        var audienceExtractionContext = context.Clone();
-        audienceExtractionContext.Variables.Set("tokenLimit", historyTokenBudget.ToString(new NumberFormatInfo()));
-
-        var completionFunction = this._kernel.CreateSemanticFunction(
-            this._promptOptions.SystemAudienceExtraction,
-            skillName: nameof(ChatSkill),
-            description: "Complete the prompt.");
-
-        var result = await completionFunction.InvokeAsync(
-            audienceExtractionContext,
-            settings: this.CreateIntentCompletionSettings()
-        );
-
-        // Get token usage from ChatCompletion result and add to context
-        TokenUtilities.GetFunctionTokenUsage(result, context, "SystemAudienceExtraction");
-
-        result.ThrowIfFailed();
-
-        return $"List of participants: {result}";
-    }
-
-    /// <summary>
     /// Extract chat history.
     /// </summary>
     /// <param name="context">Contains the 'tokenLimit' controlling the length of the prompt.</param>
@@ -327,7 +285,7 @@ public class ChatSkill
     {
         // Get the audience
         await this.UpdateBotResponseStatusOnClient(chatId, "Extracting audience");
-        var audience = await this.GetAudienceAsync(chatContext);
+        var audience = this.GetAudience(chatContext);
         chatContext.ThrowIfFailed();
 
         // Extract user intent from the conversation history.
@@ -469,26 +427,16 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Helper function that creates the correct context variables to
-    /// extract the audience from a conversation history.
+    /// Helper function that gets the audience from the given context.
     /// </summary>
-    private async Task<string> GetAudienceAsync(SKContext context)
+    private string GetAudience(SKContext context)
     {
-        SKContext audienceContext = context.Clone();
-
-        var audience = await this.ExtractAudienceAsync(audienceContext);
-
-        // Copy token usage into original chat context
-        var functionKey = TokenUtilities.GetFunctionKey(context.Logger, "SystemAudienceExtraction")!;
-        if (audienceContext.Variables.TryGetValue(functionKey, out string? tokenUsage))
+        if (context.Variables.TryGetValue("userName", out string participant))
         {
-            context.Variables.Set(functionKey, tokenUsage);
+            return $"List of participants: {participant}";
         }
 
-        // Propagate the error
-        audienceContext.ThrowIfFailed();
-
-        return audience;
+        throw new Exception("Could not find a participant in the chat context.");
     }
 
     /// <summary>
