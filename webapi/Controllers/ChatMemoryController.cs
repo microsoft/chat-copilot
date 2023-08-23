@@ -67,7 +67,7 @@ public class ChatMemoryController : ControllerBase
         var sanitizedMemoryName = memoryName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
 
         // Make sure the chat session exists.
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
         {
             this._logger.LogWarning("Chat session: {0} does not exist.", sanitizedChatId);
             return this.BadRequest($"Chat session: {sanitizedChatId} does not exist.");

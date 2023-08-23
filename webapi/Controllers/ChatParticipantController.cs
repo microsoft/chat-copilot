@@ -64,7 +64,7 @@ public class ChatParticipantController : ControllerBase
         string userId = authInfo.UserId;
 
         // Make sure the chat session exists.
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
         {
             return this.BadRequest("Chat session does not exist.");
         }
@@ -97,7 +97,7 @@ public class ChatParticipantController : ControllerBase
     public async Task<IActionResult> GetAllParticipantsAsync(Guid chatId)
     {
         // Make sure the chat session exists.
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId.ToString(), v => _ = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId.ToString()))
         {
             return this.NotFound("Chat session does not exist.");
         }
