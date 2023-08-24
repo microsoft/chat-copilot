@@ -22,6 +22,12 @@ public enum PlannerType
     SimpleAction
 }
 
+public enum AnalyticType
+{
+    Python,
+    Kql
+}
+
 internal class Example01_DataQnA
 {
     #region Public Methods
@@ -52,27 +58,37 @@ internal class Example01_DataQnA
             PlannerType.SimpleAction
         };
 
-        // We're using volotile memory, so pre-load it with data
-        IKernel kernel = GetKernel();
-        await InitializeKernelMemoryAsync(kernel.Memory, TestConfiguration.PlayFab.TitleId, cancellationToken);
-        InitializeKernelSkills(kernel);
-
-        foreach (string question in questions)
+        AnalyticType[] analyticTypes = new[]
         {
-            foreach (PlannerType planner in planners)
-            {
-                await Console.Out.WriteLineAsync("--------------------------------------------------------------------------------------------------------------------");
-                await Console.Out.WriteLineAsync("Planner: " + planner);
-                await Console.Out.WriteLineAsync("Question: " + question);
-                await Console.Out.WriteLineAsync("--------------------------------------------------------------------------------------------------------------------");
+            AnalyticType.Python,
+            AnalyticType.Kql,
+        };
 
-                try
+        foreach (AnalyticType analyticType in analyticTypes)
+        {
+            // We're using volotile memory, so pre-load it with data
+            IKernel kernel = GetKernel();
+            await InitializeKernelMemoryAsync(kernel.Memory, TestConfiguration.PlayFab.TitleId, analyticType, cancellationToken);
+            InitializeKernelSkills(kernel, analyticType);
+
+            foreach (string question in questions)
+            {
+
+                foreach (PlannerType planner in planners)
                 {
-                    await RunWithQuestionAsync(kernel, question, PlannerType.SimpleAction, cancellationToken);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
+                    await Console.Out.WriteLineAsync("--------------------------------------------------------------------------------------------------------------------");
+                    await Console.Out.WriteLineAsync($"Planner: {planner} Analytic Type: {analyticType}");
+                    await Console.Out.WriteLineAsync("Question: " + question);
+                    await Console.Out.WriteLineAsync("--------------------------------------------------------------------------------------------------------------------");
+
+                    try
+                    {
+                        await RunWithQuestionAsync(kernel, question, PlannerType.SimpleAction, cancellationToken);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                 }
             }
         }
@@ -189,17 +205,34 @@ internal class Example01_DataQnA
     /// <summary>
     /// Initialize the semantic kernel skills
     /// </summary>
-    /// <param name="kernel"></param>
-    private static void InitializeKernelSkills(IKernel kernel)
+    /// <param name="kernel">The kernel to be initialized</param>
+    /// <param name="analyticType">The analytic type to use</param>
+    private static void InitializeKernelSkills(IKernel kernel, AnalyticType analyticType)
     {
-        kernel.ImportSkill(
-            new GameInsightsSkillWithKql(
-                kernel.Memory,
-                TestConfiguration.AzureOpenAI.Endpoint,
-                TestConfiguration.AzureOpenAI.ApiKey,
-                TestConfiguration.AzureOpenAI.ChatDeploymentName,
-                new AdxClient(TestConfiguration.PlayFab.ReportsAdxClusterEndpoint, TestConfiguration.PlayFab.ReportsAdxDatabaseName)),
-            "GameInsightsSkill");
+        switch (analyticType)
+        {
+            case AnalyticType.Python:
+                kernel.ImportSkill(
+                    new GameInsightsSkill(
+                        kernel.Memory,
+                        TestConfiguration.AzureOpenAI.Endpoint,
+                        TestConfiguration.AzureOpenAI.ApiKey,
+                        TestConfiguration.AzureOpenAI.ChatDeploymentName),
+                    "GameInsightsSkill");
+                break;
+            case AnalyticType.Kql:
+                kernel.ImportSkill(
+                    new GameInsightsSkillWithKql(
+                        kernel.Memory,
+                        TestConfiguration.AzureOpenAI.Endpoint,
+                        TestConfiguration.AzureOpenAI.ApiKey,
+                        TestConfiguration.AzureOpenAI.ChatDeploymentName,
+                        new AdxClient(TestConfiguration.PlayFab.ReportsAdxClusterEndpoint, TestConfiguration.PlayFab.ReportsAdxDatabaseName)),
+                    "GameInsightsSkill");
+                break;
+            default:
+                throw new NotSupportedException($"[{analyticType}] Analytic type is not supported.");
+        }
 
         // Maybe with gpt4 we can add more skills and make them more granular. Planners are instable with Gpt3.5 and complex analytic stesps.
         // kernel.ImportSkill(new GameReportFetcherSkill(kernel.Memory), "GameReportFetcher");
@@ -216,21 +249,33 @@ internal class Example01_DataQnA
     /// </summary>
     /// <param name="memory">The memory that should be initialized</param>
     /// <param name="titleId">The tile ID whose data should be loaded to memory</param>
+    /// <param name="analyticType">The analytic type</param>
     /// <param name="cancellationToken">A cancellation token</param>
     /// <returns></returns>
     private static async Task InitializeKernelMemoryAsync(
-        ISemanticTextMemory memory, string titleId, CancellationToken cancellationToken)
+        ISemanticTextMemory memory, string titleId, AnalyticType analyticType, CancellationToken cancellationToken)
     {
         DateTime today = DateTime.UtcNow.Date;
-        /*var reportDataAccess = new ReportDataAccess(
-            TestConfiguration.PlayFab.ReportsCosmosDBEndpoint,
-            TestConfiguration.PlayFab.ReportsCosmosDBKey,
-            TestConfiguration.PlayFab.ReportsCosmosDBDatabaseName,
-            TestConfiguration.PlayFab.ReportsCosmosDBContainerName);*/
-
-        IReportDataManager reportDataManager = new KqlReportDataManager(
-            TestConfiguration.PlayFab.ReportsAdxClusterEndpoint,
-            TestConfiguration.PlayFab.ReportsAdxDatabaseName);
+        IReportDataManager reportDataManager = null;
+        if (analyticType == AnalyticType.Python)
+        {
+            var reportDataAccess = new ReportDataAccess(
+                TestConfiguration.PlayFab.ReportsCosmosDBEndpoint,
+                TestConfiguration.PlayFab.ReportsCosmosDBKey,
+                TestConfiguration.PlayFab.ReportsCosmosDBDatabaseName,
+                TestConfiguration.PlayFab.ReportsCosmosDBContainerName);
+            reportDataManager = new ReportDataManager(reportDataAccess);
+        }
+        else if (analyticType == AnalyticType.Kql)
+        {
+            reportDataManager = new KqlReportDataManager(
+                TestConfiguration.PlayFab.ReportsAdxClusterEndpoint,
+                TestConfiguration.PlayFab.ReportsAdxDatabaseName);
+        }
+        else
+        {
+            throw new NotSupportedException($"[{analyticType}] Analytic type is not supported.");
+        }
 
         IList<PlayFabReport> playFabReports = await reportDataManager.GetPlayFabReportsAsync(titleId, cancellationToken);
 
