@@ -21,6 +21,7 @@ RUN dotnet publish --use-current-runtime --self-contained false --no-restore -o 
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
+ENV Kestrel__Endpoints__Http__Url=http://0.0.0.0:8080
 WORKDIR /app
 COPY --from=build /app .
 COPY --from=build /root/.dotnet/corefx/cryptography/x509stores/my/* /root/.dotnet/corefx/cryptography/x509stores/my/
