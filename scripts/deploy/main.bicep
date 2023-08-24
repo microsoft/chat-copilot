@@ -699,7 +699,7 @@ resource participantContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabase
       }
       partitionKey: {
         paths: [
-          '/chatId'
+          '/userId'
         ]
         kind: 'Hash'
         version: 2
