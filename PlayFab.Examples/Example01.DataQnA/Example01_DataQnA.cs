@@ -60,7 +60,7 @@ internal class Example01_DataQnA
 
         AnalyticType[] analyticTypes = new[]
         {
-            AnalyticType.Python,
+            // AnalyticType.Python,
             AnalyticType.Kql,
         };
 
