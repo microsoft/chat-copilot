@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
@@ -19,6 +21,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -31,6 +34,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class ChatHistoryController : ControllerBase
 {
     private readonly ILogger<ChatHistoryController> _logger;
+    private readonly IMemoryStore _memoryStore;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
@@ -38,11 +42,13 @@ public class ChatHistoryController : ControllerBase
     private readonly PromptsOptions _promptOptions;
     private readonly IAuthInfo _authInfo;
     private const string ChatEditedClientCall = "ChatEdited";
+    private const string ChatDeletedClientCall = "ChatDeleted";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatHistoryController"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
+    /// <param name="memoryStore">Memory store.</param>
     /// <param name="sessionRepository">The chat session repository.</param>
     /// <param name="messageRepository">The chat message repository.</param>
     /// <param name="participantRepository">The chat participant repository.</param>
@@ -51,6 +57,7 @@ public class ChatHistoryController : ControllerBase
     /// <param name="authInfo">The auth info for the current request.</param>
     public ChatHistoryController(
         ILogger<ChatHistoryController> logger,
+        IMemoryStore memoryStore,
         ChatSessionRepository sessionRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
@@ -59,6 +66,7 @@ public class ChatHistoryController : ControllerBase
         IAuthInfo authInfo)
     {
         this._logger = logger;
+        this._memoryStore = memoryStore;
         this._sessionRepository = sessionRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
@@ -259,5 +267,112 @@ public class ChatHistoryController : ControllerBase
         }
 
         return this.NotFound($"No chat session found for chat id '{chatId}'.");
+    }
+
+    /// <summary>
+    /// Delete a chat session.
+    /// </summary>
+    /// <param name="chatId">The chat id.</param>
+    [HttpDelete]
+    [Route("chatSession/{chatId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
+    public async Task<IActionResult> DeleteChatSessionAsync(
+        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
+        Guid chatId,
+        CancellationToken cancellationToken)
+    {
+        var chatIdString = chatId.ToString();
+        ChatSession? chatToDelete = null;
+        try
+        {
+            // Make sure the chat session exists
+            chatToDelete = await this._sessionRepository.FindByIdAsync(chatIdString);
+        }
+        catch (KeyNotFoundException)
+        {
+            return this.NotFound($"No chat session found for chat id '{chatId}'.");
+        }
+
+        // Delete any resources associated with the chat session.
+        try
+        {
+            await this.DeleteChatResourcesAsync(chatIdString, cancellationToken);
+        }
+        catch (AggregateException)
+        {
+            return this.StatusCode(500, $"Failed to delete resources for chat id '{chatId}'.");
+        }
+
+        // Delete chat session and broadcast update to all participants.
+        await this._sessionRepository.DeleteAsync(chatToDelete);
+        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(ChatDeletedClientCall, chatIdString, this._authInfo.UserId, cancellationToken: cancellationToken);
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    /// Deletes all associated resources (messages, memories, participants) associated with a chat session.
+    /// </summary>
+    /// <param name="chatId">The chat id.</param>
+    private async Task DeleteChatResourcesAsync(string chatId, CancellationToken cancellationToken)
+    {
+        var cleanupTasks = new List<Task>();
+
+        // Create and store the tasks for deleting all users tied to the chat.
+        var participants = await this._participantRepository.FindByChatIdAsync(chatId);
+        foreach (var participant in participants)
+        {
+            cleanupTasks.Add(this._participantRepository.DeleteAsync(participant));
+        }
+
+        // Create and store the tasks for deleting chat messages.
+        var messages = await this._messageRepository.FindByChatIdAsync(chatId);
+        foreach (var message in messages)
+        {
+            cleanupTasks.Add(this._messageRepository.DeleteAsync(message));
+        }
+
+        // Create and store the tasks for deleting memory sources.
+        var sources = await this._sourceRepository.FindByChatIdAsync(chatId, false);
+        foreach (var source in sources)
+        {
+            cleanupTasks.Add(this._sourceRepository.DeleteAsync(source));
+        }
+
+        // Create and store the tasks for deleting semantic memories.
+        // TODO: [Issue #47] Filtering memory collections by name might be fragile.
+        var memoryCollections = (await this._memoryStore.GetCollectionsAsync(cancellationToken).ToListAsync<string>())
+            .Where(collection => collection.StartsWith(chatId, StringComparison.OrdinalIgnoreCase));
+        foreach (var collection in memoryCollections)
+        {
+            cleanupTasks.Add(this._memoryStore.DeleteCollectionAsync(collection, cancellationToken));
+        }
+
+        // Create a task that represents the completion of all cleanupTasks
+        Task aggregationTask = Task.WhenAll(cleanupTasks);
+        try
+        {
+            // Await the completion of all tasks in parallel
+            await aggregationTask;
+        }
+        catch (Exception ex)
+        {
+            // Handle any exceptions that occurred during the tasks
+            if (aggregationTask?.Exception?.InnerExceptions != null && aggregationTask.Exception.InnerExceptions.Count != 0)
+            {
+                foreach (var innerEx in aggregationTask.Exception.InnerExceptions)
+                {
+                    this._logger.LogInformation("Failed to delete an entity of chat {0}: {1}", chatId, innerEx.Message);
+                }
+
+                throw aggregationTask.Exception;
+            }
+
+            throw new AggregateException($"Resource deletion failed for chat {chatId}.", ex);
+        }
     }
 }

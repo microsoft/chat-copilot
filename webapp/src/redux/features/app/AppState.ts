@@ -15,6 +15,7 @@ export interface Alert {
     message: string;
     type: AlertType;
     id?: string;
+    onRetry?: () => void;
 }
 
 interface Feature {
@@ -49,7 +50,6 @@ export enum FeatureKeys {
     AzureCognitiveSearch,
     BotAsDocs,
     MultiUserChat,
-    DeleteChats,
     RLHF, // Reinforcement Learning from Human Feedback
 }
 
@@ -93,12 +93,6 @@ export const Features = {
         description: 'Enable users to vote on model-generated responses. For demonstration purposes only.',
         // TODO: [Issue #42] Send and store feedback in backend
     },
-    [FeatureKeys.DeleteChats]: {
-        enabled: false,
-        label: 'Delete Chat Sessions',
-        // TODO: [sk Issue #1642] Implement delete chats
-        inactive: true,
-    },
 };
 
 export const Settings = [
@@ -121,7 +115,7 @@ export const Settings = [
     {
         title: 'Experimental',
         description: 'The related icons and menu options are hidden until you turn this on',
-        features: [FeatureKeys.BotAsDocs, FeatureKeys.MultiUserChat, FeatureKeys.DeleteChats, FeatureKeys.RLHF],
+        features: [FeatureKeys.BotAsDocs, FeatureKeys.MultiUserChat, FeatureKeys.RLHF],
     },
 ];
 
