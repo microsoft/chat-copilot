@@ -160,7 +160,7 @@ public class SemanticMemorySkill
                 var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
                 if (remainingToken - tokenCount > 0)
                 {
-                    var memoryName = this._promptOptions.DocumentMemoryName; // $$$ TAGS
+                    var memoryName = result.Citation.Tags[ISemanticMemoryClientExtensions.TagMemory].Single()!;
                     if (!memoryMap.TryGetValue(memoryName, out var memories))
                     {
                         memories = new List<(string, Citation)>();

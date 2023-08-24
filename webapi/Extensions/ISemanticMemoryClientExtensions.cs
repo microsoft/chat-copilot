@@ -17,7 +17,7 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class ISemanticMemoryClientExtensions
 {
     private const string TagChatId = "chatid";
-    private const string TagMemory = "memory";
+    public const string TagMemory = "memory";
 
     /// <summary>
     /// Inject <see cref="ISemanticMemoryClient"/>.
