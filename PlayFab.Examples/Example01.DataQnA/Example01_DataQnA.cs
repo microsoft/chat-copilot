@@ -7,6 +7,7 @@ using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Reliability;
+using PlayFab.Adx;
 using PlayFab.Examples.Common.Configuration;
 using PlayFab.Examples.Common.Logging;
 using PlayFab.Reports;
@@ -192,11 +193,12 @@ internal class Example01_DataQnA
     private static void InitializeKernelSkills(IKernel kernel)
     {
         kernel.ImportSkill(
-            new GameInsightsSkill(
+            new GameInsightsSkillWithKql(
                 kernel.Memory,
                 TestConfiguration.AzureOpenAI.Endpoint,
                 TestConfiguration.AzureOpenAI.ApiKey,
-                TestConfiguration.AzureOpenAI.ChatDeploymentName),
+                TestConfiguration.AzureOpenAI.ChatDeploymentName,
+                new AdxClient(TestConfiguration.PlayFab.ReportsAdxClusterEndpoint, TestConfiguration.PlayFab.ReportsAdxDatabaseName)),
             "GameInsightsSkill");
 
         // Maybe with gpt4 we can add more skills and make them more granular. Planners are instable with Gpt3.5 and complex analytic stesps.
@@ -220,13 +222,15 @@ internal class Example01_DataQnA
         ISemanticTextMemory memory, string titleId, CancellationToken cancellationToken)
     {
         DateTime today = DateTime.UtcNow.Date;
-        var reportDataAccess = new ReportDataAccess(
+        /*var reportDataAccess = new ReportDataAccess(
             TestConfiguration.PlayFab.ReportsCosmosDBEndpoint,
             TestConfiguration.PlayFab.ReportsCosmosDBKey,
             TestConfiguration.PlayFab.ReportsCosmosDBDatabaseName,
-            TestConfiguration.PlayFab.ReportsCosmosDBContainerName);
+            TestConfiguration.PlayFab.ReportsCosmosDBContainerName);*/
 
-        ReportDataManager reportDataManager = new(reportDataAccess);
+        IReportDataManager reportDataManager = new KqlReportDataManager(
+            TestConfiguration.PlayFab.ReportsAdxClusterEndpoint,
+            TestConfiguration.PlayFab.ReportsAdxDatabaseName);
 
         IList<PlayFabReport> playFabReports = await reportDataManager.GetPlayFabReportsAsync(titleId, cancellationToken);
 

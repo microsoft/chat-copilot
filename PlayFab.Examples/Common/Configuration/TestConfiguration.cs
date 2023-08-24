@@ -67,6 +67,8 @@ public sealed class TestConfiguration
         public string ReportsCosmosDBKey { get; set; }
         public string ReportsCosmosDBDatabaseName { get; set; }
         public string ReportsCosmosDBContainerName { get; set; }
+        public string ReportsAdxClusterEndpoint { get; set; }
+        public string ReportsAdxDatabaseName { get; set; }
     }
 
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor.

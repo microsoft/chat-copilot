@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.3" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Data" Version="11.3.3" />
     <PackageReference Include="Polly" Version="8.0.0-alpha.8" />
     <PackageReference Include="Polly.Caching.Memory" Version="3.0.2" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />

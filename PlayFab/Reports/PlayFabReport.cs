@@ -10,9 +10,9 @@ public class PlayFabReport
     /// </summary>
     public required string Description { get; set; }
     public required IList<PlayFabReportColumn> Columns { get; set; }
-
-    public required string CsvData { get; set; }
     public required string ReportName { get; set; }
+    public string? CsvData { get; set; }
+    public string? KqlSafeData { get; set; }
 
     public string GetCsvHeader()
     {
