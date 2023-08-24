@@ -3,8 +3,8 @@
 import { makeStyles } from '@fluentui/react-components';
 import React from 'react';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
-import { convertToAnchorTags } from '../../utils/TextUtils';
 import * as utils from './../../utils/TextUtils';
+import { convertToAnchorTags } from './../../utils/TextUtils';
 
 const useClasses = makeStyles({
     content: {
@@ -24,6 +24,15 @@ export const ChatHistoryTextContent: React.FC<ChatHistoryTextContentProps> = ({ 
     });
     content = utils.formatChatTextContent(content);
     content = content.replace(/\n/g, '<br />').replace(/ {2}/g, '&nbsp;&nbsp;');
+
+    if (message.citations && message.citations.length > 0) {
+        content += '<br /><br />';
+        message.citations.forEach((citation, index) => {
+            content += `<span class='citation'>Source ${index + 1}: <a href='${citation.link}'>${
+                citation.sourceName
+            }</a></span><br />`;
+        });
+    }
 
     return <div className={classes.content} dangerouslySetInnerHTML={{ __html: convertToAnchorTags(content) }} />;
 };

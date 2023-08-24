@@ -12,16 +12,14 @@ using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
 /// <summary>
-/// This skill provides the functions to query semantic memory.
+/// This class provides the functions to query semantic memory.
 /// </summary>
-public class SemanticMemorySkill
+public class SemanticMemoryRetriever
 {
     private readonly PromptsOptions _promptOptions;
 
@@ -29,15 +27,17 @@ public class SemanticMemorySkill
 
     private readonly ISemanticMemoryClient _memoryClient;
 
+    private readonly List<string> _memoryNames;
+
     /// <summary>
     /// High level logger.
     /// </summary>
     private readonly ILogger _logger;
 
     /// <summary>
-    /// Create a new instance of SemanticChatMemorySkill.
+    /// Create a new instance of SemanticMemoryRetriever.
     /// </summary>
-    public SemanticMemorySkill(
+    public SemanticMemoryRetriever(
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository chatSessionRepository,
         ISemanticMemoryClient memoryClient,
@@ -47,14 +47,19 @@ public class SemanticMemorySkill
         this._chatSessionRepository = chatSessionRepository;
         this._memoryClient = memoryClient;
         this._logger = logger;
+
+        this._memoryNames = new List<string> {
+            this._promptOptions.DocumentMemoryName,
+            this._promptOptions.LongTermMemoryName,
+            this._promptOptions.WorkingMemoryName
+        };
     }
 
     /// <summary>
     /// Query relevant memories based on the query.
     /// </summary>
     /// <returns>A string containing the relevant memories.</returns>
-    [SKFunction, Description("Query chat memories")]
-    public async Task<string> QueryMemoriesAsync(
+    public async Task<(string, IDictionary<string, Citation>)> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
         [Description("Chat ID to query history from")] string chatId,
         [Description("Maximum number of tokens")] int tokenLimit)
@@ -69,38 +74,41 @@ public class SemanticMemorySkill
 
         // Search for relevant memories.
         List<(Citation Citation, Citation.Partition Memory)> relevantMemories = new();
-        foreach (var memoryName in this._promptOptions.MemoryMap.Keys.Append(this._promptOptions.DocumentMemoryName))
+        foreach (var memoryName in this._memoryNames)
         {
             await SearchMemoryAsync(memoryName).ConfigureAwait(false);
         }
 
         var builderMemory = new StringBuilder();
+        IDictionary<string, Citation> citationMap = new Dictionary<string, Citation>(StringComparer.OrdinalIgnoreCase);
 
         if (relevantMemories.Count > 0)
         {
-            var memoryMap = ProcessMemories();
-
-            foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
-            {
-                FormatMemories(memoryName);
-            }
-
+            (var memoryMap, citationMap) = ProcessMemories();
+            FormatMemories();
             FormatSnippets();
 
-            void FormatMemories(string memoryName)
+            /// <summary>
+            /// Format long term and working memories.
+            /// </summary>
+            void FormatMemories()
             {
-                if (!memoryMap.TryGetValue(memoryName, out var memories))
+                foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
                 {
-                    return;
-                }
-
-                foreach (var memory in memories)
-                {
-                    var memoryText = $"[{memoryName}] {memory}\n";
-                    builderMemory.Append(memoryText);
+                    if (memoryMap.TryGetValue(memoryName, out var memories))
+                    {
+                        foreach ((var memoryContent, _) in memories)
+                        {
+                            var memoryText = $"[{memoryName}] {memoryContent}\n";
+                            builderMemory.Append(memoryText);
+                        }
+                    }
                 }
             }
 
+            /// <summary>
+            /// Format document snippets.
+            /// </summary>
             void FormatSnippets()
             {
                 if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories))
@@ -108,68 +116,71 @@ public class SemanticMemorySkill
                     return;
                 }
 
-                foreach ((var memory, var citation) in memories)
+                foreach ((var memoryContent, var citation) in memories)
                 {
-                    var memoryText = $"Source name: {citation.SourceName}\nContent:\n[CONTENT START]\n{memory}\n[CONTENT END]";
+                    var memoryText = $"Source name: {citation.SourceName}\nContent:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
                     builderMemory.Append(memoryText);
                 }
             }
         }
 
-        var memoryText = builderMemory.ToString();
+        return (builderMemory.Length == 0 ? string.Empty : $"Relevant memories:\n{builderMemory}", citationMap);
 
-        if (string.IsNullOrWhiteSpace(memoryText))
-        {
-            // No relevant memories found
-            return string.Empty;
-        }
-
-        return $"Relevant memories:\n{memoryText}";
-
+        /// <summary>
+        /// Search the memory for relevant memories by memory name.
+        /// </summary>
         async Task SearchMemoryAsync(string memoryName)
         {
-            try
-            {
-                var searchResult =
-                    await this._memoryClient.SearchMemoryAsync(
-                        this._promptOptions.MemoryIndexName,
-                        query,
-                        this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
-                        chatId,
-                        memoryName)
-                    .ConfigureAwait(false);
+            var searchResult =
+                await this._memoryClient.SearchMemoryAsync(
+                    this._promptOptions.MemoryIndexName,
+                    query,
+                    this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
+                    chatId,
+                    memoryName)
+                .ConfigureAwait(false);
 
-                foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))
-                {
-                    relevantMemories.Add(result);
-                }
-            }
-            catch (SKException connectorException)
+            foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))
             {
-                // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-                this._logger.LogError(connectorException, "Cannot search collection {0}", this._promptOptions.MemoryIndexName);
+                relevantMemories.Add(result);
             }
         }
 
-        IDictionary<string, List<(string, Citation)>> ProcessMemories()
+        /// <summary>
+        /// Process the relevant memories and return a map of memories with citations for each memory name.
+        /// </summary>
+        /// <returns>A map of memories for each memory name and a map of citations for documents.</returns>
+        (IDictionary<string, List<(string, Citation)>>, IDictionary<string, Citation>) ProcessMemories()
         {
             var memoryMap = new Dictionary<string, List<(string, Citation)>>(StringComparer.OrdinalIgnoreCase);
+            var citationMap = new Dictionary<string, Citation>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var result in relevantMemories.OrderByDescending(m => m.Memory.Relevance))
             {
                 var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
                 if (remainingToken - tokenCount > 0)
                 {
-                    var memoryName = result.Citation.Tags[ISemanticMemoryClientExtensions.TagMemory].Single()!;
-                    if (!memoryMap.TryGetValue(memoryName, out var memories))
+                    if (result.Citation.Tags.TryGetValue(ISemanticMemoryClientExtensions.TagMemory, out var tag) && tag.Count > 0)
                     {
-                        memories = new List<(string, Citation)>();
-                        memoryMap.Add(memoryName, memories);
+                        var memoryName = tag.Single()!;
+                        if (this._memoryNames.Contains(memoryName))
+                        {
+                            if (!memoryMap.TryGetValue(memoryName, out var memories))
+                            {
+                                memories = new List<(string, Citation)>();
+                                memoryMap.Add(memoryName, memories);
+                            }
+
+                            memories.Add((result.Memory.Text, result.Citation));
+                            remainingToken -= tokenCount;
+                        }
+
+                        // Only documents will have citations.
+                        if (memoryName == this._promptOptions.DocumentMemoryName && !citationMap.ContainsKey(result.Citation.Link))
+                        {
+                            citationMap.Add(result.Citation.Link, result.Citation);
+                        }
                     }
-
-                    memories.Add((result.Memory.Text, result.Citation));
-
-                    remainingToken -= tokenCount;
                 }
                 else
                 {
@@ -177,7 +188,7 @@ public class SemanticMemorySkill
                 }
             }
 
-            return memoryMap;
+            return (memoryMap, citationMap);
         }
     }
 

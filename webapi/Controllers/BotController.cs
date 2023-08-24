@@ -126,6 +126,7 @@ public class BotController : ControllerBase
                 chatId,
                 message.Content,
                 message.Prompt,
+                message.Citations,
                 ChatMessage.AuthorRoles.Participant)
             {
                 Timestamp = message.Timestamp
