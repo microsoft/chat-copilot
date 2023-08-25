@@ -1,0 +1,79 @@
+name: copilot-build-images
+
+on:
+  workflow_call:
+    inputs:
+      REACT_APP_BACKEND_URI:
+        required: true
+        type: string
+      REACT_APP_AAD_AUTHORITY:
+        required: true
+        type: string
+      REACT_APP_AAD_CLIENT_ID:
+        required: true
+        type: string
+      REACT_APP_AAD_API_SCOPE:
+        required: false
+        type: string
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push-image:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - file: ./docker/webapi/Dockerfile
+            image: ${{ github.repository }}-webapi
+            build-args: |
+
+          - file: ./docker/webapp/Dockerfile
+            image: ${{ github.repository }}-webapp
+            build-args: |
+
+          - file: ./docker/webapp/Dockerfile.nginx
+            image: ${{ github.repository }}-webapp-nginx
+            build-args: |
+              REACT_APP_BACKEND_URI=${{ inputs.REACT_APP_BACKEND_URI }}
+              REACT_APP_AAD_AUTHORITY=${{ inputs.REACT_APP_AAD_AUTHORITY }}
+              REACT_APP_AAD_CLIENT_ID=${{ inputs.REACT_APP_AAD_CLIENT_ID }}
+              REACT_APP_AAD_API_SCOPE=${{ inputs.REACT_APP_AAD_API_SCOPE }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Login container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.image }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build-args }}
