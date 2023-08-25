@@ -17,7 +17,7 @@ var app = WebApplication.CreateBuilder().AddMemoryServices().Build();
 // ********************************************************
 
 app.Logger.LogInformation(
-    "Starting Copilot Chat Memory pipeline service, .NET Env: {0}, Log Level: {1}",
+    "Starting Chat Copilot Memory pipeline service, .NET Env: {0}, Log Level: {1}",
     Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
     app.Logger.GetLogLevelName());
 
