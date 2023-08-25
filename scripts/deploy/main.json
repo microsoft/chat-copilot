@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "8903276624787704814"
+      "templateHash": "17280117757960515236"
     }
   },
   "parameters": {
@@ -109,7 +109,7 @@
     },
     "azureAdInstance": {
       "type": "string",
-      "defaultValue": "https://login.microsoftonline.com",
+      "defaultValue": "[environment().authentication.loginEndpoint]",
       "metadata": {
         "description": "Azure AD cloud instance for authenticating users"
       }
@@ -464,6 +464,10 @@
             "value": "AzureBlobs"
           },
           {
+            "name": "SemanticMemory:TextGeneratorType",
+            "value": "[parameters('aiService')]"
+          },
+          {
             "name": "SemanticMemory:OrchestrationType:OrchestrationType",
             "value": "Distributed"
           },
@@ -485,10 +489,6 @@
           },
           {
             "name": "SemanticMemory:Retrieval:EmbeddingGeneratorType",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "SemanticMemory:Retrieval:TextGeneratorType",
             "value": "[parameters('aiService')]"
           },
           {

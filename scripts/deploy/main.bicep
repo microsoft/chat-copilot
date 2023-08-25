@@ -337,6 +337,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'AzureBlobs'
       }
       {
+        name: 'SemanticMemory:TextGeneratorType'
+        value: aiService
+      }
+      {
         name: 'SemanticMemory:OrchestrationType:OrchestrationType'
         value: 'Distributed'
       }
@@ -358,10 +362,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'SemanticMemory:Retrieval:EmbeddingGeneratorType'
-        value: aiService
-      }
-      {
-        name: 'SemanticMemory:Retrieval:TextGeneratorType'
         value: aiService
       }
       {
