@@ -59,7 +59,7 @@ public class SemanticMemoryRetriever
     /// Query relevant memories based on the query.
     /// </summary>
     /// <returns>A string containing the relevant memories.</returns>
-    public async Task<(string, IDictionary<string, Citation>)> QueryMemoriesAsync(
+    public async Task<(string, IDictionary<string, CitationSource>)> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
         [Description("Chat ID to query history from")] string chatId,
         [Description("Maximum number of tokens")] int tokenLimit)
@@ -80,7 +80,7 @@ public class SemanticMemoryRetriever
         }
 
         var builderMemory = new StringBuilder();
-        IDictionary<string, Citation> citationMap = new Dictionary<string, Citation>(StringComparer.OrdinalIgnoreCase);
+        IDictionary<string, CitationSource> citationMap = new Dictionary<string, CitationSource>(StringComparer.OrdinalIgnoreCase);
 
         if (relevantMemories.Count > 0)
         {
@@ -150,10 +150,10 @@ public class SemanticMemoryRetriever
         /// Process the relevant memories and return a map of memories with citations for each memory name.
         /// </summary>
         /// <returns>A map of memories for each memory name and a map of citations for documents.</returns>
-        (IDictionary<string, List<(string, Citation)>>, IDictionary<string, Citation>) ProcessMemories()
+        (IDictionary<string, List<(string, CitationSource)>>, IDictionary<string, CitationSource>) ProcessMemories()
         {
-            var memoryMap = new Dictionary<string, List<(string, Citation)>>(StringComparer.OrdinalIgnoreCase);
-            var citationMap = new Dictionary<string, Citation>(StringComparer.OrdinalIgnoreCase);
+            var memoryMap = new Dictionary<string, List<(string, CitationSource)>>(StringComparer.OrdinalIgnoreCase);
+            var citationMap = new Dictionary<string, CitationSource>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var result in relevantMemories.OrderByDescending(m => m.Memory.Relevance))
             {
@@ -163,22 +163,24 @@ public class SemanticMemoryRetriever
                     if (result.Citation.Tags.TryGetValue(ISemanticMemoryClientExtensions.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
+                        var citationSource = CitationSource.FromSemanticMemoryCitation(result.Citation);
+
                         if (this._memoryNames.Contains(memoryName))
                         {
                             if (!memoryMap.TryGetValue(memoryName, out var memories))
                             {
-                                memories = new List<(string, Citation)>();
+                                memories = new List<(string, CitationSource)>();
                                 memoryMap.Add(memoryName, memories);
                             }
 
-                            memories.Add((result.Memory.Text, result.Citation));
+                            memories.Add((result.Memory.Text, citationSource));
                             remainingToken -= tokenCount;
                         }
 
                         // Only documents will have citations.
                         if (memoryName == this._promptOptions.DocumentMemoryName && !citationMap.ContainsKey(result.Citation.Link))
                         {
-                            citationMap.Add(result.Citation.Link, result.Citation);
+                            citationMap.Add(result.Citation.Link, citationSource);
                         }
                     }
                 }

@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Text.Json;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Storage;
-using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Models.Storage;
 
@@ -103,7 +102,7 @@ public class ChatMessage : IStorageEntity
     /// <summary>
     /// Citations of the message.
     /// </summary>
-    public IEnumerable<Citation>? Citations { get; set; }
+    public IEnumerable<CitationSource>? Citations { get; set; }
 
     /// <summary>
     /// Type of the message.
@@ -132,7 +131,7 @@ public class ChatMessage : IStorageEntity
         string chatId,
         string content,
         string? prompt = null,
-        IEnumerable<Citation>? citations = null,
+        IEnumerable<CitationSource>? citations = null,
         AuthorRoles authorRole = AuthorRoles.User,
         ChatMessageType type = ChatMessageType.Message,
         IDictionary<string, int>? tokenUsage = null)
@@ -157,7 +156,7 @@ public class ChatMessage : IStorageEntity
     /// <param name="content">The message</param>
     /// <param name="prompt">The prompt used to generate the message</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
-    public static ChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<Citation>? citations, IDictionary<string, int>? tokenUsage = null)
+    public static ChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
     {
         return new ChatMessage("bot", "bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
     }
