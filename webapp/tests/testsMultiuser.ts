@@ -42,6 +42,7 @@ export async function shareAndJoinChatSessionTest(page) {
     await page.getByTestId('userSettingsButton').click();
     await page.getByTestId('settingsMenuItem').click();
     await page.getByTestId('advancedSettingsFoldup').click();
+    await page.getByTestId('Simplified Chat Experience').click();
     await page.getByTestId('Live Chat Session Sharing').click();
     await page.getByTestId('userSettingsCloseButton').click();
 

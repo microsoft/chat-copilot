@@ -48,6 +48,13 @@ export async function loginHelperAnotherUser(page, useraccount, password) {
 
     // After login, the page should redirect back to the app.
     await expect(page).toHaveTitle('Copilot Chat');
+
+    // Get the permission popup if they open
+    page.on('popup', async (popup) => {
+        await popup.waitForLoadState();
+        await popup.getByRole('button', { name: 'Next' }).click();
+        await popup.getByRole('button', { name: 'Accept' }).click();
+    });
 }
 export async function createNewChat(page) {
     await page.getByTestId('createNewConversationButton').click();
