@@ -101,6 +101,7 @@ public class ChatHistoryController : ControllerBase
             newChat.Id,
             this._promptOptions.InitialBotMessage,
             string.Empty, // The initial bot message doesn't need a prompt.
+            null,
             TokenUtilities.EmptyTokenUsages());
         await this._messageRepository.CreateAsync(chatMessage);
 

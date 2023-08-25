@@ -100,6 +100,11 @@ public class ChatMessage : IStorageEntity
     public string Prompt { get; set; } = string.Empty;
 
     /// <summary>
+    /// Citations of the message.
+    /// </summary>
+    public IEnumerable<CitationSource>? Citations { get; set; }
+
+    /// <summary>
     /// Type of the message.
     /// </summary>
     public ChatMessageType Type { get; set; }
@@ -107,7 +112,7 @@ public class ChatMessage : IStorageEntity
     /// <summary>
     /// Counts of total token usage used to generate bot response.
     /// </summary>
-    public Dictionary<string, int>? TokenUsage { get; set; }
+    public IDictionary<string, int>? TokenUsage { get; set; }
 
     /// <summary>
     /// Create a new chat message. Timestamp is automatically generated.
@@ -126,9 +131,10 @@ public class ChatMessage : IStorageEntity
         string chatId,
         string content,
         string? prompt = null,
+        IEnumerable<CitationSource>? citations = null,
         AuthorRoles authorRole = AuthorRoles.User,
         ChatMessageType type = ChatMessageType.Message,
-        Dictionary<string, int>? tokenUsage = null)
+        IDictionary<string, int>? tokenUsage = null)
     {
         this.Timestamp = DateTimeOffset.Now;
         this.UserId = userId;
@@ -137,6 +143,7 @@ public class ChatMessage : IStorageEntity
         this.Content = content;
         this.Id = Guid.NewGuid().ToString();
         this.Prompt = prompt ?? string.Empty;
+        this.Citations = citations;
         this.AuthorRole = authorRole;
         this.Type = type;
         this.TokenUsage = tokenUsage;
@@ -149,9 +156,9 @@ public class ChatMessage : IStorageEntity
     /// <param name="content">The message</param>
     /// <param name="prompt">The prompt used to generate the message</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
-    public static ChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, Dictionary<string, int>? tokenUsage = null)
+    public static ChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
     {
-        return new ChatMessage("bot", "bot", chatId, content, prompt, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
+        return new ChatMessage("bot", "bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
     }
 
     /// <summary>
@@ -163,7 +170,7 @@ public class ChatMessage : IStorageEntity
     /// <param name="documentMessageContent">The document message content</param>
     public static ChatMessage CreateDocumentMessage(string userId, string userName, string chatId, DocumentMessageContent documentMessageContent)
     {
-        return new ChatMessage(userId, userName, chatId, documentMessageContent.ToString(), string.Empty, AuthorRoles.User, ChatMessageType.Document);
+        return new ChatMessage(userId, userName, chatId, documentMessageContent.ToString(), string.Empty, null, AuthorRoles.User, ChatMessageType.Document);
     }
 
     /// <summary>

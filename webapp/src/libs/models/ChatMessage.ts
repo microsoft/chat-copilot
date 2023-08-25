@@ -41,6 +41,14 @@ export enum UserFeedback {
     Negative,
 }
 
+/**
+ * Citation for the response
+ */
+export interface Citation {
+    link: string;
+    sourceName: string;
+}
+
 export interface IChatMessage {
     chatId: string;
     type: ChatMessageType;
@@ -50,6 +58,7 @@ export interface IChatMessage {
     content: string;
     id?: string;
     prompt?: string;
+    citations?: Citation[];
     authorRole: AuthorRoles;
     debug?: string;
     planState?: PlanState;
