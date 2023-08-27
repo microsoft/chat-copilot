@@ -341,11 +341,11 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: aiService
       }
       {
-        name: 'SemanticMemory:OrchestrationType:OrchestrationType'
+        name: 'SemanticMemory:DataIngestion:OrchestrationType'
         value: 'Distributed'
       }
       {
-        name: 'SemanticMemory:OrchestrationType:DistributedOrchestration:QueueType'
+        name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
         value: 'AzureQueue'
       }
       {

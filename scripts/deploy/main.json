@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "17280117757960515236"
+      "templateHash": "6618711302896644339"
     }
   },
   "parameters": {
@@ -468,11 +468,11 @@
             "value": "[parameters('aiService')]"
           },
           {
-            "name": "SemanticMemory:OrchestrationType:OrchestrationType",
+            "name": "SemanticMemory:DataIngestion:OrchestrationType",
             "value": "Distributed"
           },
           {
-            "name": "SemanticMemory:OrchestrationType:DistributedOrchestration:QueueType",
+            "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
             "value": "AzureQueue"
           },
           {
