@@ -55,20 +55,22 @@ public sealed class Program
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();
+        builder.Services.AddHttpContextAccessor();
 
-        // Add AppInsights telemetry
-        builder.Services
-            .AddHttpContextAccessor()
-            .AddApplicationInsightsTelemetry(options => { options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]; })
-            .AddSingleton<ITelemetryInitializer, AppInsightsUserTelemetryInitializerService>()
-            .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
+        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        {
+            // Add AppInsights telemetry
+            builder.Services.AddApplicationInsightsTelemetry(options => { options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]; })
+                .AddSingleton<ITelemetryInitializer, AppInsightsUserTelemetryInitializerService>()
+                .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
 
-        // Add AppInsights logging of traces
-        builder.Logging.AddApplicationInsights(configureTelemetryConfiguration: (config) =>
-            config.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"],
-            configureApplicationInsightsLoggerOptions: (options) => { });
+            // Add AppInsights logging of traces
+            builder.Logging.AddApplicationInsights(configureTelemetryConfiguration: (config) =>
+                config.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"],
+                configureApplicationInsightsLoggerOptions: (options) => { });
 
-        TelemetryDebugWriter.IsTracingDisabled = Debugger.IsAttached;
+            TelemetryDebugWriter.IsTracingDisabled = Debugger.IsAttached;
+        }
 
         // Add in the rest of the services.
         builder.Services
