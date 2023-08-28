@@ -76,6 +76,12 @@ public class MemorySource : IStorageEntity
     public long Tokens { get; set; } = 0;
 
     /// <summary>
+    /// The partition key for the source.
+    /// </summary>
+    [JsonIgnore]
+    public string Partition => this.ChatId;
+
+    /// <summary>
     /// Empty constructor for serialization.
     /// </summary>
     public MemorySource()

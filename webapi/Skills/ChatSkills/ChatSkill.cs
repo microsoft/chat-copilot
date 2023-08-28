@@ -564,7 +564,7 @@ public class ChatSkill
     private async Task<ChatMessage> SaveNewMessageAsync(string message, string userId, string userName, string chatId, string type)
     {
         // Make sure the chat exists.
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
         {
             throw new ArgumentException("Chat session does not exist.");
         }
@@ -597,7 +597,7 @@ public class ChatSkill
     private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId, Dictionary<string, int>? tokenUsage)
     {
         // Make sure the chat exists.
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => _ = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
         {
             throw new ArgumentException("Chat session does not exist.");
         }
@@ -775,7 +775,7 @@ public class ChatSkill
     private async Task SetSystemDescriptionAsync(string chatId)
     {
         ChatSession? chatSession = null;
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
         {
             throw new ArgumentException("Chat session does not exist.");
         }

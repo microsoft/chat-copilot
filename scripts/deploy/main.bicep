@@ -637,7 +637,7 @@ resource messageContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/co
       }
       partitionKey: {
         paths: [
-          '/id'
+          '/chatId'
         ]
         kind: 'Hash'
         version: 2
@@ -699,7 +699,7 @@ resource participantContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabase
       }
       partitionKey: {
         paths: [
-          '/id'
+          '/userId'
         ]
         kind: 'Hash'
         version: 2
@@ -730,7 +730,7 @@ resource memorySourcesContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDataba
       }
       partitionKey: {
         paths: [
-          '/id'
+          '/chatId'
         ]
         kind: 'Hash'
         version: 2
