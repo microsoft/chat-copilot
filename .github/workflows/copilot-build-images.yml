@@ -69,7 +69,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ${{ matrix.file }}
