@@ -11,7 +11,7 @@ namespace ChatCopilotIntegrationTests;
 public class HealthzTests : ChatCopilotIntegrationTest
 {
     [Fact]
-    public async void HealthzSuccessfulyReturns()
+    public async void HealthzSuccessfullyReturns()
     {
         HttpResponseMessage response = await this._httpClient.GetAsync("healthz");
 
