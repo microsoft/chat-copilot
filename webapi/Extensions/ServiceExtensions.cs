@@ -18,7 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using Microsoft.SemanticMemory.Configuration;
+using Microsoft.SemanticMemory;
 using Tesseract;
 
 namespace CopilotChat.WebApi.Extensions;
