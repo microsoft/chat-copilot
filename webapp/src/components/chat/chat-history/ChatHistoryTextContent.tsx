@@ -2,8 +2,9 @@
 
 import { makeStyles } from '@fluentui/react-components';
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
-import { convertToAnchorTags } from '../../utils/TextUtils';
 import * as utils from './../../utils/TextUtils';
 
 const useClasses = makeStyles({
@@ -23,7 +24,9 @@ export const ChatHistoryTextContent: React.FC<ChatHistoryTextContentProps> = ({ 
         return `&#${i.charCodeAt(0)};`;
     });
     content = utils.formatChatTextContent(content);
-    content = content.replace(/\n/g, '<br />').replace(/ {2}/g, '&nbsp;&nbsp;');
-
-    return <div className={classes.content} dangerouslySetInnerHTML={{ __html: convertToAnchorTags(content) }} />;
+    return (
+        <div className={classes.content}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        </div>
+    );
 };
