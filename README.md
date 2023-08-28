@@ -181,7 +181,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
 
    3. Click _Add a permission_
 
-   4. Select the tab _My APIs_
+   4. Select the tab _APIs my organization uses_
 
    5. Choose the app registration representing the web api backend
 
