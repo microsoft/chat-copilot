@@ -19,11 +19,8 @@ interface ChatHistoryTextContentProps {
 
 export const ChatHistoryTextContent: React.FC<ChatHistoryTextContentProps> = ({ message }) => {
     const classes = useClasses();
+    const content = utils.formatChatTextContent(message.content);
 
-    let content = message.content.trim().replace(/[\u00A0-\u9999<>&]/g, function (i: string) {
-        return `&#${i.charCodeAt(0)};`;
-    });
-    content = utils.formatChatTextContent(content);
     return (
         <div className={classes.content}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
