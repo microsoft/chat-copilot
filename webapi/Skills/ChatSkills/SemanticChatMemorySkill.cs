@@ -56,7 +56,7 @@ public class SemanticChatMemorySkill
         ISemanticTextMemory textMemory)
     {
         ChatSession? chatSession = null;
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
         {
             throw new ArgumentException($"Chat session {chatId} not found.");
         }

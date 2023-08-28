@@ -42,22 +42,21 @@ public class Repository<T> : IRepository<T> where T : IStorageEntity
     }
 
     /// <inheritdoc/>
-    public Task<T> FindByIdAsync(string id)
+    public Task<T> FindByIdAsync(string id, string? partition = null)
     {
-        return this.StorageContext.ReadAsync(id);
+        return this.StorageContext.ReadAsync(id, partition ?? id);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> TryFindByIdAsync(string id, Action<T?> entity)
+    public async Task<bool> TryFindByIdAsync(string id, string? partition = null, Action<T?>? callback = null)
     {
         try
         {
-            entity(await this.FindByIdAsync(id));
+            callback?.Invoke(await this.FindByIdAsync(id, partition ?? id));
             return true;
         }
         catch (Exception ex) when (ex is ArgumentOutOfRangeException || ex is KeyNotFoundException)
         {
-            entity(default);
             return false;
         }
     }
