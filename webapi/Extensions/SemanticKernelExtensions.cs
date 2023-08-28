@@ -24,8 +24,6 @@ using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticMemory;
-using Microsoft.SemanticMemory.Configuration;
-using Microsoft.SemanticMemory.MemoryStorage.AzureCognitiveSearch;
 using Microsoft.SemanticMemory.MemoryStorage.Qdrant;
 
 namespace CopilotChat.WebApi.Extensions;
