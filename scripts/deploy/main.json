@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "1330294935556235998"
+      "templateHash": "6091974935920125454"
     }
   },
   "parameters": {
@@ -102,7 +102,7 @@
     },
     "azureAdInstance": {
       "type": "string",
-      "defaultValue": "https://login.microsoftonline.com",
+      "defaultValue": "[environment().authentication.loginEndpoint]",
       "metadata": {
         "description": "Azure AD cloud instance for authenticating users"
       }
