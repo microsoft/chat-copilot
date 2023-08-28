@@ -81,7 +81,7 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                             </AccordionItem>
                             <Divider />
                             <AccordionItem value="advanced">
-                                <AccordionHeader expandIconPosition="end">
+                                <AccordionHeader expandIconPosition="end" data-testid="advancedSettingsFoldup">
                                     <h3>Advanced</h3>
                                 </AccordionHeader>
                                 <AccordionPanel>
@@ -120,7 +120,9 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                         </a>
                     </Label>
                     <DialogTrigger disableButtonEnhancement>
-                        <Button appearance="secondary">Close</Button>
+                        <Button appearance="secondary" data-testid="userSettingsCloseButton">
+                            Close
+                        </Button>
                     </DialogTrigger>
                 </DialogActions>
             </DialogSurface>
