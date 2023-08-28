@@ -61,8 +61,12 @@ public sealed class Program
             .AddHttpContextAccessor()
             .AddApplicationInsightsTelemetry(options => { options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]; })
             .AddSingleton<ITelemetryInitializer, AppInsightsUserTelemetryInitializerService>()
-            .AddLogging(logBuilder => logBuilder.AddApplicationInsights())
             .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
+
+        // Add AppInsights logging of traces
+        builder.Logging.AddApplicationInsights(configureTelemetryConfiguration: (config) =>
+            config.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"],
+            configureApplicationInsightsLoggerOptions: (options) => { });
 
         TelemetryDebugWriter.IsTracingDisabled = Debugger.IsAttached;
 
