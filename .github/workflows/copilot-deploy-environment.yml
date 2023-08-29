@@ -18,6 +18,10 @@ on:
         required: true
       AZURE_OPENAI_ENDPOINT:
         required: true
+    outputs:
+      deployment-id:
+        description: "The Id of the current deployment."
+        value: ${{jobs.deploy-infra.outputs.deployment-id}}
 
 permissions:
   contents: read
