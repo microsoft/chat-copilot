@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticMemory;
-using Microsoft.SemanticMemory.Handlers;
 
 namespace CopilotChat.MemoryPipeline;
 
@@ -16,11 +15,6 @@ internal static class BuilderExtensions
 
     public static WebApplicationBuilder AddMemoryServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddHandlerAsHostedService<TextExtractionHandler>("extract");
-        builder.Services.AddHandlerAsHostedService<TextPartitioningHandler>("partition");
-        builder.Services.AddHandlerAsHostedService<GenerateEmbeddingsHandler>("gen_embeddings");
-        builder.Services.AddHandlerAsHostedService<SaveEmbeddingsHandler>("save_embeddings");
-
         ISemanticMemoryClient memory = new MemoryClientBuilder(builder.Services).FromAppSettings().Build();
 
         builder.Services.AddSingleton(memory);

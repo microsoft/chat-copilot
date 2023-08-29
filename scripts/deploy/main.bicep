@@ -519,6 +519,22 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
       }
       {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Endpoint'
+        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:APIKey'
+        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Deployment'
+        value: completionModel
+      }
+      {
         name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Auth'
         value: 'ApiKey'
       }
@@ -855,7 +871,7 @@ resource messageContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/co
       }
       partitionKey: {
         paths: [
-          '/id'
+          '/chatId'
         ]
         kind: 'Hash'
         version: 2
@@ -917,7 +933,7 @@ resource participantContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabase
       }
       partitionKey: {
         paths: [
-          '/id'
+          '/userId'
         ]
         kind: 'Hash'
         version: 2
@@ -948,7 +964,7 @@ resource memorySourcesContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDataba
       }
       partitionKey: {
         paths: [
-          '/id'
+          '/chatId'
         ]
         kind: 'Hash'
         version: 2

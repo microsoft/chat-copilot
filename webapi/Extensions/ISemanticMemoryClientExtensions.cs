@@ -29,6 +29,7 @@ internal static class ISemanticMemoryClientExtensions
 
         ISemanticMemoryClient memory =
             new MemoryClientBuilder(builder.Services)
+                .WithoutDefaultHandlers()
                 .FromAppSettings()
                 // $$$ .WithoutDefaultHandler()
                 .Build();

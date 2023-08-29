@@ -129,7 +129,7 @@ public class ChatHistoryController : ControllerBase
     public async Task<IActionResult> GetChatSessionByIdAsync(Guid chatId)
     {
         ChatSession? chat = null;
-        if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), v => chat = v))
+        if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), callback: v => chat = v))
         {
             return this.Ok(chat);
         }
@@ -157,7 +157,7 @@ public class ChatHistoryController : ControllerBase
         foreach (var chatParticipant in chatParticipants)
         {
             ChatSession? chat = null;
-            if (await this._sessionRepository.TryFindByIdAsync(chatParticipant.ChatId, v => chat = v))
+            if (await this._sessionRepository.TryFindByIdAsync(chatParticipant.ChatId, callback: v => chat = v))
             {
                 chats.Add(chat!);
             }
@@ -232,7 +232,7 @@ public class ChatHistoryController : ControllerBase
         }
 
         ChatSession? chat = null;
-        if (await this._sessionRepository.TryFindByIdAsync(chatId, v => chat = v))
+        if (await this._sessionRepository.TryFindByIdAsync(chatId, callback: v => chat = v))
         {
             chat!.Title = chatParameters.Title ?? chat!.Title;
             chat!.SystemDescription = chatParameters.SystemDescription ?? chat!.SystemDescription;
@@ -261,7 +261,7 @@ public class ChatHistoryController : ControllerBase
     {
         this._logger.LogInformation("Get imported sources of chat session {0}", chatId);
 
-        if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), v => _ = v))
+        if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString()))
         {
             var sources = await this._sourceRepository.FindByChatIdAsync(chatId.ToString());
             return this.Ok(sources);
