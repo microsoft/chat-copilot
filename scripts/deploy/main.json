@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "6618711302896644339"
+      "templateHash": "17877951458426818786"
     }
   },
   "parameters": {
@@ -661,6 +661,22 @@
           {
             "name": "SemanticMemory:Services:AzureCognitiveSearch:APIKey",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureOpenAIText:Auth",
+            "value": "ApiKey"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureOpenAIText:Endpoint",
+            "value": "[if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureOpenAIText:APIKey",
+            "value": "[if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureOpenAIText:Deployment",
+            "value": "[parameters('completionModel')]"
           },
           {
             "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Auth",
