@@ -26,6 +26,7 @@ export const Login: React.FC = () => {
                 onClick={() => {
                     instance.loginRedirect().catch(() => {});
                 }}
+                data-testid="signinButton"
             >
                 <Image src={signInLogo} />
             </Button>

@@ -22,7 +22,7 @@ RUN yarn install \
   --prefer-offline \
   --frozen-lockfile \
   --non-interactive \
-  --production=true
+  --production=false
 
 RUN yarn build
 

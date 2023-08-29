@@ -27,7 +27,9 @@
     "microsoft-cognitiveservices-speech-sdk": "^1.31.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^8.1.2"
+    "react-markdown": "^8.0.7",
+    "react-redux": "^8.1.2",
+    "remark-gfm": "^3.0.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",

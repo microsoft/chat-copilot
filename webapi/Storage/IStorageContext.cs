@@ -20,8 +20,9 @@ public interface IStorageContext<T> where T : IStorageEntity
     /// Read an entity from the storage context by id.
     /// </summary>
     /// <param name="entityId">The entity id.</param>
+    /// <param name="partitionKey">The entity partition</param>
     /// <returns>The entity.</returns>
-    Task<T> ReadAsync(string entityId);
+    Task<T> ReadAsync(string entityId, string partitionKey);
 
     /// <summary>
     /// Create an entity in the storage context.

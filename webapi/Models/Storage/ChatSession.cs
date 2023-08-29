@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Storage;
 
 namespace CopilotChat.WebApi.Models.Storage;
@@ -43,6 +44,12 @@ public class ChatSession : IStorageEntity
     /// Used to determine if the current chat requires upgrade.
     /// </summary>
     public string? Version { get; set; }
+
+    /// <summary>
+    /// The partition key for the session.
+    /// </summary>
+    [JsonIgnore]
+    public string Partition => this.Id;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatSession"/> class.

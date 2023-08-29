@@ -171,7 +171,7 @@ const Chat = ({
                 <Subtitle1 as="h1">Chat Copilot</Subtitle1>
                 {appState > AppState.SettingUserInfo && (
                     <div className={classes.cornerItems}>
-                        <div data-testid="logOutMenuList" className={classes.cornerItems}>
+                        <div className={classes.cornerItems}>
                             <PluginGallery />
                             <UserSettingsMenu
                                 setLoadingState={() => {
