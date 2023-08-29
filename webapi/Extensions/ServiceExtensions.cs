@@ -61,14 +61,14 @@ public static class CopilotChatServiceExtensions
         // Planner options
         AddOptions<PlannerOptions>(PlannerOptions.PropertyName);
 
-        // OCR support options
-        AddOptions<OcrSupportOptions>(OcrSupportOptions.PropertyName);
+        // Tesseract OCR options
+        AddOptions<TesseractOptions>(TesseractOptions.PropertyName); // $$$ SemanticMemory.Services ???
 
         // Content safety options
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
         // Semantic memory options
-        AddOptions<SemanticMemoryConfig>("SemanticMemory");
+        AddOptions<SemanticMemoryConfig>("SemanticMemory"); // $$$ CONST
 
         return services;
 

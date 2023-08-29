@@ -42,14 +42,16 @@ public static class Program
             "This console app imports files to the CopilotChat WebAPI's document memory store."
         )
         {
-            filesOption, chatCollectionOption
+            filesOption,
+            chatCollectionOption
         };
 
         rootCommand.SetHandler(async (files, chatCollectionId) =>
             {
                 await ImportFilesAsync(files, config!, chatCollectionId);
             },
-            filesOption, chatCollectionOption
+            filesOption,
+            chatCollectionOption
         );
 
         rootCommand.Invoke(args);
@@ -124,10 +126,10 @@ public static class Program
         if (chatCollectionId != Guid.Empty)
         {
             Console.WriteLine($"Uploading and parsing file to chat {chatCollectionId}...");
-            using var chatScopeContent = new StringContent("Chat");
-            using var chatCollectionIdContent = new StringContent(chatCollectionId.ToString());
-            formContent.Add(chatScopeContent, "documentScope");
-            formContent.Add(chatCollectionIdContent, "chatId");
+            //using var chatScopeContent = new StringContent("Chat");
+            //using var chatCollectionIdContent = new StringContent(chatCollectionId.ToString());
+            //formContent.Add(chatScopeContent, "documentScope");
+            //formContent.Add(chatCollectionIdContent, "chatId");
 
             // Calling UploadAsync here to make sure disposable objects are still in scope.
             await UploadAsync(formContent, accessToken, config);
@@ -135,8 +137,8 @@ public static class Program
         else
         {
             Console.WriteLine("Uploading and parsing file to global collection...");
-            using var globalScopeContent = new StringContent("Global");
-            formContent.Add(globalScopeContent, "documentScope");
+            //using var globalScopeContent = new StringContent("Global");
+            //formContent.Add(globalScopeContent, "documentScope");
 
             // Calling UploadAsync here to make sure disposable objects are still in scope.
             await UploadAsync(formContent, accessToken, config);
@@ -179,7 +181,7 @@ public static class Program
         try
         {
             using HttpResponseMessage response = await httpClient.PostAsync(
-                new Uri(new Uri(config.ServiceUri), "importDocuments"),
+                new Uri(new Uri(config.ServiceUri), "documents"), // $$$ FORM URL BY SCOPE
                 multipartFormDataContent
             );
 

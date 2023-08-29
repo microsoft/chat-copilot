@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticMemory;
@@ -17,16 +18,19 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class ISemanticMemoryClientExtensions
 {
     private const string TagChatId = "chatid";
-    public const string TagMemory = "memory";
+    public const string TagMemory = "memory"; // $$$ LOCATION
 
     /// <summary>
     /// Inject <see cref="ISemanticMemoryClient"/>.
     /// </summary>
     public static void AddSemanticMemoryServices(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSingleton(sp => new DocumentTypeProvider(allowImageOcr: false)); // $$$ CONFIG
+
         ISemanticMemoryClient memory =
             new MemoryClientBuilder(builder.Services)
                 .FromAppSettings()
+                // $$$ .WithoutDefaultHandler()
                 .Build();
 
         builder.Services.AddSingleton(memory);
