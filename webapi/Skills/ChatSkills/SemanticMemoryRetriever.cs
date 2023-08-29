@@ -65,7 +65,7 @@ public class SemanticMemoryRetriever
         [Description("Maximum number of tokens")] int tokenLimit)
     {
         ChatSession? chatSession = null;
-        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, v => chatSession = v))
+        if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
         {
             throw new ArgumentException($"Chat session {chatId} not found.");
         }
