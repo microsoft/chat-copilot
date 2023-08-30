@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Builds and runs the Chat Copilot frontend.
 
