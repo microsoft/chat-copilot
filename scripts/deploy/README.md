@@ -86,7 +86,7 @@ You will need two Azure Active Directory (AAD) application registrations -- one 
 
    3. Click _Add a permission_
 
-   4. Select the tab _My APIs_
+   4. Select the tab _APIs my organization uses_
 
    5. Choose the app registration representing the web api backend
 
