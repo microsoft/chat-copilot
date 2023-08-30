@@ -160,7 +160,7 @@ public class SemanticMemoryRetriever
                 var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
                 if (remainingToken - tokenCount > 0)
                 {
-                    if (result.Citation.Tags.TryGetValue(ISemanticMemoryClientExtensions.TagMemory, out var tag) && tag.Count > 0)
+                    if (result.Citation.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
                         var citationSource = CitationSource.FromSemanticMemoryCitation(result.Citation);
@@ -178,9 +178,9 @@ public class SemanticMemoryRetriever
                         }
 
                         // Only documents will have citations.
-                        if (memoryName == this._promptOptions.DocumentMemoryName && !citationMap.ContainsKey(result.Citation.Link))
+                        if (memoryName == this._promptOptions.DocumentMemoryName)
                         {
-                            citationMap.Add(result.Citation.Link, citationSource);
+                            citationMap.TryAdd(result.Citation.Link, citationSource);
                         }
                     }
                 }

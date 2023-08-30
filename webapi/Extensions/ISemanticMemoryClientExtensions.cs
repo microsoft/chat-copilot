@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,9 +18,6 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class ISemanticMemoryClientExtensions
 {
-    private const string TagChatId = "chatid";
-    public const string TagMemory = "memory"; // $$$ LOCATION
-
     /// <summary>
     /// Inject <see cref="ISemanticMemoryClient"/>.
     /// </summary>
@@ -57,11 +55,11 @@ internal static class ISemanticMemoryClientExtensions
                 MinRelevance = relevanceThreshold,
             };
 
-        filter.ByTag(TagChatId, chatId);
+        filter.ByTag(MemoryTags.TagChatId, chatId);
 
         if (!string.IsNullOrWhiteSpace(memoryName))
         {
-            filter.ByTag(TagMemory, memoryName);
+            filter.ByTag(MemoryTags.TagMemory, memoryName);
         }
 
         var searchResult =
@@ -93,8 +91,8 @@ internal static class ISemanticMemoryClientExtensions
                 Index = indexName,
             };
 
-        uploadRequest.Tags.Add(TagChatId, chatId);
-        uploadRequest.Tags.Add(TagMemory, memoryName);
+        uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
+        uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
     }
@@ -126,8 +124,8 @@ internal static class ISemanticMemoryClientExtensions
                 },
         };
 
-        uploadRequest.Tags.Add(TagChatId, chatId);
-        uploadRequest.Tags.Add(TagMemory, memoryName);
+        uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
+        uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
     }

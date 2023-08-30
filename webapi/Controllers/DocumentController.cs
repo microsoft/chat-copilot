@@ -14,6 +14,7 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
+using CopilotChat.WebApi.Skills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -90,7 +91,7 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Route("documents/importstatus")] // $$$ GET ???
+    [Route("documents/importstatus")] // $$$ STATUS GET ???
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -116,7 +117,7 @@ public class DocumentController : ControllerBase
         var statusResults = await QueryAsync().ToArrayAsync();
 
         //// Broadcast the document status event to other users.
-        //if (documentStatusForm.DocumentScope == DocumentScopes.Chat) $$$ TODO - OPEN DESIGN POINT
+        //if (documentStatusForm.DocumentScope == DocumentScopes.Chat) $$$ STATUS DESIGN
         //{
         //    await messageRelayHubContext.Clients.Group(chatId)
         //        .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage); // $$$ STATUS
@@ -147,9 +148,7 @@ public class DocumentController : ControllerBase
                     {
                         IsStarted = true,
                         IsCompleted = status.Completed,
-                        LastUpdate = status.LastUpdate,
-                        Keys = Array.Empty<string>(), // $$$ DCR MEMORY | DCR CHAT
-                        Tokens = 0, // $$$ DCR MEMORY | DCR CHAT
+                        LastUpdate = status.LastUpdate
                     };
                 }
             }
@@ -215,14 +214,8 @@ public class DocumentController : ControllerBase
         {
             var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
 
-            if (chatMessage == null)
-            {
-                //foreach (var importResult in importResults)
-                //{
-                // $$$ MEMORY DCR - await this.RemoveMemoriesAsync(kernel, importResult);
-                //}
-                return this.BadRequest("Failed to create chat message. All documents are removed.");
-            }
+            // If chat message isn't created, it is still broadcast and visible in the documents tab.
+            // The chat message won't, however, be displayed when the chat is freshly rendered.
 
             var userId = this._authInfo.UserId;
             await messageRelayHubContext.Clients.Group(chatId.ToString())
@@ -269,35 +262,58 @@ public class DocumentController : ControllerBase
         {
             this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
+
+
             // Create memory source
-            var memorySource =
-                new MemorySource(
-                    chatId.ToString(),
-                    formFile.FileName,
-                    this._authInfo.UserId,
-                    MemorySourceType.File,
-                    formFile.Length,
-                    null);
+            MemorySource memorySource;
+            using (var stream = formFile.OpenReadStream())
+            {
+                memorySource =
+                    new MemorySource(
+                        chatId.ToString(),
+                        formFile.FileName,
+                        this._authInfo.UserId,
+                        MemorySourceType.File,
+                        formFile.Length,
+                        null)
+                    {
+                        Tokens = TokenUtilities.TokenCount(stream),
+                    };
+            }
 
-            using var stream = formFile.OpenReadStream();
-            await memoryClient.StoreDocumentAsync(
-                this._promptOptions.MemoryIndexName,
-                memorySource.Id,
-                chatId.ToString(),
-                this._promptOptions.DocumentMemoryName,
-                formFile.FileName,
-                stream);
-
-            var importResult = new ImportResult(memorySource.Id);
-
-            if (!(await this.TryUpsertMemorySourceAsync(memorySource))) // $$$ ORDER OF OPERATION ???
+            if (!(await this.TryUpsertMemorySourceAsync(memorySource).ConfigureAwait(false)))
             {
                 this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
-                // $$$ MEMORY DCR - await this.RemoveMemoriesAsync(kernel, importResult);
                 return ImportResult.Fail;
             }
 
-            return importResult;
+            if (!(await TryStoreMemoryAsync().ConfigureAwait(false)))
+            {
+                await this.TryRemoveMemoryAsync(memorySource).ConfigureAwait(false);
+            }
+
+            return new ImportResult(memorySource.Id);
+
+            async Task<bool> TryStoreMemoryAsync()
+            {
+                try
+                {
+                    using var stream = formFile.OpenReadStream();
+                    await memoryClient.StoreDocumentAsync(
+                        this._promptOptions.MemoryIndexName,
+                        memorySource.Id,
+                        chatId.ToString(),
+                        this._promptOptions.DocumentMemoryName,
+                        formFile.FileName,
+                        stream);
+
+                    return true;
+                }
+                catch (Exception ex) when (ex is not SystemException)
+                {
+                    return false;
+                }
+            }
         }
     }
 
@@ -362,16 +378,6 @@ public class DocumentController : ControllerBase
         /// The file identifier.
         /// </summary>
         public DateTimeOffset LastUpdate { get; set; } = default;
-
-        /// <summary>
-        /// The keys of the inserted document chunks.
-        /// </summary>
-        public IEnumerable<string> Keys { get; set; } = Array.Empty<string>();
-
-        /// <summary>
-        /// The number of tokens in the document.
-        /// </summary>
-        public long Tokens { get; set; } = 0;
 
         /// <summary>
         /// Create a new instance of the <see cref="StatusResult"/> class.
@@ -444,8 +450,7 @@ public class DocumentController : ControllerBase
                 throw new ArgumentException($"Unsupported file type: {fileType}");
             }
 
-            // $$$ ISIMAGE ???
-            if (documentImportForm.UseContentSafety)
+            if (isSafetyTarget && documentImportForm.UseContentSafety)
             {
                 if (this._contentSafetyService == null || !this._contentSafetyService.ContentSafetyStatus(this._logger))
                 {
@@ -515,6 +520,42 @@ public class DocumentController : ControllerBase
     /// <param name="memorySource">The memory source to be uploaded</param>
     /// <returns>True if upsert is successful. False otherwise.</returns>
     private async Task<bool> TryUpsertMemorySourceAsync(MemorySource memorySource)
+    {
+        try
+        {
+            await this._sourceRepository.UpsertAsync(memorySource);
+            return true;
+        }
+        catch (Exception ex) when (ex is not SystemException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Try to upsert a memory source.
+    /// </summary>
+    /// <param name="memorySource">The memory source to be uploaded</param>
+    /// <returns>True if upsert is successful. False otherwise.</returns>
+    private async Task<bool> TryRemoveMemoryAsync(MemorySource memorySource)
+    {
+        try
+        {
+            await this._sourceRepository.DeleteAsync(memorySource);
+            return true;
+        }
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Try to upsert a memory source.
+    /// </summary>
+    /// <param name="memorySource">The memory source to be uploaded</param>
+    /// <returns>True if upsert is successful. False otherwise.</returns>
+    private async Task<bool> TryStoreMemoryAsync(MemorySource memorySource)
     {
         try
         {

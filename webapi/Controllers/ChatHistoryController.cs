@@ -344,10 +344,6 @@ public class ChatHistoryController : ControllerBase
 
         // Create and store the tasks for deleting semantic memories.
         cleanupTasks.Add(this._memoryClient.RemoveChatMemoriesAsync(this._promptOptions.MemoryIndexName, chatId, cancellationToken));
-        //foreach (var source in sources)
-        //{
-        //    cleanupTasks.Add(this._memoryClient.RemoveAsync(chatId, source.Id, cancellationToken)); // $$$ MEMORY KEY ???
-        //}
 
         // Create a task that represents the completion of all cleanupTasks
         Task aggregationTask = Task.WhenAll(cleanupTasks);

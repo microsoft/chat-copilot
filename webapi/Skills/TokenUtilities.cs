@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
@@ -86,4 +87,18 @@ public static class TokenUtilities
     /// Calculate the number of tokens in a string.
     /// </summary>
     internal static int TokenCount(string text) => GPT3Tokenizer.Encode(text).Count;
+
+    /// <summary>
+    /// Calculate the number of tokens in a stream.
+    /// </summary>
+    internal static int TokenCount(Stream stream) => GPT3Tokenizer.Encode(stream.ToEnumerable()).Count;
+
+    private static IEnumerable<char> ToEnumerable(this Stream stream)
+    {
+        int c;
+        while (0 <= (c = stream.ReadByte()))
+        {
+            yield return (char)c;
+        }
+    }
 }
