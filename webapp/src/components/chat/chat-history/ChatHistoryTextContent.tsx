@@ -23,7 +23,7 @@ export const ChatHistoryTextContent: React.FC<ChatHistoryTextContentProps> = ({ 
     if (message.citations && message.citations.length > 0) {
         content += '\n\n';
         message.citations.forEach((citation, index) => {
-            content += `Source ${index + 1}: [${citation.sourceName}](${citation.link})\n`;
+            content += `Source ${index + 1}: [${citation.sourceName}](${citation.link})\n\n`;
         });
     }
 
