@@ -185,30 +185,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
     webSocketsEnabled: true
     appSettings: [
       {
-        name: 'AIService:Type'
-        value: aiService
-      }
-      {
-        name: 'AIService:Endpoint'
-        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
-      }
-      {
-        name: 'AIService:Key'
-        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
-      }
-      {
-        name: 'AIService:Models:Completion'
-        value: completionModel
-      }
-      {
-        name: 'AIService:Models:Embedding'
-        value: embeddingModel
-      }
-      {
-        name: 'AIService:Models:Planner'
-        value: plannerModel
-      }
-      {
         name: 'Authentication:Type'
         value: 'AzureAd'
       }
@@ -227,6 +203,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'Authentication:AzureAd:Scopes'
         value: 'access_as_user'
+      }
+      {
+        name: 'Planner:Model'
+        value: plannerModel
       }
       {
         name: 'ChatStore:Type'

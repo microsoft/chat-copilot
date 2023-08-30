@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "17877951458426818786"
+      "templateHash": "8798769126760658503"
     }
   },
   "parameters": {
@@ -312,30 +312,6 @@
         "webSocketsEnabled": true,
         "appSettings": [
           {
-            "name": "AIService:Type",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "AIService:Endpoint",
-            "value": "[if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))]"
-          },
-          {
-            "name": "AIService:Key",
-            "value": "[if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))]"
-          },
-          {
-            "name": "AIService:Models:Completion",
-            "value": "[parameters('completionModel')]"
-          },
-          {
-            "name": "AIService:Models:Embedding",
-            "value": "[parameters('embeddingModel')]"
-          },
-          {
-            "name": "AIService:Models:Planner",
-            "value": "[parameters('plannerModel')]"
-          },
-          {
             "name": "Authentication:Type",
             "value": "AzureAd"
           },
@@ -354,6 +330,10 @@
           {
             "name": "Authentication:AzureAd:Scopes",
             "value": "access_as_user"
+          },
+          {
+            "name": "Planner:Model",
+            "value": "[parameters('plannerModel')]"
           },
           {
             "name": "ChatStore:Type",
@@ -1063,7 +1043,7 @@
           },
           "partitionKey": {
             "paths": [
-              "/id"
+              "/chatId"
             ],
             "kind": "Hash",
             "version": 2
@@ -1133,7 +1113,7 @@
           },
           "partitionKey": {
             "paths": [
-              "/id"
+              "/userId"
             ],
             "kind": "Hash",
             "version": 2
@@ -1168,7 +1148,7 @@
           },
           "partitionKey": {
             "paths": [
-              "/id"
+              "/chatId"
             ],
             "kind": "Hash",
             "version": 2
