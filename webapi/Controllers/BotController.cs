@@ -19,7 +19,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
