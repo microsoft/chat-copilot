@@ -10,7 +10,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImportDocument", "tools\imp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatCopilotIntegrationTests", "integration-tests\ChatCopilotIntegrationTests.csproj", "{0CD2CD95-536B-455F-B74A-772A455FA607}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotChatCore", "core\CopilotChatCore.csproj", "{94F12185-FAF9-43E3-B153-28A1708AC918}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotChatShared", "shared\CopilotChatShared.csproj", "{94F12185-FAF9-43E3-B153-28A1708AC918}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

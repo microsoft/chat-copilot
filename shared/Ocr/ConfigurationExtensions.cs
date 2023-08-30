@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
-using CopilotChat.Core.Ocr.Tesseract;
+using CopilotChat.Shared.Ocr.Tesseract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticMemory.Configuration;
 using Microsoft.SemanticMemory.DataFormats.Image;
 
-namespace CopilotChat.Core.Ocr;
+namespace CopilotChat.Shared.Ocr;
 
 /// <summary>
 /// Dependency injection for semantic-memory using configuration defined in appsettings.json

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using CopilotChat.Core;
+using CopilotChat.Shared;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;

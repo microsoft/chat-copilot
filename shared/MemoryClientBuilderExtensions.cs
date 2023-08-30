@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
-using CopilotChat.Core.Ocr;
+using CopilotChat.Shared.Ocr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticMemory;
 
-namespace CopilotChat.Core;
+namespace CopilotChat.Shared;
 
 /// <summary>
 /// Dependency injection for semantic-memory using custom OCR configuration defined in appsettings.json

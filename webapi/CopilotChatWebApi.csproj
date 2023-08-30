@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\core\CopilotChatCore.csproj" />
+    <ProjectReference Include="..\shared\CopilotChatShared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

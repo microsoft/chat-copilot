@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>CopilotChat.Core</RootNamespace>
+    <RootNamespace>CopilotChat.Shared</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <ImplicitUsings>disable</ImplicitUsings>

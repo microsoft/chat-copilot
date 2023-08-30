@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.SemanticMemory.DataFormats.Image;
 using Tesseract;
 
-namespace CopilotChat.Core.Ocr.Tesseract;
+namespace CopilotChat.Shared.Ocr.Tesseract;
 
 /// <summary>
 /// Wrapper for the TesseractEngine within the Tesseract OCR library.
