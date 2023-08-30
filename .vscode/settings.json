@@ -49,4 +49,6 @@
       "**/Thumbs.db": true,
       "**.lock": true,
     },
+    "dotnet.defaultSolution": "CopilotChat.sln",
+    "editor.tabSize": 2,
   }

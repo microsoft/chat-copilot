@@ -73,13 +73,12 @@ You will need the following items to run the sample:
 
    ```bash
    cd <path to chat-copilot>/scripts/
-   chmod +x *.sh
-   ```
+      ```
 
    **Ubuntu/Debian Linux**
 
    ```bash
-   ./Install-apt.sh
+   ./install-apt.sh
    ```
 
    > NOTE: This script uses `apt` to install `dotnet-sdk-7.0`, `nodejs`, and `yarn`.
@@ -87,32 +86,51 @@ You will need the following items to run the sample:
    **macOS**
 
    ```bash
-   ./Install-brew.sh
+   ./install-brew.sh
    ```
 
    > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
 
 3. Configure Chat Copilot.
 
-   ```bash
-   ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT}
-   ```
+   1. For OpenAI
 
-   - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
-   - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
-   - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
+      ```bash
+      ./configure.sh --aiservice OpenAI --apikey {API_KEY}
+      ```
+
+      - `API_KEY`: The `API key` for OpenAI.
 
 
-   - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
+   2. For Azure OpenAI
 
-     ```bash
-     --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
-     ```
+      ```bash
+      ./configure.sh --aiservice AzureOpenAI \
+                     --endpoint {AZURE_OPENAI_ENDPOINT} \
+                     --apikey   {API_KEY} 
+      ```
+
+      - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address.
+      - `API_KEY`: The `API key` for Azure OpenAI.
+
+
+      **IMPORTANT:** If you deployed models `gpt-35-turbo` and `text-embedding-ada-002`
+      with custom names (instead of each own's given name), you need to specify
+      the deployment names with three additional parameters:
+
+      ```bash
+      ./configure.sh --aiservice AzureOpenAI \
+                     --endpoint        {AZURE_OPENAI_ENDPOINT} \
+                     --apikey          {API_KEY} \
+                     --completionmodel {DEPLOYMENT_NAME} \
+                     --plannermodel    {DEPLOYMENT_NAME} \
+                     --embeddingmodel  {DEPLOYMENT_NAME}
+      ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
    ```bash
-   ./Start.sh
+   ./start.sh
    ```
 
    It may take a few minutes for Yarn packages to install on the first run.
@@ -199,7 +217,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
 
     **Bash**
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --frontend-clientid {FRONTEND_APPLICATION_ID} --backend-clientid {BACKEND_APPLICATION_ID} --tenantid {TENANT_ID} --instance {AZURE_AD_INSTANCE}
+    ./configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --frontend-clientid {FRONTEND_APPLICATION_ID} --backend-clientid {BACKEND_APPLICATION_ID} --tenantid {TENANT_ID} --instance {AZURE_AD_INSTANCE}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
@@ -221,7 +239,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
     **Bash**
 
     ```bash
-    ./Start.sh
+    ./start.sh
      ```
 
 # Troubleshooting
