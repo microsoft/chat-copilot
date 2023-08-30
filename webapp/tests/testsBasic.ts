@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 import { expect } from '@playwright/test';
 import * as util from './utils';
 
