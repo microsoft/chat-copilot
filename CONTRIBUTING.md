@@ -11,7 +11,7 @@ tips on how you can make reporting your issue as effective as possible.
 
 ### Where to Report
 
-New issues can be reported in our [list of issues](https://github.com/microsoft/copilot-chat/issues).
+New issues can be reported in our [list of issues](https://github.com/microsoft/chat-copilot/issues).
 
 Before filing a new issue, please search the list of issues to make sure it does
 not already exist.
@@ -91,7 +91,7 @@ We use and recommend the following workflow:
      "issue-123" or "githubhandle-issue".
 4. Make and commit your changes to your branch.
 5. Add new tests corresponding to your change, if applicable.
-6. Run the relevant scripts in [the section below](https://github.com/microsoft/copilot-chat/blob/main/CONTRIBUTING.md#dev-scripts) to ensure that your build is clean and all tests are passing.
+6. Run the relevant scripts in [the section below](https://github.com/microsoft/chat-copilot/blob/main/CONTRIBUTING.md#dev-scripts) to ensure that your build is clean and all tests are passing.
 7. Create a PR against the repository's **main** branch.
    - State in the description what issue or improvement your change is addressing.
    - Verify that all the Continuous Integration checks are passing.

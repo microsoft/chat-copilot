@@ -23,9 +23,6 @@
     },
     {
       "pattern": "^https://localhost"
-    },
-    {
-      "pattern": "https://github.com/microsoft/copilot-chat/releases"
     }
   ],
   "timeout": "20s",
