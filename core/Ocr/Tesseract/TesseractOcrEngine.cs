@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.SemanticMemory.DataFormats.Image;
 using Tesseract;
 
-namespace CopilotChat.MemoryPipeline.Services;
+namespace CopilotChat.Core.Ocr.Tesseract;
 
 /// <summary>
 /// Wrapper for the TesseractEngine within the Tesseract OCR library.
@@ -18,7 +18,7 @@ public class TesseractOcrEngine : IOcrEngine
     /// <summary>
     /// Creates a new instance of the TesseractEngineWrapper passing in a valid TesseractEngine.
     /// </summary>
-    internal TesseractOcrEngine(TesseractOptions tesseractOptions)
+    public TesseractOcrEngine(TesseractOptions tesseractOptions)
     {
         this._engine = new TesseractEngine(tesseractOptions.FilePath, tesseractOptions.Language);
     }

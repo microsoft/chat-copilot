@@ -1,18 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <RootNamespace>CopilotChat.MemoryPipeline</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>CopilotChat.MemoryPipeline</RootNamespace>
     <UserSecretsId>ef47f200-b235-45d9-9fd6-765fc59d33f5</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\core\CopilotChatCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.19.230804.2-preview" />
     <PackageReference Include="Microsoft.SemanticMemory.Core" Version="0.0.230829.1-preview" />
-    <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 
 </Project>

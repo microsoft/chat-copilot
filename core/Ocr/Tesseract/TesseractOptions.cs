@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace CopilotChat.MemoryPipeline;
+namespace CopilotChat.Core.Ocr.Tesseract;
 
 /// <summary>
 /// Configuration options for Tesseract OCR support.

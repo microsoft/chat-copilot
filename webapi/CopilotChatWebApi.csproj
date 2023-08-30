@@ -1,12 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
+    <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <UserSecretsId>aspnet-SKWebApi-1581687a-bee4-40ea-a886-ce22524aea88</UserSecretsId>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,12 +36,9 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-    <AnalysisLevel>latest</AnalysisLevel>
-  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\core\CopilotChatCore.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.23165.1">

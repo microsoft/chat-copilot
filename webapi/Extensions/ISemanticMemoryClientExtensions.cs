@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.Core;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -21,23 +23,34 @@ internal static class ISemanticMemoryClientExtensions
     /// <summary>
     /// Inject <see cref="ISemanticMemoryClient"/>.
     /// </summary>
-    public static void AddSemanticMemoryServices(this WebApplicationBuilder builder)
+    public static void AddSemanticMemoryServices(this WebApplicationBuilder appBuilder)
     {
-        var serviceProvider = builder.Services.BuildServiceProvider();
+        var serviceProvider = appBuilder.Services.BuildServiceProvider();
 
-        //var ocrType = serviceProvider.GetService<IOptions<SemanticMemoryConfig>>()?.Value.ImageOcrType;
-        //var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && ocrType.Equals("enabled", StringComparison.OrdinalIgnoreCase));
-        var hasOcr = true; // $$$ PIPELINE/API BINDING
+        var memoryConfig = serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
 
-        builder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
+        var ocrType = memoryConfig.ImageOcrType;
+        var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
 
-        ISemanticMemoryClient memory =
-            new MemoryClientBuilder(builder.Services)
-                .WithoutDefaultHandlers()
-                .FromAppSettings()
-                .Build();
+        var pipelineType = memoryConfig.DataIngestion.OrchestrationType;
+        var isDistributed = pipelineType.Equals(MemoryConfiguration.OrchestrationTypeDistributed, StringComparison.OrdinalIgnoreCase);
 
-        builder.Services.AddSingleton(memory);
+        appBuilder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
+
+        var memoryBuilder = new MemoryClientBuilder(appBuilder.Services);
+
+        if (isDistributed)
+        {
+            memoryBuilder.WithoutDefaultHandlers();
+        }
+        else
+        {
+            memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+        }
+
+        ISemanticMemoryClient memory = memoryBuilder.FromAppSettings().Build();
+
+        appBuilder.Services.AddSingleton(memory);
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
