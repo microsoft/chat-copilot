@@ -34,9 +34,6 @@ public static class CopilotChatServiceExtensions
         // General configuration
         AddOptions<ServiceOptions>(ServiceOptions.PropertyName);
 
-        // Default AI service configurations for Semantic Kernel
-        AddOptions<AIServiceOptions>(AIServiceOptions.PropertyName);
-
         // Authentication configuration
         AddOptions<ChatAuthenticationOptions>(ChatAuthenticationOptions.PropertyName);
 

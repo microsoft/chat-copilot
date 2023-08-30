@@ -19,6 +19,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -31,9 +32,8 @@ public class BotController : ControllerBase
     private readonly ChatSessionRepository _chatRepository;
     private readonly ChatMessageRepository _chatMessageRepository;
     private readonly ChatParticipantRepository _chatParticipantRepository;
-
+    private readonly BotEmbeddingConfig _embeddingConfig;
     private readonly BotSchemaOptions _botSchemaOptions;
-    private readonly AIServiceOptions _embeddingOptions;
     private readonly DocumentMemoryOptions _documentMemoryOptions;
 
     /// <summary>
@@ -43,7 +43,6 @@ public class BotController : ControllerBase
     /// <param name="chatRepository">The chat session repository.</param>
     /// <param name="chatMessageRepository">The chat message repository.</param>
     /// <param name="chatParticipantRepository">The chat participant repository.</param>
-    /// <param name="aiServiceOptions">The AI service options where we need the embedding settings from.</param>
     /// <param name="botSchemaOptions">The bot schema options.</param>
     /// <param name="documentMemoryOptions">The document memory options.</param>
     /// <param name="logger">The logger.</param>
@@ -53,7 +52,7 @@ public class BotController : ControllerBase
         ChatSessionRepository chatRepository,
         ChatMessageRepository chatMessageRepository,
         ChatParticipantRepository chatParticipantRepository,
-        IOptions<AIServiceOptions> aiServiceOptions,
+        BotEmbeddingConfig embeddingConfig,
         IOptions<BotSchemaOptions> botSchemaOptions,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
         ILogger<BotController> logger)
@@ -64,8 +63,8 @@ public class BotController : ControllerBase
         this._chatRepository = chatRepository;
         this._chatMessageRepository = chatMessageRepository;
         this._chatParticipantRepository = chatParticipantRepository;
+        this._embeddingConfig = embeddingConfig;
         this._botSchemaOptions = botSchemaOptions.Value;
-        this._embeddingOptions = aiServiceOptions.Value;
         this._documentMemoryOptions = documentMemoryOptions.Value;
     }
 
@@ -90,15 +89,13 @@ public class BotController : ControllerBase
     {
         this._logger.LogDebug("Received call to upload a bot");
 
-        if (!IsBotCompatible(
+        if (!this.IsBotCompatible(
                 externalBotSchema: bot.Schema,
-                externalBotEmbeddingConfig: bot.EmbeddingConfigurations,
-                embeddingOptions: this._embeddingOptions,
-                botSchemaOptions: this._botSchemaOptions))
+                externalBotEmbeddingConfig: bot.EmbeddingConfigurations))
         {
             return this.BadRequest("Incompatible schema. " +
                                    $"The supported bot schema is {this._botSchemaOptions.Name}/{this._botSchemaOptions.Version} " +
-                                   $"for the {this._embeddingOptions.Models.Embedding} model from {this._embeddingOptions.Type}. " +
+                                   $"for the {this._embeddingConfig.DeploymentOrModelId} model from {this._embeddingConfig.AIService}. " +
                                    $"But the uploaded file is with schema {bot.Schema.Name}/{bot.Schema.Version} " +
                                    $"for the {bot.EmbeddingConfigurations.DeploymentOrModelId} model from {bot.EmbeddingConfigurations.AIService}.");
         }
@@ -177,20 +174,16 @@ public class BotController : ControllerBase
     /// </remarks>
     /// <param name="externalBotSchema">The external bot schema.</param>
     /// <param name="externalBotEmbeddingConfig">The external bot embedding configuration.</param>
-    /// <param name="embeddingOptions">The embedding options.</param>
-    /// <param name="botSchemaOptions">The bot schema options.</param>
     /// <returns>True if the bot file is compatible with the app; otherwise false.</returns>
-    private static bool IsBotCompatible(
+    private bool IsBotCompatible(
         BotSchemaOptions externalBotSchema,
-        BotEmbeddingConfig externalBotEmbeddingConfig,
-        AIServiceOptions embeddingOptions,
-        BotSchemaOptions botSchemaOptions)
+        BotEmbeddingConfig externalBotEmbeddingConfig)
     {
         // The app can define what schema/version it supports before the community comes out with an open schema.
-        return externalBotSchema.Name.Equals(botSchemaOptions.Name, StringComparison.OrdinalIgnoreCase)
-               && externalBotSchema.Version == botSchemaOptions.Version
-               && externalBotEmbeddingConfig.AIService == embeddingOptions.Type
-               && externalBotEmbeddingConfig.DeploymentOrModelId.Equals(embeddingOptions.Models.Embedding, StringComparison.OrdinalIgnoreCase);
+        return externalBotSchema.Name.Equals(this._botSchemaOptions.Name, StringComparison.OrdinalIgnoreCase)
+               && externalBotSchema.Version == this._botSchemaOptions.Version
+               && externalBotEmbeddingConfig.AIService == this._embeddingConfig.AIService
+               && externalBotEmbeddingConfig.DeploymentOrModelId.Equals(this._embeddingConfig.DeploymentOrModelId, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -250,11 +243,7 @@ public class BotController : ControllerBase
             Schema = this._botSchemaOptions,
 
             // get the embedding configuration
-            EmbeddingConfigurations = new BotEmbeddingConfig
-            {
-                AIService = this._embeddingOptions.Type,
-                DeploymentOrModelId = this._embeddingOptions.Models.Embedding
-            }
+            EmbeddingConfigurations = this._embeddingConfig,
         };
 
         // get the chat title
