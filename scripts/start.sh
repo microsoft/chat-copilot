@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Initializes and runs both the backend and frontend for Copilot Chat.
 

@@ -73,13 +73,12 @@ You will need the following items to run the sample:
 
    ```bash
    cd <path to chat-copilot>/scripts/
-   chmod +x *.sh
-   ```
+      ```
 
    **Ubuntu/Debian Linux**
 
    ```bash
-   ./Install-apt.sh
+   ./install-apt.sh
    ```
 
    > NOTE: This script uses `apt` to install `dotnet-sdk-7.0`, `nodejs`, and `yarn`.
@@ -87,7 +86,7 @@ You will need the following items to run the sample:
    **macOS**
 
    ```bash
-   ./Install-brew.sh
+   ./install-brew.sh
    ```
 
    > NOTE: This script uses `homebrew` to install `dotnet-sdk`, `nodejs`, and `yarn`.
@@ -95,7 +94,7 @@ You will need the following items to run the sample:
 3. Configure Chat Copilot.
 
    ```bash
-   ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT}
+   ./configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT}
    ```
 
    - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
@@ -112,7 +111,7 @@ You will need the following items to run the sample:
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
    ```bash
-   ./Start.sh
+   ./start.sh
    ```
 
    It may take a few minutes for Yarn packages to install on the first run.
@@ -199,7 +198,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
 
     **Bash**
     ```bash
-    ./Configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --frontend-clientid {FRONTEND_APPLICATION_ID} --backend-clientid {BACKEND_APPLICATION_ID} --tenantid {TENANT_ID} --instance {AZURE_AD_INSTANCE}
+    ./configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT} --frontend-clientid {FRONTEND_APPLICATION_ID} --backend-clientid {BACKEND_APPLICATION_ID} --tenantid {TENANT_ID} --instance {AZURE_AD_INSTANCE}
     ```
 
     - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
@@ -221,7 +220,7 @@ By default, Chat Copilot runs locally without authentication, using a guest user
     **Bash**
 
     ```bash
-    ./Start.sh
+    ./start.sh
      ```
 
 # Troubleshooting
