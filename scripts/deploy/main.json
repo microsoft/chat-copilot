@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "8798769126760658503"
+      "templateHash": "2962440850845888851"
     }
   },
   "parameters": {
@@ -397,7 +397,7 @@
           },
           {
             "name": "AzureSpeech:Key",
-            "value": "[if(parameters('deploySpeechServices'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName'))), '2022-12-01').key1, '')]"
+            "value": "[if(parameters('deploySpeechServices'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName'))), '2022-12-01').key1, '')]"
           },
           {
             "name": "AllowedOrigins",
@@ -545,7 +545,7 @@
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
       ]
     },
@@ -593,6 +593,14 @@
           {
             "name": "SemanticMemory:ContentStorageType",
             "value": "AzureBlobs"
+          },
+          {
+            "name": "SemanticMemory:TextGeneratorType",
+            "value": "[parameters('aiService')]"
+          },
+          {
+            "name": "SemanticMemory:ImageOcrType",
+            "value": "AzureFormRecognizer"
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
@@ -675,6 +683,18 @@
             "value": "[parameters('embeddingModel')]"
           },
           {
+            "name": "SemanticMemory:Services:AzureFormRecognizer:Auth",
+            "value": "ApiKey"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureFormRecognizer:Endpoint",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName'))), '2022-12-01').endpoint]"
+          },
+          {
+            "name": "SemanticMemory:Services:AzureFormRecognizer:APIKey",
+            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName'))), '2022-12-01').key1]"
+          },
+          {
             "name": "Logging:LogLevel:Default",
             "value": "Information"
           },
@@ -687,6 +707,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
       ]
@@ -1253,7 +1274,7 @@
       "condition": "[parameters('deploySpeechServices')]",
       "type": "Microsoft.CognitiveServices/accounts",
       "apiVersion": "2022-12-01",
-      "name": "[format('cog-{0}', variables('uniqueName'))]",
+      "name": "[format('cog-speech-{0}', variables('uniqueName'))]",
       "location": "[parameters('location')]",
       "sku": {
         "name": "S0"
@@ -1263,7 +1284,27 @@
         "type": "None"
       },
       "properties": {
-        "customSubDomainName": "[format('cog-{0}', variables('uniqueName'))]",
+        "customSubDomainName": "[format('cog-speech-{0}', variables('uniqueName'))]",
+        "networkAcls": {
+          "defaultAction": "Allow"
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2022-12-01",
+      "name": "[format('cog-ocr-{0}', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "S0"
+      },
+      "kind": "FormRecognizer",
+      "identity": {
+        "type": "None"
+      },
+      "properties": {
+        "customSubDomainName": "[format('cog-ocr-{0}', variables('uniqueName'))]",
         "networkAcls": {
           "defaultAction": "Allow"
         },
