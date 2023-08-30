@@ -93,20 +93,39 @@ You will need the following items to run the sample:
 
 3. Configure Chat Copilot.
 
-   ```bash
-   ./configure.sh --aiservice {AI_SERVICE} --apikey {API_KEY} --endpoint {AZURE_OPENAI_ENDPOINT}
-   ```
+   1. For OpenAI
 
-   - `AI_SERVICE`: `AzureOpenAI` or `OpenAI`.
-   - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
-   - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. Omit `--endpoint` if using OpenAI.
+      ```bash
+      ./configure.sh --aiservice OpenAI --apikey {API_KEY}
+      ```
+
+      - `API_KEY`: The `API key` for OpenAI.
 
 
-   - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of each own's given name), also use the parameters:
+   2. For Azure OpenAI
 
-     ```bash
-     --completionmodel {DEPLOYMENT_NAME} --embeddingmodel {DEPLOYMENT_NAME} --plannermodel {DEPLOYMENT_NAME}
-     ```
+      ```bash
+      ./configure.sh --aiservice AzureOpenAI \
+                     --endpoint {AZURE_OPENAI_ENDPOINT} \
+                     --apikey   {API_KEY} 
+      ```
+
+      - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address.
+      - `API_KEY`: The `API key` for Azure OpenAI.
+
+
+      **IMPORTANT:** If you deployed models `gpt-35-turbo` and `text-embedding-ada-002`
+      with custom names (instead of each own's given name), you need to specify
+      the deployment names with three additional parameters:
+
+      ```bash
+      ./configure.sh --aiservice AzureOpenAI \
+                     --endpoint        {AZURE_OPENAI_ENDPOINT} \
+                     --apikey          {API_KEY} \
+                     --completionmodel {DEPLOYMENT_NAME} \
+                     --plannermodel    {DEPLOYMENT_NAME} \
+                     --embeddingmodel  {DEPLOYMENT_NAME}
+      ```
 
 4. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 
