@@ -18,7 +18,7 @@ export class DocumentImportService extends BaseService {
 
         return await this.getResponseAsync<IChatMessage>(
             {
-                commandPath: `chat/${chatId}/documents`,
+                commandPath: `chats/${chatId}/documents`,
                 method: 'POST',
                 body: formData,
             },

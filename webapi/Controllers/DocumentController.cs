@@ -262,8 +262,6 @@ public class DocumentController : ControllerBase
         {
             this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
-
-
             // Create memory source
             MemorySource memorySource;
             using (var stream = formFile.OpenReadStream())
@@ -393,15 +391,6 @@ public class DocumentController : ControllerBase
         /// Create a new instance of the <see cref="StatusResult"/> class representing a failed import.
         /// </summary>
         public static StatusResult Fail { get; } = new(string.Empty, string.Empty);
-
-        /// <summary>
-        /// Add a key to the list of keys.
-        /// </summary>
-        /// <param name="key">The key to be added.</param>
-        public void AddKey(string key)
-        {
-            this.Keys = this.Keys.Append(key);
-        }
     }
 
     /// <summary>
