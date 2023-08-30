@@ -44,7 +44,6 @@ public sealed class Program
             .AddOptions(builder.Configuration)
             .AddPlannerServices()
             .AddPersistentChatStore()
-            .AddPersistentOcrSupport()
             .AddUtilities()
             .AddCopilotChatAuthentication(builder.Configuration)
             .AddCopilotChatAuthorization()

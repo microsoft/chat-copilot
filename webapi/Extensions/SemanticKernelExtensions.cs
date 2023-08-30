@@ -177,7 +177,7 @@ internal static class SemanticKernelExtensions
                 var memoryType = Enum.Parse<MemoryStoreType>(configMemory.Retrieval.VectorDbType, ignoreCase: true);
                 switch (memoryType)
                 {
-                    //case MemoryStoreType.Volatile: // TODO: $$$
+                    //case MemoryStoreType.Volatile: // TODO: $$$ PLANNER
                     //    services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
                     //    break;
 
@@ -214,7 +214,7 @@ internal static class SemanticKernelExtensions
                         return new AzureCognitiveSearchMemoryStore(configStorage.Endpoint, configStorage.APIKey);
                     }
 
-                    case MemoryStoreType.Chroma: // TODO: $$$
+                    case MemoryStoreType.Chroma: // TODO: $$$ STORAGE
                     /*
                         if (config.Chroma == null)
                         {
@@ -232,7 +232,7 @@ internal static class SemanticKernelExtensions
                         );
                      */
 
-                    case MemoryStoreType.Postgres: // TODO: $$$
+                    case MemoryStoreType.Postgres: // TODO: $$$ STORAGE
                     /*
                         if (config.Postgres == null)
                         {

@@ -10,7 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.3" />
@@ -28,7 +27,6 @@
     <PackageReference Include="Microsoft.SemanticMemory.Core" Version="0.0.230829.1-preview" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
-    <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -25,13 +25,18 @@ internal static class ISemanticMemoryClientExtensions
     /// </summary>
     public static void AddSemanticMemoryServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(sp => new DocumentTypeProvider(allowImageOcr: false)); // $$$ CONFIG
+        var serviceProvider = builder.Services.BuildServiceProvider();
+
+        //var ocrType = serviceProvider.GetService<IOptions<SemanticMemoryConfig>>()?.Value.ImageOcrType;
+        //var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && ocrType.Equals("enabled", StringComparison.OrdinalIgnoreCase));
+        var hasOcr = true; // $$$ PIPELINE/API BINDING
+
+        builder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
 
         ISemanticMemoryClient memory =
             new MemoryClientBuilder(builder.Services)
                 .WithoutDefaultHandlers()
                 .FromAppSettings()
-                // $$$ .WithoutDefaultHandler()
                 .Build();
 
         builder.Services.AddSingleton(memory);
@@ -125,5 +130,18 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(TagMemory, memoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
+    }
+
+    public static async Task RemoveChatMemoriesAsync(
+        this ISemanticMemoryClient memoryClient,
+        string indexName,
+        string chatId,
+        CancellationToken cancelToken = default)
+    {
+        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancelToken: cancelToken);
+        foreach (var memory in memories.Results)
+        {
+            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancelToken);
+        }
     }
 }
