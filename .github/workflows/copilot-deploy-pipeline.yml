@@ -34,7 +34,7 @@ jobs:
     needs: int
     with:
       ENVIRONMENT: int
-      DEPLOYMENT_NAME: ${{needs.int.outputs.deployment-id}}
+      BACKEND_HOST: ${{needs.int.outputs.backend-host}}
 
   stable:
     uses: ./.github/workflows/copilot-deploy-environment.yml

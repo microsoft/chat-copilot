@@ -19,9 +19,9 @@ on:
       AZURE_OPENAI_ENDPOINT:
         required: true
     outputs:
-      deployment-id:
-        description: "The Id of the current deployment."
-        value: ${{jobs.deploy-infra.outputs.deployment-id}}
+      backend-host:
+        description: "Host on which backend runs"
+        value: ${{jobs.deploy-backend.outputs.backend-host}}
 
 permissions:
   contents: read

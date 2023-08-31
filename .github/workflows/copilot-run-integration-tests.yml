@@ -3,7 +3,10 @@ name: copilot-run-integration-tests
 on:
   workflow_call:
     inputs:
-      DEPLOYMENT_NAME:
+      ENVIRONMENT:
+        required: true
+        type: string
+      BACKEND_HOST:
         required: true
         type: string
 
@@ -12,19 +15,11 @@ permissions:
 
 jobs:
   tests:
+    environment: ${{inputs.ENVIRONMENT}}
     name: Integration Testing
     runs-on: windows-latest
 
     steps:
-      - name: Get host against which to run tests
-        id: gethost
-        run: |
-          $deployment = $(az deployment group show --name ${{inputs.DEPLOYMENT_NAME}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --output json | ConvertFrom-Json)
-          $webapiUrl = $deployment.properties.outputs.webapiUrl.value
-          $BASEADDRESS = "https://$webapiUrl/"
-          Write-Host "Will run tests against $BASEADDRESS"
-          Write-Output "baseaddress=$BASEADDRESS" >> $env:GITHUB_OUTPUT
-
       - uses: actions/checkout@v3
       - name: Run integration tests
-        run: dotnet test --environment BaseAddress=${{steps.gethost.outputs.baseaddress}} --logger trx
+        run: dotnet test --environment BaseUrl="https://${{inputs.BACKEND_HOST}}.azurewebsites.net/" --logger trx
