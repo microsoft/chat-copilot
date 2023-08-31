@@ -125,7 +125,7 @@ public class SemanticMemoryRetriever
 
                 foreach ((var memoryContent, var citation) in memories)
                 {
-                    var memoryText = $"Source name: {citation.SourceName}\nContent:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
+                    var memoryText = $"Snippet from Document: {citation.SourceName}:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
                     builderMemory.Append(memoryText);
                 }
             }
