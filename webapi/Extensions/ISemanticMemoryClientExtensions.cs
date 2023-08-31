@@ -37,7 +37,7 @@ internal static class ISemanticMemoryClientExtensions
 
         appBuilder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
 
-        var memoryBuilder = new MemoryClientBuilder(appBuilder);
+        var memoryBuilder = new MemoryClientBuilder(appBuilder.Services);
 
         if (isDistributed)
         {
