@@ -99,6 +99,11 @@ public class SemanticMemoryRetriever
                     {
                         foreach ((var memoryContent, _) in memories)
                         {
+                            if (builderMemory.Length == 0)
+                            {
+                                builderMemory.Append("Past memories (format: [memory type] <label>: <details>):\n");
+                            }
+
                             var memoryText = $"[{memoryName}] {memoryContent}\n";
                             builderMemory.Append(memoryText);
                         }
@@ -116,6 +121,8 @@ public class SemanticMemoryRetriever
                     return;
                 }
 
+                builderMemory.Append("User has also shared some document snippets:\n");
+
                 foreach ((var memoryContent, var citation) in memories)
                 {
                     var memoryText = $"Source name: {citation.SourceName}\nContent:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
@@ -124,7 +131,7 @@ public class SemanticMemoryRetriever
             }
         }
 
-        return (builderMemory.Length == 0 ? string.Empty : $"Relevant memories:\n{builderMemory}", citationMap);
+        return (builderMemory.Length == 0 ? string.Empty : builderMemory.ToString(), citationMap);
 
         /// <summary>
         /// Search the memory for relevant memories by memory name.
