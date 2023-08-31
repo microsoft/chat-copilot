@@ -12,7 +12,7 @@ namespace ChatCopilotIntegrationTests;
 /// </summary>
 public abstract class ChatCopilotIntegrationTest : IDisposable
 {
-    protected const string BaseAddressSettingName = "BaseAddress";
+    protected const string BaseUrlSettingName = "BaseUrl";
 
     protected readonly HttpClient _httpClient;
 
@@ -26,12 +26,12 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
             .AddUserSecrets<HealthzTests>()
             .Build();
 
-        string? baseAddress = configuration[BaseAddressSettingName];
-        Assert.False(string.IsNullOrEmpty(baseAddress));
-        Assert.True(baseAddress.EndsWith('/'));
+        string? baseUrl = configuration[BaseUrlSettingName];
+        Assert.False(string.IsNullOrEmpty(baseUrl));
+        Assert.True(baseUrl.EndsWith('/'));
 
         this._httpClient = new HttpClient();
-        this._httpClient.BaseAddress = new Uri(baseAddress);
+        this._httpClient.BaseAddress = new Uri(baseUrl);
     }
 
     public void Dispose()
