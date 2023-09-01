@@ -3,7 +3,7 @@ import { useMsal } from '@azure/msal-react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { AuthHelper } from '../auth/AuthHelper';
-import { DocumentDeleteService } from '../services/DocumentDeleteService';
+import { DocumentImportService } from '../services/DocumentImportService';
 
 export interface FileHandler {
     loadFile<T>(file: File, loadCallBack: (data: T) => Promise<void>): Promise<T>;
@@ -14,7 +14,7 @@ export interface FileHandler {
 export const useFile = (): FileHandler => {
     const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
     const userId = activeUserInfo?.id ?? '';
-    const documentDeleteService = new DocumentDeleteService(process.env.REACT_APP_BACKEND_URI as string);
+    const documentImportService = new DocumentImportService(process.env.REACT_APP_BACKEND_URI as string);
     const { instance, inProgress } = useMsal();
 
     async function loadFile<T>(file: File, loadCallBack: (data: T) => Promise<void>): Promise<T> {
@@ -53,7 +53,7 @@ export const useFile = (): FileHandler => {
         try {
 
             // Call the deleteDocumentAsync method from the DocumentDeleteService
-            await documentDeleteService.deleteDocumentAsync(userId, chatId, fileId,  await AuthHelper.getSKaaSAccessToken(instance, inProgress));
+            await documentImportService.deleteDocumentAsync(userId, chatId, fileId,  await AuthHelper.getSKaaSAccessToken(instance, inProgress));
 
         } catch (error) {
             console.error('Failed to delete the file:', error);

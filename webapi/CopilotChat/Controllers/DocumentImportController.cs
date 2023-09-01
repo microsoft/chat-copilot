@@ -171,6 +171,50 @@ public class DocumentImportController : ControllerBase
         return this.Ok("Documents imported successfully to global scope.");
     }
 
+    [Route("deleteDocument")]
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteDocumentAsync([FromForm] DocumentDeleteForm documentDeleteForm)
+    {
+        try
+        {
+            await ValidateDocumentDeleteFormAsync(documentDeleteForm);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        // Check if the document exists in the specified chat session.
+        var memorySource = await _sourceRepository.FindByIdAsync(documentDeleteForm.DocumentId.ToString());
+        if (memorySource == null || memorySource.ChatId.ToString() != documentDeleteForm.ChatId.ToString())
+        {
+            return BadRequest("Document not found in the specified chat session.");
+        }
+
+        // Check if the user has access to the chat session.
+        if (!await UserHasAccessToChatAsync(documentDeleteForm.UserId, documentDeleteForm.ChatId))
+        {
+            return BadRequest("User does not have access to the chat session.");
+        }
+
+        try
+        {
+            // Delete the document from the repository.
+            await _sourceRepository.DeleteAsync(memorySource);
+        }
+        catch (Exception ex)
+        {
+            // Handle any exceptions that occur during the deletion process.
+            return BadRequest($"Failed to delete the document: {ex.Message}");
+        }
+
+        return Ok("Document deleted successfully.");
+    }
+
+
+
     #region Private
 
     /// <summary>
@@ -271,16 +315,16 @@ public class DocumentImportController : ControllerBase
                 case SupportedFileType.Jpg:
                 case SupportedFileType.Png:
                 case SupportedFileType.Tiff:
-                {
-                    if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
                     {
-                        break;
-                    }
+                        if (this._ocrSupportOptions.Type != OcrSupportOptions.OcrSupportType.None)
+                        {
+                            break;
+                        }
 
-                    throw new ArgumentException($"Unsupported image file type: {fileType} when " +
-                        $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
-                        nameof(OcrSupportOptions.OcrSupportType.None));
-                }
+                        throw new ArgumentException($"Unsupported image file type: {fileType} when " +
+                            $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
+                            nameof(OcrSupportOptions.OcrSupportType.None));
+                    }
                 default:
                     throw new ArgumentException($"Unsupported file type: {fileType}");
             }
@@ -310,10 +354,10 @@ public class DocumentImportController : ControllerBase
             case SupportedFileType.Jpg:
             case SupportedFileType.Png:
             case SupportedFileType.Tiff:
-            {
-                documentContent = await this.ReadTextFromImageFileAsync(formFile);
-                break;
-            }
+                {
+                    documentContent = await this.ReadTextFromImageFileAsync(formFile);
+                    break;
+                }
 
             default:
                 // This should never happen. Validation should have already caught this.
@@ -593,5 +637,14 @@ public class DocumentImportController : ControllerBase
         }
     }
 
+    private async Task ValidateDocumentDeleteFormAsync(DocumentDeleteForm documentDeleteForm)
+    {
+        // Make sure the user has access to the chat session where the document exists.
+        if (!(await UserHasAccessToChatAsync(documentDeleteForm.UserId, documentDeleteForm.ChatId)))
+        {
+            throw new ArgumentException("User does not have access to the chat session.");
+        }
+
+    }
     #endregion
 }
