@@ -107,7 +107,7 @@ internal static class SemanticChatMemoryExtractor
                     await memoryClient.SearchMemoryAsync(
                         options.MemoryIndexName,
                         memory,
-                        0.8F, // $$$
+                        options.SemanticMemoryRelevanceUpper,
                         chatId,
                         memoryName,
                         cancellationToken);

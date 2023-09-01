@@ -5,8 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.Shared;
+using CopilotChat.WebApi.Models.Storage;
+using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -16,21 +20,37 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class ISemanticMemoryClientExtensions
 {
-    private const string TagChatId = "chatid";
-    public const string TagMemory = "memory";
-
     /// <summary>
     /// Inject <see cref="ISemanticMemoryClient"/>.
     /// </summary>
-    public static void AddSemanticMemoryServices(this WebApplicationBuilder builder)
+    public static void AddSemanticMemoryServices(this WebApplicationBuilder appBuilder)
     {
-        ISemanticMemoryClient memory =
-            new MemoryClientBuilder(builder.Services)
-                .WithoutDefaultHandlers()
-                .FromAppSettings()
-                .Build();
+        var serviceProvider = appBuilder.Services.BuildServiceProvider();
 
-        builder.Services.AddSingleton(memory);
+        var memoryConfig = serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+
+        var ocrType = memoryConfig.ImageOcrType;
+        var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
+
+        var pipelineType = memoryConfig.DataIngestion.OrchestrationType;
+        var isDistributed = pipelineType.Equals(MemoryConfiguration.OrchestrationTypeDistributed, StringComparison.OrdinalIgnoreCase);
+
+        appBuilder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
+
+        var memoryBuilder = new MemoryClientBuilder(appBuilder.Services);
+
+        if (isDistributed)
+        {
+            memoryBuilder.WithoutDefaultHandlers();
+        }
+        else
+        {
+            memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+        }
+
+        ISemanticMemoryClient memory = memoryBuilder.FromAppSettings().Build();
+
+        appBuilder.Services.AddSingleton(memory);
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
@@ -48,11 +68,11 @@ internal static class ISemanticMemoryClientExtensions
                 MinRelevance = relevanceThreshold,
             };
 
-        filter.ByTag(TagChatId, chatId);
+        filter.ByTag(MemoryTags.TagChatId, chatId);
 
         if (!string.IsNullOrWhiteSpace(memoryName))
         {
-            filter.ByTag(TagMemory, memoryName);
+            filter.ByTag(MemoryTags.TagMemory, memoryName);
         }
 
         var searchResult =
@@ -84,8 +104,8 @@ internal static class ISemanticMemoryClientExtensions
                 Index = indexName,
             };
 
-        uploadRequest.Tags.Add(TagChatId, chatId);
-        uploadRequest.Tags.Add(TagMemory, memoryName);
+        uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
+        uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
     }
@@ -117,9 +137,22 @@ internal static class ISemanticMemoryClientExtensions
                 },
         };
 
-        uploadRequest.Tags.Add(TagChatId, chatId);
-        uploadRequest.Tags.Add(TagMemory, memoryName);
+        uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
+        uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
         await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
+    }
+
+    public static async Task RemoveChatMemoriesAsync(
+        this ISemanticMemoryClient memoryClient,
+        string indexName,
+        string chatId,
+        CancellationToken cancelToken = default)
+    {
+        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancelToken: cancelToken);
+        foreach (var memory in memories.Results)
+        {
+            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancelToken);
+        }
     }
 }

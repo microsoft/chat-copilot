@@ -99,6 +99,11 @@ public class SemanticMemoryRetriever
                     {
                         foreach ((var memoryContent, _) in memories)
                         {
+                            if (builderMemory.Length == 0)
+                            {
+                                builderMemory.Append("Past memories (format: [memory type] <label>: <details>):\n");
+                            }
+
                             var memoryText = $"[{memoryName}] {memoryContent}\n";
                             builderMemory.Append(memoryText);
                         }
@@ -116,15 +121,17 @@ public class SemanticMemoryRetriever
                     return;
                 }
 
+                builderMemory.Append("User has also shared some document snippets:\n");
+
                 foreach ((var memoryContent, var citation) in memories)
                 {
-                    var memoryText = $"Source name: {citation.SourceName}\nContent:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
+                    var memoryText = $"Snippet from Document: {citation.SourceName}:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
                     builderMemory.Append(memoryText);
                 }
             }
         }
 
-        return (builderMemory.Length == 0 ? string.Empty : $"Relevant memories:\n{builderMemory}", citationMap);
+        return (builderMemory.Length == 0 ? string.Empty : builderMemory.ToString(), citationMap);
 
         /// <summary>
         /// Search the memory for relevant memories by memory name.
@@ -160,7 +167,7 @@ public class SemanticMemoryRetriever
                 var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
                 if (remainingToken - tokenCount > 0)
                 {
-                    if (result.Citation.Tags.TryGetValue(ISemanticMemoryClientExtensions.TagMemory, out var tag) && tag.Count > 0)
+                    if (result.Citation.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
                         var citationSource = CitationSource.FromSemanticMemoryCitation(result.Citation);
@@ -178,9 +185,9 @@ public class SemanticMemoryRetriever
                         }
 
                         // Only documents will have citations.
-                        if (memoryName == this._promptOptions.DocumentMemoryName && !citationMap.ContainsKey(result.Citation.Link))
+                        if (memoryName == this._promptOptions.DocumentMemoryName)
                         {
-                            citationMap.Add(result.Citation.Link, citationSource);
+                            citationMap.TryAdd(result.Citation.Link, citationSource);
                         }
                     }
                 }

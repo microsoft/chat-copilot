@@ -140,11 +140,14 @@ resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: 'asp-${uniqueName}-webapi'
+  name: 'asp-${uniqueName}-${name}'
   location: location
-  kind: 'app'
+  kind: 'linux'
   sku: {
     name: webAppServiceSku
+  }
+  properties: {
+    reserved: true
   }
 }
 
@@ -185,30 +188,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
     webSocketsEnabled: true
     appSettings: [
       {
-        name: 'AIService:Type'
-        value: aiService
-      }
-      {
-        name: 'AIService:Endpoint'
-        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
-      }
-      {
-        name: 'AIService:Key'
-        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
-      }
-      {
-        name: 'AIService:Models:Completion'
-        value: completionModel
-      }
-      {
-        name: 'AIService:Models:Embedding'
-        value: embeddingModel
-      }
-      {
-        name: 'AIService:Models:Planner'
-        value: plannerModel
-      }
-      {
         name: 'Authentication:Type'
         value: 'AzureAd'
       }
@@ -227,6 +206,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'Authentication:AzureAd:Scopes'
         value: 'access_as_user'
+      }
+      {
+        name: 'Planner:Model'
+        value: plannerModel
       }
       {
         name: 'ChatStore:Type'
@@ -471,6 +454,14 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         value: 'AzureBlobs'
       }
       {
+        name: 'SemanticMemory:TextGeneratorType'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:ImageOcrType'
+        value: 'AzureFormRecognizer'
+      }
+      {
         name: 'SemanticMemory:DataIngestion:OrchestrationType'
         value: 'Distributed'
       }
@@ -549,6 +540,18 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
       {
         name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Deployment'
         value: embeddingModel
+      }
+      {
+        name: 'SemanticMemory:Services:AzureFormRecognizer:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureFormRecognizer:Endpoint'
+        value: ocrAccount.properties.endpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureFormRecognizer:APIKey'
+        value: ocrAccount.listKeys().key1
       }
       {
         name: 'Logging:LogLevel:Default'
@@ -1044,7 +1047,7 @@ resource postgresPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/private
 }
 
 resource speechAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deploySpeechServices) {
-  name: 'cog-${uniqueName}'
+  name: 'cog-speech-${uniqueName}'
   location: location
   sku: {
     name: 'S0'
@@ -1054,7 +1057,26 @@ resource speechAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (d
     type: 'None'
   }
   properties: {
-    customSubDomainName: 'cog-${uniqueName}'
+    customSubDomainName: 'cog-speech-${uniqueName}'
+    networkAcls: {
+      defaultAction: 'Allow'
+    }
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+resource ocrAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
+  name: 'cog-ocr-${uniqueName}'
+  location: location
+  sku: {
+    name: 'S0'
+  }
+  kind: 'FormRecognizer'
+  identity: {
+    type: 'None'
+  }
+  properties: {
+    customSubDomainName: 'cog-ocr-${uniqueName}'
     networkAcls: {
       defaultAction: 'Allow'
     }

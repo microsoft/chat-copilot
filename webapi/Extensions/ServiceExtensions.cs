@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Azure;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using CopilotChat.WebApi.Utilities;
 using Microsoft.AspNetCore.Authentication;
@@ -19,7 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.SemanticMemory;
-using Tesseract;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -36,9 +33,6 @@ public static class CopilotChatServiceExtensions
     {
         // General configuration
         AddOptions<ServiceOptions>(ServiceOptions.PropertyName);
-
-        // Default AI service configurations for Semantic Kernel
-        AddOptions<AIServiceOptions>(AIServiceOptions.PropertyName);
 
         // Authentication configuration
         AddOptions<ChatAuthenticationOptions>(ChatAuthenticationOptions.PropertyName);
@@ -61,14 +55,11 @@ public static class CopilotChatServiceExtensions
         // Planner options
         AddOptions<PlannerOptions>(PlannerOptions.PropertyName);
 
-        // OCR support options
-        AddOptions<OcrSupportOptions>(OcrSupportOptions.PropertyName);
-
         // Content safety options
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
         // Semantic memory options
-        AddOptions<SemanticMemoryConfig>("SemanticMemory");
+        AddOptions<SemanticMemoryConfig>("SemanticMemory"); // $$$ CONST
 
         return services;
 
@@ -113,41 +104,6 @@ public static class CopilotChatServiceExtensions
                     });
             });
         }
-
-        return services;
-    }
-
-    /// <summary>
-    /// Adds persistent OCR support service.
-    /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
-    public static IServiceCollection AddPersistentOcrSupport(this IServiceCollection services)
-    {
-        services.AddSingleton<IOcrEngine>(
-            sp =>
-            {
-                OcrSupportOptions ocrSupportConfig = sp.GetRequiredService<IOptions<OcrSupportOptions>>().Value;
-
-                switch (ocrSupportConfig.Type)
-                {
-                    case OcrSupportOptions.OcrSupportType.AzureFormRecognizer:
-                    {
-                        return new AzureFormRecognizerOcrEngine(ocrSupportConfig.AzureFormRecognizer!.Endpoint!, new AzureKeyCredential(ocrSupportConfig.AzureFormRecognizer!.Key!));
-                    }
-                    case OcrSupportOptions.OcrSupportType.Tesseract:
-                    {
-                        return new TesseractEngineWrapper(new TesseractEngine(ocrSupportConfig.Tesseract!.FilePath, ocrSupportConfig.Tesseract!.Language, EngineMode.Default));
-                    }
-                    case OcrSupportOptions.OcrSupportType.None:
-                    {
-                        return new NullOcrEngine();
-                    }
-                    default:
-                    {
-                        throw new InvalidOperationException($"Unsupported OcrSupport:Type '{ocrSupportConfig.Type}'");
-                    }
-                }
-            });
 
         return services;
     }

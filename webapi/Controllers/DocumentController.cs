@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
@@ -13,6 +14,7 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
+using CopilotChat.WebApi.Skills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +45,7 @@ public class DocumentController : ControllerBase
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
+    private readonly DocumentTypeProvider _documentTypeProvider;
     private readonly IAuthInfo _authInfo;
     private readonly IContentSafetyService? _contentSafetyService;
 
@@ -51,13 +54,14 @@ public class DocumentController : ControllerBase
     /// </summary>
     public DocumentController(
         ILogger<DocumentController> logger,
+        IAuthInfo authInfo,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository sessionRepository,
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
-        IAuthInfo authInfo,
+        DocumentTypeProvider documentTypeProvider,
         IContentSafetyService? contentSafety = null)
     {
         this._logger = logger;
@@ -67,6 +71,7 @@ public class DocumentController : ControllerBase
         this._sourceRepository = sourceRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
+        this._documentTypeProvider = documentTypeProvider;
         this._authInfo = authInfo;
         this._contentSafetyService = contentSafety;
     }
@@ -76,7 +81,7 @@ public class DocumentController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Route("document/safetystatus")]
+    [Route("contentSafety/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public bool ContentSafetyStatus()
     {
@@ -86,7 +91,7 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Route("document/importstatus")]
+    [Route("documents/importstatus")] // $$$ STATUS GET ???
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -104,7 +109,6 @@ public class DocumentController : ControllerBase
             return this.BadRequest(ex.Message);
         }
 
-        var userId = this._authInfo.UserId;
         var chatId = documentStatusForm.ChatId.ToString();
         var targetCollectionName = documentStatusForm.DocumentScope == DocumentScopes.Global
             ? this._options.GlobalDocumentCollectionName
@@ -113,7 +117,7 @@ public class DocumentController : ControllerBase
         var statusResults = await QueryAsync().ToArrayAsync();
 
         //// Broadcast the document status event to other users.
-        //if (documentStatusForm.DocumentScope == DocumentScopes.Chat) $$$ TODO - OPEN DESIGN POINT
+        //if (documentStatusForm.DocumentScope == DocumentScopes.Chat) $$$ STATUS DESIGN
         //{
         //    await messageRelayHubContext.Clients.Group(chatId)
         //        .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage); // $$$ STATUS
@@ -144,9 +148,7 @@ public class DocumentController : ControllerBase
                     {
                         IsStarted = true,
                         IsCompleted = status.Completed,
-                        LastUpdate = status.LastUpdate,
-                        Keys = Array.Empty<string>(), // $$$ DCR MEMORY | DCR CHAT
-                        Tokens = 0, // $$$ DCR MEMORY | DCR CHAT
+                        LastUpdate = status.LastUpdate
                     };
                 }
             }
@@ -156,18 +158,44 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Route("document/import")]
+    [Route("documents")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DocumentImportAsync(
+    public Task<IActionResult> DocumentImportAsync(
         [FromServices] ISemanticMemoryClient memoryClient,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromForm] DocumentImportForm documentImportForm)
     {
+        return this.DocumentImportAsync(memoryClient, messageRelayHubContext, DocumentScopes.Global, Guid.Empty, documentImportForm);
+    }
+
+    /// <summary>
+    /// Service API for importing a document.
+    /// </summary>
+    [Route("chats/{chatId}/documents")]
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task<IActionResult> DocumentImportAsync(
+        [FromServices] ISemanticMemoryClient memoryClient,
+        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
+        [FromRoute] Guid chatId,
+        [FromForm] DocumentImportForm documentImportForm)
+    {
+        return this.DocumentImportAsync(memoryClient, messageRelayHubContext, DocumentScopes.Chat, chatId, documentImportForm);
+    }
+
+    private async Task<IActionResult> DocumentImportAsync(
+        ISemanticMemoryClient memoryClient,
+        IHubContext<MessageRelayHub> messageRelayHubContext,
+        DocumentScopes documentScope,
+        Guid chatId,
+        DocumentImportForm documentImportForm)
+    {
         try
         {
-            await this.ValidateDocumentImportFormAsync(documentImportForm);
+            await this.ValidateDocumentImportFormAsync(chatId, documentScope, documentImportForm);
         }
         catch (ArgumentException ex)
         {
@@ -179,27 +207,18 @@ public class DocumentController : ControllerBase
         // Pre-create chat-message
         DocumentMessageContent documentMessageContent = new();
 
-        // TODO: [Issue #49] Perform the import in parallel.
-        var importResults = await ImportAsync();
+        var importResults = await ImportDocumentsAsync();
 
         // Broadcast the document uploaded event to other users.
-        if (documentImportForm.DocumentScope == DocumentScopes.Chat)
+        if (documentScope == DocumentScopes.Chat)
         {
-            var chatMessage = await this.TryCreateDocumentUploadMessage(
-                documentMessageContent,
-                documentImportForm);
-            if (chatMessage == null)
-            {
-                //foreach (var importResult in importResults)
-                //{
-                // $$$ MEMORY DCR - await this.RemoveMemoriesAsync(kernel, importResult);
-                //}
-                return this.BadRequest("Failed to create chat message. All documents are removed.");
-            }
+            var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
 
-            var chatId = documentImportForm.ChatId.ToString();
+            // If chat message isn't created, it is still broadcast and visible in the documents tab.
+            // The chat message won't, however, be displayed when the chat is freshly rendered.
+
             var userId = this._authInfo.UserId;
-            await messageRelayHubContext.Clients.Group(chatId)
+            await messageRelayHubContext.Clients.Group(chatId.ToString())
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
             return this.Ok(chatMessage);
@@ -213,30 +232,86 @@ public class DocumentController : ControllerBase
 
         return this.Ok("Documents imported successfully to global scope.");
 
-        async Task<IList<ImportResult>> ImportAsync()
+        async Task<IList<ImportResult>> ImportDocumentsAsync()
         {
             IEnumerable<ImportResult> importResults = new List<ImportResult>();
 
             await Task.WhenAll(
                 documentImportForm.FormFiles.Select(
                     async formFile =>
-                    await this.ImportDocumentHelperAsync(memoryClient, formFile, documentImportForm).ContinueWith(
-                        task =>
-                        {
-                            var importResult = task.Result;
-                            if (importResult != null)
+                        await ImportDocumentAsync(formFile).ContinueWith(
+                            task =>
                             {
-                                documentMessageContent.AddDocument(
-                                    formFile.FileName,
-                                    this.GetReadableByteString(formFile.Length),
-                                    importResult.IsSuccessful);
+                                var importResult = task.Result;
+                                if (importResult != null)
+                                {
+                                    documentMessageContent.AddDocument(
+                                        formFile.FileName,
+                                        this.GetReadableByteString(formFile.Length),
+                                        importResult.IsSuccessful);
 
-                                importResults = importResults.Append(importResult);
-                            }
-                        },
-                        TaskScheduler.Default)));
+                                    importResults = importResults.Append(importResult);
+                                }
+                            },
+                            TaskScheduler.Default)));
 
             return importResults.ToArray();
+        }
+
+        async Task<ImportResult> ImportDocumentAsync(IFormFile formFile)
+        {
+            this._logger.LogInformation("Importing document {0}", formFile.FileName);
+
+            // Create memory source
+            MemorySource memorySource;
+            using (var stream = formFile.OpenReadStream())
+            {
+                memorySource =
+                    new MemorySource(
+                        chatId.ToString(),
+                        formFile.FileName,
+                        this._authInfo.UserId,
+                        MemorySourceType.File,
+                        formFile.Length,
+                        null)
+                    {
+                        Tokens = TokenUtilities.TokenCount(stream),
+                    };
+            }
+
+            if (!(await this.TryUpsertMemorySourceAsync(memorySource).ConfigureAwait(false)))
+            {
+                this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
+                return ImportResult.Fail;
+            }
+
+            if (!(await TryStoreMemoryAsync().ConfigureAwait(false)))
+            {
+                await this.TryRemoveMemoryAsync(memorySource).ConfigureAwait(false);
+            }
+
+            return new ImportResult(memorySource.Id);
+
+            async Task<bool> TryStoreMemoryAsync()
+            {
+                try
+                {
+                    using var stream = formFile.OpenReadStream();
+                    await memoryClient.StoreDocumentAsync(
+                        this._promptOptions.MemoryIndexName,
+                        memorySource.Id,
+                        chatId.ToString(),
+                        this._promptOptions.DocumentMemoryName,
+                        formFile.FileName,
+                        stream);
+
+                    return true;
+                }
+                catch (Exception ex) when (ex is not SystemException)
+                {
+                    return false;
+                }
+            }
         }
     }
 
@@ -303,16 +378,6 @@ public class DocumentController : ControllerBase
         public DateTimeOffset LastUpdate { get; set; } = default;
 
         /// <summary>
-        /// The keys of the inserted document chunks.
-        /// </summary>
-        public IEnumerable<string> Keys { get; set; } = Array.Empty<string>();
-
-        /// <summary>
-        /// The number of tokens in the document.
-        /// </summary>
-        public long Tokens { get; set; } = 0;
-
-        /// <summary>
         /// Create a new instance of the <see cref="StatusResult"/> class.
         /// </summary>
         /// <param name="collectionName">The name of the collection that the document is inserted to.</param>
@@ -326,15 +391,6 @@ public class DocumentController : ControllerBase
         /// Create a new instance of the <see cref="StatusResult"/> class representing a failed import.
         /// </summary>
         public static StatusResult Fail { get; } = new(string.Empty, string.Empty);
-
-        /// <summary>
-        /// Add a key to the list of keys.
-        /// </summary>
-        /// <param name="key">The key to be added.</param>
-        public void AddKey(string key)
-        {
-            this.Keys = this.Keys.Append(key);
-        }
     }
 
     /// <summary>
@@ -343,11 +399,11 @@ public class DocumentController : ControllerBase
     /// <param name="documentImportForm">The document import form.</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException">Throws ArgumentException if validation fails.</exception>
-    private async Task ValidateDocumentImportFormAsync(DocumentImportForm documentImportForm)
+    private async Task ValidateDocumentImportFormAsync(Guid chatId, DocumentScopes scope, DocumentImportForm documentImportForm)
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
-        if (documentImportForm.DocumentScope == DocumentScopes.Chat
-                && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, documentImportForm.ChatId)))
+        if (scope == DocumentScopes.Chat
+                && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, chatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -376,28 +432,14 @@ public class DocumentController : ControllerBase
                 throw new ArgumentException($"File {formFile.FileName} size exceeds the limit.");
             }
 
-            // Make sure the file type is supported. $$$ MEMORY
-            //var fileType = this.GetFileType(Path.GetFileName(formFile.FileName));
-            //switch (fileType)
-            //{
-            //    case SupportedFileType.Txt:
-            //    case SupportedFileType.Pdf:
-            //        break;
-            //    case SupportedFileType.Jpg:
-            //    case SupportedFileType.Png:
-            //    case SupportedFileType.Tiff:
-            //    {
-            //        // $$$ OCR
-            //        throw new ArgumentException($"Unsupported image file type: {fileType} when " +
-            //            $"{OcrSupportOptions.PropertyName}:{nameof(OcrSupportOptions.Type)} is set to " +
-            //            nameof(OcrSupportOptions.OcrSupportType.None));
-            //    }
-            //    default:
-            //        throw new ArgumentException($"Unsupported file type: {fileType}");
-            //}
+            // Make sure the file type is supported.
+            var fileType = Path.GetExtension(formFile.FileName);
+            if (!this._documentTypeProvider.IsSupported(fileType, out bool isSafetyTarget))
+            {
+                throw new ArgumentException($"Unsupported file type: {fileType}");
+            }
 
-            // $$$ ISIMAGE ???
-            if (documentImportForm.UseContentSafety)
+            if (isSafetyTarget && documentImportForm.UseContentSafety)
             {
                 if (this._contentSafetyService == null || !this._contentSafetyService.ContentSafetyStatus(this._logger))
                 {
@@ -462,61 +504,21 @@ public class DocumentController : ControllerBase
     }
 
     /// <summary>
-    /// Import a single document.
+    /// Try to upsert a memory source.
     /// </summary>
-    /// <param name="orchestrator">The orchestrator.</param>
-    /// <param name="formFile">The form file.</param>
-    /// <param name="documentImportForm">The document import form.</param>
-    /// <returns>Import result.</returns>
-    private async Task<ImportResult> ImportDocumentHelperAsync(ISemanticMemoryClient memoryClient, IFormFile formFile, DocumentImportForm documentImportForm)
+    /// <param name="memorySource">The memory source to be uploaded</param>
+    /// <returns>True if upsert is successful. False otherwise.</returns>
+    private async Task<bool> TryUpsertMemorySourceAsync(MemorySource memorySource)
     {
-        this._logger.LogInformation("Importing document {0}", formFile.FileName);
-
-        // Create memory source
-        var memorySource = this.CreateMemorySource(formFile, documentImportForm);
-
-        var chatId = documentImportForm.DocumentScope == DocumentScopes.Chat ? documentImportForm.ChatId.ToString() : Guid.Empty.ToString();
-        using var stream = formFile.OpenReadStream();
-        await memoryClient.StoreDocumentAsync(
-            this._promptOptions.MemoryIndexName,
-            memorySource.Id,
-            chatId,
-            this._promptOptions.DocumentMemoryName,
-            formFile.FileName,
-            stream);
-
-        var importResult = new ImportResult(memorySource.Id);
-
-        if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
+        try
         {
-            this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
-            // $$$ MEMORY DCR - await this.RemoveMemoriesAsync(kernel, importResult);
-            return ImportResult.Fail;
+            await this._sourceRepository.UpsertAsync(memorySource);
+            return true;
         }
-
-        return importResult;
-    }
-
-    /// <summary>
-    /// Create a memory source.
-    /// </summary>
-    /// <param name="formFile">The file to be uploaded</param>
-    /// <param name="documentImportForm">The document upload form that contains additional necessary info</param>
-    /// <returns>A MemorySource object.</returns>
-    private MemorySource CreateMemorySource(
-        IFormFile formFile,
-        DocumentImportForm documentImportForm)
-    {
-        var chatId = documentImportForm.ChatId.ToString();
-        var userId = this._authInfo.UserId;
-
-        return new MemorySource(
-            chatId,
-            formFile.FileName,
-            userId,
-            MemorySourceType.File,
-            formFile.Length,
-            null);
+        catch (Exception ex) when (ex is not SystemException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -524,7 +526,25 @@ public class DocumentController : ControllerBase
     /// </summary>
     /// <param name="memorySource">The memory source to be uploaded</param>
     /// <returns>True if upsert is successful. False otherwise.</returns>
-    private async Task<bool> TryUpsertMemorySourceAsync(MemorySource memorySource)
+    private async Task<bool> TryRemoveMemoryAsync(MemorySource memorySource)
+    {
+        try
+        {
+            await this._sourceRepository.DeleteAsync(memorySource);
+            return true;
+        }
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Try to upsert a memory source.
+    /// </summary>
+    /// <param name="memorySource">The memory source to be uploaded</param>
+    /// <returns>True if upsert is successful. False otherwise.</returns>
+    private async Task<bool> TryStoreMemoryAsync(MemorySource memorySource)
     {
         try
         {
@@ -540,21 +560,17 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Try to create a chat message that represents document upload.
     /// </summary>
+    /// <param name="chatId">The target chat-id</param>
     /// <param name="documentMessageContent">The document message content</param>
-    /// <param name="documentImportForm">The document upload form that contains additional necessary info</param>
     /// <returns>A ChatMessage object if successful, null otherwise</returns>
     private async Task<ChatMessage?> TryCreateDocumentUploadMessage(
-        DocumentMessageContent documentMessageContent,
-        DocumentImportForm documentImportForm)
+        Guid chatId,
+        DocumentMessageContent documentMessageContent)
     {
-        var chatId = documentImportForm.ChatId.ToString();
-        var userId = this._authInfo.UserId;
-        var userName = this._authInfo.Name;
-
         var chatMessage = ChatMessage.CreateDocumentMessage(
-            userId,
-            userName,
-            chatId,
+            this._authInfo.UserId,
+            this._authInfo.Name, // User name
+            chatId.ToString(),
             documentMessageContent);
 
         try
