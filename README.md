@@ -14,9 +14,9 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 
 You will need the following items to run the sample:
 
-- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup script)_
-- [Node.js](https://nodejs.org/en/download) _(via Setup script)_
-- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup script)_
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup install.* script)_
+- [Node.js](https://nodejs.org/en/download) _(via Setup install.*  script)_
+- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup install.*  script)_
 - AI Service
 
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
