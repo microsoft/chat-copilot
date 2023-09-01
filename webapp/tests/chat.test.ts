@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 /* eslint-disable testing-library/prefer-screen-queries */
 import { test } from '@playwright/test';
 import * as simpletests from './testsBasic';

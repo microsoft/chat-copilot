@@ -21,7 +21,7 @@ To set your secrets with Secret Manager:
 cd integration-tests
 
 dotnet user-secrets init
-dotnet user-secrets set "BaseAddress" "https://your-backend-address/"
+dotnet user-secrets set "BaseUrl" "https://your-backend-address/"
 ```
 
 ### Option 2: Use a Configuration File
@@ -35,7 +35,7 @@ For example:
 
 ```json
 {
-  "BaseAddress": "https://localhost:40443/"
+  "BaseUrl": "https://localhost:40443/"
 }
 ```
 
@@ -45,11 +45,11 @@ You may also set the test settings in your environment variables. The environmen
 - bash:
 
 ```bash
-export BaseAddress="https://localhost:40443/"
+export BaseUrl="https://localhost:40443/"
 ```
 
 - PowerShell:
 
 ```ps
-$env:BaseAddress = "https://localhost:40443/"
+$env:BaseUrl = "https://localhost:40443/"
 ```
