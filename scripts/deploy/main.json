@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "2962440850845888851"
+      "templateHash": "9751221073550413055"
     }
   },
   "parameters": {
@@ -262,11 +262,14 @@
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2022-03-01",
-      "name": "[format('asp-{0}-webapi', variables('uniqueName'))]",
+      "name": "[format('asp-{0}-{1}', variables('uniqueName'), parameters('name'))]",
       "location": "[parameters('location')]",
-      "kind": "app",
+      "kind": "linux",
       "sku": {
         "name": "[parameters('webAppServiceSku')]"
+      },
+      "properties": {
+        "reserved": true
       }
     },
     {
@@ -279,7 +282,7 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
         "httpsOnly": true,
         "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
         "siteConfig": {
@@ -287,7 +290,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
         "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
     },
@@ -573,10 +576,10 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]"
       ]
     },
     {
