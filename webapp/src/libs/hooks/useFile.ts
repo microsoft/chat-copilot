@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { useMsal } from '@azure/msal-react';
-import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
-import { RootState } from '../../redux/app/store';
+import { useAppDispatch } from '../../redux/app/hooks';
 import { FeatureKeys } from '../../redux/features/app/AppState';
 import { toggleFeatureState } from '../../redux/features/app/appSlice';
 import { setImportingDocumentsToConversation } from '../../redux/features/conversations/conversationsSlice';
@@ -11,8 +10,6 @@ import { DocumentImportService } from '../services/DocumentImportService';
 import { useChat } from './useChat';
 
 export const useFile = () => {
-    const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
-    const userId = activeUserInfo?.id ?? '';
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
 
@@ -55,7 +52,7 @@ export const useFile = () => {
         try {
 
             // Call the deleteDocumentAsync method from the DocumentDeleteService
-            await documentImportService.deleteDocumentAsync(userId, chatId, fileId,  await AuthHelper.getSKaaSAccessToken(instance, inProgress));
+            await documentImportService.deleteDocumentAsync(chatId, fileId,  await AuthHelper.getSKaaSAccessToken(instance, inProgress));
 
         } catch (error) {
             console.error('Failed to delete the file:', error);
