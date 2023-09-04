@@ -78,6 +78,7 @@ public class DocumentImportController : ControllerBase
     private const string GlobalDocumentUploadedClientCall = "GlobalDocumentUploaded";
     private const string ReceiveMessageClientCall = "ReceiveMessage";
     private readonly IOcrEngine _ocrEngine;
+    private ImportResult _importResult;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -175,7 +176,9 @@ public class DocumentImportController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DeleteDocumentAsync([FromForm] DocumentDeleteForm documentDeleteForm)
+    public async Task<IActionResult> DeleteDocumentAsync(
+        [FromServices] IKernel kernel,
+        [FromForm] DocumentDeleteForm documentDeleteForm)
     {
         try
         {
@@ -188,6 +191,7 @@ public class DocumentImportController : ControllerBase
 
         // Check if the document exists in the specified chat session.
         var memorySource = await _sourceRepository.FindByIdAsync(documentDeleteForm.DocumentId.ToString());
+
         if (memorySource == null || memorySource.ChatId.ToString() != documentDeleteForm.ChatId.ToString())
         {
             return BadRequest("Document not found in the specified chat session.");
@@ -203,6 +207,7 @@ public class DocumentImportController : ControllerBase
         {
             // Delete the document from the repository.
             await _sourceRepository.DeleteAsync(memorySource);
+            await RemoveMemoriesAsync(kernel, _importResult);
         }
         catch (Exception ex)
         {
@@ -396,6 +401,7 @@ public class DocumentImportController : ControllerBase
             return ImportResult.Fail();
         }
 
+        _importResult = importResult;
         return importResult;
     }
 
