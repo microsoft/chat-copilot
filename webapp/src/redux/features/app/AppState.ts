@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { AuthHelper, DefaultActiveUserInfo } from '../../../libs/auth/AuthHelper';
 import { AlertType } from '../../../libs/models/AlertType';
+import { ServiceOptions } from '../../../libs/models/ServiceOptions';
+import { TokenUsage } from '../../../libs/models/TokenUsage';
 
 export interface ActiveUserInfo {
     id: string;
@@ -11,6 +14,8 @@ export interface ActiveUserInfo {
 export interface Alert {
     message: string;
     type: AlertType;
+    id?: string;
+    onRetry?: () => void;
 }
 
 interface Feature {
@@ -31,8 +36,10 @@ export interface Setting {
 export interface AppState {
     alerts: Alert[];
     activeUserInfo?: ActiveUserInfo;
+    tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
+    serviceOptions: ServiceOptions;
 }
 
 export enum FeatureKeys {
@@ -43,7 +50,6 @@ export enum FeatureKeys {
     AzureCognitiveSearch,
     BotAsDocs,
     MultiUserChat,
-    DeleteChats,
     RLHF, // Reinforcement Learning from Human Feedback
 }
 
@@ -78,19 +84,14 @@ export const Features = {
     [FeatureKeys.MultiUserChat]: {
         enabled: false,
         label: 'Live Chat Session Sharing',
+        description: 'Enable multi-user chat sessions. Not available when authorization is disabled.',
+        inactive: !AuthHelper.IsAuthAAD,
     },
     [FeatureKeys.RLHF]: {
         enabled: false,
         label: 'Reinforcement Learning from Human Feedback',
         description: 'Enable users to vote on model-generated responses. For demonstration purposes only.',
         // TODO: [Issue #42] Send and store feedback in backend
-        inactive: true,
-    },
-    [FeatureKeys.DeleteChats]: {
-        enabled: false,
-        label: 'Delete Chat Sessions',
-        // TODO: [sk Issue #1642] Implement delete chats
-        inactive: true,
     },
 };
 
@@ -114,18 +115,15 @@ export const Settings = [
     {
         title: 'Experimental',
         description: 'The related icons and menu options are hidden until you turn this on',
-        features: [FeatureKeys.BotAsDocs, FeatureKeys.MultiUserChat, FeatureKeys.DeleteChats, FeatureKeys.RLHF],
+        features: [FeatureKeys.BotAsDocs, FeatureKeys.MultiUserChat, FeatureKeys.RLHF],
     },
 ];
 
 export const initialState: AppState = {
-    alerts: [
-        {
-            message:
-                'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
-            type: AlertType.Info,
-        },
-    ],
+    alerts: [],
+    activeUserInfo: AuthHelper.IsAuthAAD ? undefined : DefaultActiveUserInfo,
+    tokenUsage: {},
     features: Features,
     settings: Settings,
+    serviceOptions: { memoryStore: { types: [], selectedType: '' }, version: '' },
 };

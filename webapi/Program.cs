@@ -1,8 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.AspNetCore.Builder;
@@ -12,12 +17,8 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SemanticKernel.Service.CopilotChat.Extensions;
-using SemanticKernel.Service.CopilotChat.Hubs;
-using SemanticKernel.Service.Diagnostics;
-using SemanticKernel.Service.Services;
 
-namespace SemanticKernel.Service;
+namespace CopilotChat.WebApi;
 
 /// <summary>
 /// Copilot Chat Service
@@ -37,18 +38,17 @@ public sealed class Program
         builder.Host.AddConfiguration();
         builder.WebHost.UseUrls(); // Disables endpoint override warning message when using IConfiguration for Kestrel endpoint.
 
-        // Add in configuration options and Semantic Kernel services.
+        // Add in configuration options and required services.
         builder.Services
             .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Program>>()) // some services require an un-templated ILogger
             .AddOptions(builder.Configuration)
-            .AddSemanticKernelServices();
-
-        // Add CopilotChat services.
-        builder.Services
-            .AddCopilotChatOptions(builder.Configuration)
-            .AddCopilotChatPlannerServices()
+            .AddPlannerServices()
             .AddPersistentChatStore()
-            .AddPersistentOcrSupport();
+            .AddPersistentOcrSupport()
+            .AddUtilities()
+            .AddCopilotChatAuthentication(builder.Configuration)
+            .AddCopilotChatAuthorization()
+            .AddSemanticKernelServices();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();
@@ -61,17 +61,18 @@ public sealed class Program
             .AddLogging(logBuilder => logBuilder.AddApplicationInsights())
             .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
 
-#if DEBUG
-        TelemetryDebugWriter.IsTracingDisabled = false;
-#endif
+        TelemetryDebugWriter.IsTracingDisabled = Debugger.IsAttached;
 
         // Add in the rest of the services.
         builder.Services
-            .AddAuthorization(builder.Configuration)
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
-            .AddCors()
-            .AddControllers();
+            .AddCorsPolicy()
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
         builder.Services.AddHealthChecks();
 
         // Configure middleware and endpoints
@@ -79,7 +80,8 @@ public sealed class Program
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapControllers();
+        app.MapControllers()
+            .RequireAuthorization();
         app.MapHealthChecks("/healthz");
 
         // Add CopilotChat hub for real time communication

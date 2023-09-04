@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
-import { ThumbDislike24Filled, ThumbLike16Filled } from '@fluentui/react-icons';
+import { AvatarProps, Persona, Text, makeStyles, mergeClasses, shorthands } from '@fluentui/react-components';
+import { ThumbDislikeFilled, ThumbLikeFilled } from '@fluentui/react-icons';
 import React from 'react';
+import { DefaultChatUser } from '../../../libs/auth/AuthHelper';
 import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { useAppSelector } from '../../../redux/app/hooks';
@@ -11,7 +12,8 @@ import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
-import { PromptDetails } from '../prompt-details/PromptDetails';
+import { PromptDialog } from '../prompt-dialog/PromptDialog';
+import { TypingIndicator } from '../typing-indicator/TypingIndicator';
 import * as utils from './../../utils/TextUtils';
 import { ChatHistoryDocumentContent } from './ChatHistoryDocumentContent';
 import { ChatHistoryTextContent } from './ChatHistoryTextContent';
@@ -83,14 +85,19 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
-    const isMe = message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id;
+    const isDefaultUser = message.userId === DefaultChatUser.id;
+    const isMe = isDefaultUser || (message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id);
     const isBot = message.authorRole === AuthorRoles.Bot;
-    const user = chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
+    const user = isDefaultUser
+        ? DefaultChatUser
+        : chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
     const fullName = user?.fullName ?? message.userName;
 
-    const avatar = isBot
+    const avatar: AvatarProps = isBot
         ? { image: { src: conversations[selectedId].botProfilePicture } }
-        : { name: fullName, color: 'colorful' as const };
+        : isDefaultUser
+        ? { idForColor: selectedId, color: 'colorful' }
+        : { name: fullName, color: 'colorful' };
 
     let content: JSX.Element;
     if (isBot && message.type === ChatMessageType.Plan) {
@@ -98,7 +105,8 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
     } else if (message.type === ChatMessageType.Document) {
         content = <ChatHistoryDocumentContent isMe={isMe} message={message} />;
     } else {
-        content = <ChatHistoryTextContent message={message} />;
+        content =
+            isBot && message.content.length === 0 ? <TypingIndicator /> : <ChatHistoryTextContent message={message} />;
     }
 
     // TODO: [Issue #42] Persistent RLHF, hook up to model
@@ -132,16 +140,16 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
                 <div className={classes.header}>
                     {!isMe && <Text weight="semibold">{fullName}</Text>}
                     <Text className={classes.time}>{timestampToDateString(message.timestamp, true)}</Text>
-                    {isBot && <PromptDetails message={message} />}
+                    {isBot && <PromptDialog message={message} />}
                 </div>
                 {content}
                 {showShowRLHFMessage && <UserFeedbackActions messageIndex={messageIndex} />}
             </div>
-            {showShowRLHFMessage && message.userFeedback === UserFeedback.Positive && (
-                <ThumbLike16Filled color="gray" />
+            {features[FeatureKeys.RLHF].enabled && message.userFeedback === UserFeedback.Positive && (
+                <ThumbLikeFilled color="gray" />
             )}
-            {showShowRLHFMessage && message.userFeedback === UserFeedback.Negative && (
-                <ThumbDislike24Filled color="gray" />
+            {features[FeatureKeys.RLHF].enabled && message.userFeedback === UserFeedback.Negative && (
+                <ThumbDislikeFilled color="gray" />
             )}
         </div>
     );

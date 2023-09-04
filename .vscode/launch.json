@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Debug CopilotChatWebApi",
+            "type": "coreclr",
+            "preLaunchTask": "build (CopilotChatWebApi)",
+            "request": "launch",
+            "program": "${workspaceFolder}/webapi/bin/Debug/net6.0/CopilotChatWebApi.dll",
+            "cwd": "${workspaceFolder}/webapi",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+        }
+    ]
+}

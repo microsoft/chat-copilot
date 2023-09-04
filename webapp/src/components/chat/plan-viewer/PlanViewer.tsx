@@ -1,10 +1,10 @@
 import { Button, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import { CheckmarkCircle24Regular, DismissCircle24Regular, Info24Regular } from '@fluentui/react-icons';
 import { useState } from 'react';
+import { GetResponseOptions } from '../../../libs/hooks/useChat';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { IPlanInput, PlanState, PlanType } from '../../../libs/models/Plan';
 import { IAskVariables } from '../../../libs/semantic-kernel/model/Ask';
-import { GetResponseOptions } from '../../../libs/hooks/useChat';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
@@ -78,12 +78,19 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
     const [plan, setPlan] = useState(originalPlan);
 
     const onPlanAction = async (planState: PlanState.PlanApproved | PlanState.PlanRejected) => {
+        const updatedPlan = JSON.stringify({
+            proposedPlan: plan,
+            type: parsedContent.type,
+            state: planState,
+        });
+
         dispatch(
             updateMessageProperty({
                 messageIdOrIndex: messageIndex,
                 chatId: selectedId,
                 property: 'planState',
                 value: planState,
+                updatedContent: updatedPlan,
                 frontLoad: true,
             }),
         );
@@ -95,31 +102,27 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
             },
             {
                 key: 'proposedPlan',
-                value: JSON.stringify({
-                    proposedPlan: plan,
-                    type: parsedContent.type,
-                    state: planState,
-                }),
+                value: updatedPlan,
             },
         ];
 
         contextVariables.push(
             planState === PlanState.PlanApproved
                 ? {
-                    key: 'planUserIntent',
-                    value: description,
-                }
+                      key: 'planUserIntent',
+                      value: description,
+                  }
                 : {
-                    key: 'userCancelledPlan',
-                    value: 'true',
-                },
+                      key: 'userCancelledPlan',
+                      value: 'true',
+                  },
         );
 
         // Invoke plan
         await getResponse({
             value: planState === PlanState.PlanApproved ? 'Yes, proceed' : 'No, cancel',
             contextVariables,
-            messageType: ChatMessageType.Plan,
+            messageType: ChatMessageType.Message,
             chatId: selectedId,
         });
     };

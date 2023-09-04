@@ -18,10 +18,10 @@ export class BotService extends BaseService {
         return result;
     };
 
-    public uploadAsync = async (bot: Bot, userId: string, accessToken: string) => {
+    public uploadAsync = async (bot: Bot, accessToken: string) => {
         const result = await this.getResponseAsync<IChatSession>(
             {
-                commandPath: `bot/upload?userId=${userId}`,
+                commandPath: 'bot/upload',
                 method: 'Post',
                 body: bot,
             },

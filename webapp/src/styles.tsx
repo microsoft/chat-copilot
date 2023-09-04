@@ -5,11 +5,12 @@ import {
     createDarkTheme,
     createLightTheme,
     makeStyles,
+    shorthands,
     themeToTokensObject,
     tokens,
 } from '@fluentui/react-components';
 
-const semanticKernelBrandRamp: BrandVariants = {
+export const semanticKernelBrandRamp: BrandVariants = {
     10: '#060103',
     20: '#261018',
     30: '#431426',
@@ -66,7 +67,23 @@ export const SharedStyles: Record<string, GriffelStyle> = {
         height: '100%',
         ...ScrollBarStyles,
     },
+    overflowEllipsis: {
+        ...shorthands.overflow('hidden'),
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
 };
+
+export const useSharedClasses = makeStyles({
+    informativeView: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.padding('80px'),
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingVerticalXL),
+        marginTop: tokens.spacingVerticalXXXL,
+    },
+});
 
 export const useDialogClasses = makeStyles({
     root: {

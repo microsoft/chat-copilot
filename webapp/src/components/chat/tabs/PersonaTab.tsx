@@ -20,18 +20,16 @@ export const PersonaTab: React.FC = () => {
     const [longTermMemory, setLongTermMemory] = React.useState<string>('');
 
     React.useEffect(() => {
-        chat.getSemanticMemories(selectedId, 'WorkingMemory')
-            .then((memories) => {
-                setShortTermMemory(memories.join('\n'));
-            })
-            .catch(() => {});
-
-        chat.getSemanticMemories(selectedId, 'LongTermMemory')
-            .then((memories) => {
-                setLongTermMemory(memories.join('\n'));
-            })
-            .catch(() => {});
-
+        if (!conversations[selectedId].disabled) {
+            void Promise.all([
+                chat.getSemanticMemories(selectedId, 'WorkingMemory').then((memories) => {
+                    setShortTermMemory(memories.join('\n'));
+                }),
+                chat.getSemanticMemories(selectedId, 'LongTermMemory').then((memories) => {
+                    setLongTermMemory(memories.join('\n'));
+                }),
+            ]);
+        }
         // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedId]);
@@ -40,6 +38,7 @@ export const PersonaTab: React.FC = () => {
         <TabView title="Persona" learnMoreDescription="personas" learnMoreLink=" https://aka.ms/sk-intro-to-personas ">
             <PromptEditor
                 title="Meta Prompt"
+                chatId={selectedId}
                 prompt={chatState.systemDescription}
                 isEditable={true}
                 info="The prompt that defines the chat bot's persona."
@@ -58,12 +57,14 @@ export const PersonaTab: React.FC = () => {
             />
             <PromptEditor
                 title="Short Term Memory"
+                chatId={selectedId}
                 prompt={`<label>: <details>\n${shortTermMemory}`}
                 isEditable={false}
                 info="Extract information for a short period of time, such as a few seconds or minutes. It should be useful for performing complex cognitive tasks that require attention, concentration, or mental calculation."
             />
             <PromptEditor
                 title="Long Term Memory"
+                chatId={selectedId}
                 prompt={`<label>: <details>\n${longTermMemory}`}
                 isEditable={false}
                 info="Extract information that is encoded and consolidated from other memory types, such as working memory or sensory memory. It should be useful for maintaining and recalling one's personal identity, history, and knowledge over time."

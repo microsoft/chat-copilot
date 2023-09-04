@@ -1,22 +1,11 @@
-import {
-    makeStyles,
-    mergeClasses,
-    Persona,
-    Popover,
-    PopoverSurface,
-    PopoverTrigger,
-    shorthands,
-    Text,
-    tokens,
-} from '@fluentui/react-components';
+import { makeStyles, mergeClasses, Persona, shorthands, Text, tokens } from '@fluentui/react-components';
 import { ShieldTask16Regular } from '@fluentui/react-icons';
 import { FC, useState } from 'react';
-import { Constants } from '../../../Constants';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { setSelectedConversation } from '../../../redux/features/conversations/conversationsSlice';
-import { Breakpoints } from '../../../styles';
+import { Breakpoints, SharedStyles } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { EditChatName } from '../shared/EditChatName';
 import { ListItemActions } from './ListItemActions';
@@ -55,12 +44,9 @@ const useClasses = makeStyles({
         justifyContent: 'space-between',
     },
     title: {
-        ...shorthands.overflow('hidden'),
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
+        ...SharedStyles.overflowEllipsis,
         fontSize: tokens.fontSizeBase300,
         color: tokens.colorNeutralForeground1,
-        lineHeight: tokens.lineHeightBase200,
     },
     timestamp: {
         flexShrink: 0,
@@ -70,12 +56,10 @@ const useClasses = makeStyles({
         lineHeight: tokens.lineHeightBase200,
     },
     previewText: {
+        ...SharedStyles.overflowEllipsis,
         display: 'block',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
         lineHeight: tokens.lineHeightBase100,
         color: tokens.colorNeutralForeground2,
-        ...shorthands.overflow('hidden'),
     },
     popoverSurface: {
         display: 'none',
@@ -126,69 +110,60 @@ export const ChatListItem: FC<IChatListItemProps> = ({
 
     const time = timestampToDateString(timestamp);
     return (
-        <Popover
-            openOnHover={!isSelected}
-            mouseLeaveDelay={0}
-            positioning={{
-                position: 'after',
-                autoSize: 'width',
-            }}
+        <div
+            className={mergeClasses(classes.root, isSelected && classes.selected)}
+            onClick={onClick}
+            title={`Chat: ${header}`}
+            aria-label={`Chat list item: ${header}`}
         >
-            <PopoverTrigger disableButtonEnhancement>
-                <div className={mergeClasses(classes.root, isSelected && classes.selected)} onClick={onClick}>
-                    <Persona
-                        avatar={{ image: { src: botProfilePicture } }}
-                        presence={
-                            !features[FeatureKeys.SimplifiedExperience].enabled ? { status: 'available' } : undefined
-                        }
-                    />
-                    {editingTitle ? (
-                        <EditChatName name={header} chatId={id} exitEdits={() => { setEditingTitle(false) }} />
-                    ) : (
-                        <>
-                            <div className={classes.body}>
-                                <div className={classes.header}>
-                                    <Text className={classes.title}>
-                                        {header}
-                                        {features[FeatureKeys.AzureContentSafety].enabled && (
-                                            <ShieldTask16Regular className={classes.protectedIcon} />
-                                        )}
-                                    </Text>
-                                    {!features[FeatureKeys.SimplifiedExperience].enabled && (
-                                        <Text className={classes.timestamp} size={300}>
-                                            {time}
-                                        </Text>
-                                    )}
-                                </div>
-                                {showPreview && (
-                                    <>
-                                        {
-                                            <Text
-                                                id={`message-preview-${id}`}
-                                                size={200}
-                                                className={classes.previewText}
-                                            >
-                                                {preview}
-                                            </Text>
-                                        }
-                                    </>
+            <Persona
+                avatar={{ image: { src: botProfilePicture } }}
+                presence={!features[FeatureKeys.SimplifiedExperience].enabled ? { status: 'available' } : undefined}
+            />
+            {editingTitle ? (
+                <EditChatName
+                    name={header}
+                    chatId={id}
+                    exitEdits={() => {
+                        setEditingTitle(false);
+                    }}
+                />
+            ) : (
+                <>
+                    <div className={classes.body}>
+                        <div className={classes.header}>
+                            <Text className={classes.title} title={header}>
+                                {header}
+                                {features[FeatureKeys.AzureContentSafety].enabled && (
+                                    <ShieldTask16Regular className={classes.protectedIcon} />
                                 )}
-                            </div>
-                            {showActions && (
-                                <ListItemActions
-                                    chatId={id}
-                                    chatName={header}
-                                    onEditTitleClick={() => { setEditingTitle(true); }}
-                                />
+                            </Text>
+                            {!features[FeatureKeys.SimplifiedExperience].enabled && (
+                                <Text className={classes.timestamp} size={300}>
+                                    {time}
+                                </Text>
                             )}
-                        </>
+                        </div>
+                        {showPreview && (
+                            <>
+                                {
+                                    <Text id={`message-preview-${id}`} size={200} className={classes.previewText}>
+                                        {preview}
+                                    </Text>
+                                }
+                            </>
+                        )}
+                    </div>
+                    {showActions && (
+                        <ListItemActions
+                            chatId={id}
+                            onEditTitleClick={() => {
+                                setEditingTitle(true);
+                            }}
+                        />
                     )}
-                </div>
-            </PopoverTrigger>
-            <PopoverSurface className={classes.popoverSurface}>
-                <Text weight="bold">{Constants.bot.profile.fullName}</Text>
-                <Text>{time}</Text>
-            </PopoverSurface>
-        </Popover>
+                </>
+            )}
+        </div>
     );
 };

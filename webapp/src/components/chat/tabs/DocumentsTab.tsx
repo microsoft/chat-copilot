@@ -33,12 +33,10 @@ import {
 } from '@fluentui/react-icons';
 import * as React from 'react';
 import { useRef } from 'react';
-import { useDispatch } from 'react-redux';
 import { useChat, useFile } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { setImportingDocumentsToConversation } from '../../../redux/features/conversations/conversationsSlice';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { TabView } from './TabView';
 
@@ -87,7 +85,8 @@ export const DocumentsTab: React.FC = () => {
     const classes = useClasses();
     const chat = useChat();
     const fileHandler = useFile();
-    const dispatch = useDispatch();
+
+    const { serviceOptions } = useAppSelector((state: RootState) => state.app);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { importingDocuments } = conversations[selectedId];
 
@@ -95,60 +94,29 @@ export const DocumentsTab: React.FC = () => {
     const documentFileRef = useRef<HTMLInputElement | null>(null);
 
     React.useEffect(() => {
-        const importingResources = importingDocuments
-            ? importingDocuments.map((document, index) => {
-                  return {
-                      id: `in-progress-${index}`,
-                      chatId: selectedId,
-                      sourceType: 'N/A',
-                      name: document,
-                      sharedBy: 'N/A',
-                      createdOn: 0,
-                      tokens: 0,
-                  } as ChatMemorySource;
-              })
-            : [];
-        setResources(importingResources);
+        if (!conversations[selectedId].disabled) {
+            const importingResources = importingDocuments
+                ? importingDocuments.map((document, index) => {
+                      return {
+                          id: `in-progress-${index}`,
+                          chatId: selectedId,
+                          sourceType: 'N/A',
+                          name: document,
+                          sharedBy: 'N/A',
+                          createdOn: 0,
+                          tokens: 0,
+                      } as ChatMemorySource;
+                  })
+                : [];
+            setResources(importingResources);
 
-        void chat.getChatMemorySources(selectedId).then((sources) => {
-            setResources([...importingResources, ...sources]);
-        });
-
+            void chat.getChatMemorySources(selectedId).then((sources) => {
+                setResources([...importingResources, ...sources]);
+            });
+        }
         // We don't want to have chat as one of the dependencies as it will cause infinite loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importingDocuments, selectedId]);
-
-    const handleImport = () => {
-        const files = documentFileRef.current?.files;
-
-        if (files && files.length > 0) {
-            // Deep copy the FileList into an array so that the function
-            // maintains a list of files to import before the import is complete.
-            const filesArray = Array.from(files);
-
-            dispatch(
-                setImportingDocumentsToConversation({
-                    importingDocuments: filesArray.map((file) => file.name),
-                    chatId: selectedId,
-                }),
-            );
-
-            void chat.importDocument(selectedId, filesArray).finally(() => {
-                dispatch(
-                    setImportingDocumentsToConversation({
-                        importingDocuments: [],
-                        chatId: selectedId,
-                    }),
-                );
-            });
-        }
-
-        // Reset the file input so that the onChange event will
-        // be triggered even if the same file is selected again.
-        if (documentFileRef.current?.value) {
-            documentFileRef.current.value = '';
-        }
-    };
 
     const handleDelete = async (chatId: string, fileId: string) => {
         try {
@@ -161,6 +129,7 @@ export const DocumentsTab: React.FC = () => {
     };
 
     const { columns, rows } = useTable(resources, handleDelete);
+
     return (
         <TabView
             title="Documents"
@@ -175,13 +144,17 @@ export const DocumentsTab: React.FC = () => {
                     style={{ display: 'none' }}
                     accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
                     multiple={true}
-                    onChange={handleImport}
+                    onChange={() => {
+                        void fileHandler.handleImport(selectedId, documentFileRef);
+                    }}
                 />
                 <Tooltip content="Embed file into chat session" relationship="label">
                     <Button
                         className={classes.uploadButton}
                         icon={<DocumentArrowUp20Regular />}
-                        disabled={importingDocuments && importingDocuments.length > 0}
+                        disabled={
+                            conversations[selectedId].disabled || (importingDocuments && importingDocuments.length > 0)
+                        }
                         onClick={() => documentFileRef.current?.click()}
                     >
                         Upload
@@ -191,11 +164,21 @@ export const DocumentsTab: React.FC = () => {
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
                     <Label size="large">Vector Database</Label>
-                    <RadioGroup defaultValue="Qdrant" layout="horizontal">
-                        <Radio value="Qdrant" label="Qdrant" />
-                        <Radio value="Azure" label="Azure Cognitive Search" disabled />
-                        <Radio value="Pinecone" label="Pinecone" disabled />
-                        <Radio value="Milvus" label="Milvus" disabled />
+                    <RadioGroup
+                        defaultValue={serviceOptions.memoryStore.selectedType}
+                        layout="horizontal"
+                        disabled={conversations[selectedId].disabled}
+                    >
+                        {serviceOptions.memoryStore.types.map((storeType) => {
+                            return (
+                                <Radio
+                                    key={storeType}
+                                    value={storeType}
+                                    label={storeType}
+                                    disabled={storeType !== serviceOptions.memoryStore.selectedType}
+                                />
+                            );
+                        })}
                     </RadioGroup>
                 </div>
             </div>
@@ -231,8 +214,10 @@ function useTable(resources: ChatMemorySource[], handleDelete: (chatId: string, 
             ),
             renderCell: (item) => (
                 <TableCell key={item.id}>
-                    <TableCellLayout media={item.name.icon}>
-                        <a href={item.name.url}>{item.name.label}</a>
+                    <TableCellLayout media={item.name.icon} truncate>
+                        <a href={item.name.url} title={item.name.label}>
+                            {item.name.label}
+                        </a>
                     </TableCellLayout>
                 </TableCell>
             ),

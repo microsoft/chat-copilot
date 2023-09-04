@@ -1,4 +1,4 @@
-name: copilot-deploy-backend
+name: copilot-deploy-frontend
 
 on:
   workflow_call:
@@ -16,14 +16,12 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-      APPLICATION_AUTHORITY:
-        required: true
 
 permissions:
   contents: read
 
 jobs:
-  web-app:
+  webapp:
     environment: ${{inputs.ENVIRONMENT}}
     permissions:
       id-token: write
@@ -38,6 +36,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           clean: true
+          fetch-depth: 0
 
       - name: Install Azure CLI
         run: |
@@ -69,6 +68,24 @@ jobs:
             echo "::add-mask::$swaToken"
             echo "SWA_CLI_DEPLOYMENT_TOKEN=$swaToken" >> $GITHUB_ENV
 
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0
+
+      - name: Set version tag
+        id: versiontag
+        run: |
+          VERSION_TAG="${{ steps.gitversion.outputs.Major }}."
+          VERSION_TAG+="${{ steps.gitversion.outputs.Minor }}."
+          VERSION_TAG+="${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
+          echo $VERSION_TAG
+          echo "versiontag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
+
       - name: Deploy SWA
         run: |
-          deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --application-id ${{vars.APPLICATION_CLIENT_ID}} --authority ${{secrets.APPLICATION_AUTHORITY}} --no-redirect
+          scripts/deploy/deploy-webapp.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{inputs.DEPLOYMENT_NAME}} --client-id ${{vars.FRONTEND_CLIENT_ID}} --no-redirect --version ${{ steps.versiontag.outputs.versiontag }} --version-info "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(date +"%Y-%m-%d")"

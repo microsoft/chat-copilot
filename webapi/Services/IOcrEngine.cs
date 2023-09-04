@@ -3,14 +3,13 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace SemanticKernel.Service.Services;
+namespace CopilotChat.WebApi.Services;
 
 /// <summary>
 /// An OCR engine that can read in text from image MIME type files.
 /// </summary>
 public interface IOcrEngine
 {
-
     /// <summary>
     /// Reads all text from the image file.
     /// </summary>

@@ -6,14 +6,22 @@ webapp:
 webapi:
   - webapi/**/*
 
+# Add 'dependencies' label to any change of the 'webapp/yarn.lock' file
+dependencies:
+  - webapp/yarn.lock
+
 # Add 'deployment' label to any change within the 'deploy' directory
 deployment:
-  - deploy/**/*
+  - scripts/deploy/**/*
 
 # Add 'documentation' label to any change of '.md' files
 documentation:
-  - '**/*.md'
+  - "**/*.md"
 
 # Add 'github actions' label to any change within the '.github/workflows' directory
-'github actions':
+"github actions":
   - .github/workflows/**/*
+
+# Add 'PR: ready for review' label to all PRs
+"PR: ready for review":
+  - "**"

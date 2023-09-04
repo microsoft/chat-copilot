@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace SemanticKernel.Service.Options;
+namespace CopilotChat.WebApi.Options;
 
 /// <summary>
 /// Configuration settings for connecting to Azure Cognitive Search.
@@ -20,10 +20,4 @@ public class AzureCognitiveSearchOptions
     /// </summary>
     [Required, NotEmptyOrWhitespace]
     public string Key { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Use ACS's vector search feature when set to true. (See https://learn.microsoft.com/en-us/azure/search/vector-search-overview)
-    /// Otherwise, use semantic search. (See https://learn.microsoft.com/en-us/azure/search/semantic-search-overview)
-    /// </summary>
-    public bool UseVectorSearch { get; set; } = false;
 }

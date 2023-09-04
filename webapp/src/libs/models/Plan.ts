@@ -15,4 +15,5 @@ export enum PlanState {
 export enum PlanType {
     Action, // single-step
     Sequential, // multi-step
+    Stepwise, // MRKL style planning
 }

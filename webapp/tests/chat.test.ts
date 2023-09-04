@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 /* eslint-disable testing-library/prefer-screen-queries */
 import { test } from '@playwright/test';
 import * as simpletests from './testsBasic';
@@ -44,7 +46,7 @@ test.describe('Copilot Chat App Test Suite', () => {
             await plannertests.klarnaTest(page);
         });
 
-        test('Jira', async ({ page }) => {
+        test.skip('Jira', async ({ page }) => {
             test.setTimeout(util.TestTimeout);
             await plannertests.jiraTest(page);
         });

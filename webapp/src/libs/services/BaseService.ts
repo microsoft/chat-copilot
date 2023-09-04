@@ -7,7 +7,8 @@ interface ServiceRequest {
     method?: string;
     body?: unknown;
 }
-const noResponseBodyStatusCodes = [202];
+
+const noResponseBodyStatusCodes = [202, 204];
 
 export class BaseService {
     // eslint-disable-next-line @typescript-eslint/space-before-function-paren
@@ -27,11 +28,6 @@ export class BaseService {
 
         if (!isFormData) {
             headers.append('Content-Type', 'application/json');
-        }
-
-        // API key auth for private hosted instances
-        if (process.env.REACT_APP_SK_API_KEY) {
-            headers.append('x-sk-api-key', process.env.REACT_APP_SK_API_KEY);
         }
 
         if (enabledPlugins && enabledPlugins.length > 0) {
