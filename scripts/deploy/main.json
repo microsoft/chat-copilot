@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "2962440850845888851"
+      "templateHash": "11718526058082360660"
     }
   },
   "parameters": {
@@ -157,7 +157,7 @@
     },
     "deployMemoryPipelinePackage": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Whether to deploy the memory pipeline package"
       }
@@ -428,6 +428,10 @@
             "value": "Warning"
           },
           {
+            "name": "Logging:ApplicationInsights:LogLevel:Default",
+            "value": "Warning"
+          },
+          {
             "name": "ApplicationInsights:ConnectionString",
             "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           },
@@ -449,7 +453,7 @@
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "Distributed"
+            "value": "InProcess"
           },
           {
             "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
@@ -604,7 +608,7 @@
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "Distributed"
+            "value": "InProcess"
           },
           {
             "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
