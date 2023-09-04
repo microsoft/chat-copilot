@@ -220,7 +220,7 @@ public class DocumentImportController : ControllerBase
         }
 
         // Check if the user has access to the chat session.
-        if (!await UserHasAccessToChatAsync(documentDeleteForm.UserId, documentDeleteForm.ChatId))
+        if (!await UserHasAccessToChatAsync(this._authInfo.UserId, documentDeleteForm.ChatId))
         {
             return BadRequest("User does not have access to the chat session.");
         }
@@ -695,7 +695,7 @@ public class DocumentImportController : ControllerBase
     private async Task ValidateDocumentDeleteFormAsync(DocumentDeleteForm documentDeleteForm)
     {
         // Make sure the user has access to the chat session where the document exists.
-        if (!(await UserHasAccessToChatAsync(documentDeleteForm.UserId, documentDeleteForm.ChatId)))
+        if (!(await UserHasAccessToChatAsync(this._authInfo.UserId, documentDeleteForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }

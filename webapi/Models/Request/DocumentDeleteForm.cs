@@ -24,10 +24,5 @@ public class DocumentDeleteForm
     /// </summary>
     public Guid ChatId { get; set; } = Guid.Empty;
 
-    /// <summary>
-    /// The ID of the user who is deleting the document from a chat session.
-    /// This will be used to validate if the user has access to the chat session.
-    /// </summary>
-    public string UserId { get; set; } = string.Empty;
 }
 
