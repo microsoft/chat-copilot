@@ -14,6 +14,7 @@ using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
@@ -22,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI;
@@ -44,15 +46,18 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ILogger<ChatController> _logger;
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
+    private readonly ServiceOptions _serviceOptions;
+
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService)
+    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
+        this._serviceOptions = serviceOptions.Value;
     }
 
     /// <summary>
@@ -132,11 +137,11 @@ public class ChatController : ControllerBase, IDisposable
         SKContext? result = null;
         try
         {
-            // Define a timeout duration, e.g. 60 seconds
-            var timeout = TimeSpan.FromSeconds(60);
+            // Create a cancellation token source with timeout if specified
+            using var cts = this._serviceOptions.TimeoutLimitInS is not null
+                ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS)) // Create a cancellation token source with the timeout
+                : new CancellationTokenSource(); // Create a cancellation token source without a timeout
 
-            // Create a cancellation token source with the timeout
-            using var cts = new CancellationTokenSource(timeout);
             result = await kernel.RunAsync(function!, contextVariables, cts.Token);
         }
         finally
@@ -151,7 +156,7 @@ public class ChatController : ControllerBase, IDisposable
                 return this.BadRequest(string.Concat(aiException.Message, " - Detail: " + aiException.Detail));
             }
 
-            if (result.LastException?.InnerException is OperationCanceledException)
+            if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 408 response
                 this._logger.LogError("The chat operation timed out.");
