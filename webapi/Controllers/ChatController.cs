@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
@@ -131,7 +132,12 @@ public class ChatController : ControllerBase, IDisposable
         SKContext? result = null;
         try
         {
-            result = await kernel.RunAsync(contextVariables, function!);
+            // Define a timeout duration, e.g. 60 seconds
+            var timeout = TimeSpan.FromSeconds(60);
+
+            // Create a cancellation token source with the timeout
+            using var cts = new CancellationTokenSource(timeout);
+            result = await kernel.RunAsync(function!, contextVariables, cts.Token);
         }
         finally
         {
@@ -143,6 +149,13 @@ public class ChatController : ControllerBase, IDisposable
             if (result.LastException is AIException aiException && aiException.Detail is not null)
             {
                 return this.BadRequest(string.Concat(aiException.Message, " - Detail: " + aiException.Detail));
+            }
+
+            if (result.LastException?.InnerException is OperationCanceledException)
+            {
+                // Log the timeout and return a 408 response
+                this._logger.LogError("The chat operation timed out.");
+                return this.StatusCode(StatusCodes.Status408RequestTimeout);
             }
 
             return this.BadRequest(result.LastException!.Message);
