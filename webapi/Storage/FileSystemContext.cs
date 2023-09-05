@@ -65,7 +65,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     }
 
     /// <inheritdoc/>
-    public Task<T> ReadAsync(string entityId)
+    public Task<T> ReadAsync(string entityId, string partitionKey)
     {
         if (string.IsNullOrWhiteSpace(entityId))
         {

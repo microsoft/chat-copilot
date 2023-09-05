@@ -10,53 +10,56 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const envPath = path.resolve(dirname, '.env');
 if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath });
+    dotenv.config({ path: envPath });
 }
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './tests',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 3 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    testDir: './tests',
+    /* Run tests in files in parallel */
+    fullyParallel: true,
+    /* Fail the build on CI if you accidentally left test.only in the source code. */
+    forbidOnly: !!process.env.CI,
+    /* Retry on CI only */
+    retries: process.env.CI ? 3 : 0,
+    /* Opt out of parallel tests on CI. */
+    workers: process.env.CI ? 1 : undefined,
+    /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+    reporter: 'html',
+    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+    use: {
+        /* Base URL to use in actions like `await page.goto('/')`. */
+        baseURL: 'http://localhost:3000',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+        /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+        trace: 'on-first-retry',
 
-    /* Ignore certificate errors. */
-    ignoreHTTPSErrors: true,
+        /* Ignore certificate errors. */
+        ignoreHTTPSErrors: true,
 
-    /* Add permissions to copy text to clipboard */
-    permissions: ['clipboard-write'],
-  },
-
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+        /* Add permissions to copy text to clipboard */
+        permissions: ['clipboard-write'],
     },
-    // Add more browsers here.
-  ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'yarn start',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+    /* Each test is given 30 seconds to complete by default. */
+    timeout: 30000,
+
+    /* Configure projects for major browsers */
+    projects: [
+        {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+        },
+        // Add more browsers here.
+    ],
+
+    /* Run your local dev server before starting the tests */
+    webServer: {
+        command: 'yarn start',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+    },
 });

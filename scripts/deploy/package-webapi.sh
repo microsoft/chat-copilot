@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Package CiopilotChat's WebAPI for deployment to Azure
 

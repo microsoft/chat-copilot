@@ -59,33 +59,23 @@ public static class Program
     /// Acquires a user account from Azure AD.
     /// </summary>
     /// <param name="config">The App configuration.</param>
-    /// <param name="setAccount">Sets the account to the first account found.</param>
     /// <param name="setAccessToken">Sets the access token to the first account found.</param>
     /// <returns>True if the user account was acquired.</returns>
-    private static async Task<bool> AcquireUserAccountAsync(
+    private static async Task<bool> AcquireTokenAsync(
         Config config,
-        Action<IAccount> setAccount,
         Action<string> setAccessToken)
     {
-        Console.WriteLine("Requesting User Account ID...");
+        Console.WriteLine("Attempting to authenticate user...");
 
-        string[] scopes = { "User.Read" };
+        var webApiScope = $"api://{config.BackendClientId}/{config.Scopes}";
+        string[] scopes = { webApiScope };
         try
         {
             var app = PublicClientApplicationBuilder.Create(config.ClientId)
                 .WithRedirectUri(config.RedirectUri)
+                .WithAuthority(config.Instance, config.TenantId)
                 .Build();
             var result = await app.AcquireTokenInteractive(scopes).ExecuteAsync();
-            IEnumerable<IAccount>? accounts = await app.GetAccountsAsync();
-            IAccount? first = accounts.FirstOrDefault();
-
-            if (first is null)
-            {
-                Console.WriteLine("Error: No accounts found");
-                return false;
-            }
-
-            setAccount(first);
             setAccessToken(result.AccessToken);
             return true;
         }
@@ -113,15 +103,16 @@ public static class Program
             }
         }
 
-        IAccount? userAccount = null;
         string? accessToken = null;
-
-        if (await AcquireUserAccountAsync(config, v => { userAccount = v; }, v => { accessToken = v; }) == false)
+        if (config.AuthenticationType == "AzureAd")
         {
-            Console.WriteLine("Error: Failed to acquire user account.");
-            return;
+            if (await AcquireTokenAsync(config, v => { accessToken = v; }) == false)
+            {
+                Console.WriteLine("Error: Failed to acquire access token.");
+                return;
+            }
+            Console.WriteLine($"Successfully acquired access token. Continuing...");
         }
-        Console.WriteLine($"Successfully acquired User ID. Continuing...");
 
         using var formContent = new MultipartFormDataContent();
         List<StreamContent> filesContent = files.Select(file => new StreamContent(file.OpenRead())).ToList();
@@ -129,11 +120,6 @@ public static class Program
         {
             formContent.Add(filesContent[i], "formFiles", files.ElementAt(i).Name);
         }
-
-        var userId = userAccount!.HomeAccountId.Identifier;
-        var userName = userAccount.Username;
-        using var userNameContent = new StringContent(userName);
-        formContent.Add(userNameContent, "userName");
 
         if (chatCollectionId != Guid.Empty)
         {
@@ -144,7 +130,7 @@ public static class Program
             formContent.Add(chatCollectionIdContent, "chatId");
 
             // Calling UploadAsync here to make sure disposable objects are still in scope.
-            await UploadAsync(formContent, accessToken!, config);
+            await UploadAsync(formContent, accessToken, config);
         }
         else
         {
@@ -153,7 +139,7 @@ public static class Program
             formContent.Add(globalScopeContent, "documentScope");
 
             // Calling UploadAsync here to make sure disposable objects are still in scope.
-            await UploadAsync(formContent, accessToken!, config);
+            await UploadAsync(formContent, accessToken, config);
         }
 
         // Dispose of all the file streams.
@@ -170,7 +156,7 @@ public static class Program
     /// <param name="config">Configuration.</param>
     private static async Task UploadAsync(
         MultipartFormDataContent multipartFormDataContent,
-        string accessToken,
+        string? accessToken,
         Config config)
     {
         // Create a HttpClient instance and set the timeout to infinite since
@@ -183,8 +169,12 @@ public static class Program
         {
             Timeout = Timeout.InfiniteTimeSpan
         };
-        // Add required properties to the request header.
-        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+        if (config.AuthenticationType == "AzureAd")
+        {
+            // Add required properties to the request header.
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken!}");
+        }
 
         try
         {

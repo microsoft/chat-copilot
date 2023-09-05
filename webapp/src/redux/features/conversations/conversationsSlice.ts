@@ -154,6 +154,28 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
                 frontLoadChat(state, chatId);
             }
         },
+        deleteConversation: (state: ConversationsState, action: PayloadAction<string>) => {
+            const keys = Object.keys(state.conversations);
+            const id = action.payload;
+
+            // If the conversation being deleted is the selected conversation, select the first remaining conversation
+            if (id === state.selectedId) {
+                if (keys.length > 1) {
+                    state.selectedId = id === keys[0] ? keys[1] : keys[0];
+                } else {
+                    state.selectedId = '';
+                }
+            }
+
+            const { [id]: _, ...rest } = state.conversations;
+            state.conversations = rest;
+        },
+        disableConversation: (state: ConversationsState, action: PayloadAction<string>) => {
+            const id = action.payload;
+            state.conversations[id].disabled = true;
+            frontLoadChat(state, id);
+            return;
+        },
     },
 });
 
@@ -196,6 +218,8 @@ export const {
     updateUserIsTypingFromServer,
     updateBotResponseStatus,
     setUsersLoaded,
+    deleteConversation,
+    disableConversation,
 } = conversationsSlice.actions;
 
 export default conversationsSlice.reducer;

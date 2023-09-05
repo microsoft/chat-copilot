@@ -1,6 +1,6 @@
 ### Motivation and Context
 
-<!-- Thank you for your contribution to the copilot-chat repo!
+<!-- Thank you for your contribution to the chat-copilot repo!
 Please help reviewers and future users, providing the following information:
   1. Why is this change required?
   2. What problem does it solve?
@@ -18,6 +18,6 @@ Please help reviewers and future users, providing the following information:
 <!-- Before submitting this PR, please make sure: -->
 
 - [ ] The code builds clean without any errors or warnings
-- [ ] The PR follows the [Contribution Guidelines](https://github.com/microsoft/copilot-chat/blob/main/CONTRIBUTING.md) and the [pre-submission formatting script](https://github.com/microsoft/copilot-chat/blob/main/CONTRIBUTING.md#development-scripts) raises no violations
+- [ ] The PR follows the [Contribution Guidelines](https://github.com/microsoft/chat-copilot/blob/main/CONTRIBUTING.md) and the [pre-submission formatting script](https://github.com/microsoft/chat-copilot/blob/main/CONTRIBUTING.md#development-scripts) raises no violations
 - [ ] All unit tests pass, and I have added new tests where possible
 - [ ] I didn't break anyone :smile:

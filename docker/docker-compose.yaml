@@ -1,0 +1,33 @@
+version: '3'
+services:
+  chat-copilot-webapp:
+    image: chat-copilot-webapp-nginx
+    build: 
+      context: ..
+      dockerfile: docker/webapp/Dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - ../webapp/.env
+    depends_on:
+      chat-copilot-webapi:
+        condition: service_started
+  chat-copilot-webapi:
+    image: chat-copilot-webapi
+    build: 
+      context: ..
+      dockerfile: docker/webapi/Dockerfile
+    ports:
+      - 8080:8080
+    env_file:
+      - ../webapi/.env
+    environment:
+      - MemoryStore__Qdrant__Host=http://qdrant
+    depends_on:
+      qdrant:
+        condition: service_started
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - 6333:6333
+

@@ -8,6 +8,10 @@ root = true
 indent_style = space
 end_of_line = lf
 
+# Bash scripts
+[*.sh]
+indent_size = 2
+
 # XML project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
 indent_size = 2

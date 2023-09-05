@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Storage;
 
@@ -108,6 +109,12 @@ public class ChatMessage : IStorageEntity
     /// Counts of total token usage used to generate bot response.
     /// </summary>
     public Dictionary<string, int>? TokenUsage { get; set; }
+
+    /// <summary>
+    /// The partition key for the source.
+    /// </summary>
+    [JsonIgnore]
+    public string Partition => this.ChatId;
 
     /// <summary>
     /// Create a new chat message. Timestamp is automatically generated.

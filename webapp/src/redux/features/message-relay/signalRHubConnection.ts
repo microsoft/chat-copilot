@@ -2,6 +2,8 @@
 
 import * as signalR from '@microsoft/signalr';
 import { Constants } from '../../../Constants';
+import { COPY } from '../../../assets/strings';
+import { getFriendlyChatName } from '../../../libs/hooks/useChat';
 import { AlertType } from '../../../libs/models/AlertType';
 import { AuthorRoles, ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
@@ -24,6 +26,7 @@ const enum SignalRCallbackMethods {
     ReceiveBotResponseStatus = 'ReceiveBotResponseStatus',
     GlobalDocumentUploaded = 'GlobalDocumentUploaded',
     ChatEdited = 'ChatEdited',
+    ChatDeleted = 'ChatDeleted',
 }
 
 // Set up a SignalR connection to the messageRelayHub on the server
@@ -182,6 +185,35 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
             );
         }
         store.dispatch({ type: 'conversations/editConversationTitle', payload: { id, newTitle: title } });
+    });
+
+    // User Id is that of the user who initiated the deletion.
+    hubConnection.on(SignalRCallbackMethods.ChatDeleted, (chatId: string, userId: string) => {
+        const conversations = store.getState().conversations.conversations;
+        if (!(chatId in conversations)) {
+            store.dispatch({
+                message: `Chat ${chatId} not found in store. ChatDeleted signal from server was not processed. ${COPY.REFRESH_APP_ADVISORY}`,
+                type: AlertType.Error,
+            });
+        } else {
+            const friendlyChatName = getFriendlyChatName(conversations[chatId]);
+            const deletedByAnotherUser = userId !== store.getState().app.activeUserInfo?.id;
+
+            store.dispatch(
+                addAlert({
+                    message: deletedByAnotherUser
+                        ? COPY.CHAT_DELETED_MESSAGE(friendlyChatName)
+                        : `Chat {${friendlyChatName}} deleted successfully.`,
+                    type: AlertType.Warning,
+                }),
+            );
+
+            if (deletedByAnotherUser)
+                store.dispatch({
+                    type: 'conversations/disableConversation',
+                    payload: chatId,
+                });
+        }
     });
 };
 

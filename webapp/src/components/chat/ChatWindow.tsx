@@ -91,14 +91,11 @@ const useClasses = makeStyles({
 export const ChatWindow: React.FC = () => {
     const classes = useClasses();
     const { features } = useAppSelector((state: RootState) => state.app);
-
-    const showShareBotMenu = features[FeatureKeys.BotAsDocs].enabled || features[FeatureKeys.MultiUserChat].enabled;
-
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const showShareBotMenu = features[FeatureKeys.BotAsDocs].enabled || features[FeatureKeys.MultiUserChat].enabled;
     const chatName = conversations[selectedId].title;
 
     const [isEditing, setIsEditing] = useState<boolean>(false);
-
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('chat');
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);

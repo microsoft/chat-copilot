@@ -56,6 +56,7 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
                                 onChange={() => {
                                     onFeatureChange(key);
                                 }}
+                                data-testid={feature.label}
                             />
                             <Text
                                 className={classes.featureDescription}
