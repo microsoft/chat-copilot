@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
@@ -47,13 +48,15 @@ public class SemanticChatMemorySkill
     /// </summary>
     /// <param name="query">Query to match.</param>
     /// <param name="context">The SKContext</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A string containing the relevant memories.</returns>
     [SKFunction, Description("Query chat memories")]
     public async Task<string> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
         [Description("Chat ID to query history from")] string chatId,
         [Description("Maximum number of tokens")] int tokenLimit,
-        ISemanticTextMemory textMemory)
+        ISemanticTextMemory textMemory,
+        CancellationToken cancellationToken = default)
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
@@ -74,7 +77,8 @@ public class SemanticChatMemorySkill
                     memoryCollectionName,
                     query,
                     limit: 100,
-                    minRelevanceScore: this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance));
+                    minRelevanceScore: this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
+                    cancellationToken: cancellationToken);
                 await foreach (var memory in results)
                 {
                     relevantMemories.Add(memory);

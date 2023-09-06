@@ -8,11 +8,13 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
@@ -21,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI;
@@ -43,15 +46,18 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ILogger<ChatController> _logger;
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
+    private readonly ServiceOptions _serviceOptions;
+
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService)
+    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
+        this._serviceOptions = serviceOptions.Value;
     }
 
     /// <summary>
@@ -72,6 +78,7 @@ public class ChatController : ControllerBase, IDisposable
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> ChatAsync(
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
@@ -131,7 +138,12 @@ public class ChatController : ControllerBase, IDisposable
         SKContext? result = null;
         try
         {
-            result = await kernel.RunAsync(contextVariables, function!);
+            using CancellationTokenSource? cts = this._serviceOptions.TimeoutLimitInS is not null
+                // Create a cancellation token source with the timeout if specified
+                ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS))
+                : null;
+
+            result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
         }
         finally
         {
@@ -143,6 +155,13 @@ public class ChatController : ControllerBase, IDisposable
             if (result.LastException is AIException aiException && aiException.Detail is not null)
             {
                 return this.BadRequest(string.Concat(aiException.Message, " - Detail: " + aiException.Detail));
+            }
+
+            if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)
+            {
+                // Log the timeout and return a 504 response
+                this._logger.LogError("The chat operation timed out.");
+                return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
             }
 
             return this.BadRequest(result.LastException!.Message);
