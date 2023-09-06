@@ -49,7 +49,7 @@ export class BaseService {
             if (!response.ok) {
                 const responseText = await response.text();
 
-                if (response.status === 408) {
+                if (response.status === 504) {
                     throw Object.assign(new Error('The request timed out. Please try sending your message again.'));
                 }
 
