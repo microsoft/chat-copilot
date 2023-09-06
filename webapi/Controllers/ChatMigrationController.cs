@@ -36,7 +36,7 @@ public class ChatMigrationController : ControllerBase
     /// <summary>
     /// Route for reporting the status of chat migration.
     /// </summary>
-    [Route("maintenance/")]
+    [Route("migrationstatus/")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

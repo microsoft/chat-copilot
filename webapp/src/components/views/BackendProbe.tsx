@@ -15,7 +15,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
     const classes = useSharedClasses();
     const { isMigrating } = useAppSelector((state: RootState) => state.app);
     const healthUrl = new URL('healthz', uri);
-    const migrationUrl = new URL('maintenance', uri);
+    const migrationUrl = new URL('migrationstatus', uri);
 
     console.log(`# ${isMigrating} (PROBE)`); // $$$
 
