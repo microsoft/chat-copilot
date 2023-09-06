@@ -27,6 +27,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.Skills.MsGraph;
@@ -127,9 +128,9 @@ public class ChatController : ControllerBase, IDisposable
         {
             function = kernel.Skills.GetFunction(ChatSkillName, ChatFunctionName);
         }
-        catch (KernelException ke)
+        catch (SKException ex)
         {
-            this._logger.LogError("Failed to find {0}/{1} on server: {2}", ChatSkillName, ChatFunctionName, ke);
+            this._logger.LogError("Failed to find {0}/{1} on server: {2}", ChatSkillName, ChatFunctionName, ex);
 
             return this.NotFound($"Failed to find {ChatSkillName}/{ChatFunctionName} on server");
         }

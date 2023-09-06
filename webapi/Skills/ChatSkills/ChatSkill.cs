@@ -109,14 +109,16 @@ public class ChatSkill
 
         this._semanticChatMemorySkill = new SemanticChatMemorySkill(
             promptOptions,
-            chatSessionRepository, logger);
+            chatSessionRepository,
+            logger);
         this._documentMemorySkill = new DocumentMemorySkill(
             promptOptions,
             documentImportOptions,
             logger);
         this._externalInformationSkill = new ExternalInformationSkill(
             promptOptions,
-            planner);
+            planner,
+            logger);
         this._contentSafety = contentSafety;
     }
 
@@ -159,7 +161,7 @@ public class ChatSkill
         );
 
         // Get token usage from ChatCompletion result and add to context
-        TokenUtilities.GetFunctionTokenUsage(result, context, "SystemIntentExtraction");
+        TokenUtilities.GetFunctionTokenUsage(result, context, this._logger, "SystemIntentExtraction");
 
         result.ThrowIfFailed();
 
@@ -203,7 +205,7 @@ public class ChatSkill
         );
 
         // Get token usage from ChatCompletion result and add to context
-        TokenUtilities.GetFunctionTokenUsage(result, context, "SystemAudienceExtraction");
+        TokenUtilities.GetFunctionTokenUsage(result, context, this._logger, "SystemAudienceExtraction");
 
         result.ThrowIfFailed();
 
@@ -323,7 +325,7 @@ public class ChatSkill
         }
         else
         {
-            context.Logger.LogWarning("ChatSkill token usage unknown. Ensure token management has been implemented correctly.");
+            this._logger.LogWarning("ChatSkill token usage unknown. Ensure token management has been implemented correctly.");
         }
 
         return context;
@@ -443,7 +445,7 @@ public class ChatSkill
         var promptView = new BotResponsePrompt(renderedPrompt, this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, systemChatContinuation);
 
         // Calculate token usage of prompt template
-        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(chatContext.Logger, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
+        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.TokenCount(renderedPrompt).ToString(CultureInfo.InvariantCulture));
 
         chatContext.ThrowIfFailed();
 
@@ -485,7 +487,7 @@ public class ChatSkill
         var audience = await this.ExtractAudienceAsync(audienceContext, cancellationToken);
 
         // Copy token usage into original chat context
-        var functionKey = TokenUtilities.GetFunctionKey(context.Logger, "SystemAudienceExtraction")!;
+        var functionKey = TokenUtilities.GetFunctionKey(this._logger, "SystemAudienceExtraction")!;
         if (audienceContext.Variables.TryGetValue(functionKey, out string? tokenUsage))
         {
             context.Variables.Set(functionKey, tokenUsage);
@@ -512,7 +514,7 @@ public class ChatSkill
             userIntent = await this.ExtractUserIntentAsync(intentContext, cancellationToken);
 
             // Copy token usage into original chat context
-            var functionKey = TokenUtilities.GetFunctionKey(context.Logger, "SystemIntentExtraction")!;
+            var functionKey = TokenUtilities.GetFunctionKey(this._logger, "SystemIntentExtraction")!;
             if (intentContext.Variables.TryGetValue(functionKey!, out string? tokenUsage))
             {
                 context.Variables.Set(functionKey!, tokenUsage);
