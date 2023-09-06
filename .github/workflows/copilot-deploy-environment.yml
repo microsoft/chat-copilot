@@ -18,6 +18,10 @@ on:
         required: true
       AZURE_OPENAI_ENDPOINT:
         required: true
+    outputs:
+      backend-host:
+        description: "Host on which backend runs"
+        value: ${{jobs.deploy-backend.outputs.backend-host}}
 
 permissions:
   contents: read
