@@ -35,6 +35,8 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class SemanticKernelExtensions
 {
+    private const int VectorMemoryDimensions = 1536; // $$$ TODO: Consolidate with semantic memory
+
     /// <summary>
     /// Delegate to register skills with a Semantic Kernel
     /// </summary>
@@ -182,7 +184,7 @@ internal static class SemanticKernelExtensions
                 var memoryType = Enum.Parse<MemoryStoreType>(configMemory.Retrieval.VectorDbType, ignoreCase: true);
                 switch (memoryType)
                 {
-                    //case MemoryStoreType.Volatile: // TODO: $$$ PLANNER
+                    //case MemoryStoreType.Volatile: // $$$ TODO: Verify needed for planner ???
                     //    services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
                     //    break;
 
@@ -202,7 +204,7 @@ internal static class SemanticKernelExtensions
 
                         return new QdrantMemoryStore(
                             httpClient,
-                            1536, // $$$ configStorage.VectorSize,
+                            VectorMemoryDimensions,
                             configStorage.Endpoint,
                             logger: sp.GetRequiredService<ILogger<IQdrantVectorDbClient>>()
                         );
@@ -218,42 +220,6 @@ internal static class SemanticKernelExtensions
 
                         return new AzureCognitiveSearchMemoryStore(configStorage.Endpoint, configStorage.APIKey);
                     }
-
-                    case MemoryStoreType.Chroma: // TODO: $$$ STORAGE
-                    /*
-                        if (config.Chroma == null)
-                        {
-                            throw new InvalidOperationException("MemoryStore type is Chroma and Chroma configuration is null.");
-                        }
-
-                        HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                        var endPointBuilder = new UriBuilder(config.Chroma.Host);
-                        endPointBuilder.Port = config.Chroma.Port;
-
-                        return new ChromaMemoryStore(
-                            httpClient: httpClient,
-                            endpoint: endPointBuilder.ToString(),
-                            logger: sp.GetRequiredService<ILogger<IChromaClient>>()
-                        );
-                     */
-
-                    case MemoryStoreType.Postgres: // TODO: $$$ STORAGE
-                    /*
-                        if (config.Postgres == null)
-                        {
-                            throw new InvalidOperationException("MemoryStore type is Cosmos and Cosmos configuration is null.");
-                        }
-
-                        var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
-                        dataSourceBuilder.UseVector();
-
-                        return new PostgresMemoryStore(
-                            dataSource: dataSourceBuilder.Build(),
-                            vectorSize: config.Postgres.VectorSize
-                        );
-
-                        break;
-                     */
 
                     default:
                         throw new InvalidOperationException($"Invalid 'MemoryStore' type '{configMemory.Retrieval.VectorDbType}'.");

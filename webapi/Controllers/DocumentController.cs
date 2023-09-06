@@ -91,73 +91,6 @@ public class DocumentController : ControllerBase
     /// <summary>
     /// Service API for importing a document.
     /// </summary>
-    [Route("documents/importstatus")] // $$$ STATUS GET ???
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DocumentStatusAsync(
-        [FromServices] ISemanticMemoryClient memoryClient,
-        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
-        [FromBody] DocumentStatusForm documentStatusForm)
-    {
-        try
-        {
-            await this.ValidateDocumentStatusFormAsync(documentStatusForm);
-        }
-        catch (ArgumentException ex)
-        {
-            return this.BadRequest(ex.Message);
-        }
-
-        var chatId = documentStatusForm.ChatId.ToString();
-        var targetCollectionName = documentStatusForm.DocumentScope == DocumentScopes.Global
-            ? this._options.GlobalDocumentCollectionName
-            : this._options.ChatDocumentCollectionNamePrefix + chatId;
-
-        var statusResults = await QueryAsync().ToArrayAsync();
-
-        //// Broadcast the document status event to other users.
-        //if (documentStatusForm.DocumentScope == DocumentScopes.Chat) $$$ STATUS DESIGN
-        //{
-        //    await messageRelayHubContext.Clients.Group(chatId)
-        //        .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage); // $$$ STATUS
-
-        //    return this.Ok(chatMessage);
-        //}
-
-        //await messageRelayHubContext.Clients.All.SendAsync(
-        //    GlobalDocumentUploadedClientCall, // $$$ STATUS
-        //    documentMessageContent.ToFormattedStringNamesOnly(),
-        //    documentStatusForm.UserName
-        //);
-
-        return this.Ok("Documents status reported.");
-
-        async IAsyncEnumerable<StatusResult> QueryAsync()
-        {
-            foreach (var documentReference in documentStatusForm.FileReferences)
-            {
-                var status = await memoryClient.GetDocumentStatusAsync(targetCollectionName!, documentReference!);
-                if (status == null)
-                {
-                    yield return new StatusResult(targetCollectionName, documentReference);
-                }
-                else
-                {
-                    yield return new StatusResult(targetCollectionName, documentReference)
-                    {
-                        IsStarted = true,
-                        IsCompleted = status.Completed,
-                        LastUpdate = status.LastUpdate
-                    };
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Service API for importing a document.
-    /// </summary>
     [Route("documents")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -345,52 +278,6 @@ public class DocumentController : ControllerBase
         /// Create a new instance of the <see cref="ImportResult"/> class representing a failed import.
         /// </summary>
         public static ImportResult Fail { get; } = new(string.Empty);
-    }
-
-    /// <summary>
-    /// A class to store a document import results.
-    /// </summary>
-    private sealed class StatusResult
-    {
-        /// <summary>
-        /// A boolean indicating whether the import is started.
-        /// </summary>
-        public bool IsStarted { get; set; } = false;
-
-        /// <summary>
-        /// A boolean indicating whether the import is completed.
-        /// </summary>
-        public bool IsCompleted { get; set; } = false;
-
-        /// <summary>
-        /// The name of the collection that the document is inserted to.
-        /// </summary>
-        public string CollectionName { get; set; }
-
-        /// <summary>
-        /// The file identifier.
-        /// </summary>
-        public string FileReference { get; }
-
-        /// <summary>
-        /// The file identifier.
-        /// </summary>
-        public DateTimeOffset LastUpdate { get; set; } = default;
-
-        /// <summary>
-        /// Create a new instance of the <see cref="StatusResult"/> class.
-        /// </summary>
-        /// <param name="collectionName">The name of the collection that the document is inserted to.</param>
-        public StatusResult(string collectionName, string fileReference)
-        {
-            this.CollectionName = collectionName;
-            this.FileReference = fileReference;
-        }
-
-        /// <summary>
-        /// Create a new instance of the <see cref="StatusResult"/> class representing a failed import.
-        /// </summary>
-        public static StatusResult Fail { get; } = new(string.Empty, string.Empty);
     }
 
     /// <summary>
