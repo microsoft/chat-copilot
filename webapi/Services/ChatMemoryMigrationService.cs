@@ -16,7 +16,7 @@ using Microsoft.SemanticMemory;
 namespace CopilotChat.WebApi.Services;
 
 /// <summary>
-/// $$$
+/// Service implementation of <see cref="IChatMemoryMigrationService"/>.
 /// </summary>
 public class ChatMemoryMigrationService : IChatMemoryMigrationService
 {
@@ -41,9 +41,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         this._chatSessionRepository = chatSessionRepository;
     }
 
-    /// <summary>
-    /// Migrates all non-document memory to the semantic-memory index.
-    /// </summary>
+    ///<inheritdoc/>
     public async Task MigrateAsync(ISemanticTextMemory memory, CancellationToken cancelToken = default)
     {
         var shouldMigrate = false;
@@ -73,7 +71,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
             await this._memoryClient.StoreMemoryAsync(this._promptOptions.MemoryIndexName, chatId, memoryName, memoryId, memoryText, cancelToken);
         }
 
-        await SetTokenMemory("Done", cancelToken).ConfigureAwait(false); // $$$ DONE Const
+        await SetTokenMemory(ChatMigrationMonitor.MigrationCompletionToken, cancelToken).ConfigureAwait(false);
 
         // Inline function to extract all memories for a given chat and memory type.
         async IAsyncEnumerable<(string chatId, string memoryName, string memoryId, string memoryText)> QueryMemoriesAsync()

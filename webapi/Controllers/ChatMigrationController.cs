@@ -14,14 +14,11 @@ using Microsoft.SemanticKernel;
 namespace CopilotChat.WebApi.Controllers;
 
 /// <summary>
-/// $$$
+/// Controller for reporting the status of chat migration.
 /// </summary>
 [ApiController]
 public class ChatMigrationController : ControllerBase
 {
-    private const string GlobalChatMigrationActiveCall = "GlobalChatMigrationActive";
-    private const string GlobalChatMigrationCompleteCall = "GlobalChatMigrationComplete";
-
     private readonly ILogger<ChatMigrationController> _logger;
     private readonly IAuthInfo _authInfo;
 
@@ -37,13 +34,13 @@ public class ChatMigrationController : ControllerBase
     }
 
     /// <summary>
-    /// $$$
+    /// Route for reporting the status of chat migration.
     /// </summary>
     [Route("maintenance/")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ChatVersionStatus>> MigrateStatusAsync(
+    public async Task<ActionResult<ChatMigrationStatus>> MigrateStatusAsync(
         [FromServices] IKernel kernel,
         [FromServices] IChatMigrationMonitor migrationMonitor,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
@@ -51,13 +48,9 @@ public class ChatMigrationController : ControllerBase
     {
         var migrationStatus = await migrationMonitor.GetCurrentStatusAsync(kernel.Memory, cancelToken).ConfigureAwait(false);
 
-        if (migrationStatus != ChatVersionStatus.None)
+        if (migrationStatus != ChatMigrationStatus.None)
         {
-            await messageRelayHubContext.Clients.All.SendAsync(GlobalChatMigrationActiveCall, "Chat migration in progress", cancelToken).ConfigureAwait(false);
-        }
-        else
-        {
-            await messageRelayHubContext.Clients.All.SendAsync(GlobalChatMigrationCompleteCall, "Chat migration completed.", cancelToken).ConfigureAwait(false);
+            await messageRelayHubContext.Clients.All.SendAsync(ChatMigrationMiddleware.GlobalChatMigrationActiveCall, "Chat migration in progress", cancelToken).ConfigureAwait(false);
         }
 
         return this.Ok($"Migration status: {migrationStatus.Label}");

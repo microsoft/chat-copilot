@@ -13,13 +13,14 @@ using Microsoft.SemanticKernel.Memory;
 namespace CopilotChat.WebApi.Services;
 
 /// <summary>
-/// $$$
+/// Service implementation of <see cref=IChatMigrationMonitor""/>.
 /// </summary>
 public class ChatMigrationMonitor : IChatMigrationMonitor
 {
+    internal const string MigrationCompletionToken = "DONE";
     internal const string MigrationKey = "migrate-00000000-0000-0000-0000-000000000000";
 
-    private static ChatVersionStatus? _cachedStatus;
+    private static ChatMigrationStatus? _cachedStatus;
     private static bool? _hasCurrentIndex;
 
     private readonly ILogger<ChatMigrationMonitor> _logger;
@@ -36,10 +37,8 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
         this._indexNameAllMemory = promptOptions.Value.MemoryIndexName;
     }
 
-    /// <summary>
-    /// $$$
-    /// </summary>
-    public async Task<ChatVersionStatus> GetCurrentStatusAsync(ISemanticTextMemory memory, CancellationToken cancelToken = default) // $$$ RETURN string / id ???
+    /// <inheritdoc/>
+    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(ISemanticTextMemory memory, CancellationToken cancelToken = default)
     {
         if (_cachedStatus == null)
         {
@@ -60,7 +59,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             // Refresh status if we have a cached value for any state other than: ChatVersionStatus.None.
             switch (_cachedStatus)
             {
-                case (ChatVersionStatus s) when (s == ChatVersionStatus.RequiresUpgrade || s == ChatVersionStatus.Upgrading):
+                case (ChatMigrationStatus s) when (s == ChatMigrationStatus.RequiresUpgrade || s == ChatMigrationStatus.Upgrading):
                     _cachedStatus = await QueryStatusAsync().ConfigureAwait(false);
                     break;
 
@@ -69,11 +68,11 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             }
         }
 
-        return _cachedStatus ?? ChatVersionStatus.None;
+        return _cachedStatus ?? ChatMigrationStatus.None;
 
         // Inline function to determine if the new "target" index already exists.
         // If not, we need to upgrade; otherwise, further inspection is required.
-        async Task<ChatVersionStatus?> QueryCollectionAsync()
+        async Task<ChatMigrationStatus?> QueryCollectionAsync()
         {
             try
             {
@@ -87,7 +86,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
 
                     if (!_hasCurrentIndex ?? false)
                     {
-                        return ChatVersionStatus.RequiresUpgrade; // No index == update required
+                        return ChatMigrationStatus.RequiresUpgrade; // No index == update required
                     }
                 }
             }
@@ -99,7 +98,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             return null; // Further inspection required
         }
 
-        async Task<ChatVersionStatus> QueryStatusAsync()
+        async Task<ChatMigrationStatus> QueryStatusAsync()
         {
             if (_hasCurrentIndex ?? false)
             {
@@ -114,14 +113,14 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
 
                     if (result != null)
                     {
-                        var text = result.Metadata.Text; // $$$ MODEL: Status, Initiator, Timestamp
+                        var text = result.Metadata.Text;
 
-                        if (!string.IsNullOrWhiteSpace(text) && text.Equals("Done", StringComparison.OrdinalIgnoreCase)) // $$$ DONE Const
+                        if (!string.IsNullOrWhiteSpace(text) && text.Equals(MigrationCompletionToken, StringComparison.OrdinalIgnoreCase))
                         {
-                            return ChatVersionStatus.None;
+                            return ChatMigrationStatus.None;
                         }
 
-                        return ChatVersionStatus.Upgrading;
+                        return ChatMigrationStatus.Upgrading;
                     }
                 }
                 catch (SKException exception)
@@ -130,7 +129,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 }
             }
 
-            return ChatVersionStatus.RequiresUpgrade;
+            return ChatMigrationStatus.RequiresUpgrade;
         }
     }
 }

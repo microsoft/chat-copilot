@@ -19,8 +19,7 @@ namespace CopilotChat.WebApi.Services;
 /// </summary>
 public class ChatMigrationMiddleware
 {
-    private const string GlobalChatMigrationActiveCall = "GlobalChatMigrationActive"; // $$$ DUPE
-    private const string GlobalChatMigrationCompleteCall = "GlobalChatMigrationComplete";
+    internal const string GlobalChatMigrationActiveCall = "GlobalChatMigrationActive";
 
     private readonly RequestDelegate _next;
     private readonly IOptions<DocumentMemoryOptions> _documentMemoryOptions;
@@ -57,12 +56,12 @@ public class ChatMigrationMiddleware
         // Monitor caches status for minimum middle-ware impact
         var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(kernel.Memory).ConfigureAwait(false);
 
-        if (migrationStatus != ChatVersionStatus.None)
+        if (migrationStatus != ChatMigrationStatus.None)
         {
             await this._messageRelayHubContext.Clients.All.SendAsync(GlobalChatMigrationActiveCall, "Chat migration in progress").ConfigureAwait(false);
         }
 
-        if (migrationStatus == ChatVersionStatus.RequiresUpgrade)
+        if (migrationStatus == ChatMigrationStatus.RequiresUpgrade)
         {
             // $$$ BACKGROUND JOB
             try
@@ -72,8 +71,6 @@ public class ChatMigrationMiddleware
 
                 // Migrate all chats to single index
                 await this._migrationService.MigrateAsync(kernel.Memory);
-
-                await this._messageRelayHubContext.Clients.All.SendAsync(GlobalChatMigrationCompleteCall, "Chat migration complete").ConfigureAwait(false);
             }
             catch (Exception ex) when (!ex.IsCriticalException())
             {
