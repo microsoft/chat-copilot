@@ -29,7 +29,7 @@ export class DocumentImportService extends BaseService {
     public getContentSafetyStatusAsync = async (accessToken: string): Promise<boolean> => {
         return await this.getResponseAsync<boolean>(
             {
-                commandPath: 'document/safetystatus',
+                commandPath: 'contentSafety/status',
                 method: 'GET',
             },
             accessToken,
