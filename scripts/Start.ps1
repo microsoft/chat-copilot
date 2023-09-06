@@ -8,10 +8,18 @@ $FrontendScript = Join-Path "$PSScriptRoot" 'Start-Frontend.ps1'
 
 # Start backend (in new PS process)
 Start-Process pwsh -ArgumentList "-command $BackendScript"
-#check if the backend is running before proceeding
+# check if the backend is running before proceeding
 $backendRunning = $false
+
+# get the port from the REACT_APP_BACKEND_URI env variable
+$envFilePath = Join-Path $PSScriptRoot '..\webapp\.env'
+$envContent = Get-Content -Path $envFilePath
+# Write-Output $envContent
+$port = [regex]::Match($envContent, ':(\d+)/').Groups[1].Value
+# Write-Host "Backend port: $port"
+
 while ($backendRunning -eq $false) {
-  $backendRunning = Test-NetConnection -ComputerName localhost -Port 40443 -InformationLevel Quiet
+  $backendRunning = Test-NetConnection -ComputerName localhost -Port $port -InformationLevel Quiet
   Start-Sleep -Seconds 5
 }
 
