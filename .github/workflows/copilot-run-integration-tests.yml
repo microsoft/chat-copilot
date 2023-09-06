@@ -20,6 +20,6 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run integration tests
         run: dotnet test --environment BaseUrl="https://${{inputs.BACKEND_HOST}}.azurewebsites.net/" --logger trx
