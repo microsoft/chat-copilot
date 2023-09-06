@@ -26,6 +26,8 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 public static class CopilotChatServiceExtensions
 {
+    private const string SemanticMemoryOptionsName = "SemanticMemory";
+
     /// <summary>
     /// Parse configuration into options.
     /// </summary>
@@ -59,7 +61,7 @@ public static class CopilotChatServiceExtensions
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
         // Semantic memory options
-        AddOptions<SemanticMemoryConfig>("SemanticMemory"); // $$$ CONST
+        AddOptions<SemanticMemoryConfig>(SemanticMemoryOptionsName);
 
         return services;
 
