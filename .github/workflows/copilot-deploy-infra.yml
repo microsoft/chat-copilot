@@ -40,7 +40,7 @@ jobs:
         id: deployment-id
         run: echo "deployment_name=${{ vars.CC_DEPLOYMENT_NAME }}-$(date +'%Y-%m-%dT%H-%M-%S')" >> $GITHUB_OUTPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           clean: true
 
