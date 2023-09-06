@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "9751221073550413055"
+      "templateHash": "11718526058082360660"
     }
   },
   "parameters": {
@@ -157,7 +157,7 @@
     },
     "deployMemoryPipelinePackage": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Whether to deploy the memory pipeline package"
       }
@@ -262,14 +262,11 @@
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2022-03-01",
-      "name": "[format('asp-{0}-{1}', variables('uniqueName'), parameters('name'))]",
+      "name": "[format('asp-{0}-webapi', variables('uniqueName'))]",
       "location": "[parameters('location')]",
-      "kind": "linux",
+      "kind": "app",
       "sku": {
         "name": "[parameters('webAppServiceSku')]"
-      },
-      "properties": {
-        "reserved": true
       }
     },
     {
@@ -282,7 +279,7 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
         "httpsOnly": true,
         "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
         "siteConfig": {
@@ -290,7 +287,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
         "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
     },
@@ -431,6 +428,10 @@
             "value": "Warning"
           },
           {
+            "name": "Logging:ApplicationInsights:LogLevel:Default",
+            "value": "Warning"
+          },
+          {
             "name": "ApplicationInsights:ConnectionString",
             "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           },
@@ -452,7 +453,7 @@
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "Distributed"
+            "value": "InProcess"
           },
           {
             "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
@@ -576,10 +577,10 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]"
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
       ]
     },
     {
@@ -607,7 +608,7 @@
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "Distributed"
+            "value": "InProcess"
           },
           {
             "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",

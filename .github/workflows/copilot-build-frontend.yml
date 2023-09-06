@@ -26,7 +26,7 @@ jobs:
 
       - name: Run yarn install, yarn build, & yarn format
         run: |
-          #!/bin/bash
+          #!/usr/bin/env bash
           set -e # exit with nonzero exit code if anything fails
           echo "Running yarn install, yarn build, & yarn format"
           yarn install --frozen-lockfile # install dependencies and ensure lockfile is unchanged.

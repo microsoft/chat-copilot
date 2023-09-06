@@ -75,7 +75,7 @@ param deploySpeechServices bool = true
 param deployWebApiPackage bool = true
 
 @description('Whether to deploy the memory pipeline package')
-param deployMemoryPipelinePackage bool = true
+param deployMemoryPipelinePackage bool = false
 
 @description('Region for the resources')
 param location string = resourceGroup().location
@@ -140,14 +140,11 @@ resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: 'asp-${uniqueName}-${name}'
+  name: 'asp-${uniqueName}-webapi'
   location: location
-  kind: 'linux'
+  kind: 'app'
   sku: {
     name: webAppServiceSku
-  }
-  properties: {
-    reserved: true
   }
 }
 
@@ -304,6 +301,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'Warning'
       }
       {
+        name: 'Logging:ApplicationInsights:LogLevel:Default'
+        value: 'Warning'
+      }
+      {
         name: 'ApplicationInsights:ConnectionString'
         value: appInsights.properties.ConnectionString
       }
@@ -325,7 +326,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'SemanticMemory:DataIngestion:OrchestrationType'
-        value: 'Distributed'
+        value: 'InProcess'
       }
       {
         name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
@@ -463,7 +464,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
       }
       {
         name: 'SemanticMemory:DataIngestion:OrchestrationType'
-        value: 'Distributed'
+        value: 'InProcess'
       }
       {
         name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'

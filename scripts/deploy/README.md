@@ -45,49 +45,54 @@ You will need two Azure Active Directory (AAD) application registrations -- one 
 - Make a note of the `Application (client) ID` from the Azure Portal for use in the `Deploy Azure infrastructure` step below.
 
 ### Linking the frontend to the backend
-1. Expose an API within the backend app registration
-   1. Select *Expose an API* from the menu
 
-   2. Add an *Application ID URI*
+1. Expose an API within the backend app registration
+
+   1. Select _Expose an API_ from the menu
+
+   2. Add an _Application ID URI_
+
       1. This will generate an `api://` URI
 
-      2. Click *Save* to store the generated URI
+      2. Click _Save_ to store the generated URI
 
    3. Add a scope for `access_as_user`
-      1. Click *Add scope*
 
-      2. Set *Scope name* to `access_as_user`
+      1. Click _Add scope_
 
-      3. Set *Who can consent* to *Admins and users*
+      2. Set _Scope name_ to `access_as_user`
 
-      4. Set *Admin consent display name* and *User consent display name* to `Access Chat Copilot as a user`
+      3. Set _Who can consent_ to _Admins and users_
 
-      5. Set *Admin consent description* and *User consent description* to `Allows the accesses to the Chat Copilot web API as a user`
+      4. Set _Admin consent display name_ and _User consent display name_ to `Access Chat Copilot as a user`
+
+      5. Set _Admin consent description_ and _User consent description_ to `Allows the accesses to the Chat Copilot web API as a user`
 
    4. Add the web app frontend as an authorized client application
-      1. Click *Add a client application*
 
-      2. For *Client ID*, enter the frontend's application (client) ID
+      1. Click _Add a client application_
 
-      3. Check the checkbox under *Authorized scopes*
+      2. For _Client ID_, enter the frontend's application (client) ID
 
-      4. Click *Add application*
+      3. Check the checkbox under _Authorized scopes_
 
-4. Add permissions to web app frontend to access web api as user
+      4. Click _Add application_
+
+2. Add permissions to web app frontend to access web api as user
+
    1. Open app registration for web app frontend
 
-   2. Go to *API Permissions*
+   2. Go to _API Permissions_
 
-   3. Click *Add a permission*
+   3. Click _Add a permission_
 
-   4. Select the tab *My APIs*
+   4. Select the tab _APIs my organization uses_
 
    5. Choose the app registration representing the web api backend
 
    6. Select permissions `access_as_user`
 
-   7. Click *Add permissions*
-
+   7. Click _Add permissions_
 
 # Deploy Azure Infrastructure
 
@@ -120,7 +125,7 @@ You can also deploy the infrastructure directly from the Azure Portal by clickin
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://aka.ms/sk-deploy-existing-azureopenai-portal)
 
-> This will automatically deploy the most recent release of CopilotChat backend binaries ([link](https://github.com/microsoft/copilot-chat/releases)).
+> This will automatically deploy the most recent release of CopilotChat backend binaries ([link](https://github.com/microsoft/chat-copilot/releases)).
 
 > To find the deployment name when using `Deploy to Azure`, look for a deployment in your resource group that starts with `Microsoft.Template`.
 

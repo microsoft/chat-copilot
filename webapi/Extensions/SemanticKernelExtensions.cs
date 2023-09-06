@@ -284,7 +284,8 @@ internal static class SemanticKernelExtensions
 
         switch (memoryOptions.TextGeneratorType)
         {
-            case string x when x.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
                 return kernelBuilder.WithAzureChatCompletionService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
 
@@ -307,7 +308,8 @@ internal static class SemanticKernelExtensions
 
         switch (memoryOptions.TextGeneratorType)
         {
-            case string x when x.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
                 return kernelBuilder.WithAzureChatCompletionService(plannerOptions.Model, azureAIOptions.Endpoint, azureAIOptions.APIKey);
 
@@ -330,7 +332,8 @@ internal static class SemanticKernelExtensions
 
         switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {
-            case string x when x.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
                 return new AzureTextEmbeddingGeneration(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey, httpClient: null, logger);
 
@@ -352,12 +355,13 @@ internal static class SemanticKernelExtensions
 
         switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {
-            case string x when x.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
                 return
                     new BotEmbeddingConfig
                     {
-                        AIService = Enum.Parse<BotEmbeddingConfig.AIServiceType>(x),
+                        AIService = BotEmbeddingConfig.AIServiceType.AzureOpenAIEmbedding,
                         DeploymentOrModelId = azureAIOptions.Deployment,
                     };
 
@@ -366,7 +370,7 @@ internal static class SemanticKernelExtensions
                 return
                     new BotEmbeddingConfig
                     {
-                        AIService = Enum.Parse<BotEmbeddingConfig.AIServiceType>(x),
+                        AIService = BotEmbeddingConfig.AIServiceType.OpenAI,
                         DeploymentOrModelId = openAIOptions.EmbeddingModel,
                     };
 
