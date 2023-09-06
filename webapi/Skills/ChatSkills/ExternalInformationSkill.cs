@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
@@ -81,12 +82,14 @@ public class ExternalInformationSkill
     /// <summary>
     /// Extract relevant additional knowledge using a planner.
     /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
     [SKFunction, Description("Acquire external information")]
     [SKParameter("tokenLimit", "Maximum number of tokens")]
     [SKParameter("proposedPlan", "Previously proposed plan that is approved")]
     public async Task<string> AcquireExternalInformationAsync(
         [Description("The intent to whether external information is needed")] string userIntent,
-        SKContext context)
+        SKContext context,
+        CancellationToken cancellationToken = default)
     {
         // TODO: [Issue #2106] Calculate planner and plan token usage
         FunctionsView functions = this._planner.Kernel.Skills.GetFunctionsView(true, true);
@@ -100,7 +103,7 @@ public class ExternalInformationSkill
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
             var plannerContext = context.Clone();
-            plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context);
+            plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
             this.StepwiseThoughtProcess = new StepwiseThoughtProcess(
                 plannerContext.Variables["stepsTaken"],
                 plannerContext.Variables["timeTaken"],
@@ -122,7 +125,7 @@ public class ExternalInformationSkill
             var plan = Plan.FromJson(planJson, newPlanContext);
 
             // Invoke plan
-            newPlanContext = await plan.InvokeAsync(newPlanContext);
+            newPlanContext = await plan.InvokeAsync(newPlanContext, cancellationToken: cancellationToken);
             var functionsUsed = $"PLUGINS USED: {string.Join("; ", this.GetPlanSteps(plan))}.";
 
             int tokenLimit =
@@ -161,7 +164,7 @@ public class ExternalInformationSkill
             { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
                 try
                 {
-                    plan = await this._planner.CreatePlanAsync(goal, context.Logger);
+                    plan = await this._planner.CreatePlanAsync(goal, context.Logger, cancellationToken);
                 }
                 catch (Exception e) when (this.IsRetriableError(e))
                 {
