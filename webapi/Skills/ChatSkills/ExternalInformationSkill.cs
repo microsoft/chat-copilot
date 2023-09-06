@@ -162,8 +162,8 @@ public class ExternalInformationSkill
             Plan? plan = null;
             // Use default planner options if planner options are null.
             var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions();
-            int retriesAvail = plannerOptions.PlannerError.AllowRetries
-                ? 0 : plannerOptions.PlannerError.MaxRetriesAllowed;
+            int retriesAvail = plannerOptions.ErrorHandling.AllowRetries
+                ? plannerOptions.ErrorHandling.MaxRetriesAllowed : 0;
 
             do
             { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner

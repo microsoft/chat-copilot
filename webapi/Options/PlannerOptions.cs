@@ -13,16 +13,18 @@ public class PlannerOptions
     /// <summary>
     /// Options to handle planner errors.
     /// </summary>
-    public class PlannerErrorOptions
+    public class ErrorOptions
     {
         /// <summary>
         /// Whether to allow retries on planner errors.
         /// </summary>
         public bool AllowRetries { get; set; } = true;
 
-        /// <summary>
-        /// Whether to allow missing functions.
-        /// </summary>
+        // <summary>
+        // Whether to allow missing functions in the sequential plan on creation. If set to true, the
+        // plan will be created with missing functions as no-op steps. If set to false (default),
+        // the plan creation will fail if any functions are missing.
+        // </summary>
         public bool AllowMissingFunctions { get; set; } = true;
 
         /// <summary>
@@ -49,7 +51,7 @@ public class PlannerOptions
     /// <summary>
     /// Options on how to handle planner errors.
     /// </summary>
-    public PlannerErrorOptions PlannerError { get; set; } = new PlannerErrorOptions();
+    public ErrorOptions ErrorHandling { get; set; } = new ErrorOptions();
 
     /// <summary>
     /// The configuration for the stepwise planner.

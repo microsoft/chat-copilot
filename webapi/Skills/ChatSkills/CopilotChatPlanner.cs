@@ -104,7 +104,7 @@ public class CopilotChatPlanner
                         {
                             RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
                             // Allow plan to be created with missing functions
-                            AllowMissingFunctions = this._plannerOptions?.PlannerError.AllowMissingFunctions ?? false
+                            AllowMissingFunctions = this._plannerOptions?.ErrorHandling.AllowMissingFunctions ?? false
                         }
                     ).CreatePlanAsync(goal, cancellationToken);
                     break;
@@ -119,7 +119,7 @@ public class CopilotChatPlanner
             return new Plan(goal);
         }
 
-        return this._plannerOptions!.PlannerError.AllowMissingFunctions ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+        return this._plannerOptions!.ErrorHandling.AllowMissingFunctions ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
     }
 
     /// <summary>
