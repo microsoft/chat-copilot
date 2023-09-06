@@ -40,7 +40,7 @@ public class DocumentMemorySkill
     public DocumentMemorySkill(
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
-        Microsoft.Extensions.Logging.ILogger logger)
+        ILogger logger)
     {
         this._logger = logger;
         this._promptOptions = promptOptions.Value;

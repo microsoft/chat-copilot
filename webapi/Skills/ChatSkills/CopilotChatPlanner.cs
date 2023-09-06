@@ -11,6 +11,7 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
@@ -23,6 +24,11 @@ namespace CopilotChat.WebApi.Skills.ChatSkills;
 /// </summary>
 public class CopilotChatPlanner
 {
+    /// <summary>
+    /// High level logger.
+    /// </summary>
+    private readonly ILogger _logger;
+
     /// <summary>
     /// The planner's kernel.
     /// </summary>
@@ -62,10 +68,11 @@ public class CopilotChatPlanner
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
     /// </summary>
     /// <param name="plannerKernel">The planner's kernel.</param>
-    public CopilotChatPlanner(IKernel plannerKernel, PlannerOptions? plannerOptions)
+    public CopilotChatPlanner(IKernel plannerKernel, PlannerOptions? plannerOptions, ILogger logger)
     {
         this.Kernel = plannerKernel;
         this._plannerOptions = plannerOptions;
+        this._logger = logger;
     }
 
     /// <summary>
@@ -97,7 +104,7 @@ public class CopilotChatPlanner
                         {
                             RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
                             // Allow plan to be created with missing functions
-                            AllowMissingFunctions = this._plannerOptions?.MissingFunctionError.AllowRetries ?? false
+                            AllowMissingFunctions = this._plannerOptions?.PlannerError.AllowMissingFunctions ?? false
                         }
                     ).CreatePlanAsync(goal, cancellationToken);
                     break;
@@ -106,13 +113,13 @@ public class CopilotChatPlanner
                     break;
             }
         }
-        catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.CreatePlanError && e.Message.Contains("Not possible to create plan for goal with available functions", StringComparison.InvariantCulture))
+        catch (SKException)
         {
             // No relevant functions are available - return an empty plan.
             return new Plan(goal);
         }
 
-        return this._plannerOptions!.MissingFunctionError.AllowRetries ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+        return this._plannerOptions!.PlannerError.AllowMissingFunctions ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
     }
 
     /// <summary>
@@ -147,7 +154,7 @@ public class CopilotChatPlanner
         }
         catch (Exception e)
         {
-            context.Logger.LogError(e, "Error running stepwise planner");
+            this._logger.LogError(e, "Error running stepwise planner");
             throw;
         }
     }
