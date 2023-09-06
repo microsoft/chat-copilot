@@ -70,7 +70,6 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         // Extract and store memories, using the original id to avoid duplication should a retry be required.
         await foreach ((string chatId, string memoryName, string memoryId, string memoryText) in QueryMemoriesAsync())
         {
-            // $$$ PARRALLEL ???
             await this._memoryClient.StoreMemoryAsync(this._promptOptions.MemoryIndexName, chatId, memoryName, memoryId, memoryText, cancelToken);
         }
 

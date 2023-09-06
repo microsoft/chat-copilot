@@ -72,7 +72,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
         return _cachedStatus ?? ChatVersionStatus.None;
 
         // Inline function to determine if the new "target" index already exists.
-        // If not, we need to upgrade; otherwise, futher inspection is required.
+        // If not, we need to upgrade; otherwise, further inspection is required.
         async Task<ChatVersionStatus?> QueryCollectionAsync()
         {
             try
