@@ -158,9 +158,9 @@ public class ChatController : ControllerBase, IDisposable
 
             if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)
             {
-                // Log the timeout and return a 408 response
+                // Log the timeout and return a 504 response
                 this._logger.LogError("The chat operation timed out.");
-                return this.StatusCode(StatusCodes.Status408RequestTimeout);
+                return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
             }
 
             return this.BadRequest(result.LastException!.Message);

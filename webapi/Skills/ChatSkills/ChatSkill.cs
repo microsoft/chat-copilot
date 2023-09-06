@@ -478,7 +478,7 @@ public class ChatSkill
     /// extract the audience from a conversation history.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<string> GetAudienceAsync(SKContext context, CancellationToken cancellationToken = default)
+    private async Task<string> GetAudienceAsync(SKContext context, CancellationToken cancellationToken)
     {
         SKContext audienceContext = context.Clone();
 
@@ -502,7 +502,7 @@ public class ChatSkill
     /// extract the user intent from the conversation history.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<string> GetUserIntentAsync(SKContext context, CancellationToken cancellationToken = default)
+    private async Task<string> GetUserIntentAsync(SKContext context, CancellationToken cancellationToken)
     {
         // TODO: [Issue #51] Regenerate user intent if plan was modified
         if (!context.Variables.TryGetValue("planUserIntent", out string? userIntent))
@@ -532,7 +532,7 @@ public class ChatSkill
     /// <param name="userIntent">The user intent.</param>
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private Task<string> QueryChatMemoriesAsync(SKContext context, string userIntent, int tokenLimit, CancellationToken cancellationToken = default)
+    private Task<string> QueryChatMemoriesAsync(SKContext context, string userIntent, int tokenLimit, CancellationToken cancellationToken)
     {
         return this._semanticChatMemorySkill.QueryMemoriesAsync(userIntent, context.Variables["chatId"], tokenLimit, this._kernel.Memory, cancellationToken);
     }
@@ -545,7 +545,7 @@ public class ChatSkill
     /// <param name="userIntent">The user intent.</param>
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private Task<string> QueryDocumentsAsync(SKContext context, string userIntent, int tokenLimit, CancellationToken cancellationToken = default)
+    private Task<string> QueryDocumentsAsync(SKContext context, string userIntent, int tokenLimit, CancellationToken cancellationToken)
     {
         return this._documentMemorySkill.QueryDocumentsAsync(userIntent, context.Variables["chatId"], tokenLimit, this._kernel.Memory, cancellationToken);
     }
@@ -558,7 +558,7 @@ public class ChatSkill
     /// <param name="userIntent">The user intent.</param>
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<string> AcquireExternalInformationAsync(SKContext context, string userIntent, int tokenLimit, CancellationToken cancellationToken = default)
+    private async Task<string> AcquireExternalInformationAsync(SKContext context, string userIntent, int tokenLimit, CancellationToken cancellationToken)
     {
         SKContext planContext = context.Clone();
         planContext.Variables.Set("tokenLimit", tokenLimit.ToString(new NumberFormatInfo()));
@@ -580,7 +580,7 @@ public class ChatSkill
     /// <param name="chatId">The chat ID</param>
     /// <param name="type">Type of the message</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<ChatMessage> SaveNewMessageAsync(string message, string userId, string userName, string chatId, string type, CancellationToken cancellationToken = default)
+    private async Task<ChatMessage> SaveNewMessageAsync(string message, string userId, string userName, string chatId, string type, CancellationToken cancellationToken)
     {
         // Make sure the chat exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
@@ -614,7 +614,7 @@ public class ChatSkill
     ///  <param name="tokenUsage">Total token usage of response completion</param>
     ///  <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The created chat message.</returns>
-    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId, Dictionary<string, int>? tokenUsage, CancellationToken cancellationToken = default)
+    private async Task<ChatMessage> SaveNewResponseAsync(string response, string prompt, string chatId, string userId, Dictionary<string, int>? tokenUsage, CancellationToken cancellationToken)
     {
         // Make sure the chat exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
@@ -634,7 +634,7 @@ public class ChatSkill
     /// <param name="updatedResponse">Updated response from the chat.</param>
     /// <param name="messageId">The chat message ID</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task UpdateChatMessageContentAsync(string updatedResponse, string messageId, CancellationToken cancellationToken = default)
+    private async Task UpdateChatMessageContentAsync(string updatedResponse, string messageId, CancellationToken cancellationToken)
     {
         // Make sure the chat exists.
         var chatMessage = await this._chatMessageRepository.FindByIdAsync(messageId);
@@ -735,7 +735,7 @@ public class ChatSkill
     /// <param name="prompt">Prompt used to generate the response</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The created chat message</returns>
-    private async Task<ChatMessage> StreamResponseToClientAsync(string chatId, string userId, BotResponsePrompt prompt, CancellationToken cancellationToken = default)
+    private async Task<ChatMessage> StreamResponseToClientAsync(string chatId, string userId, BotResponsePrompt prompt, CancellationToken cancellationToken)
     {
         // Create the stream
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
@@ -764,7 +764,7 @@ public class ChatSkill
     /// <param name="tokenUsage">Total token usage of response completion</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The created chat message</returns>
-    private async Task<ChatMessage> CreateBotMessageOnClient(string chatId, string userId, string prompt, string content, Dictionary<string, int>? tokenUsage = null, CancellationToken cancellationToken = default)
+    private async Task<ChatMessage> CreateBotMessageOnClient(string chatId, string userId, string prompt, string content, Dictionary<string, int>? tokenUsage = null, CancellationToken cancellationToken)
     {
         var chatMessage = ChatMessage.CreateBotResponseMessage(chatId, content, prompt, tokenUsage);
         await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, chatMessage, cancellationToken);
@@ -776,7 +776,7 @@ public class ChatSkill
     /// </summary>
     /// <param name="message">The message</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task UpdateMessageOnClient(ChatMessage message, CancellationToken cancellationToken = default)
+    private async Task UpdateMessageOnClient(ChatMessage message, CancellationToken cancellationToken)
     {
         await this._messageRelayHubContext.Clients.Group(message.ChatId).SendAsync("ReceiveMessageUpdate", message, cancellationToken);
     }
@@ -787,7 +787,7 @@ public class ChatSkill
     /// <param name="chatId">The chat ID</param>
     /// <param name="status">Current status of the response</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task UpdateBotResponseStatusOnClientAsync(string chatId, string status, CancellationToken cancellationToken = default)
+    private async Task UpdateBotResponseStatusOnClientAsync(string chatId, string status, CancellationToken cancellationToken)
     {
         await this._messageRelayHubContext.Clients.Group(chatId).SendAsync("ReceiveBotResponseStatus", chatId, status, cancellationToken);
     }
@@ -798,7 +798,7 @@ public class ChatSkill
     /// <param name="chatId">Id of the chat session</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <exception cref="ArgumentException">Throw if the chat session does not exist.</exception>
-    private async Task SetSystemDescriptionAsync(string chatId, CancellationToken cancellationToken = default)
+    private async Task SetSystemDescriptionAsync(string chatId, CancellationToken cancellationToken)
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
