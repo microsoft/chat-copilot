@@ -62,11 +62,12 @@ public static class TokenUtilities
     /// </summary>
     /// <param name="result">Result context from chat model</param>
     /// <param name="chatContext">Context maintained during response generation.</param>
+    /// <param name="logger">The logger instance to use for logging errors.</param>
     /// <param name="functionName">Name of the function that invoked the chat completion.</param>
     /// <returns> true if token usage is found in result context; otherwise, false.</returns>
-    internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, string? functionName = null)
+    internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, ILogger logger, string? functionName = null)
     {
-        var functionKey = GetFunctionKey(chatContext.Logger, functionName);
+        var functionKey = GetFunctionKey(logger, functionName);
         if (functionKey == null)
         {
             return;
@@ -74,7 +75,7 @@ public static class TokenUtilities
 
         if (result.ModelResults == null || result.ModelResults.Count == 0)
         {
-            chatContext.Logger.LogError("Unable to determine token usage for {0}", functionKey);
+            logger.LogError("Unable to determine token usage for {0}", functionKey);
             return;
         }
 
