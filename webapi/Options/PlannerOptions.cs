@@ -13,7 +13,7 @@ public class PlannerOptions
     /// <summary>
     /// Options to handle planner errors.
     /// </summary>
-    public class PLannerErrorOptions
+    public class PlannerErrorOptions
     {
         /// <summary>
         /// Whether to allow retries on planner errors.
@@ -49,7 +49,7 @@ public class PlannerOptions
     /// <summary>
     /// Options on how to handle planner errors.
     /// </summary>
-    public PLannerErrorOptions PlannerError { get; set; } = new PLannerErrorOptions();
+    public PlannerErrorOptions PlannerError { get; set; } = new PlannerErrorOptions();
 
     /// <summary>
     /// The configuration for the stepwise planner.
