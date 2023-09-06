@@ -265,11 +265,11 @@ public class BotController : ControllerBase
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(kernel: kernel, collectionName: collection, embeddings: bot.Embeddings);
         }
 
-        // get the document memory collection names (global scope)
-        await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
-            kernel: kernel,
-            collectionName: this._documentMemoryOptions.GlobalDocumentCollectionName,
-            embeddings: bot.DocumentEmbeddings);
+        //// get the document memory collection names (global scope) $$$
+        //await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
+        //    kernel: kernel,
+        //    collectionName: this._documentMemoryOptions.GlobalDocumentCollectionName,
+        //    embeddings: bot.DocumentEmbeddings);
 
         // get the document memory collection names (user scope)
         await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(

@@ -63,11 +63,13 @@ const App: FC = () => {
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features, isMigrating } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
     const file = useFile();
+
+    console.log(`# ${isMigrating} (APP)`); // $$$
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -125,6 +127,11 @@ const App: FC = () => {
             ]);
         }
 
+        if (isMigrating)
+        {
+            setAppState(AppState.ProbeForBackend);
+        }
+    
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [instance, inProgress, isAuthenticated, appState]);
 

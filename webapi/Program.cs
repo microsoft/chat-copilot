@@ -68,6 +68,7 @@ public sealed class Program
 
         // Add in the rest of the services.
         builder.Services
+            .AddMigrationServices()
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
             .AddCorsPolicy(builder.Configuration)
@@ -83,6 +84,7 @@ public sealed class Program
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<ChatMigrationMiddleware>();
         app.MapControllers()
             .RequireAuthorization();
         app.MapHealthChecks("/healthz");

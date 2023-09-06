@@ -110,11 +110,23 @@ internal static class ISemanticMemoryClientExtensions
         await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
     }
 
+    public static Task StoreMemoryAsync(
+        this ISemanticMemoryClient memoryClient,
+        string indexName,
+        string chatId,
+        string memoryName,
+        string memory,
+        CancellationToken cancelToken = default)
+    {
+        return memoryClient.StoreMemoryAsync(indexName, chatId, memoryName, memoryId: Guid.NewGuid().ToString(), memory, cancelToken);
+    }
+
     public static async Task StoreMemoryAsync(
         this ISemanticMemoryClient memoryClient,
         string indexName,
         string chatId,
         string memoryName,
+        string memoryId,
         string memory,
         CancellationToken cancelToken = default)
     {
@@ -124,10 +136,9 @@ internal static class ISemanticMemoryClientExtensions
         await writer.FlushAsync();
         stream.Position = 0;
 
-        var id = Guid.NewGuid().ToString();
         var uploadRequest = new DocumentUploadRequest
         {
-            DocumentId = id,
+            DocumentId = memoryId,
             Index = indexName,
             Files =
                 new()
