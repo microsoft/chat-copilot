@@ -346,7 +346,9 @@ public class ChatHistoryController : ControllerBase
         // Create and store the tasks for deleting semantic memories.
         // TODO: [Issue #47] Filtering memory collections by name might be fragile.
         var memoryCollections = (await this._memoryStore.GetCollectionsAsync(cancellationToken).ToListAsync<string>())
-            .Where(collection => collection.StartsWith(chatId, StringComparison.OrdinalIgnoreCase));
+            .Where(collection =>
+                collection.StartsWith(chatId, StringComparison.OrdinalIgnoreCase) || // chat memory
+                collection.Equals($"chat-documents-{chatId}", StringComparison.OrdinalIgnoreCase)); // document memory
         foreach (var collection in memoryCollections)
         {
             cleanupTasks.Add(this._memoryStore.DeleteCollectionAsync(collection, cancellationToken));
