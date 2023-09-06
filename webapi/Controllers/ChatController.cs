@@ -78,6 +78,7 @@ public class ChatController : ControllerBase, IDisposable
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> ChatAsync(
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
@@ -137,12 +138,12 @@ public class ChatController : ControllerBase, IDisposable
         SKContext? result = null;
         try
         {
-            // Create a cancellation token source with timeout if specified
-            using var cts = this._serviceOptions.TimeoutLimitInS is not null
-                ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS)) // Create a cancellation token source with the timeout
-                : new CancellationTokenSource(); // Create a cancellation token source without a timeout
+            using CancellationTokenSource? cts = this._serviceOptions.TimeoutLimitInS is not null
+                // Create a cancellation token source with the timeout if specified
+                ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS))
+                : null;
 
-            result = await kernel.RunAsync(function!, contextVariables, cts.Token);
+            result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
         }
         finally
         {
