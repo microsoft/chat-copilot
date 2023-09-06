@@ -10,7 +10,7 @@ namespace CopilotChat.WebApi.Services;
 /// Set of migration states/status for chat memory migration.
 /// </summary>
 /// <remarks>
-/// Raison d'etre: Interlocked.CompareExchange doesn't work with enums.
+/// Interlocked.CompareExchange doesn't work with enums.
 /// </remarks>
 public sealed class ChatMigrationStatus
 {
