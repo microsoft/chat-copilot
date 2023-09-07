@@ -490,3 +490,6 @@ webapi/CopilotChatWebApi.sln
 
 # Tesseract OCR language data files
 *.traineddata
+
+# Auto-generated JSON file from Visual Studio
+webapi/appsettings.Development.json
