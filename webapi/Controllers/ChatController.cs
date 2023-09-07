@@ -48,17 +48,19 @@ public class ChatController : ControllerBase, IDisposable
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
+    private readonly PlannerOptions _plannerOptions;
 
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions)
+    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions, IOptions<PlannerOptions> plannerOptions)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
+        this._plannerOptions = plannerOptions.Value;
     }
 
     /// <summary>
@@ -290,11 +292,15 @@ public class ChatController : ControllerBase, IDisposable
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
+                        HttpClient httpClient = new();
+                        httpClient.Timeout = TimeSpan.FromSeconds(this._plannerOptions.PluginTimeoutLimitInS);
+
                         await planner.Kernel.ImportAIPluginAsync(
                             $"{plugin.NameForModel}Plugin",
                             uriBuilder.Uri,
                             new OpenApiSkillExecutionParameters
                             {
+                                HttpClient = httpClient,
                                 IgnoreNonCompliantErrors = true,
                                 AuthCallback = requiresAuth ? authenticationProvider.AuthenticateRequestAsync : null
                             });
