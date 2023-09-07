@@ -50,7 +50,7 @@ public class PlannerOptions
 
     /// <summary>
     /// The maximum number of seconds to wait for a response from a plugin.
-    /// If this is not set, timeout limit will be 100s, which is default timeout setting for HttpClient.
+    /// If this is not set, timeout limit will be 100s, which is the default timeout setting for HttpClient.
     /// </summary>
     [Range(0, int.MaxValue)]
     public double PluginTimeoutLimitInS { get; set; } = 100;
