@@ -79,8 +79,8 @@ const App: FC = () => {
                     } else {
                         dispatch(
                             setActiveUserInfo({
-                                id: account.homeAccountId,
-                                email: account.username, // username in an AccountInfo object is the email address
+                                id: `${account.localAccountId}.${account.tenantId}`,
+                                email: account.username, // Username in an AccountInfo object is the email address
                                 username: account.name ?? account.username,
                             }),
                         );

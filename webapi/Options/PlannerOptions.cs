@@ -49,6 +49,13 @@ public class PlannerOptions
     public double? RelevancyThreshold { get; set; } = 0;
 
     /// <summary>
+    /// The maximum number of seconds to wait for a response from a plugin.
+    /// If this is not set, timeout limit will be 100s, which is the default timeout setting for HttpClient.
+    /// </summary>
+    [Range(0, int.MaxValue)]
+    public double PluginTimeoutLimitInS { get; set; } = 100;
+
+    /// <summary>
     /// Options on how to handle planner errors.
     /// </summary>
     public ErrorOptions ErrorHandling { get; set; } = new ErrorOptions();
