@@ -774,8 +774,8 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="prompt">Prompt used to generate the message</param>
     /// <param name="content">Content of the message</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
     /// <param name="citations">Citations for the message</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
     /// <returns>The created chat message</returns>
     private async Task<ChatMessage> CreateBotMessageOnClient(
