@@ -479,6 +479,14 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         value: '[\'${memoryStore}\']'
       }
       {
+        name: 'SemanticMemory:Retrieval:VectorDbType'
+        value: memoryStore
+      }
+      {
+        name: 'SemanticMemory:Retrieval:EmbeddingGeneratorType'
+        value: aiService
+      }
+      {
         name: 'SemanticMemory:Services:AzureBlobs:Auth'
         value: 'ConnectionString'
       }
