@@ -12,6 +12,12 @@ public class ServiceOptions
     public const string PropertyName = "Service";
 
     /// <summary>
+    /// Timeout limit on requests to the service in seconds.
+    /// </summary>
+    [Range(0, int.MaxValue)]
+    public double? TimeoutLimitInS { get; set; }
+
+    /// <summary>
     /// Configuration Key Vault URI
     /// </summary>
     [Url]
