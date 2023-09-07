@@ -610,7 +610,15 @@ public class ChatSkill
         }
 
         // Save message to chat history
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, prompt, response, cancellationToken, citations, tokenUsage);
+        var chatMessage = await this.CreateBotMessageOnClient(
+            chatId,
+            userId,
+            prompt,
+            response,
+            citations,
+            cancellationToken,
+            tokenUsage
+        );
         await this._chatMessageRepository.UpsertAsync(chatMessage);
 
         return chatMessage;
@@ -733,10 +741,21 @@ public class ChatSkill
     {
         // Create the stream
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
-        var stream = chatCompletion.GenerateMessageStreamAsync(chatCompletion.CreateNewChat(prompt.RawContent), this.CreateChatRequestSettings(), cancellationToken);
+        var stream = chatCompletion.GenerateMessageStreamAsync(
+            chatCompletion.CreateNewChat(prompt.RawContent),
+            this.CreateChatRequestSettings(),
+            cancellationToken
+        );
 
         // Create message on client
-        var chatMessage = await this.CreateBotMessageOnClient(chatId, userId, JsonSerializer.Serialize(prompt), string.Empty, cancellationToken, citations);
+        var chatMessage = await this.CreateBotMessageOnClient(
+            chatId,
+            userId,
+            JsonSerializer.Serialize(prompt),
+            string.Empty,
+            citations,
+            cancellationToken
+        );
 
         // Stream the message to the client
         await foreach (string contentPiece in stream)
@@ -764,8 +783,8 @@ public class ChatSkill
         string userId,
         string prompt,
         string content,
-        CancellationToken cancellationToken,
         IEnumerable<CitationSource>? citations,
+        CancellationToken cancellationToken,
         Dictionary<string, int>? tokenUsage = null)
     {
         var chatMessage = ChatMessage.CreateBotResponseMessage(chatId, content, prompt, citations, tokenUsage);
