@@ -7,9 +7,8 @@ set -e
 ScriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ScriptDir"
 
-# get REACT_APP_BACKEND_URI from ../webapp/.env
+# get the port from the REACT_APP_BACKEND_URI env variable
 envContent=$(grep -v '^#' ../webapp/.env | xargs)
-# get the '40443" from REACT_APP_BACKEND_URI=https://localhost:40443/
 backendPort=$(echo $envContent | sed -n 's/.*:\([0-9]*\).*/\1/p')
 # echo "backendPort: $backendPort"
 
