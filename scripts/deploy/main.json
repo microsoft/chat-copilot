@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "11718526058082360660"
+      "templateHash": "16035944799992947327"
     }
   },
   "parameters": {
@@ -453,7 +453,7 @@
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "InProcess"
+            "value": "Distributed"
           },
           {
             "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
@@ -608,7 +608,7 @@
           },
           {
             "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "InProcess"
+            "value": "Distributed"
           },
           {
             "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",

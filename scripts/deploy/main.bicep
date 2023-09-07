@@ -326,7 +326,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'SemanticMemory:DataIngestion:OrchestrationType'
-        value: 'InProcess'
+        value: 'Distributed'
       }
       {
         name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
@@ -464,7 +464,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
       }
       {
         name: 'SemanticMemory:DataIngestion:OrchestrationType'
-        value: 'InProcess'
+        value: 'Distributed'
       }
       {
         name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
