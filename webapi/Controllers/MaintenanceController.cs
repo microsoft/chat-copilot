@@ -50,7 +50,7 @@ public class MaintenanceController : ControllerBase
     public async Task<ActionResult<MigrationResult?>> GetMaintenanceStatusAsync(
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
         MigrationResult? result = null;
 
