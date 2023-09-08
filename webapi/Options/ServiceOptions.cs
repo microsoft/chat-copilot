@@ -27,4 +27,9 @@ public class ServiceOptions
     /// Local directory in which to load semantic skills.
     /// </summary>
     public string? SemanticSkillsDirectory { get; set; }
+
+    /// <summary>
+    /// Setting indicating if the site is undergoing maintenance.
+    /// </summary>
+    public bool InMaintenance { get; set; }
 }
