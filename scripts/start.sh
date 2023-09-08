@@ -10,7 +10,6 @@ cd "$ScriptDir"
 # get the port from the REACT_APP_BACKEND_URI env variable
 envContent=$(grep -v '^#' ../webapp/.env | xargs)
 backendPort=$(echo $envContent | sed -n 's/.*:\([0-9]*\).*/\1/p')
-# echo "backendPort: $backendPort"
 
 # Start backend (in background)
 ./start-backend.sh &
