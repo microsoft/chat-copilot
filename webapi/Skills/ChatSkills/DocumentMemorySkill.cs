@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,7 @@ public class DocumentMemorySkill
     public DocumentMemorySkill(
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
-        Microsoft.Extensions.Logging.ILogger logger)
+        ILogger logger)
     {
         this._logger = logger;
         this._promptOptions = promptOptions.Value;
@@ -51,12 +52,14 @@ public class DocumentMemorySkill
     /// </summary>
     /// <param name="query">Query to match.</param>
     /// <param name="context">The SkContext.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     [SKFunction, Description("Query documents in the memory given a user message")]
     public async Task<string> QueryDocumentsAsync(
         [Description("Query to match.")] string query,
         [Description("ID of the chat that owns the documents")] string chatId,
         [Description("Maximum number of tokens")] int tokenLimit,
-        ISemanticTextMemory textMemory)
+        ISemanticTextMemory textMemory,
+        CancellationToken cancellationToken = default)
     {
         var remainingToken = tokenLimit;
 
@@ -76,7 +79,8 @@ public class DocumentMemorySkill
                     documentCollection,
                     query,
                     limit: 100,
-                    minRelevanceScore: this._promptOptions.DocumentMemoryMinRelevance);
+                    minRelevanceScore: this._promptOptions.DocumentMemoryMinRelevance,
+                    cancellationToken: cancellationToken);
                 await foreach (var memory in results)
                 {
                     relevantMemories.Add(memory);

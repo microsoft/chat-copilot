@@ -53,7 +53,8 @@ internal static class SemanticChatMemoryExtractor
                     memoryName,
                     kernel,
                     context,
-                    options
+                    options,
+                    logger
                 );
                 foreach (var item in semanticMemory.Items)
                 {
@@ -64,7 +65,7 @@ internal static class SemanticChatMemoryExtractor
             {
                 // Skip semantic memory extraction for this item if it fails.
                 // We cannot rely on the model to response with perfect Json each time.
-                context.Logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
+                logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
                 continue;
             }
         }
@@ -77,12 +78,14 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="kernel">The semantic kernel.</param>
     /// <param name="context">The SKContext</param>
     /// <param name="options">The prompts options.</param>
+    /// <param name="logger">The logger.</param>
     /// <returns>A SemanticChatMemory object.</returns>
     internal static async Task<SemanticChatMemory> ExtractCognitiveMemoryAsync(
         string memoryName,
         IKernel kernel,
         SKContext context,
-        PromptsOptions options)
+        PromptsOptions options,
+        ILogger logger)
     {
         if (!options.MemoryMap.TryGetValue(memoryName, out var memoryPrompt))
         {
@@ -110,7 +113,7 @@ internal static class SemanticChatMemoryExtractor
 
         // Get token usage from ChatCompletion result and add to context
         // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
-        TokenUtilities.GetFunctionTokenUsage(result, context, $"SystemCognitive_{memoryName}");
+        TokenUtilities.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryName}");
 
         SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
         return memory;
