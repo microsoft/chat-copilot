@@ -14,9 +14,7 @@ $backendRunning = $false
 # get the port from the REACT_APP_BACKEND_URI env variable
 $envFilePath = Join-Path $PSScriptRoot '..\webapp\.env'
 $envContent = Get-Content -Path $envFilePath
-# Write-Output $envContent
 $port = [regex]::Match($envContent, ':(\d+)/').Groups[1].Value
-# Write-Host "Backend port: $port"
 
 while ($backendRunning -eq $false) {
   $backendRunning = Test-NetConnection -ComputerName localhost -Port $port -InformationLevel Quiet
