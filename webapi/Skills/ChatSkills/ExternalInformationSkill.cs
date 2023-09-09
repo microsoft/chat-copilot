@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
@@ -15,7 +16,6 @@ using CopilotChat.WebApi.Skills.OpenApiPlugins.GitHubPlugin.Model;
 using CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -27,6 +27,11 @@ namespace CopilotChat.WebApi.Skills.ChatSkills;
 /// </summary>
 public class ExternalInformationSkill
 {
+    /// <summary>
+    /// High level logger.
+    /// </summary>
+    private readonly ILogger _logger;
+
     /// <summary>
     /// Prompt settings.
     /// </summary>
@@ -72,21 +77,25 @@ public class ExternalInformationSkill
     /// </summary>
     public ExternalInformationSkill(
         IOptions<PromptsOptions> promptOptions,
-        CopilotChatPlanner planner)
+        CopilotChatPlanner planner,
+        ILogger logger)
     {
         this._promptOptions = promptOptions.Value;
         this._planner = planner;
+        this._logger = logger;
     }
 
     /// <summary>
     /// Extract relevant additional knowledge using a planner.
     /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
     [SKFunction, Description("Acquire external information")]
     [SKParameter("tokenLimit", "Maximum number of tokens")]
     [SKParameter("proposedPlan", "Previously proposed plan that is approved")]
     public async Task<string> AcquireExternalInformationAsync(
         [Description("The intent to whether external information is needed")] string userIntent,
-        SKContext context)
+        SKContext context,
+        CancellationToken cancellationToken = default)
     {
         // TODO: [Issue #2106] Calculate planner and plan token usage
         FunctionsView functions = this._planner.Kernel.Skills.GetFunctionsView(true, true);
@@ -100,7 +109,7 @@ public class ExternalInformationSkill
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
             var plannerContext = context.Clone();
-            plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context);
+            plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
             this.StepwiseThoughtProcess = new StepwiseThoughtProcess(
                 plannerContext.Variables["stepsTaken"],
                 plannerContext.Variables["timeTaken"],
@@ -118,11 +127,11 @@ public class ExternalInformationSkill
             string planJson = JsonSerializer.Serialize(deserializedPlan.Plan);
             // Reload the plan with the planner's kernel so
             // it has full context to be executed
-            var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.Logger);
+            var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.LoggerFactory);
             var plan = Plan.FromJson(planJson, newPlanContext);
 
             // Invoke plan
-            newPlanContext = await plan.InvokeAsync(newPlanContext);
+            newPlanContext = await plan.InvokeAsync(newPlanContext, cancellationToken: cancellationToken);
             var functionsUsed = $"PLUGINS USED: {string.Join("; ", this.GetPlanSteps(plan))}.";
 
             int tokenLimit =
@@ -153,25 +162,20 @@ public class ExternalInformationSkill
             Plan? plan = null;
             // Use default planner options if planner options are null.
             var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions();
-            int retriesAvail = plannerOptions.MissingFunctionError.AllowRetries
-                ? plannerOptions.MissingFunctionError.MaxRetriesAllowed // Will always be at least 1
-                : plannerOptions.AllowRetriesOnInvalidPlan ? 1 : 0;
+            int retriesAvail = plannerOptions.ErrorHandling.AllowRetries
+                ? plannerOptions.ErrorHandling.MaxRetriesAllowed : 0;
 
             do
             { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
                 try
                 {
-                    plan = await this._planner.CreatePlanAsync(goal, context.Logger);
+                    plan = await this._planner.CreatePlanAsync(goal, this._logger, cancellationToken);
                 }
-                catch (Exception e) when (this.IsRetriableError(e))
+                catch (Exception e)
                 {
-                    if (retriesAvail > 0)
+                    if (--retriesAvail >= 0)
                     {
-                        // PlanningExceptions are limited to one (1) pass as built-in stabilization. Retry limit of MissingFunctionErrors is user-configured.
-                        retriesAvail = e is PlanningException ? 0 : retriesAvail--;
-
-                        // Retry plan creation if LLM returned response that doesn't contain valid plan (invalid XML or JSON).
-                        context.Logger.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
+                        this._logger.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
                         continue;
                     }
                     throw;
@@ -203,25 +207,6 @@ public class ExternalInformationSkill
     }
 
     #region Private
-
-    /// <summary>
-    /// Retry on plan creation error if:
-    /// 1. PlannerOptions.AllowRetriesOnInvalidPlan is true and exception contains error code InvalidPlan.
-    /// 2. PlannerOptions.MissingFunctionError.AllowRetries is true and exception contains error code FunctionNotAvailable.
-    /// </summary>
-    private bool IsRetriableError(Exception e)
-    {
-        var retryOnInvalidPlanError = e is PlanningException
-            && ((e as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan
-                || (e.InnerException as PlanningException)!.ErrorCode == PlanningException.ErrorCodes.InvalidPlan)
-            && this._planner.PlannerOptions!.AllowRetriesOnInvalidPlan;
-
-        var retryOnMissingFunctionError = e is KernelException
-            && (e as KernelException)!.ErrorCode == KernelException.ErrorCodes.FunctionNotAvailable
-            && this._planner.PlannerOptions!.MissingFunctionError.AllowRetries;
-
-        return retryOnMissingFunctionError || retryOnInvalidPlanError;
-    }
 
     /// <summary>
     /// Merge any variables from context into plan parameters.
@@ -263,11 +248,11 @@ public class ExternalInformationSkill
         }
         catch (JsonException)
         {
-            context.Logger.LogDebug("Unable to extract JSON from planner response, it is likely not from an OpenAPI skill.");
+            this._logger.LogDebug("Unable to extract JSON from planner response, it is likely not from an OpenAPI skill.");
         }
         catch (InvalidOperationException)
         {
-            context.Logger.LogDebug("Unable to extract JSON from planner response, it may already be proper JSON.");
+            this._logger.LogDebug("Unable to extract JSON from planner response, it may already be proper JSON.");
         }
 
         json = string.Empty;
