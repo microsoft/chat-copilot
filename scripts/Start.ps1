@@ -25,9 +25,11 @@ $retryCount = 0
 # set the number of seconds to wait before retrying
 $retryWait = 5
 
-# check if the backend is running and check if the retry count is less than the max retries
+# while the backend is not running and the retry count is less than the max retries
 while ($backendRunning -eq $false -and $retryCount -lt $maxRetries) {
+  # increment the retry count
   $retryCount++
+  # check if the backend is running
   $backendRunning = Test-NetConnection -ComputerName localhost -Port $port -InformationLevel Quiet
   Start-Sleep -Seconds $retryWait
 }
