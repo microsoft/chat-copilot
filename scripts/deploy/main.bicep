@@ -140,7 +140,7 @@ resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: 'asp-${uniqueName}-webapi'
+  name: 'asp-${uniqueName}-${name}'
   location: location
   kind: 'app'
   sku: {
@@ -306,11 +306,11 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'ApplicationInsights:ConnectionString'
-        value: appInsights.properties.ConnectionString
+        value: appInsightsWeb.properties.ConnectionString
       }
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-        value: appInsights.properties.ConnectionString
+        value: appInsightsWeb.properties.ConnectionString
       }
       {
         name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -437,6 +437,9 @@ resource appServiceMemoryPipeline 'Microsoft.Web/sites@2022-09-01' = {
   }
   properties: {
     serverFarmId: appServicePlan.id
+    siteConfig: {
+      alwaysOn: true
+    }
   }
 }
 
@@ -570,6 +573,14 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         name: 'Logging:LogLevel:AspNetCore'
         value: 'Warning'
       }
+      {
+        name: 'Logging:ApplicationInsights:LogLevel:Default'
+        value: 'Warning'
+      }
+      {
+        name: 'ApplicationInsights:ConnectionString'
+        value: appInsightsMemoryPipeline.properties.ConnectionString
+      }
     ]
   }
 }
@@ -586,12 +597,12 @@ resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-
   ]
 }
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'appins-${uniqueName}'
+resource appInsightsWeb 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appins-${uniqueName}-webapi'
   location: location
   kind: 'string'
   tags: {
-    displayName: 'AppInsight'
+    displayName: 'AppInsightWeb'
   }
   properties: {
     Application_Type: 'web'
@@ -599,8 +610,27 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource appInsightExtension 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
+resource appInsightExtensionWeb 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
   parent: appServiceWeb
+  name: 'Microsoft.ApplicationInsights.AzureWebSites'
+  dependsOn: [ appServiceWebConfig ]
+}
+
+resource appInsightsMemoryPipeline 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appins-${uniqueName}-memorypipeline'
+  location: location
+  kind: 'string'
+  tags: {
+    displayName: 'AppInsightMemoryPipeline'
+  }
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalyticsWorkspace.id
+  }
+}
+
+resource appInsightExtensionMemoryPipeline 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
+  parent: appServiceMemoryPipeline
   name: 'Microsoft.ApplicationInsights.AzureWebSites'
   dependsOn: [ appServiceWebConfig ]
 }
