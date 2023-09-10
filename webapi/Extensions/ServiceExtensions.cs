@@ -213,6 +213,25 @@ public static class CopilotChatServiceExtensions
                 break;
             }
 
+            case ChatStoreOptions.ChatStoreType.MongoDb:
+            {
+                if (chatStoreConfig.MongoDb == null)
+                {
+                    throw new InvalidOperationException("ChatStore:MongoDb is required when ChatStore:Type is 'MongoDb'");
+                }
+#pragma warning disable CA2000 // Dispose objects before losing scope - objects are singletons for the duration of the process and disposed when the process exits.
+                chatSessionStorageContext = new MongoDbContext<ChatSession>(
+                    chatStoreConfig.MongoDb.ConnectionString, chatStoreConfig.MongoDb.Database, chatStoreConfig.MongoDb.ChatSessionsCollection);
+                chatMessageStorageContext = new MongoDbContext<ChatMessage>(
+                    chatStoreConfig.MongoDb.ConnectionString, chatStoreConfig.MongoDb.Database, chatStoreConfig.MongoDb.ChatMessagesCollection);
+                chatMemorySourceStorageContext = new MongoDbContext<MemorySource>(
+                    chatStoreConfig.MongoDb.ConnectionString, chatStoreConfig.MongoDb.Database, chatStoreConfig.MongoDb.ChatMemorySourcesCollection);
+                chatParticipantStorageContext = new MongoDbContext<ChatParticipant>(
+                    chatStoreConfig.MongoDb.ConnectionString, chatStoreConfig.MongoDb.Database, chatStoreConfig.MongoDb.ChatParticipantsCollection);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                break;
+            }
+
             default:
             {
                 throw new InvalidOperationException(
