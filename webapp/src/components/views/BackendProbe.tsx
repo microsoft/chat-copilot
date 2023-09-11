@@ -72,18 +72,22 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
 
     return (
         <>
-            {isMaintenance ?
+            {isMaintenance ? (
                 <div className={classes.informativeView}>
                     <Title3>{model.current?.title ?? 'Site undergoing maintenance...'}</Title3>
                     <Spinner />
                     <Body1>
-                        {model.current?.message ?? 'Planned site maintenance is underway.  We apologize for the disruption.'}
+                        {model.current?.message ??
+                            'Planned site maintenance is underway.  We apologize for the disruption.'}
                     </Body1>
                     <Body1>
-                        <strong>{model.current?.note ?? "Note: If this message doesn't resolve after a significant duration, refresh the browser."}</strong>
+                        <strong>
+                            {model.current?.note ??
+                                "Note: If this message doesn't resolve after a significant duration, refresh the browser."}
+                        </strong>
                     </Body1>
                 </div>
-                :
+            ) : (
                 <div className={classes.informativeView}>
                     <Title3>Looking for your backend</Title3>
                     <Spinner />
@@ -92,11 +96,11 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                         <strong>{uri}</strong>
                     </Body1>
                     <Body1>
-                        Run your Semantic Kernel service locally using Visual Studio, Visual Studio Code or by typing the
-                        following command: <strong>dotnet run</strong>
+                        Run your Semantic Kernel service locally using Visual Studio, Visual Studio Code or by typing
+                        the following command: <strong>dotnet run</strong>
                     </Body1>
                 </div>
-            }
+            )}
         </>
     );
 };

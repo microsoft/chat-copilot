@@ -40,7 +40,7 @@ export interface AppState {
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
     serviceOptions: ServiceOptions;
-    isMaintenance: boolean,
+    isMaintenance: boolean;
 }
 
 export enum FeatureKeys {

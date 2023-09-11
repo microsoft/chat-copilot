@@ -27,7 +27,7 @@ const enum SignalRCallbackMethods {
     GlobalDocumentUploaded = 'GlobalDocumentUploaded',
     ChatEdited = 'ChatEdited',
     ChatDeleted = 'ChatDeleted',
-    GlobalSiteMaintenance = 'GlobalSiteMaintenance'
+    GlobalSiteMaintenance = 'GlobalSiteMaintenance',
 }
 
 // Set up a SignalR connection to the messageRelayHub on the server
