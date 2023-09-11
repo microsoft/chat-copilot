@@ -142,7 +142,7 @@ public sealed class AzureContentSafety : IContentSafetyService
         var result = JsonSerializer.Deserialize<ImageAnalysisResponse>(body!);
         if (result is null)
         {
-            throw new SKException($"[Content Safety] Failed to analyze image. {body}");
+            throw new SKException($"[Content Safety] Failed to analyze image. Details: {body}");
         }
         return result;
     }

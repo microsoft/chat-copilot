@@ -312,7 +312,7 @@ public class DocumentImportController : ControllerBase
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
-                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. Details: {{1}}", formFile.FileName, (ex as SKException)?.Message);
+                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. Details: {{1}}", formFile.FileName, ex.Message);
                                 throw new AggregateException($"Failed to analyze image {formFile.FileName} with Content Safety.", ex);
                             }
 
