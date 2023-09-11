@@ -233,25 +233,6 @@ public class ChatSkill
         foreach (var chatMessage in sortedMessages)
         {
             var formattedMessage = chatMessage.ToFormattedString();
-
-            // Plan object is not meaningful content in generating bot response, so shorten to intent only to save on tokens
-            if (formattedMessage.Contains("proposedPlan\":", StringComparison.InvariantCultureIgnoreCase))
-            {
-                string pattern = @"(\[.*?\]).*User Intent:User intent: (.*)(?=""}})";
-                Match match = Regex.Match(formattedMessage, pattern);
-                if (match.Success)
-                {
-                    string timestamp = match.Groups[1].Value.Trim();
-                    string userIntent = match.Groups[2].Value.Trim();
-
-                    formattedMessage = $"{timestamp} Bot proposed plan to fulfill user intent: {userIntent}";
-                }
-                else
-                {
-                    formattedMessage = "Bot proposed plan";
-                }
-            }
-
             var tokenCount = TokenUtilities.TokenCount(formattedMessage);
 
             if (remainingToken - tokenCount >= 0)

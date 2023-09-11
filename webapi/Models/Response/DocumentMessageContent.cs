@@ -17,7 +17,7 @@ public class DocumentMessageContent
     /// List of documents contained in the message.
     /// </summary>
     [JsonPropertyName("documents")]
-    public IEnumerable<DocumentData> Documents { get; private set; } = Enumerable.Empty<DocumentData>();
+    public IEnumerable<DocumentData> Documents { get; set; } = Enumerable.Empty<DocumentData>();
 
     /// <summary>
     /// Add a document to the list of documents.
@@ -58,14 +58,14 @@ public class DocumentMessageContent
 
         var formattedStrings = this.Documents
             .Where(document => document.IsUploaded)
-            .Select(document => $"[Name: {document.Name}, Size: {document.Size}]").ToList();
+            .Select(document => document.Name).ToList();
 
         if (formattedStrings.Count == 1)
         {
-            return $"Uploaded a document {formattedStrings.First()}.";
+            return formattedStrings.First();
         }
 
-        return $"Uploaded documents: {string.Join(", ", formattedStrings)}.";
+        return string.Join(", ", formattedStrings);
     }
 
     /// <summary>
