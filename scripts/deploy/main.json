@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.20.4.51522",
-      "templateHash": "5908949040714406016"
+      "templateHash": "6650859180423000030"
     }
   },
   "parameters": {
@@ -262,7 +262,7 @@
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2022-03-01",
-      "name": "[format('asp-{0}-webapi', variables('uniqueName'))]",
+      "name": "[format('asp-{0}-{1}', variables('uniqueName'), parameters('name'))]",
       "location": "[parameters('location')]",
       "kind": "app",
       "sku": {
@@ -279,7 +279,7 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
         "httpsOnly": true,
         "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
         "siteConfig": {
@@ -287,7 +287,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
         "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
     },
@@ -433,11 +433,11 @@
           },
           {
             "name": "ApplicationInsights:ConnectionString",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-webapi', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           },
           {
             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-webapi', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           },
           {
             "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
@@ -460,12 +460,12 @@
             "value": "AzureQueue"
           },
           {
-            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes",
-            "value": "[format('[''{0}'']', parameters('aiService'))]"
+            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0",
+            "value": "[parameters('aiService')]"
           },
           {
-            "name": "SemanticMemory:DataIngestion:VectorDbTypes",
-            "value": "[format('[''{0}'']', parameters('memoryStore'))]"
+            "name": "SemanticMemory:DataIngestion:VectorDbTypes:0",
+            "value": "[parameters('memoryStore')]"
           },
           {
             "name": "SemanticMemory:Retrieval:VectorDbType",
@@ -542,7 +542,7 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Insights/components', format('appins-{0}-webapi', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
@@ -577,10 +577,13 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
+        "siteConfig": {
+          "alwaysOn": true
+        }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]"
       ]
     },
     {
@@ -615,12 +618,12 @@
             "value": "AzureQueue"
           },
           {
-            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes",
-            "value": "[format('[''{0}'']', parameters('aiService'))]"
+            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0",
+            "value": "[parameters('aiService')]"
           },
           {
-            "name": "SemanticMemory:DataIngestion:VectorDbTypes",
-            "value": "[format('[''{0}'']', parameters('memoryStore'))]"
+            "name": "SemanticMemory:DataIngestion:VectorDbTypes:0",
+            "value": "[parameters('memoryStore')]"
           },
           {
             "name": "SemanticMemory:Retrieval:VectorDbType",
@@ -713,10 +716,19 @@
           {
             "name": "Logging:LogLevel:AspNetCore",
             "value": "Warning"
+          },
+          {
+            "name": "Logging:ApplicationInsights:LogLevel:Default",
+            "value": "Warning"
+          },
+          {
+            "name": "ApplicationInsights:ConnectionString",
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-memorypipeline', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           }
         ]
       },
       "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', format('appins-{0}-memorypipeline', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName')))]",
@@ -741,11 +753,11 @@
     {
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02",
-      "name": "[format('appins-{0}', variables('uniqueName'))]",
+      "name": "[format('appins-{0}-webapi', variables('uniqueName'))]",
       "location": "[parameters('location')]",
       "kind": "string",
       "tags": {
-        "displayName": "AppInsight"
+        "displayName": "AppInsightWeb"
       },
       "properties": {
         "Application_Type": "web",
@@ -761,6 +773,32 @@
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[format('appins-{0}-memorypipeline', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "kind": "string",
+      "tags": {
+        "displayName": "AppInsightMemoryPipeline"
+      },
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/siteextensions",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
       ]
     },

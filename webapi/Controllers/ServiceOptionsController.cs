@@ -45,7 +45,7 @@ public class ServiceOptionsController : ControllerBase
             MemoryStore = new MemoryStoreOptionResponse()
             {
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
-                SelectedType = this.memoryOptions.Retrieval.EmbeddingGeneratorType,
+                SelectedType = this.memoryOptions.Retrieval.VectorDbType,
             },
             Version = GetAssemblyFileVersion()
         };
