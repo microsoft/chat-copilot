@@ -333,12 +333,12 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'AzureQueue'
       }
       {
-        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes'
-        value: '[\'${aiService}\']'
+        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0'
+        value: aiService
       }
       {
-        name: 'SemanticMemory:DataIngestion:VectorDbTypes'
-        value: '[\'${memoryStore}\']'
+        name: 'SemanticMemory:DataIngestion:VectorDbTypes:0'
+        value: memoryStore
       }
       {
         name: 'SemanticMemory:Retrieval:VectorDbType'
@@ -474,12 +474,12 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         value: 'AzureQueue'
       }
       {
-        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes'
-        value: '[\'${aiService}\']'
+        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0'
+        value: aiService
       }
       {
-        name: 'SemanticMemory:DataIngestion:VectorDbTypes'
-        value: '[\'${memoryStore}\']'
+        name: 'SemanticMemory:DataIngestion:VectorDbTypes:0'
+        value: memoryStore
       }
       {
         name: 'SemanticMemory:Retrieval:VectorDbType'
