@@ -15,8 +15,6 @@ $backendRunning = $false
 $envFilePath = Join-Path $PSScriptRoot '..\webapp\.env'
 $envContent = Get-Content -Path $envFilePath
 $port = [regex]::Match($envContent, ':(\d+)/').Groups[1].Value
-
-# set max retries to 5
 $maxRetries = 5
 
 # set retry count to 0

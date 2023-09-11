@@ -14,13 +14,8 @@ backendPort=$(echo $envContent | sed -n 's/.*:\([0-9]*\).*/\1/p')
 # Start backend (in background)
 ./start-backend.sh &
 
-# set max retries to 5
 maxRetries=5
-
-# set retry count to 0
 retryCount=0
-
-# set the number of seconds to wait before retrying
 retryWait=5
 
 # while the backend is not running wait.
