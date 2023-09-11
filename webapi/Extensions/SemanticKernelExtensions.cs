@@ -47,16 +47,12 @@ internal static class SemanticKernelExtensions
     /// </summary>
     internal static WebApplicationBuilder AddSemanticKernelServices(this WebApplicationBuilder builder)
     {
-        // Semantic Memory (for Planner)
-        //builder.Services.AddSemanticTextMemory(builder.Configuration);
-
         // Semantic Kernel
         builder.Services.AddScoped<IKernel>(
             sp =>
             {
                 var kernel = Kernel.Builder
                     .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                    //.WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
                     .WithCompletionBackend(sp, builder.Configuration)
                     .Build();
 
@@ -86,7 +82,6 @@ internal static class SemanticKernelExtensions
 
             var plannerKernel = Kernel.Builder
                 .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                //.WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
                 .WithPlannerBackend(sp, builder.Configuration)
                 .Build();
 
@@ -165,68 +160,6 @@ internal static class SemanticKernelExtensions
         }
 
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Add the semantic memory used by the planner.
-    /// </summary>
-    private static void AddSemanticTextMemory(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddScoped<ISemanticTextMemory>(
-            sp =>
-                new SemanticTextMemory(
-                    sp.GetRequiredService<IMemoryStore>(),
-                    sp.ToTextEmbeddingsService(configuration)));
-
-        services.AddSingleton<IMemoryStore>(
-            sp =>
-            {
-                var configMemory = sp.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
-
-                var memoryType = Enum.Parse<MemoryStoreType>(configMemory.Retrieval.VectorDbType, ignoreCase: true);
-                switch (memoryType)
-                {
-                    //case MemoryStoreType.Volatile: // $$$ TODO: Verify needed for planner ???
-                    //    services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
-                    //    break;
-
-                    case MemoryStoreType.Qdrant:
-                    {
-                        var configStorage = sp.GetService<QdrantConfig>();
-                        if (configStorage == null)
-                        {
-                            throw new InvalidOperationException("MemoryStore type is Qdrant and Qdrant configuration is null.");
-                        }
-
-                        HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                        if (!string.IsNullOrWhiteSpace(configStorage.APIKey))
-                        {
-                            httpClient.DefaultRequestHeaders.Add("api-key", configStorage.APIKey);
-                        }
-
-                        return new QdrantMemoryStore(
-                            httpClient,
-                            VectorMemoryDimensions,
-                            configStorage.Endpoint,
-                            loggerFactory: sp.GetRequiredService<ILoggerFactory>()
-                        );
-                    }
-
-                    case MemoryStoreType.AzureCognitiveSearch:
-                    {
-                        var configStorage = sp.GetService<AzureCognitiveSearchConfig>();
-                        if (configStorage == null)
-                        {
-                            throw new InvalidOperationException("MemoryStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
-                        }
-
-                        return new AzureCognitiveSearchMemoryStore(configStorage.Endpoint, configStorage.APIKey);
-                    }
-
-                    default:
-                        throw new InvalidOperationException($"Invalid 'MemoryStore' type '{configMemory.Retrieval.VectorDbType}'.");
-                }
-            });
     }
 
     /// <summary>

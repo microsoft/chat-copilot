@@ -82,8 +82,7 @@ public class ChatMemoryController : ControllerBase
         }
 
         // Gather the requested semantic memory.
-        // ISemanticTextMemory doesn't support retrieving all memories.
-        // Will use a dummy query since we don't care about relevance. An empty string will cause exception.
+        // Will use a dummy query since we don't care about relevance.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
         try
