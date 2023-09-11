@@ -68,7 +68,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
         return () => {
             clearInterval(timer);
         };
-    }, [model]);
+    });
 
     return (
         <>
