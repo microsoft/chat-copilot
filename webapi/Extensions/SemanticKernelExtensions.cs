@@ -48,7 +48,7 @@ internal static class SemanticKernelExtensions
     internal static WebApplicationBuilder AddSemanticKernelServices(this WebApplicationBuilder builder)
     {
         // Semantic Memory (for Planner)
-        builder.Services.AddSemanticTextMemory(builder.Configuration);
+        //builder.Services.AddSemanticTextMemory(builder.Configuration);
 
         // Semantic Kernel
         builder.Services.AddScoped<IKernel>(
@@ -56,7 +56,7 @@ internal static class SemanticKernelExtensions
             {
                 var kernel = Kernel.Builder
                     .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                    .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
+                    //.WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
                     .WithCompletionBackend(sp, builder.Configuration)
                     .Build();
 
@@ -86,7 +86,7 @@ internal static class SemanticKernelExtensions
 
             var plannerKernel = Kernel.Builder
                 .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
+                //.WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
                 .WithPlannerBackend(sp, builder.Configuration)
                 .Build();
 
