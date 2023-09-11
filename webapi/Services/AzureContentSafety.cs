@@ -13,7 +13,7 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.AI;
+using Microsoft.SemanticKernel.Diagnostics;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -136,17 +136,13 @@ public sealed class AzureContentSafety : IContentSafetyService
         var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode || body is null)
         {
-            throw new AIException(
-                response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? AIException.ErrorCodes.AccessDenied : AIException.ErrorCodes.UnknownError,
-                $"[Content Safety] Failed to analyze image. {response.StatusCode}");
+            throw new SKException($"[Content Safety] Failed to analyze image. {response.StatusCode}");
         }
 
         var result = JsonSerializer.Deserialize<ImageAnalysisResponse>(body!);
         if (result is null)
         {
-            throw new AIException(
-                AIException.ErrorCodes.UnknownError,
-                $"[Content Safety] Failed to analyze image. {body}");
+            throw new SKException($"[Content Safety] Failed to analyze image. Details: {body}");
         }
         return result;
     }
