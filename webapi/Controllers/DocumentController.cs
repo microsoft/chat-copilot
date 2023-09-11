@@ -196,10 +196,7 @@ public class DocumentController : ControllerBase
             this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
             // Create memory source
-            MemorySource memorySource;
-            using (var stream = formFile.OpenReadStream())
-            {
-                memorySource =
+            MemorySource memorySource =
                     new MemorySource(
                         chatId.ToString(),
                         formFile.FileName,
@@ -208,9 +205,8 @@ public class DocumentController : ControllerBase
                         formFile.Length,
                         null)
                     {
-                        Tokens = TokenUtilities.TokenCount(stream),
+                        Tokens = 0, // $$$ TODO: SEMANTIC MEMORY - BIND TO STATUS
                     };
-            }
 
             if (!(await this.TryUpsertMemorySourceAsync(memorySource).ConfigureAwait(false)))
             {
