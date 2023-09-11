@@ -26,7 +26,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -155,9 +154,9 @@ public class ChatController : ControllerBase, IDisposable
 
         if (result.ErrorOccurred)
         {
-            if (result.LastException is AIException aiException && aiException.Detail is not null)
+            if (result.LastException is SKException sKException && sKException.Message is not null)
             {
-                return this.BadRequest(string.Concat(aiException.Message, " - Detail: " + aiException.Detail));
+                return this.BadRequest("Detail: " + sKException.Message);
             }
 
             if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)

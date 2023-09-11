@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
@@ -312,7 +312,7 @@ public class DocumentImportController : ControllerBase
                             }
                             catch (Exception ex) when (!ex.IsCriticalException())
                             {
-                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
+                                this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. Details: {{1}}", formFile.FileName, (ex as SKException)?.Message);
                                 throw new AggregateException($"Failed to analyze image {formFile.FileName} with Content Safety.", ex);
                             }
 
