@@ -197,7 +197,7 @@ public class DocumentController : ControllerBase
 
             // Create memory source
             MemorySource memorySource =
-                    new MemorySource(
+                    new(
                         chatId.ToString(),
                         formFile.FileName,
                         this._authInfo.UserId,
