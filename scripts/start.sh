@@ -14,11 +14,38 @@ backendPort=$(echo $envContent | sed -n 's/.*:\([0-9]*\).*/\1/p')
 # Start backend (in background)
 ./start-backend.sh &
 
-# check that the backend is running and keep checking until it is
-while ! nc -z localhost $backendPort; do
-  sleep 5 # wait for 5 seconds before check again
-  echo "Waiting for backend to start..."
+# set max retries to 5
+maxRetries=5
+
+# set retry count to 0
+retryCount=0
+
+# set the number of seconds to wait before retrying
+retryWait=5
+
+# while the backend is not running wait.
+while [ $retryCount -lt $maxRetries ]
+do
+  if nc -z localhost $backendPort
+  then
+    # if the backend is running, start the frontend and break out of the loop
+    ./start-frontend.sh
+    break
+  else
+    # if the backend is not running, sleep, then increment the retry count
+    sleep $retryWait
+    retryCount=$((retryCount+1))
+  fi
 done
 
-# Start frontend
-./start-frontend.sh
+# if we have exceeded the number of retries
+if [ $retryCount -eq $maxRetries ]
+then
+# write to the console that the backend is not running and we have exceeded the number of retries and we are exiting
+  echo "*************************************************"
+  echo "Backend is not running and we have exceeded "
+  echo "the number of retries."
+  echo ""
+  echo "Therefore, we are exiting."
+  echo "*************************************************"
+fi
