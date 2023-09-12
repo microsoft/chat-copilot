@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="2.13.3" />
     <PackageReference Include="PdfPig" Version="0.1.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.3" />
   </ItemGroup>
 
   <PropertyGroup>
