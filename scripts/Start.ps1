@@ -17,8 +17,6 @@ $envContent = Get-Content -Path $envFilePath
 $port = [regex]::Match($envContent, ':(\d+)/').Groups[1].Value
 
 $maxRetries = 5
-
-# set retry count to 0
 $retryCount = 0
 
 # set the number of seconds to wait before retrying
