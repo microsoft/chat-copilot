@@ -201,10 +201,7 @@ public class DocumentController : ControllerBase
                         this._authInfo.UserId,
                         MemorySourceType.File,
                         formFile.Length,
-                        null)
-                    {
-                        Tokens = 0, // $$$ TODO: SEMANTIC MEMORY - BIND TO STATUS
-                    };
+                        hyperlink: null);
 
             if (!(await this.TryUpsertMemorySourceAsync(memorySource).ConfigureAwait(false)))
             {
