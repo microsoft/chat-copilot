@@ -8,5 +8,5 @@ export interface ChatMemorySource {
     hyperlink?: string;
     sharedBy: string;
     createdOn: number;
-    tokens: number;
+    size: number;
 }
