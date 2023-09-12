@@ -16,7 +16,7 @@ backendPort=$(echo $envContent | sed -n 's/.*:\([0-9]*\).*/\1/p')
 
 maxRetries=5
 retryCount=0
-retryWait=5
+retryWait=5  # set the number of seconds to wait before retrying
 
 # while the backend is not running wait.
 while [ $retryCount -lt $maxRetries ]
