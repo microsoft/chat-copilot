@@ -63,13 +63,18 @@ const App: FC = () => {
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features, isMaintenance } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
     const file = useFile();
 
     useEffect(() => {
+        if (isMaintenance && appState !== AppState.ProbeForBackend) {
+            setAppState(AppState.ProbeForBackend);
+            return;
+        }
+
         if (isAuthenticated) {
             if (appState === AppState.SettingUserInfo) {
                 if (activeUserInfo === undefined) {
@@ -126,7 +131,7 @@ const App: FC = () => {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [instance, inProgress, isAuthenticated, appState]);
+    }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
 
     // TODO: [Issue #41] handle error case of missing account information
     return (
