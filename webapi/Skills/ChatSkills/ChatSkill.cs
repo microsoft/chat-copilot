@@ -257,19 +257,18 @@ public class ChatSkill
             // Plan object is not meaningful content in generating bot response, so shorten to intent only to save on tokens
             if (chatMessage.Type == ChatMessage.ChatMessageType.Plan)
             {
-                chatMessage.Content = "Bot proposed plan";
+                formattedMessage = "Bot proposed plan";
 
                 // Try to extract the user intent for more context
-                string pattern = @"(\[.*?\]).*User Intent: (.*)(?=""}})";
-                Match match = Regex.Match(formattedMessage, pattern);
+                string pattern = @"User intent: (.*)(?=""})";
+                Match match = Regex.Match(chatMessage.Content, pattern);
                 if (match.Success)
                 {
-                    string timestamp = match.Groups[1].Value.Trim();
-                    string userIntent = match.Groups[2].Value.Trim();
-                    chatMessage.Content = $"Bot proposed plan to fulfill user intent: {userIntent}";
+                    string userIntent = match.Groups[1].Value.Trim();
+                    formattedMessage = $"Bot proposed plan to help fulfill goal: {userIntent}";
                 }
 
-                formattedMessage = $"[{chatMessage.Timestamp}] {chatMessage.Content}";
+                formattedMessage = $"[{chatMessage.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {formattedMessage}";
             }
 
             var promptRole = chatMessage.AuthorRole == ChatMessage.AuthorRoles.Bot ? AuthorRole.System : AuthorRole.User;
@@ -281,7 +280,7 @@ public class ChatSkill
                 if (chatMessage.AuthorRole == ChatMessage.AuthorRoles.Bot)
                 {
                     // Message doesn't have to be formatted for bot. This helps with asserting a natural language response from the LLM (no date or author preamble).
-                    allottedChatHistory.AddAssistantMessage(chatMessage.Content);
+                    allottedChatHistory.AddAssistantMessage(chatMessage.Type == ChatMessage.ChatMessageType.Plan ? formattedMessage : chatMessage.Content);
                 }
                 else
                 {
@@ -422,13 +421,10 @@ public class ChatSkill
         var proposedPlan = this._externalInformationSkill.ProposedPlan;
         if (proposedPlan != null)
         {
-            var prompt = proposedPlan.Plan.Description;
-            chatContext.Variables.Set("prompt", prompt);
-
             // Save a new response to the chat history with the proposed plan content
             return await this.SaveNewResponseAsync(
                 JsonSerializer.Serialize<ProposedPlan>(proposedPlan),
-                prompt,
+                proposedPlan.Plan.Description,
                 chatId,
                 userId,
                 // TODO: [Issue #2106] Accommodate plan token usage differently
@@ -476,8 +472,7 @@ public class ChatSkill
             promptTemplate.AddSystemMessage(planResult);
         }
 
-        chatContext.Variables.Set("prompt", promptTemplate.ToString());
-        var promptView = new BotResponsePrompt(JsonSerializer.Serialize(promptTemplate), this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
+        var promptView = new BotResponsePrompt(this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetChatHistoryTokenCount(promptTemplate).ToString(CultureInfo.InvariantCulture));
         chatContext.ThrowIfFailed();
 

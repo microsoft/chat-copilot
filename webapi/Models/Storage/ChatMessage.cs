@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Storage;
 
@@ -179,6 +180,7 @@ public class ChatMessage : IStorageEntity
     /// <returns>A formatted string</returns>
     public string ToFormattedString()
     {
+        var userTag = PassThroughAuthenticationHandler.isDefaultUser(this.UserId) ? "" : $" {this.UserName}";
         var content = this.Content;
         if (this.Type == ChatMessageType.Document)
         {
@@ -186,7 +188,7 @@ public class ChatMessage : IStorageEntity
             content = (documentMessageContent != null) ? documentMessageContent.ToFormattedString() : "Uploaded documents";
         }
 
-        return $"[{this.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {this.UserName}: {content}";
+        return $"[{this.Timestamp.ToString("G", CultureInfo.CurrentCulture)}]{userTag}: {content}";
     }
 
     /// <summary>
