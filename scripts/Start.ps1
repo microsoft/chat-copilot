@@ -18,9 +18,7 @@ $port = [regex]::Match($envContent, ':(\d+)/').Groups[1].Value
 
 $maxRetries = 5
 $retryCount = 0
-
-# set the number of seconds to wait before retrying
-$retryWait = 5
+$retryWait = 5 # set the number of seconds to wait before retrying
 
 # check if the backend is running and check if the retry count is less than the max retries
 while ($backendRunning -eq $false -and $retryCount -lt $maxRetries) {
