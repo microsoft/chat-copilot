@@ -152,7 +152,7 @@ export const DocumentsTab: React.FC = () => {
                 {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
-                    <Label size="large">Vector Database</Label>
+                    <Label size="large">Vector Database:</Label>
                     <RadioGroup
                         defaultValue={serviceOptions.memoryStore.selectedType}
                         layout="horizontal"
