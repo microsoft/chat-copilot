@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using Microsoft.SemanticKernel.Orchestration;
@@ -87,4 +88,27 @@ public static class TokenUtilities
     /// Calculate the number of tokens in a string.
     /// </summary>
     internal static int TokenCount(string text) => GPT3Tokenizer.Encode(text).Count;
+
+    /// <summary>
+    /// Rough token costing of ChatHistory's message object.
+    /// </summary>
+    internal static int GetChatMessageTokenCount(AuthorRole authorRole, string content)
+    {
+        var tokenCount = authorRole == AuthorRole.System ? TokenCount("\n") : 0;
+        return tokenCount + TokenCount($"Role:{authorRole.Label}") + TokenCount($"Content:{content}");
+    }
+
+    /// <summary>
+    /// Rough token costing of ChatHistory object.
+    /// </summary>
+    internal static int GetChatHistoryTokenCount(ChatHistory chatHistory)
+    {
+        var tokenCount = 0;
+        foreach (var message in chatHistory.Messages)
+        {
+            tokenCount += GetChatMessageTokenCount(message.Role, message.Content);
+        }
+
+        return tokenCount;
+    }
 }

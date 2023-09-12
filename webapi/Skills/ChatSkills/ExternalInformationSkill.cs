@@ -104,8 +104,8 @@ public class ExternalInformationSkill
             return string.Empty;
         }
 
-        var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
-        var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}";
+        var contextString = string.Join("\n", context.Variables.Select(v => $"{v.Key}: {v.Value}"));
+        var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\n{userIntent}";
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
             var plannerContext = context.Clone();

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -46,16 +47,13 @@ public class BotResponsePrompt
     public string ChatHistory { get; set; } = string.Empty;
 
     /// <summary>
-    /// Preamble to the LLM's response.
-    /// </summary>
-    [JsonPropertyName("systemChatContinuation")]
-    public string SystemChatContinuation { get; set; } = string.Empty;
-
-    /// <summary>
     /// Raw content of the rendered prompt.
     /// </summary>
     [JsonPropertyName("rawContent")]
     public string RawContent { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public ChatHistory MetaPromptTemplate { get; set; } = new();
 
     public BotResponsePrompt(
         string rawContent,
@@ -67,8 +65,8 @@ public class BotResponsePrompt
         string documentMemories,
         SemanticDependency<StepwiseThoughtProcess> externalInformation,
         string chatHistory,
-        string systemChatContinuation
-        )
+        ChatHistory metaPromptTemplate
+    )
     {
         this.RawContent = rawContent;
         this.SystemPersona = string.Join("\n", systemDescription, systemResponse);
@@ -77,6 +75,6 @@ public class BotResponsePrompt
         this.PastMemories = string.Join("\n", chatMemories, documentMemories).Trim();
         this.ExternalInformation = externalInformation;
         this.ChatHistory = chatHistory;
-        this.SystemChatContinuation = systemChatContinuation;
+        this.MetaPromptTemplate = metaPromptTemplate;
     }
 }

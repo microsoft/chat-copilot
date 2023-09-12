@@ -20,9 +20,6 @@ export interface BotResponsePrompt {
     // Recent messages from history of the conversation.
     chatHistory: string;
 
-    // Preamble to the LLM's response.
-    systemChatContinuation: string;
-
     // Raw content of the rendered prompt.
     rawContent: string;
 }
@@ -34,7 +31,6 @@ export const PromptSectionsNameMap: Record<string, string> = {
     chatMemories: 'Chat Memories',
     externalInformation: 'Planner Results',
     chatHistory: 'Chat History',
-    systemChatContinuation: 'System Chat Continuation',
 };
 
 // Information about semantic dependencies of the prompt.

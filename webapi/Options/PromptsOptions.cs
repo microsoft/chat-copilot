@@ -68,7 +68,7 @@ public class PromptsOptions
     internal string[] SystemAudiencePromptComponents => new string[]
     {
         this.SystemAudience,
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatSkill.ExtractChatHistoryAsString}}",
         this.SystemAudienceContinuation
     };
 
@@ -78,7 +78,7 @@ public class PromptsOptions
     {
         this.SystemDescription,
         this.SystemIntent,
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatSkill.ExtractChatHistoryAsString}}",
         this.SystemIntentContinuation
     };
 
@@ -108,7 +108,7 @@ public class PromptsOptions
         $"{this.LongTermMemoryName} Description:\n{this.LongTermMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatSkill.ExtractChatHistoryAsString}}",
         this.MemoryContinuation
     };
 
@@ -124,7 +124,7 @@ public class PromptsOptions
         $"{this.WorkingMemoryName} Description:\n{this.WorkingMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatSkill.ExtractChatHistoryAsString}}",
         this.MemoryContinuation
     };
 
@@ -138,22 +138,13 @@ public class PromptsOptions
     };
 
     // Chat commands
-    internal string SystemChatContinuation = "SINGLE RESPONSE FROM BOT TO USER:\n[{{TimeSkill.Now}} {{timeSkill.Second}}] bot:";
-
-    // Regex to match system chat continuation preamble in rendered prompt
-    internal const string SYSTEM_CHAT_CONTINUATION_REGEX = @"(SINGLE RESPONSE FROM BOT TO USER:\n\[.*] bot:)";
-
-    internal string[] SystemChatPromptComponents => new string[]
+    internal string[] SystemPersonaComponents => new string[]
     {
         this.SystemDescription,
         this.SystemResponse,
-        "{{$audience}}",
-        "{{$userIntent}}",
-        "{{$chatContext}}",
-        this.SystemChatContinuation
     };
 
-    internal string SystemChatPrompt => string.Join("\n\n", this.SystemChatPromptComponents);
+    internal string SystemPersona => string.Join("\n\n", this.SystemPersonaComponents);
 
     internal double ResponseTemperature { get; } = 0.7;
     internal double ResponseTopP { get; } = 1;
