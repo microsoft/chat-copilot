@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Threading;
+using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -46,12 +48,19 @@ public class MaintenanceController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<MigrationResult?> GetMaintenanceStatus(
-        [FromServices] IKernel kernel,
+    public async Task<ActionResult<MigrationResult?>> GetMaintenanceStatusAsync(
+        [FromServices] IChatMigrationMonitor migrationMonitor,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
     {
         MigrationResult? result = null;
+
+        var migrationStatus = await migrationMonitor.GetCurrentStatusAsync(null!, cancellationToken).ConfigureAwait(false); // $$$ MEMORY OR ???
+
+        if (migrationStatus != ChatMigrationStatus.None)
+        {
+            result = new MigrationResult(); // $$$ Update UI
+        }
 
         if (this._serviceOptions.Value.InMaintenance)
         {

@@ -24,6 +24,8 @@ public class MaintenanceMiddleware
 
     public MaintenanceMiddleware(
         RequestDelegate next,
+        //IChatMigrationMonitor migrationMonitor, $$$ PATTERN ??
+        //IChatMemoryMigrationService migrationService,
         IOptions<ServiceOptions> servicetOptions,
         IHubContext<MessageRelayHub> messageRelayHubContext,
         ILogger<MaintenanceMiddleware> logger)
