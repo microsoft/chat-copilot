@@ -83,6 +83,7 @@ public sealed class Program
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<MaintenanceMiddleware>();
         app.MapControllers()
             .RequireAuthorization();
         app.MapHealthChecks("/healthz");
