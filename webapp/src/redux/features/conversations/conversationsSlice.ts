@@ -50,6 +50,14 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
         setSelectedConversation: (state: ConversationsState, action: PayloadAction<string>) => {
             state.selectedId = action.payload;
         },
+        toggleMultiUserConversations: (state: ConversationsState) => {
+            const keys = Object.keys(state.conversations);
+            keys.forEach((key) => {
+                if (state.conversations[key].users.length > 1) {
+                    state.conversations[key].hidden = !state.conversations[key].hidden;
+                }
+            });
+        },
         addConversation: (state: ConversationsState, action: PayloadAction<ChatState>) => {
             const newId = action.payload.id;
             state.conversations = { [newId]: action.payload, ...state.conversations };
@@ -209,6 +217,7 @@ export const {
     editConversationSystemDescription,
     editConversationMemoryBalance,
     setSelectedConversation,
+    toggleMultiUserConversations,
     addConversation,
     setImportingDocumentsToConversation,
     addMessageToConversationFromUser,
