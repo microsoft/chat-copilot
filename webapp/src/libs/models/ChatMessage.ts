@@ -47,6 +47,8 @@ export enum UserFeedback {
 export interface Citation {
     link: string;
     sourceName: string;
+    snippet: string;
+    relevanceScore: number;
 }
 
 export interface IChatMessage {
