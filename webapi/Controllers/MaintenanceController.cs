@@ -47,7 +47,7 @@ public class MaintenanceController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<MigrationResult?>> GetMaintenanceStatusAsync(
+    public ActionResult<MigrationResult?> GetMaintenanceStatusAsync(
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
