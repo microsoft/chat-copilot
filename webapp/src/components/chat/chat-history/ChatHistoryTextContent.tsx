@@ -18,14 +18,7 @@ interface ChatHistoryTextContentProps {
 
 export const ChatHistoryTextContent: React.FC<ChatHistoryTextContentProps> = ({ message }) => {
     const classes = useClasses();
-    let content = utils.formatChatTextContent(message.content);
-
-    if (message.citations && message.citations.length > 0) {
-        content += '\n\n';
-        message.citations.forEach((citation, index) => {
-            content += `Source ${index + 1}: _${citation.sourceName}_\n\n`;
-        });
-    }
+    const content = utils.formatChatTextContent(message.content);
 
     return (
         <div className={classes.content}>
