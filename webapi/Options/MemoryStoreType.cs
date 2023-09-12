@@ -13,6 +13,11 @@ public enum MemoryStoreType
     Volatile,
 
     /// <summary>
+    /// File system based persistent memory store.
+    /// </summary>
+    SimpleVectorDb,
+
+    /// <summary>
     /// Qdrant based persistent memory store.
     /// </summary>
     Qdrant,

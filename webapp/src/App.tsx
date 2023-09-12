@@ -63,15 +63,18 @@ const App: FC = () => {
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { activeUserInfo, features, isMigrating } = useAppSelector((state: RootState) => state.app);
+    const { activeUserInfo, features, isMaintenance } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
     const file = useFile();
 
-    console.log(`# ${isMigrating} (APP)`); // $$$
-
     useEffect(() => {
+        if (isMaintenance && appState !== AppState.ProbeForBackend) {
+            setAppState(AppState.ProbeForBackend);
+            return;
+        }
+
         if (isAuthenticated) {
             if (appState === AppState.SettingUserInfo) {
                 if (activeUserInfo === undefined) {
@@ -81,8 +84,8 @@ const App: FC = () => {
                     } else {
                         dispatch(
                             setActiveUserInfo({
-                                id: account.homeAccountId,
-                                email: account.username, // username in an AccountInfo object is the email address
+                                id: `${account.localAccountId}.${account.tenantId}`,
+                                email: account.username, // Username in an AccountInfo object is the email address
                                 username: account.name ?? account.username,
                             }),
                         );
@@ -127,13 +130,8 @@ const App: FC = () => {
             ]);
         }
 
-        if (isMigrating)
-        {
-            setAppState(AppState.ProbeForBackend);
-        }
-    
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [instance, inProgress, isAuthenticated, appState]);
+    }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
 
     // TODO: [Issue #41] handle error case of missing account information
     return (

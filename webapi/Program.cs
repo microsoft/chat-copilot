@@ -84,7 +84,7 @@ public sealed class Program
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseMiddleware<ChatMigrationMiddleware>();
+        app.UseMiddleware<MaintenanceMiddleware>();
         app.MapControllers()
             .RequireAuthorization();
         app.MapHealthChecks("/healthz");

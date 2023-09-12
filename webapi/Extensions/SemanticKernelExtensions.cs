@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
@@ -19,14 +18,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
-using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
-using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
-using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticMemory;
-using Microsoft.SemanticMemory.MemoryStorage.Qdrant;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -35,8 +30,6 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class SemanticKernelExtensions
 {
-    private const int VectorMemoryDimensions = 1536; // $$$ TODO: Consolidate with semantic memory
-
     /// <summary>
     /// Delegate to register skills with a Semantic Kernel
     /// </summary>
@@ -47,16 +40,12 @@ internal static class SemanticKernelExtensions
     /// </summary>
     internal static WebApplicationBuilder AddSemanticKernelServices(this WebApplicationBuilder builder)
     {
-        // Semantic Memory (for Planner)
-        builder.Services.AddSemanticTextMemory(builder.Configuration);
-
         // Semantic Kernel
         builder.Services.AddScoped<IKernel>(
             sp =>
             {
                 var kernel = Kernel.Builder
-                    .WithLogger(sp.GetRequiredService<ILogger<IKernel>>())
-                    .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
+                    .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
                     .WithCompletionBackend(sp, builder.Configuration)
                     .Build();
 
@@ -85,12 +74,11 @@ internal static class SemanticKernelExtensions
             var plannerOptions = sp.GetRequiredService<IOptions<PlannerOptions>>();
 
             var plannerKernel = Kernel.Builder
-                .WithLogger(sp.GetRequiredService<ILogger<IKernel>>())
-                .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
+                .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
                 .WithPlannerBackend(sp, builder.Configuration)
                 .Build();
 
-            return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value);
+            return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
         // Register Planner skills (AI plugins) here.
@@ -129,7 +117,8 @@ internal static class SemanticKernelExtensions
     {
         if (context.ErrorOccurred)
         {
-            context.Logger.LogError(context.LastException, "{0}", context.LastException?.Message);
+            var logger = context.LoggerFactory.CreateLogger(nameof(SKContext));
+            logger.LogError(context.LastException, "{0}", context.LastException?.Message);
             throw context.LastException!;
         }
     }
@@ -155,76 +144,15 @@ internal static class SemanticKernelExtensions
                 {
                     kernel.ImportSemanticSkillFromDirectory(options.SemanticSkillsDirectory, Path.GetFileName(subDir)!);
                 }
-                catch (TemplateException e)
+                catch (SKException ex)
                 {
-                    kernel.Logger.LogError("Could not load skill from {Directory}: {Message}", subDir, e.Message);
+                    var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
+                    logger.LogError("Could not load skill from {Directory}: {Message}", subDir, ex.Message);
                 }
             }
         }
 
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Add the semantic memory used by the planner.
-    /// </summary>
-    private static void AddSemanticTextMemory(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddScoped<ISemanticTextMemory>(
-            sp =>
-                new SemanticTextMemory(
-                    sp.GetRequiredService<IMemoryStore>(),
-                    sp.ToTextEmbeddingsService(configuration)));
-
-        services.AddSingleton<IMemoryStore>(
-            sp =>
-            {
-                var configMemory = sp.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
-
-                var memoryType = Enum.Parse<MemoryStoreType>(configMemory.Retrieval.VectorDbType, ignoreCase: true);
-                switch (memoryType)
-                {
-                    //case MemoryStoreType.Volatile: // $$$ TODO: Verify needed for planner ???
-                    //    services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
-                    //    break;
-
-                    case MemoryStoreType.Qdrant:
-                    {
-                        var configStorage = sp.GetService<QdrantConfig>();
-                        if (configStorage == null)
-                        {
-                            throw new InvalidOperationException("MemoryStore type is Qdrant and Qdrant configuration is null.");
-                        }
-
-                        HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                        if (!string.IsNullOrWhiteSpace(configStorage.APIKey))
-                        {
-                            httpClient.DefaultRequestHeaders.Add("api-key", configStorage.APIKey);
-                        }
-
-                        return new QdrantMemoryStore(
-                            httpClient,
-                            VectorMemoryDimensions,
-                            configStorage.Endpoint,
-                            logger: sp.GetRequiredService<ILogger<IQdrantVectorDbClient>>()
-                        );
-                    }
-
-                    case MemoryStoreType.AzureCognitiveSearch:
-                    {
-                        var configStorage = sp.GetService<AzureCognitiveSearchConfig>();
-                        if (configStorage == null)
-                        {
-                            throw new InvalidOperationException("MemoryStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
-                        }
-
-                        return new AzureCognitiveSearchMemoryStore(configStorage.Endpoint, configStorage.APIKey);
-                    }
-
-                    default:
-                        throw new InvalidOperationException($"Invalid 'MemoryStore' type '{configMemory.Retrieval.VectorDbType}'.");
-                }
-            });
     }
 
     /// <summary>
@@ -291,7 +219,10 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Construct IEmbeddingGeneration from <see cref="AIServiceOptions"/>
     /// </summary>
-    private static ITextEmbeddingGeneration ToTextEmbeddingsService(this IServiceProvider provider, IConfiguration configuration)
+    private static ITextEmbeddingGeneration ToTextEmbeddingsService(
+        this IServiceProvider provider,
+        IConfiguration configuration,
+        ILoggerFactory? loggerFactory = null)
     {
         var logger = provider.GetRequiredService<ILogger<ITextEmbeddingGeneration>>();
         var memoryOptions = provider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
@@ -301,11 +232,11 @@ internal static class SemanticKernelExtensions
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
-                return new AzureTextEmbeddingGeneration(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey, httpClient: null, logger);
+                return new AzureTextEmbeddingGeneration(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey, httpClient: null, loggerFactory);
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
-                return new OpenAITextEmbeddingGeneration(openAIOptions.EmbeddingModel, openAIOptions.APIKey, organization: null, httpClient: null, logger);
+                return new OpenAITextEmbeddingGeneration(openAIOptions.EmbeddingModel, openAIOptions.APIKey, organization: null, httpClient: null, loggerFactory);
 
             default:
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'SemanticMemory' settings.");

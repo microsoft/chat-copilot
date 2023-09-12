@@ -10,8 +10,8 @@ export const appSlice = createSlice({
     name: 'app',
     initialState,
     reducers: {
-        setMigration: (state: AppState, action: PayloadAction<boolean>) => {
-            state.isMigrating = action.payload;
+        setMaintenance: (state: AppState, action: PayloadAction<boolean>) => {
+            state.isMaintenance = action.payload;
         },
         setAlerts: (state: AppState, action: PayloadAction<Alert[]>) => {
             state.alerts = action.payload;
@@ -83,7 +83,7 @@ export const {
     toggleFeatureState,
     updateTokenUsage,
     setServiceOptions,
-    setMigration,
+    setMaintenance,
 } = appSlice.actions;
 
 export default appSlice.reducer;

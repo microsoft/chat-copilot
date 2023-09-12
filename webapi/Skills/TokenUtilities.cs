@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
@@ -63,11 +62,12 @@ public static class TokenUtilities
     /// </summary>
     /// <param name="result">Result context from chat model</param>
     /// <param name="chatContext">Context maintained during response generation.</param>
+    /// <param name="logger">The logger instance to use for logging errors.</param>
     /// <param name="functionName">Name of the function that invoked the chat completion.</param>
     /// <returns> true if token usage is found in result context; otherwise, false.</returns>
-    internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, string? functionName = null)
+    internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, ILogger logger, string? functionName = null)
     {
-        var functionKey = GetFunctionKey(chatContext.Logger, functionName);
+        var functionKey = GetFunctionKey(logger, functionName);
         if (functionKey == null)
         {
             return;
@@ -75,7 +75,7 @@ public static class TokenUtilities
 
         if (result.ModelResults == null || result.ModelResults.Count == 0)
         {
-            chatContext.Logger.LogError("Unable to determine token usage for {0}", functionKey);
+            logger.LogError("Unable to determine token usage for {0}", functionKey);
             return;
         }
 
@@ -87,18 +87,4 @@ public static class TokenUtilities
     /// Calculate the number of tokens in a string.
     /// </summary>
     internal static int TokenCount(string text) => GPT3Tokenizer.Encode(text).Count;
-
-    /// <summary>
-    /// Calculate the number of tokens in a stream.
-    /// </summary>
-    internal static int TokenCount(Stream stream) => GPT3Tokenizer.Encode(stream.ToEnumerable()).Count;
-
-    private static IEnumerable<char> ToEnumerable(this Stream stream)
-    {
-        int c;
-        while (0 <= (c = stream.ReadByte()))
-        {
-            yield return (char)c;
-        }
-    }
 }

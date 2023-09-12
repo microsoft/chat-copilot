@@ -42,7 +42,7 @@ internal static class SemanticChatMemoryExtractor
         {
             try
             {
-                var semanticMemory = await ExtractCognitiveMemoryAsync(memoryName);
+                var semanticMemory = await ExtractCognitiveMemoryAsync(memoryName, logger);
                 foreach (var item in semanticMemory.Items)
                 {
                     await CreateMemoryAsync(memoryName, item.ToFormattedString());
@@ -52,7 +52,7 @@ internal static class SemanticChatMemoryExtractor
             {
                 // Skip semantic memory extraction for this item if it fails.
                 // We cannot rely on the model to response with perfect Json each time.
-                context.Logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
+                logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
                 continue;
             }
         }
@@ -60,7 +60,7 @@ internal static class SemanticChatMemoryExtractor
         /// <summary>
         /// Extracts the semantic chat memory from the chat session.
         /// </summary>
-        async Task<SemanticChatMemory> ExtractCognitiveMemoryAsync(string memoryName)
+        async Task<SemanticChatMemory> ExtractCognitiveMemoryAsync(string memoryName, ILogger logger)
         {
             if (!options.MemoryMap.TryGetValue(memoryName, out var memoryPrompt))
             {
@@ -88,7 +88,7 @@ internal static class SemanticChatMemoryExtractor
 
             // Get token usage from ChatCompletion result and add to context
             // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
-            TokenUtilities.GetFunctionTokenUsage(result, context, $"SystemCognitive_{memoryName}");
+            TokenUtilities.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryName}");
 
             SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
             return memory;

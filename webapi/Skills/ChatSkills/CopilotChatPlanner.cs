@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Planning.Sequential;
@@ -22,6 +24,11 @@ namespace CopilotChat.WebApi.Skills.ChatSkills;
 /// </summary>
 public class CopilotChatPlanner
 {
+    /// <summary>
+    /// High level logger.
+    /// </summary>
+    private readonly ILogger _logger;
+
     /// <summary>
     /// The planner's kernel.
     /// </summary>
@@ -61,10 +68,11 @@ public class CopilotChatPlanner
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
     /// </summary>
     /// <param name="plannerKernel">The planner's kernel.</param>
-    public CopilotChatPlanner(IKernel plannerKernel, PlannerOptions? plannerOptions)
+    public CopilotChatPlanner(IKernel plannerKernel, PlannerOptions? plannerOptions, ILogger logger)
     {
         this.Kernel = plannerKernel;
         this._plannerOptions = plannerOptions;
+        this._logger = logger;
     }
 
     /// <summary>
@@ -72,8 +80,9 @@ public class CopilotChatPlanner
     /// </summary>
     /// <param name="goal">The goal to create a plan for.</param>
     /// <param name="logger">Logger from context.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The plan.</returns>
-    public async Task<Plan> CreatePlanAsync(string goal, ILogger logger)
+    public async Task<Plan> CreatePlanAsync(string goal, ILogger logger, CancellationToken cancellationToken = default)
     {
         FunctionsView plannerFunctionsView = this.Kernel.Skills.GetFunctionsView(true, true);
         if (plannerFunctionsView.NativeFunctions.IsEmpty && plannerFunctionsView.SemanticFunctions.IsEmpty)
@@ -95,22 +104,22 @@ public class CopilotChatPlanner
                         {
                             RelevancyThreshold = this._plannerOptions?.RelevancyThreshold,
                             // Allow plan to be created with missing functions
-                            AllowMissingFunctions = this._plannerOptions?.MissingFunctionError.AllowRetries ?? false
+                            AllowMissingFunctions = this._plannerOptions?.ErrorHandling.AllowMissingFunctions ?? false
                         }
-                    ).CreatePlanAsync(goal);
+                    ).CreatePlanAsync(goal, cancellationToken);
                     break;
                 default:
-                    plan = await new ActionPlanner(this.Kernel).CreatePlanAsync(goal);
+                    plan = await new ActionPlanner(this.Kernel).CreatePlanAsync(goal, cancellationToken);
                     break;
             }
         }
-        catch (PlanningException e) when (e.ErrorCode == PlanningException.ErrorCodes.CreatePlanError && e.Message.Contains("Not possible to create plan for goal with available functions", StringComparison.InvariantCulture))
+        catch (SKException)
         {
             // No relevant functions are available - return an empty plan.
             return new Plan(goal);
         }
 
-        return this._plannerOptions!.MissingFunctionError.AllowRetries ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+        return this._plannerOptions!.ErrorHandling.AllowMissingFunctions ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
     }
 
     /// <summary>
@@ -118,7 +127,8 @@ public class CopilotChatPlanner
     /// </summary>
     /// <param name="goal">The goal containing user intent and ask context.</param>
     /// <param name="context">The context to run the plan in.</param>
-    public async Task<SKContext> RunStepwisePlannerAsync(string goal, SKContext context)
+    /// <param name="cancellationToken">The cancellation token.</param>
+    public async Task<SKContext> RunStepwisePlannerAsync(string goal, SKContext context, CancellationToken cancellationToken = default)
     {
         var config = new Microsoft.SemanticKernel.Planning.Stepwise.StepwisePlannerConfig()
         {
@@ -136,7 +146,7 @@ public class CopilotChatPlanner
                 this.Kernel,
                 config
             ).CreatePlan(string.Join("\n", goal, StepwisePlannerSupplement));
-            var result = await plan.InvokeAsync(context);
+            var result = await plan.InvokeAsync(context, cancellationToken: cancellationToken);
 
             sw.Stop();
             result.Variables.Set("timeTaken", sw.Elapsed.ToString());
@@ -144,7 +154,7 @@ public class CopilotChatPlanner
         }
         catch (Exception e)
         {
-            context.Logger.LogError(e, "Error running stepwise planner");
+            this._logger.LogError(e, "Error running stepwise planner");
             throw;
         }
     }

@@ -78,9 +78,9 @@ internal static class ISemanticMemoryClientExtensions
         var searchResult =
             await memoryClient.SearchAsync(
                 query,
-                indexName,
-                filter,
-                cancelToken)
+                index: indexName,
+                filter: filter,
+                cancellationToken: cancelToken)
             .ConfigureAwait(false);
 
         return searchResult;

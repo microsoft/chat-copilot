@@ -14,14 +14,12 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
-using CopilotChat.WebApi.Skills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
@@ -196,21 +194,14 @@ public class DocumentController : ControllerBase
             this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
             // Create memory source
-            MemorySource memorySource;
-            using (var stream = formFile.OpenReadStream())
-            {
-                memorySource =
-                    new MemorySource(
+            MemorySource memorySource =
+                    new(
                         chatId.ToString(),
                         formFile.FileName,
                         this._authInfo.UserId,
                         MemorySourceType.File,
                         formFile.Length,
-                        null)
-                    {
-                        Tokens = TokenUtilities.TokenCount(stream),
-                    };
-            }
+                        hyperlink: null);
 
             if (!(await this.TryUpsertMemorySourceAsync(memorySource).ConfigureAwait(false)))
             {
@@ -342,7 +333,7 @@ public class DocumentController : ControllerBase
                 }
                 catch (Exception ex) when (!ex.IsCriticalException())
                 {
-                    this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. ErrorCode: {{1}}", formFile.FileName, (ex as AIException)?.ErrorCode);
+                    this._logger.LogError(ex, "Failed to analyze image {0} with Content Safety. Details: {{1}}", formFile.FileName, ex.Message);
                     throw new AggregateException($"Failed to analyze image {formFile.FileName} with Content Safety.", ex);
                 }
 

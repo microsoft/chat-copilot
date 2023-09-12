@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Storage;
 
@@ -165,7 +166,7 @@ public class ChatMessage : IStorageEntity
     /// <param name="tokenUsage">Total token usage of response completion</param>
     public static ChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
     {
-        return new ChatMessage("bot", "bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
+        return new ChatMessage("Bot", "Bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
     }
 
     /// <summary>
@@ -186,14 +187,46 @@ public class ChatMessage : IStorageEntity
     /// <returns>A formatted string</returns>
     public string ToFormattedString()
     {
-        var content = this.Content;
-        if (this.Type == ChatMessageType.Document)
+        var messagePrefix = $"[{this.Timestamp.ToString("G", CultureInfo.CurrentCulture)}]";
+        switch (this.Type)
         {
-            var documentMessageContent = DocumentMessageContent.FromString(content);
-            content = (documentMessageContent != null) ? documentMessageContent.ToFormattedString() : "Uploaded documents";
-        }
+            case ChatMessageType.Plan:
+            {
+                var planMessageContent = "proposed a plan.";
+                if (this.Content.Contains("proposedPlan\":", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // Try to extract user intent from the plan proposal.
+                    string pattern = ".*User Intent:User intent: (.*)(?=\"})";
+                    Match match = Regex.Match(this.Content, pattern);
+                    if (match.Success)
+                    {
+                        string userIntent = match.Groups[1].Value.Trim();
+                        planMessageContent = $"proposed a plan to fulfill user intent: {userIntent}";
+                    }
+                }
 
-        return $"[{this.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {this.UserName}: {content}";
+                return $"{messagePrefix} {this.UserName} {planMessageContent}";
+            }
+
+            case ChatMessageType.Document:
+            {
+                var documentMessage = DocumentMessageContent.FromString(this.Content);
+                var documentMessageContent = (documentMessage != null) ? documentMessage.ToFormattedString() : "documents";
+
+                return $"{messagePrefix} {this.UserName} uploaded: {documentMessageContent}";
+            }
+
+            case ChatMessageType.Message:
+            {
+                return $"{messagePrefix} {this.UserName} said: {this.Content}";
+            }
+
+            default:
+            {
+                // This should never happen.
+                throw new InvalidOperationException($"Unknown message type: {this.Type}");
+            }
+        }
     }
 
     /// <summary>

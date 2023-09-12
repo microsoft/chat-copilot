@@ -40,7 +40,7 @@ export interface AppState {
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
     serviceOptions: ServiceOptions;
-    isMigrating: boolean,
+    isMaintenance: boolean;
 }
 
 export enum FeatureKeys {
@@ -127,5 +127,5 @@ export const initialState: AppState = {
     features: Features,
     settings: Settings,
     serviceOptions: { memoryStore: { types: [], selectedType: '' }, version: '' },
-    isMigrating: false,
+    isMaintenance: false,
 };
