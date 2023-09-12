@@ -30,8 +30,6 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class SemanticKernelExtensions
 {
-    private const int VectorMemoryDimensions = 1536; // $$$ TODO: Consolidate with semantic memory
-
     /// <summary>
     /// Delegate to register skills with a Semantic Kernel
     /// </summary>
