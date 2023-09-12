@@ -31,7 +31,6 @@ while ($backendRunning -eq $false -and $retryCount -lt $maxRetries) {
 if ($backendRunning -eq $true) {
   # Start frontend (in current PS process)
   & $FrontendScript
-}
 } else { 
   # otherwise, write to the console that the backend is not running and we have exceeded the number of retries and we are exiting
   Write-Host "*************************************************"
