@@ -36,7 +36,7 @@ if ($backendRunning -eq $true) {
   # otherwise, write to the console that the backend is not running and we have exceeded the number of retries and we are exiting
   Write-Host "*************************************************"
   Write-Host "Backend is not running and we have exceeded "
-  Write-Host "the number of retries."
+  Write-Host "the maximum number of retries."
   Write-Host ""
   Write-Host "Therefore, we are exiting."
   Write-Host "*************************************************"
