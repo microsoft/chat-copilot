@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
@@ -284,7 +285,11 @@ public class ChatSkill
                 }
                 else
                 {
-                    allottedChatHistory.AddUserMessage(formattedMessage);
+                    // Omit user name if Auth is disabled.
+                    allottedChatHistory.AddUserMessage(
+                        PassThroughAuthenticationHandler.isDefaultUser(chatMessage.UserId)
+                            ? $"[{chatMessage.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {chatMessage.Content}"
+                            : formattedMessage);
                 }
 
                 remainingToken -= tokenCount;
