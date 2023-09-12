@@ -39,7 +39,7 @@ then
 # write to the console that the backend is not running and we have exceeded the number of retries and we are exiting
   echo "*************************************************"
   echo "Backend is not running and we have exceeded "
-  echo "the number of retries."
+  echo "the maximum number of retries."
   echo ""
   echo "Therefore, we are exiting."
   echo "*************************************************"
