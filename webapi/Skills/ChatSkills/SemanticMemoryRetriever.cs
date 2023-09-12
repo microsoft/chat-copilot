@@ -170,7 +170,11 @@ public class SemanticMemoryRetriever
                     if (result.Citation.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
-                        var citationSource = CitationSource.FromSemanticMemoryCitation(result.Citation);
+                        var citationSource = CitationSource.FromSemanticMemoryCitation(
+                            result.Citation,
+                            result.Memory.Text,
+                            result.Memory.Relevance
+                        );
 
                         if (this._memoryNames.Contains(memoryName))
                         {

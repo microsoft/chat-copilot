@@ -8,11 +8,6 @@ namespace CopilotChat.WebApi.Options;
 public enum MemoryStoreType
 {
     /// <summary>
-    /// Non-persistent memory store.
-    /// </summary>
-    Volatile,
-
-    /// <summary>
     /// File system based persistent memory store.
     /// </summary>
     SimpleVectorDb,
@@ -26,14 +21,4 @@ public enum MemoryStoreType
     /// Azure Cognitive Search persistent memory store.
     /// </summary>
     AzureCognitiveSearch,
-
-    /// <summary>
-    /// Chroma DB persistent memory store.
-    /// </summary>
-    Chroma,
-
-    /// <summary>
-    /// Cosmos DB persistent memory store.
-    /// </summary>
-    Postgres,
 }
