@@ -66,6 +66,13 @@ You will need the following items to run the sample:
 
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
 
+   - (Optional) Start ONLY the backend:
+  
+     ```powershell
+     .\Start-Backend.ps1
+     ```
+
+
 ## Linux/macOS
 
 1. Open Bash as an administrator.
