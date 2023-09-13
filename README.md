@@ -2,7 +2,9 @@
 
 This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft [Semantic Kernel](https://github.com/microsoft/semantic-kernel) and has two components: a frontend [React web app](./webapp/) and a backend [.NET web API service](./webapi/).
 
-These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/deploy/README.md) after meeting the [requirements](#requirements) described below.
+These quick-start instructions run the sample locally. They can also be found on the official Chat Copilot Microsoft Learn documentation page for [getting started](https://learn.microsoft.com/semantic-kernel/chat-copilot/getting-started).
+
+To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/deploy/README.md) after meeting the [requirements](#requirements) described below.
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
@@ -65,6 +67,12 @@ You will need the following items to run the sample:
    It may take a few minutes for Yarn packages to install on the first run.
 
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+
+   - (Optional) To start ONLY the backend:
+
+     ```powershell
+     .\Start-Backend.ps1
+     ```
 
 ## Linux/macOS
 
@@ -134,6 +142,12 @@ You will need the following items to run the sample:
    It may take a few minutes for Yarn packages to install on the first run.
 
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+
+   - (Optional) To start ONLY the backend:
+
+     ```powershell
+     ./start-backend.sh
+     ```
 
 ## (Optional) Enable backend authentication via Azure AD
 
@@ -323,7 +337,7 @@ Bug reports and fixes are welcome!
 
 To learn more and get started:
 
-- Read the [documentation](https://learn.microsoft.com/en-us/semantic-kernel/chat-copilot/)
+- Read the [documentation](https://learn.microsoft.com/semantic-kernel/chat-copilot/)
 - Join the [Discord community](https://aka.ms/SKDiscord)
 - [Contribute](CONTRIBUTING.md) to the project
 - Follow the team on our [blog](https://aka.ms/sk/blog)
