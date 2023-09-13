@@ -69,7 +69,7 @@ You will need the following items to run the sample:
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
 
    - (Optional) To start ONLY the backend:
-  
+
      ```powershell
      .\Start-Backend.ps1
      ```
@@ -143,6 +143,12 @@ You will need the following items to run the sample:
    It may take a few minutes for Yarn packages to install on the first run.
 
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+
+   - (Optional) To start ONLY the backend:
+
+     ```powershell
+     ./start-backend.sh
+     ```
 
 ## (Optional) Enable backend authentication via Azure AD
 
