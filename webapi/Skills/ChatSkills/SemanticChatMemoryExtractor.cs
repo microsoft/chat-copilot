@@ -10,7 +10,6 @@ using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 
@@ -141,6 +140,7 @@ internal static class SemanticChatMemoryExtractor
     {
         var memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
 
+#pragma warning disable CA1031 // Each connector may throw different exception type
         try
         {
             // Search if there is already a memory item that has a high similarity score with the new item.
@@ -165,11 +165,12 @@ internal static class SemanticChatMemoryExtractor
                 );
             }
         }
-        catch (SKException connectorException)
+        catch (Exception connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
         }
+#pragma warning restore CA1031 // Each connector may throw different exception type
     }
 
     /// <summary>
