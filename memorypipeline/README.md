@@ -45,7 +45,10 @@ The memorypipeline is only needed when `SemanticMemory:DataIngestion:Orchestrati
 - [Vector database](https://learn.microsoft.com/en-us/semantic-kernel/memories/vector-db): storage solution for high-dimensional vectors, aka [embeddings](https://github.com/microsoft/semantic-kernel/blob/main/docs/EMBEDDINGS.md). Available options:
   - [AzureCognitiveSearch](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
   - [Qdrant](https://github.com/qdrant/qdrant)
-  - SimpleVectorDb: stores vectors on your local file system.
+  - SimpleVectorDb
+    - TextFile: stores vectors on your local file system.
+    - Volatile: stores vectors in RAM.
+      > Note that do not configure the memory pipeline to use Volatile. Use volatile in the webapi only when its `SemanticMemory:DataIngestion:OrchestrationType` is set to `InProcess`.
 
 ##### AzureBlobs & AzureQueue
 

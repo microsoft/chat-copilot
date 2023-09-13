@@ -39,16 +39,19 @@ Running the memory creation pipeline in the webapi process. This also means the 
 
 No additional configuration is needed.
 
+> You can choose either **Volatile** or **TextFile** as the SimpleVectorDb implementation.
+
 ### Distributed Processing
 
 Running the memory creation pipeline steps in different processes. This means the memory creation is asynchronous. This allows better scalability if you have many chat sessions active at the same time or you have big documents that require minutes to process.
 
 1. In [./webapi/appsettings.json](./appsettings.json), set `SemanticMemory:DataIngestion:OrchestrationType` to `Distributed`.
 2. In [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:OrchestrationType` to `Distributed`.
-3. Make sure the following settings in the [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json) respectively point to the same locations on your machine:
+3. Make sure the following settings in the [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json) respectively point to the same locations on your machine so that both processes can access the data:
    - `SemanticMemory:Services:SimpleFileStorage:Directory`
    - `SemanticMemory:Services:SimpleQueues:Directory`
    - `SemanticMemory:Services:SimpleVectorDb:Directory`
+     > Do not configure SimpleVectorDb to use Volatile. Volatile storage cannot be shared across processes.
 4. You need to run both the [webapi](./README.md) and the [memorypipeline](../memorypipeline/README.md).
 
 ### (Optional) Use hosted resources: [Azure Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview), [Azure Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
