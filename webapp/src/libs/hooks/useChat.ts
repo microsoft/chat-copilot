@@ -90,6 +90,7 @@ export const useChat = () => {
                         botResponseStatus: undefined,
                         userDataLoaded: false,
                         disabled: false,
+                        hidden: false,
                     };
 
                     dispatch(addConversation(newChat));
@@ -149,13 +150,8 @@ export const useChat = () => {
             if (chatSessions.length > 0) {
                 const loadedConversations: Conversations = {};
                 for (const chatSession of chatSessions) {
-                    const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
-
                     const chatUsers = await chatService.getAllChatParticipantsAsync(chatSession.id, accessToken);
-
-                    if (!features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1) {
-                        continue;
-                    }
+                    const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
                     loadedConversations[chatSession.id] = {
                         id: chatSession.id,
@@ -169,11 +165,19 @@ export const useChat = () => {
                         botResponseStatus: undefined,
                         userDataLoaded: false,
                         disabled: false,
+                        hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
                     };
                 }
 
                 dispatch(setConversations(loadedConversations));
-                dispatch(setSelectedConversation(chatSessions[0].id));
+
+                // If there are no non-hidden chats, create a new chat
+                const nonHiddenChats = Object.values(loadedConversations).filter((c) => !c.hidden);
+                if (nonHiddenChats.length === 0) {
+                    await createChat();
+                } else {
+                    dispatch(setSelectedConversation(nonHiddenChats[0].id));
+                }
             } else {
                 // No chats exist, create first chat window
                 await createChat();
@@ -208,10 +212,16 @@ export const useChat = () => {
                 const newChat = {
                     id: chatSession.id,
                     title: chatSession.title,
+                    systemDescription: chatSession.systemDescription,
+                    memoryBalance: chatSession.memoryBalance,
                     users: [loggedInUser],
                     messages: chatMessages,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
+                    input: '',
                     botResponseStatus: undefined,
+                    userDataLoaded: false,
+                    disabled: false,
+                    hidden: false,
                 };
 
                 dispatch(addConversation(newChat));
@@ -315,6 +325,7 @@ export const useChat = () => {
                     botResponseStatus: undefined,
                     userDataLoaded: false,
                     disabled: false,
+                    hidden: false,
                 };
 
                 dispatch(addConversation(newChat));
