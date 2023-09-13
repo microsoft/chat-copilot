@@ -18,6 +18,7 @@ var builder = WebApplication.CreateBuilder();
 ISemanticMemoryClient memory =
     new MemoryClientBuilder(builder.Services)
         .FromAppSettings()
+        //.WithoutSummarizeHandler()
         .WithCustomOcr(builder.Configuration)
         .Build();
 
