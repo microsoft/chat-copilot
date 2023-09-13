@@ -133,15 +133,15 @@ export const ChatList: FC = () => {
 
     useEffect(() => {
         // Ensure local component state is in line with app state.
-        const filteredConversations: Conversations = {};
+        const nonHiddenConversations: Conversations = {};
         for (const key in conversations) {
             const conversation = conversations[key];
             if (!conversation.hidden && (!filterText || conversation.title.toLowerCase().includes(filterText))) {
-                filteredConversations[key] = conversation;
+                nonHiddenConversations[key] = conversation;
             }
         }
 
-        setConversationsView(sortConversations(filteredConversations));
+        setConversationsView(sortConversations(nonHiddenConversations));
     }, [conversations, filterText]);
 
     const onFilterClick = () => {
