@@ -212,10 +212,16 @@ export const useChat = () => {
                 const newChat = {
                     id: chatSession.id,
                     title: chatSession.title,
+                    systemDescription: chatSession.systemDescription,
+                    memoryBalance: chatSession.memoryBalance,
                     users: [loggedInUser],
                     messages: chatMessages,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
+                    input: '',
                     botResponseStatus: undefined,
+                    userDataLoaded: false,
+                    disabled: false,
+                    hidden: false,
                 };
 
                 dispatch(addConversation(newChat));

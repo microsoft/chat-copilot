@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { ChatState } from './ChatState';
@@ -13,7 +13,7 @@ import {
     initialState,
 } from './ConversationsState';
 
-export const conversationsSlice: Slice<ConversationsState> = createSlice({
+export const conversationsSlice = createSlice({
     name: 'conversations',
     initialState,
     reducers: {
@@ -127,7 +127,7 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
         },
         updateBotResponseStatus: (
             state: ConversationsState,
-            action: PayloadAction<{ chatId: string; status: string }>,
+            action: PayloadAction<{ chatId: string; status: string | undefined }>,
         ) => {
             const { chatId, status } = action.payload;
             const conversation = state.conversations[chatId];

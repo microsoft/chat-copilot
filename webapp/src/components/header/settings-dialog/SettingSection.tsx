@@ -32,7 +32,7 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
         (featureKey: FeatureKeys) => {
             dispatch(toggleFeatureFlag(featureKey));
             if (featureKey === FeatureKeys.MultiUserChat) {
-                dispatch(toggleMultiUserConversations({}));
+                dispatch(toggleMultiUserConversations());
             }
         },
         [dispatch],
