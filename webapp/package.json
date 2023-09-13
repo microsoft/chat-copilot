@@ -24,7 +24,7 @@
     "@playwright/test": "^1.37.1",
     "@reduxjs/toolkit": "^1.9.1",
     "debug": "^4.3.4",
-    "microsoft-cognitiveservices-speech-sdk": "^1.31.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.32.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.7",
