@@ -1,6 +1,6 @@
 # Chat Copilot front end web application
 
-This directory contains the source code for Chat Copilot's frontend web application. The backend web API service component can be found in the [webapi/](./webapi/) directory.
+This directory contains the source code for Chat Copilot's frontend web application. The backend web API service component can be found in the [webapi/](../webapi/) directory.
 
 ## Running the Chat Copilot sample
 To configure and run the full Chat Copilot application, please view the [main instructions](../README.md#instructions).
