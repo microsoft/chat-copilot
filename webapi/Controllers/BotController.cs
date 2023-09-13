@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
@@ -27,7 +26,6 @@ public class BotController : ControllerBase
 {
     private readonly ILogger<BotController> _logger;
     private readonly IMemoryStore? _memoryStore;
-    private readonly ISemanticTextMemory _semanticMemory;
     private readonly ChatSessionRepository _chatRepository;
     private readonly ChatMessageRepository _chatMessageRepository;
     private readonly ChatParticipantRepository _chatParticipantRepository;
@@ -47,7 +45,6 @@ public class BotController : ControllerBase
     /// <param name="logger">The logger.</param>
     public BotController(
         IMemoryStore memoryStore,
-        ISemanticTextMemory semanticMemory,
         ChatSessionRepository chatRepository,
         ChatMessageRepository chatMessageRepository,
         ChatParticipantRepository chatParticipantRepository,
@@ -58,88 +55,12 @@ public class BotController : ControllerBase
     {
         this._memoryStore = memoryStore;
         this._logger = logger;
-        this._semanticMemory = semanticMemory;
         this._chatRepository = chatRepository;
         this._chatMessageRepository = chatMessageRepository;
         this._chatParticipantRepository = chatParticipantRepository;
         this._embeddingConfig = embeddingConfig;
         this._botSchemaOptions = botSchemaOptions.Value;
         this._documentMemoryOptions = documentMemoryOptions.Value;
-    }
-
-    /// <summary>
-    /// Upload a bot.
-    /// </summary>
-    /// <param name="kernel">The Semantic Kernel instance.</param>
-    /// <param name="authInfo">The auth info instance.</param>
-    /// <param name="bot">The bot object from the message body</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The HTTP action result with new chat session object.</returns>
-    [HttpPost]
-    [Route("bot/upload")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ChatSession>> UploadAsync(
-        [FromServices] IKernel kernel,
-        [FromServices] IAuthInfo authInfo,
-        [FromBody] Bot bot,
-        CancellationToken cancellationToken)
-    {
-        this._logger.LogDebug("Received call to upload a bot");
-
-        if (!this.IsBotCompatible(
-                externalBotSchema: bot.Schema,
-                externalBotEmbeddingConfig: bot.EmbeddingConfigurations))
-        {
-            return this.BadRequest("Incompatible schema. " +
-                                   $"The supported bot schema is {this._botSchemaOptions.Name}/{this._botSchemaOptions.Version} " +
-                                   $"for the {this._embeddingConfig.DeploymentOrModelId} model from {this._embeddingConfig.AIService}. " +
-                                   $"But the uploaded file is with schema {bot.Schema.Name}/{bot.Schema.Version} " +
-                                   $"for the {bot.EmbeddingConfigurations.DeploymentOrModelId} model from {bot.EmbeddingConfigurations.AIService}.");
-        }
-
-        string chatTitle = $"{bot.ChatTitle} - Clone";
-        string chatId = string.Empty;
-        ChatSession newChat;
-
-        // Upload chat history into chat repository and embeddings into memory.
-
-        // Create a new chat and get the chat id.
-        newChat = new ChatSession(chatTitle, bot.SystemDescription);
-        await this._chatRepository.CreateAsync(newChat);
-        await this._chatParticipantRepository.CreateAsync(new ChatParticipant(authInfo.UserId, newChat.Id));
-        chatId = newChat.Id;
-
-        string oldChatId = bot.ChatHistory.First().ChatId;
-
-        // Update the app's chat storage.
-        foreach (var message in bot.ChatHistory)
-        {
-            var chatMessage = new ChatMessage(
-                message.UserId,
-                message.UserName,
-                chatId,
-                message.Content,
-                message.Prompt,
-                message.Citations,
-                ChatMessage.AuthorRoles.Participant)
-            {
-                Timestamp = message.Timestamp
-            };
-            await this._chatMessageRepository.CreateAsync(chatMessage);
-        }
-
-        // Update the memory.
-        await this.BulkUpsertMemoryRecordsAsync(oldChatId, chatId, bot.Embeddings, cancellationToken);
-
-        // TODO: [Issue #47] Revert changes if any of the actions failed
-
-        return this.CreatedAtAction(
-            nameof(ChatHistoryController.GetChatSessionByIdAsync),
-            nameof(ChatHistoryController).Replace("Controller", string.Empty, StringComparison.OrdinalIgnoreCase),
-            new { chatId },
-            newChat);
     }
 
     /// <summary>
@@ -166,26 +87,6 @@ public class BotController : ControllerBase
     }
 
     /// <summary>
-    /// Check if an external bot file is compatible with the application.
-    /// </summary>
-    /// <remarks>
-    /// If the embeddings are not generated from the same model, the bot file is not compatible.
-    /// </remarks>
-    /// <param name="externalBotSchema">The external bot schema.</param>
-    /// <param name="externalBotEmbeddingConfig">The external bot embedding configuration.</param>
-    /// <returns>True if the bot file is compatible with the app; otherwise false.</returns>
-    private bool IsBotCompatible(
-        BotSchemaOptions externalBotSchema,
-        BotEmbeddingConfig externalBotEmbeddingConfig)
-    {
-        // The app can define what schema/version it supports before the community comes out with an open schema.
-        return externalBotSchema.Name.Equals(this._botSchemaOptions.Name, StringComparison.OrdinalIgnoreCase)
-               && externalBotSchema.Version == this._botSchemaOptions.Version
-               && externalBotEmbeddingConfig.AIService == this._embeddingConfig.AIService
-               && externalBotEmbeddingConfig.DeploymentOrModelId.Equals(this._embeddingConfig.DeploymentOrModelId, StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
     /// Get memory from memory store and append the memory records to a given list.
     /// It will update the memory collection name in the new list if the newCollectionName is provided.
     /// </summary>
@@ -206,8 +107,8 @@ public class BotController : ControllerBase
         {
             collectionMemoryRecords = await kernel.Memory.SearchAsync(
                 collectionName,
-                "abc", // dummy query since we don't care about relevance. An empty string will cause exception.
-                limit: 999999999, // temp solution to get as much as record as a workaround.
+                "*", // dummy query since we don't care about relevance. An empty string will cause exception.
+                limit: int.MaxValue, // temp solution to get as much as record as a workaround.
                 minRelevanceScore: -1, // no relevance required since the collection only has one entry
                 withEmbeddings: true,
                 cancellationToken: default
@@ -256,7 +157,6 @@ public class BotController : ControllerBase
         bot.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);
 
         // get the memory collections associated with this chat
-        // TODO: [Issue #47] filtering memory collections by name might be fragile.
         var chatCollections = (await kernel.Memory.GetCollectionsAsync())
             .Where(collection => collection.StartsWith(chatIdString, StringComparison.OrdinalIgnoreCase));
 
@@ -290,51 +190,5 @@ public class BotController : ControllerBase
         // TODO: [Issue #47] We might want to set limitation on the number of messages that are pulled from the storage.
         return (await this._chatMessageRepository.FindByChatIdAsync(chatId))
             .OrderByDescending(m => m.Timestamp).ToList();
-    }
-
-    /// <summary>
-    /// Bulk upsert memory records into memory store.
-    /// </summary>
-    /// <param name="oldChatId">The original chat id of the memory records.</param>
-    /// <param name="chatId">The new chat id that will replace the original chat id.</param>
-    /// <param name="embeddings">The list of embeddings of the chat id.</param>
-    /// <returns>The function doesn't return anything.</returns>
-    private async Task BulkUpsertMemoryRecordsAsync(string oldChatId, string chatId, List<KeyValuePair<string, List<MemoryQueryResult>>> embeddings, CancellationToken cancellationToken = default)
-    {
-        foreach (var collection in embeddings)
-        {
-            foreach (var record in collection.Value)
-            {
-                if (record != null && record.Embedding != null)
-                {
-                    var newCollectionName = collection.Key.Replace(oldChatId, chatId, StringComparison.OrdinalIgnoreCase);
-
-                    if (this._memoryStore == null)
-                    {
-                        await this._semanticMemory.SaveInformationAsync(
-                            collection: newCollectionName,
-                            text: record.Metadata.Text,
-                            id: record.Metadata.Id,
-                            cancellationToken: cancellationToken);
-                    }
-                    else
-                    {
-                        MemoryRecord data = MemoryRecord.LocalRecord(
-                            id: record.Metadata.Id,
-                            text: record.Metadata.Text,
-                            embedding: record.Embedding.Value,
-                            description: null,
-                            additionalMetadata: null);
-
-                        if (!(await this._memoryStore.DoesCollectionExistAsync(newCollectionName, default)))
-                        {
-                            await this._memoryStore.CreateCollectionAsync(newCollectionName, default);
-                        }
-
-                        await this._memoryStore.UpsertAsync(newCollectionName, data, default);
-                    }
-                }
-            }
-        }
     }
 }
