@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Options;
@@ -39,6 +40,11 @@ internal static class SemanticKernelExtensions
     /// Delegate to register skills with a Semantic Kernel
     /// </summary>
     public delegate Task RegisterSkillsWithKernel(IServiceProvider sp, IKernel kernel);
+
+    /// <summary>
+    /// Delegate to register skills with a Semantic Kernel
+    /// </summary>
+    public delegate Task RegisterSkillsWithPlanner(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -85,11 +91,14 @@ internal static class SemanticKernelExtensions
                 // TODO: [sk Issue #2046] verify planner has AI service configured
                 .WithPlannerBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
                 .Build();
+
+            sp.GetRequiredService<RegisterSkillsWithPlanner>()(sp, plannerKernel);
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
         // Register Planner skills (AI plugins) here.
         // TODO: [sk Issue #2046] Move planner skill registration from ChatController to this location.
+        services.AddScoped<RegisterSkillsWithPlanner>(sp => RegisterCustomSkillsAsync);
 
         return services;
     }
@@ -140,11 +149,23 @@ internal static class SemanticKernelExtensions
     /// </summary>
     private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
     {
-        // Copilot chat skills
+        // Chat copilot skills
         kernel.RegisterChatSkill(sp);
 
         // Time skill
         kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
+
+        RegisterCustomSkillsAsync(sp, kernel);
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Register skills with given kernel.
+    /// </summary>
+    private static Task RegisterCustomSkillsAsync(IServiceProvider sp, IKernel kernel)
+    {
+        var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
 
         // Semantic skills
         ServiceOptions options = sp.GetRequiredService<IOptions<ServiceOptions>>().Value;
@@ -158,8 +179,45 @@ internal static class SemanticKernelExtensions
                 }
                 catch (SKException ex)
                 {
-                    var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
                     logger.LogError("Could not load skill from {Directory}: {Message}", subDir, ex.Message);
+                }
+            }
+        }
+
+        // Get the current assembly
+        var assembly = Assembly.GetExecutingAssembly();
+
+        // Native skills
+        if (!string.IsNullOrWhiteSpace(options.NativeSkillsDirectory))
+        {
+            // Get all the files in the directory that have the .cs extension
+            var skillFiles = Directory.GetFiles(options.NativeSkillsDirectory, "*.cs");
+
+            // Loop through each file
+            foreach (var file in skillFiles)
+            {
+                // Get the name of the class from the file name (assuming it matches)
+                var className = Path.GetFileNameWithoutExtension(file);
+
+                // Get the type of the class from the assembly using the full name (assuming it matches)
+                var classType = assembly.GetType(className);
+
+                // If the type is found, create an instance of the class using the default constructor
+                if (classType != null)
+                {
+                    try
+                    {
+                        var skillInstance = Activator.CreateInstance(classType);
+                        kernel.ImportSkill(skillInstance!, classType.Name!);
+                    }
+                    catch (SKException ex)
+                    {
+                        logger.LogError("Could not load skill from file {File}: {Message}", file, ex.Message);
+                    }
+                }
+                else
+                {
+                    logger.LogError("Class type not found. Make sure the class type matches exactly with the file name {FileName}", className);
                 }
             }
         }
