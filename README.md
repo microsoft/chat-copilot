@@ -74,7 +74,6 @@ You will need the following items to run the sample:
      .\Start-Backend.ps1
      ```
 
-
 ## Linux/macOS
 
 1. Open Bash as an administrator.
