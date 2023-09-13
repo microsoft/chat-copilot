@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { ChatState } from './ChatState';
@@ -13,7 +13,7 @@ import {
     initialState,
 } from './ConversationsState';
 
-export const conversationsSlice: Slice<ConversationsState> = createSlice({
+export const conversationsSlice = createSlice({
     name: 'conversations',
     initialState,
     reducers: {
@@ -49,6 +49,14 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
         },
         setSelectedConversation: (state: ConversationsState, action: PayloadAction<string>) => {
             state.selectedId = action.payload;
+        },
+        toggleMultiUserConversations: (state: ConversationsState) => {
+            const keys = Object.keys(state.conversations);
+            keys.forEach((key) => {
+                if (state.conversations[key].users.length > 1) {
+                    state.conversations[key].hidden = !state.conversations[key].hidden;
+                }
+            });
         },
         addConversation: (state: ConversationsState, action: PayloadAction<ChatState>) => {
             const newId = action.payload.id;
@@ -119,7 +127,7 @@ export const conversationsSlice: Slice<ConversationsState> = createSlice({
         },
         updateBotResponseStatus: (
             state: ConversationsState,
-            action: PayloadAction<{ chatId: string; status: string }>,
+            action: PayloadAction<{ chatId: string; status: string | undefined }>,
         ) => {
             const { chatId, status } = action.payload;
             const conversation = state.conversations[chatId];
@@ -209,6 +217,7 @@ export const {
     editConversationSystemDescription,
     editConversationMemoryBalance,
     setSelectedConversation,
+    toggleMultiUserConversations,
     addConversation,
     setImportingDocumentsToConversation,
     addMessageToConversationFromUser,

@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { FeatureKeys, Setting } from '../../../redux/features/app/AppState';
 import { toggleFeatureFlag } from '../../../redux/features/app/appSlice';
+import { toggleMultiUserConversations } from '../../../redux/features/conversations/conversationsSlice';
 
 const useClasses = makeStyles({
     feature: {
@@ -30,6 +31,9 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
     const onFeatureChange = useCallback(
         (featureKey: FeatureKeys) => {
             dispatch(toggleFeatureFlag(featureKey));
+            if (featureKey === FeatureKeys.MultiUserChat) {
+                dispatch(toggleMultiUserConversations());
+            }
         },
         [dispatch],
     );

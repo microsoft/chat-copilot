@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
@@ -107,7 +106,7 @@ public class ChatMemoryController : ControllerBase
                 memories.Add(memory.Text);
             }
         }
-        catch (SKException connectorException)
+        catch (Exception connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             this._logger.LogError(connectorException, "Cannot search collection {0}", sanitizedMemoryName);

@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Controllers;
@@ -103,6 +102,7 @@ public class BotController : ControllerBase
         string? newCollectionName = null)
     {
         List<MemoryQueryResult> collectionMemoryRecords;
+#pragma warning disable CA1031 // Each connector may throw different exception type
         try
         {
             collectionMemoryRecords = await kernel.Memory.SearchAsync(
@@ -114,7 +114,7 @@ public class BotController : ControllerBase
                 cancellationToken: default
             ).ToListAsync();
         }
-        catch (SKException connectorException)
+        catch (Exception connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             this._logger.LogError(connectorException,
@@ -122,6 +122,7 @@ public class BotController : ControllerBase
                 collectionName);
             collectionMemoryRecords = new();
         }
+#pragma warning restore CA1031 // Each connector may throw different exception type
 
         embeddings.Add(new KeyValuePair<string, List<MemoryQueryResult>>(
             string.IsNullOrEmpty(newCollectionName) ? collectionName : newCollectionName,

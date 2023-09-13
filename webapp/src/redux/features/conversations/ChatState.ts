@@ -16,5 +16,6 @@ export interface ChatState {
     botResponseStatus: string | undefined;
     userDataLoaded: boolean;
     importingDocuments?: string[];
-    disabled: boolean;
+    disabled: boolean; // For labeling a chat has been deleted
+    hidden: boolean; // For hiding a chat from the list
 }
