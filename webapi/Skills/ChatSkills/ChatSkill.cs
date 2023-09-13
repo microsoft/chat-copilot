@@ -639,10 +639,13 @@ public class ChatSkill
     /// <param name="cancellationToken">The cancellation token.</param>
     private async Task UpdateChatMessageContentAsync(string updatedResponse, string messageId, string chatId, CancellationToken cancellationToken)
     {
-        // Make sure the chat exists.
-        var chatMessage = await this._chatMessageRepository.FindByIdAsync(messageId, chatId);
-        chatMessage.Content = updatedResponse;
+        ChatMessage? chatMessage = null;
+        if (!await this._chatMessageRepository.TryFindByIdAsync(messageId, chatId, callback: v => chatMessage = v))
+        {
+            throw new ArgumentException($"Chat message {messageId} does not exist.");
+        }
 
+        chatMessage!.Content = updatedResponse;
         await this._chatMessageRepository.UpsertAsync(chatMessage);
     }
 

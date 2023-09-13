@@ -93,6 +93,24 @@ To enable sequential planner,
         \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
 1. Restart the `webapi` - Copilot Chat should be now running locally with SequentialPlanner.
 
+# (Optional) Enabling Cosmos Chat Store.
+
+[Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) can be used as a persistent chat store for Chat Copilot. Chat stores are used for storing chat sessions, participants, and messages.
+
+## Prerequisites
+
+### 1. Containers and PartitionKeys
+
+In an effort to optimize performance, each container must be created with a specific partition key:
+| Store | ContainerName | PartitionKey |
+| ----- | ------------- | ------------ |
+| Chat Sessions | chatsessions | /id (default) |
+| Chat Messages | chatmessages | /chatId |
+| Chat Memory Sources | chatmemorysources | /chatId |
+| Chat Partipants | chatparticipants | /userId |
+
+> For existing customers using CosmosDB before [Release 0.3](https://github.com/microsoft/chat-copilot/releases/tag/0.3), our recommendation is to remove the existing Cosmos DB containers and redeploy to realize the performance update related to the partition schema. To preserve existing chats, containers can be migrated as described [here](https://learn.microsoft.com/en-us/azure/cosmos-db/intra-account-container-copy#copy-a-container).
+
 # (Optional) Enabling the Qdrant Memory Store
 
 By default, the service uses an in-memory volatile memory store that, when the service stops or restarts, forgets all memories.
