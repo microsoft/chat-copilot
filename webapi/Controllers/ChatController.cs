@@ -25,8 +25,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -155,11 +155,6 @@ public class ChatController : ControllerBase, IDisposable
 
         if (result.ErrorOccurred)
         {
-            if (result.LastException is AIException aiException && aiException.Detail is not null)
-            {
-                return this.BadRequest(string.Concat(aiException.Message, " - Detail: " + aiException.Detail));
-            }
-
             if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 504 response
@@ -167,7 +162,8 @@ public class ChatController : ControllerBase, IDisposable
                 return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
             }
 
-            return this.BadRequest(result.LastException!.Message);
+            var errorMessage = result.LastException!.Message.IsNullOrEmpty() ? result.LastException!.InnerException?.Message : result.LastException!.Message;
+            return this.BadRequest(errorMessage);
         }
 
         AskResult chatSkillAskResult = new()

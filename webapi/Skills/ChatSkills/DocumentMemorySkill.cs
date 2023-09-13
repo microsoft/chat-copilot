@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,7 +9,6 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.SkillDefinition;
 
@@ -73,6 +73,7 @@ public class DocumentMemorySkill
         List<MemoryQueryResult> relevantMemories = new();
         foreach (var documentCollection in documentCollections)
         {
+#pragma warning disable CA1031 // Each connector may throw different exception type
             try
             {
                 var results = textMemory.SearchAsync(
@@ -86,11 +87,12 @@ public class DocumentMemorySkill
                     relevantMemories.Add(memory);
                 }
             }
-            catch (SKException connectorException)
+            catch (Exception connectorException)
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
                 this._logger.LogError(connectorException, "Cannot search collection {0}", documentCollection);
             }
+#pragma warning restore CA1031 // Each connector may throw different exception type
         }
 
         relevantMemories = relevantMemories.OrderByDescending(m => m.Relevance).ToList();

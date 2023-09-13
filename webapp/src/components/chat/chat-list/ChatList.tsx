@@ -165,7 +165,6 @@ export const ChatList: FC = () => {
     const fileUploaderRef = useRef<HTMLInputElement>(null);
     const onUpload = useCallback(
         (file: File) => {
-            console.log('asdf');
             fileHandler.loadFile<Bot>(file, chat.uploadBot).catch((error) =>
                 dispatch(
                     addAlert({
