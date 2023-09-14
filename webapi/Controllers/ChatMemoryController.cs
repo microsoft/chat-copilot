@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Controllers;
@@ -86,6 +85,7 @@ public class ChatMemoryController : ControllerBase
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
         string memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(sanitizedChatId, sanitizedMemoryName);
+#pragma warning disable CA1031 // Each connector may throw different exception type
         try
         {
             var results = semanticTextMemory.SearchAsync(
@@ -98,12 +98,13 @@ public class ChatMemoryController : ControllerBase
                 memories.Add(memory.Metadata.Text);
             }
         }
-        catch (SKException connectorException)
+        catch (Exception connectorException)
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             var sanitizedMemoryCollectionName = memoryCollectionName.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
             this._logger.LogError(connectorException, "Cannot search collection {0}", sanitizedMemoryCollectionName);
         }
+#pragma warning restore CA1031 // Each connector may throw different exception type
 
         return this.Ok(memories);
     }

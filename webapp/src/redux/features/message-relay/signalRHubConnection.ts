@@ -9,7 +9,7 @@ import { AuthorRoles, ChatMessageType, IChatMessage } from '../../../libs/models
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
 import { StoreMiddlewareAPI } from '../../app/store';
-import { addAlert } from '../app/appSlice';
+import { addAlert, setMaintenance } from '../app/appSlice';
 import { ChatState } from '../conversations/ChatState';
 
 /*
@@ -27,6 +27,7 @@ const enum SignalRCallbackMethods {
     GlobalDocumentUploaded = 'GlobalDocumentUploaded',
     ChatEdited = 'ChatEdited',
     ChatDeleted = 'ChatDeleted',
+    GlobalSiteMaintenance = 'GlobalSiteMaintenance',
 }
 
 // Set up a SignalR connection to the messageRelayHub on the server
@@ -214,6 +215,10 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
                     payload: chatId,
                 });
         }
+    });
+
+    hubConnection.on(SignalRCallbackMethods.GlobalSiteMaintenance, () => {
+        store.dispatch(setMaintenance(true));
     });
 };
 
