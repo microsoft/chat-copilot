@@ -411,7 +411,7 @@ public class ChatSkill
 
         // Calculate the remaining token budget.
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating remaining token budget", cancellationToken);
-        var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate);
+        var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate, chatContext.Variables.Input);
 
         // Acquire external information from planner
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Acquiring external information from planner", cancellationToken);
