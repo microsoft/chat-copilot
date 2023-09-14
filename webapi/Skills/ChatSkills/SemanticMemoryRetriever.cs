@@ -123,7 +123,7 @@ public class SemanticMemoryRetriever
 
                 builderMemory.Append(
                     "User has also shared some document snippets.\n" +
-                    "Please quote the snippet link in square brackets at the end of each sentence that refers to the snippet in your response.\n");
+                    "Quote the document link in square brackets at the end of each sentence that refers to the snippet in your response.\n");
 
                 foreach ((var memoryContent, var citation) in memories)
                 {

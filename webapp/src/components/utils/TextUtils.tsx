@@ -86,7 +86,7 @@ export function replaceCitationLinksWithIndices(formattedMessageContent: string,
     if (citations) {
         citations.forEach((citation, index) => {
             const citationLink = citation.link;
-            formattedMessageContent = formattedMessageContent.replace(citationLink, (index + 1).toString());
+            formattedMessageContent = formattedMessageContent.replaceAll(citationLink, (index + 1).toString());
         });
     }
 
