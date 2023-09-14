@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -72,7 +73,7 @@ internal static class SemanticKernelExtensions
         services.AddContentSafety();
 
         // Register skills
-        services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
+        services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
 
         return services;
     }
@@ -96,9 +97,9 @@ internal static class SemanticKernelExtensions
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
-        // Register Planner skills (AI plugins) here.
-        // TODO: [sk Issue #2046] Move planner skill registration from ChatController to this location.
-        services.AddScoped<RegisterSkillsWithPlanner>(sp => RegisterCustomSkillsAsync);
+        // Register all custom skills as persistent skills in the Planner.
+        // Transient skills requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
+        services.AddScoped<RegisterSkillsWithPlanner>(sp => RegisterSkillsAsync);
 
         return services;
     }
@@ -145,25 +146,24 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Register the skills with the kernel.
+    /// Register skills with the main kernel responsible for handling Chat Copilot requests.
     /// </summary>
-    private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterChatCopilotSkillsAsync(IServiceProvider sp, IKernel kernel)
     {
-        // Chat copilot skills
+        // Copilot chat skills
         kernel.RegisterChatSkill(sp);
 
         // Time skill
         kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
 
-        RegisterCustomSkillsAsync(sp, kernel);
-
+        RegisterSkillsAsync(sp, kernel);
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Register skills with given kernel.
+    /// Register skills with a given kernel.
     /// </summary>
-    private static Task RegisterCustomSkillsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
     {
         var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
 
@@ -184,23 +184,19 @@ internal static class SemanticKernelExtensions
             }
         }
 
-        // Get the current assembly
-        var assembly = Assembly.GetExecutingAssembly();
-
         // Native skills
         if (!string.IsNullOrWhiteSpace(options.NativeSkillsDirectory))
         {
-            // Get all the files in the directory that have the .cs extension
+            // Loop through all the files in the directory that have the .cs extension
             var skillFiles = Directory.GetFiles(options.NativeSkillsDirectory, "*.cs");
-
-            // Loop through each file
             foreach (var file in skillFiles)
             {
-                // Get the name of the class from the file name (assuming it matches)
+                // Parse the name of the class from the file name (assuming it matches)
                 var className = Path.GetFileNameWithoutExtension(file);
 
-                // Get the type of the class from the assembly using the full name (assuming it matches)
-                var classType = assembly.GetType(className);
+                // Get the type of the class from the current assembly
+                var assembly = Assembly.GetExecutingAssembly();
+                var classType = assembly.GetTypes().FirstOrDefault(t => t.Name.Contains(className, StringComparison.CurrentCultureIgnoreCase));
 
                 // If the type is found, create an instance of the class using the default constructor
                 if (classType != null)
@@ -212,7 +208,7 @@ internal static class SemanticKernelExtensions
                     }
                     catch (SKException ex)
                     {
-                        logger.LogError("Could not load skill from file {File}: {Message}", file, ex.Message);
+                        logger.LogError("Could not load skill from file {File}: {Details}", file, ex.Message);
                     }
                 }
                 else
