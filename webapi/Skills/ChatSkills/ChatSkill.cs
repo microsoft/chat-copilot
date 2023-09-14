@@ -22,11 +22,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
-using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 using Microsoft.SemanticKernel.TemplateEngine.Prompt;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -452,11 +452,8 @@ public class ChatSkill
             this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory, cancellationToken)
         );
 
-        // Add additional context to the prompt template.
+        // Add chat and document memories as additional context.
         var chatContextTokenCount = 0;
-        string chatHistory = string.Empty;
-
-        // Add chat and document memories.
         var chatMemories = tasks[0];
         var documentMemories = tasks[1];
         var chatContextComponents = new List<string>() { chatMemories, documentMemories };
@@ -466,23 +463,22 @@ public class ChatSkill
             chatContextTokenCount += TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, contextComponent);
         }
 
-        // Append the plan result. Omit chat history to reduce any potential noise.
+        // Fill in the chat history if there is any token budget left
+        string chatHistory = string.Empty;
+        var chatHistoryTokenBudget = remainingTokenBudget - chatContextTokenCount - TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, planResult);
+
+        // Append previous messages, if allowed.
+        if (chatHistoryTokenBudget > 0)
+        {
+            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
+            chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
+            chatContext.ThrowIfFailed();
+        }
+
+        // Append the plan result last, if exists, to imply precedence.
         if (!string.IsNullOrWhiteSpace(planResult))
         {
             promptTemplate.AddSystemMessage(planResult);
-        }
-        else
-        {
-            // Fill in the chat history if there is any token budget left
-            var chatHistoryTokenBudget = remainingTokenBudget - chatContextTokenCount - TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, planResult);
-
-            // Append previous messages, if allowed.
-            if (chatHistoryTokenBudget > 0)
-            {
-                await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
-                chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
-                chatContext.ThrowIfFailed();
-            }
         }
 
         var promptView = new BotResponsePrompt(this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
@@ -725,11 +721,13 @@ public class ChatSkill
     /// This is the token limit minus the token count of the user intent, audience, and the system commands.
     /// </summary>
     /// <param name="promptTemplate">All current messages to use for chat completion</param>
+    /// <param name="userIntent">The user message.</param>
     /// <returns>The remaining token limit.</returns>
-    private int GetChatContextTokenLimit(ChatCompletionContextMessages promptTemplate)
+    private int GetChatContextTokenLimit(ChatCompletionContextMessages promptTemplate, string userInput)
     {
         return this._promptOptions.CompletionTokenLimit
             - TokenUtilities.GetContextMessagesTokenCount(promptTemplate)
+            - TokenUtilities.GetContextMessageTokenCount(AuthorRole.User, userInput) // User message has to be included in chat history allowance
             - this._promptOptions.ResponseTokenLimit;
     }
 
