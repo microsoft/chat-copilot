@@ -116,16 +116,18 @@ public class SemanticMemoryRetriever
             /// </summary>
             void FormatSnippets()
             {
-                if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories))
+                if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories) || memories.Count == 0)
                 {
                     return;
                 }
 
-                builderMemory.Append("User has also shared some document snippets:\n");
+                builderMemory.Append(
+                    "User has also shared some document snippets.\n" +
+                    "Please quote the snippet link in square brackets at the end of each sentence that refers to the snippet in your response.\n");
 
                 foreach ((var memoryContent, var citation) in memories)
                 {
-                    var memoryText = $"Snippet from Document: {citation.SourceName}:\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
+                    var memoryText = $"Document name: {citation.SourceName}\nDocument link: {citation.Link}.\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
                     builderMemory.Append(memoryText);
                 }
             }
