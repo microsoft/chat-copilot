@@ -3,9 +3,11 @@
 This directory contains the source code for Chat Copilot's backend web API service. The front end web application component can be found in the [webapp/](../webapp/) directory.
 
 ## Running the Chat Copilot sample
+
 To configure and run either the full Chat Copilot application or only the backend API, please view the [main instructions](../README.md#instructions).
 
 # (Under Development)
+
 The following material is under development and may not be complete or accurate.
 
 ## Visual Studio Code
@@ -20,13 +22,12 @@ The following material is under development and may not be complete or accurate.
 2. In Solution Explorer, right-click on `CopilotChatWebApi` and select `Set as Startup Project`.
 3. Start debugging by pressing `F5` or selecting the menu item `Debug`->`Start Debugging`.
 
-1. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options within the `OcrSupport` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
+4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options within the `OcrSupport` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
    - **Tesseract** we have included the [Tesseract](https://www.nuget.org/packages/Tesseract) nuget package.
      - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `OcrSupport:Tesseract:FilePath` location in `./appsettings.json`.
      - Set the `Copy to Output Directory` value to `Copy if newer`.
    - **Azure Form Recognizer** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
      - You will need to obtain an [Azure Form Recognizer](https://azure.microsoft.com/en-us/services/form-recognizer/) resource and add the `OcrSupport:AzureFormRecognizer:Endpoint` and `OcrSupport:AzureFormRecognizer:Key` values to the `./appsettings.json` file.
-
 
 ## Enabling Sequential Planner
 
@@ -48,6 +49,24 @@ To enable sequential planner,
         ```
         \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
 1. Restart the `webapi` - Copilot Chat should be now running locally with SequentialPlanner.
+
+## (Optional) Enabling Cosmos Chat Store.
+
+[Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) can be used as a persistent chat store for Chat Copilot. Chat stores are used for storing chat sessions, participants, and messages.
+
+### Prerequisites
+
+#### 1. Containers and PartitionKeys
+
+In an effort to optimize performance, each container must be created with a specific partition key:
+| Store | ContainerName | PartitionKey |
+| ----- | ------------- | ------------ |
+| Chat Sessions | chatsessions | /id (default) |
+| Chat Messages | chatmessages | /chatId |
+| Chat Memory Sources | chatmemorysources | /chatId |
+| Chat Partipants | chatparticipants | /userId |
+
+> For existing customers using CosmosDB before [Release 0.3](https://github.com/microsoft/chat-copilot/releases/tag/0.3), our recommendation is to remove the existing Cosmos DB containers and redeploy to realize the performance update related to the partition schema. To preserve existing chats, containers can be migrated as described [here](https://learn.microsoft.com/en-us/azure/cosmos-db/intra-account-container-copy#copy-a-container).
 
 ## (Optional) Enabling the Qdrant Memory Store
 
