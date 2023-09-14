@@ -18,7 +18,7 @@ interface ChatHistoryTextContentProps {
 
 export const ChatHistoryTextContent: React.FC<ChatHistoryTextContentProps> = ({ message }) => {
     const classes = useClasses();
-    const content = utils.formatChatTextContent(message.content);
+    const content = utils.replaceCitationLinksWithIndices(utils.formatChatTextContent(message.content), message);
 
     return (
         <div className={classes.content}>

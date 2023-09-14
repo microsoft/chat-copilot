@@ -22,7 +22,7 @@ public class ServiceOptionsController : ControllerBase
 {
     private readonly ILogger<ServiceOptionsController> _logger;
 
-    public readonly IConfiguration Configuration;
+    private readonly IConfiguration Configuration;
 
     private readonly SemanticMemoryConfig memoryOptions;
 
