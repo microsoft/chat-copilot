@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -51,7 +51,7 @@ public class BotResponsePrompt
     /// See https://learn.microsoft.com/en-us/dotnet/api/azure.ai.openai.chatcompletionsoptions.messages?view=azure-dotnet-preview#azure-ai-openai-chatcompletionsoptions-messages.
     /// </summary>
     [JsonPropertyName("metaPromptTemplate")]
-    public ChatHistory MetaPromptTemplate { get; set; } = new();
+    public ChatCompletionContextMessages MetaPromptTemplate { get; set; } = new();
 
     public BotResponsePrompt(
         string systemDescription,
@@ -62,7 +62,7 @@ public class BotResponsePrompt
         string documentMemories,
         SemanticDependency<StepwiseThoughtProcess> externalInformation,
         string chatHistory,
-        ChatHistory metaPromptTemplate
+        ChatCompletionContextMessages metaPromptTemplate
     )
     {
         this.SystemPersona = string.Join("\n", systemDescription, systemResponse);

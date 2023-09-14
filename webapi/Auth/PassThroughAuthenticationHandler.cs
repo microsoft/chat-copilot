@@ -46,5 +46,5 @@ public class PassThroughAuthenticationHandler : AuthenticationHandler<Authentica
     /// <summary>
     /// Returns true if the given user ID is the default user guest ID.
     /// </summary>
-    public static bool isDefaultUser(string userId) => userId == DefaultUserId;
+    public static bool IsDefaultUser(string userId) => userId == DefaultUserId;
 }

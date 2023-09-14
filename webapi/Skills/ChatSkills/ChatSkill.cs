@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
@@ -214,35 +215,38 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Extract chat history.
+    /// Method that wraps GetAllowedChatHistoryAsync to get allotted history messages as one string.
+    /// GetAllowedChatHistoryAsync optionally updates a ChatHistory object with the allotted messages,
+    /// but the ChatHistory type is not supported when calling from a rendered prompt, so this wrapper bypasses the chatHistory parameter.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     [SKFunction, Description("Extract chat history")]
-    public async Task<string> ExtractChatHistoryAsStringAsync(
+    public Task<string> ExtractChatHistory(
         [Description("Chat ID to extract history from")] string chatId,
         [Description("Maximum number of tokens")] int tokenLimit,
         CancellationToken cancellationToken = default)
     {
-        return await this.ExtractChatHistoryAsync(chatId, tokenLimit, cancellationToken: cancellationToken);
+        return this.GetAllowedChatHistoryAsync(chatId, tokenLimit, cancellationToken: cancellationToken);
     }
 
     /// <summary>
-    /// Extract chat history.
+    /// Extract chat history within token limit as a formatted string and optionally update the ChatCompletionContextMessages object with the allotted messages
     /// </summary>
     /// <param name="chatId">Chat ID to extract history from.</param>
     /// <param name="tokenLimit">Maximum number of tokens.</param>
-    /// <param name="chatHistory">ChatHistory object tracking allotted messages.</param>
+    /// <param name="chatHistory">Optional ChatCompletionContextMessages object tracking allotted messages.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<string> ExtractChatHistoryAsync(
-        [Description("Chat ID to extract history from")] string chatId,
-        [Description("Maximum number of tokens")] int tokenLimit,
-        ChatHistory? chatHistory = null,
+    /// <returns>Chat history as a string.</returns>
+    private async Task<string> GetAllowedChatHistoryAsync(
+        string chatId,
+        int tokenLimit,
+        ChatCompletionContextMessages? chatHistory = null,
         CancellationToken cancellationToken = default)
     {
         var messages = await this._chatMessageRepository.FindByChatIdAsync(chatId);
         var sortedMessages = messages.OrderByDescending(m => m.Timestamp);
 
-        ChatHistory allottedChatHistory = new();
+        ChatCompletionContextMessages allottedChatHistory = new();
         var remainingToken = tokenLimit;
         string historyText = string.Empty;
 
@@ -273,7 +277,7 @@ public class ChatSkill
             }
 
             var promptRole = chatMessage.AuthorRole == ChatMessage.AuthorRoles.Bot ? AuthorRole.System : AuthorRole.User;
-            var tokenCount = chatHistory is not null ? TokenUtilities.GetChatMessageTokenCount(promptRole, formattedMessage) : TokenUtilities.TokenCount(formattedMessage);
+            var tokenCount = chatHistory is not null ? TokenUtilities.GetContextMessageTokenCount(promptRole, formattedMessage) : TokenUtilities.TokenCount(formattedMessage);
 
             if (remainingToken - tokenCount >= 0)
             {
@@ -287,7 +291,7 @@ public class ChatSkill
                 {
                     // Omit user name if Auth is disabled.
                     allottedChatHistory.AddUserMessage(
-                        PassThroughAuthenticationHandler.isDefaultUser(chatMessage.UserId)
+                        PassThroughAuthenticationHandler.IsDefaultUser(chatMessage.UserId)
                             ? $"[{chatMessage.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {chatMessage.Content}"
                             : formattedMessage);
                 }
@@ -448,37 +452,41 @@ public class ChatSkill
             this._documentMemorySkill.QueryDocumentsAsync(userIntent, chatId, documentContextTokenLimit, this._kernel.Memory, cancellationToken)
         );
 
-        // Add memories to chat context
+        // Add additional context to the prompt template.
+        var chatContextTokenCount = 0;
+        string chatHistory = string.Empty;
+
+        // Add chat and document memories.
         var chatMemories = tasks[0];
         var documentMemories = tasks[1];
         var chatContextComponents = new List<string>() { chatMemories, documentMemories };
-        var chatContextTokenCount = 0;
         foreach (var contextComponent in chatContextComponents.Where(c => !string.IsNullOrEmpty(c)))
         {
             promptTemplate.AddSystemMessage(contextComponent);
-            chatContextTokenCount += TokenUtilities.GetChatMessageTokenCount(AuthorRole.System, contextComponent);
+            chatContextTokenCount += TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, contextComponent);
         }
 
-        // Fill in the chat history if there is any token budget left
-        var chatHistoryTokenBudget = remainingTokenBudget - chatContextTokenCount - TokenUtilities.GetChatMessageTokenCount(AuthorRole.System, planResult);
-        string chatHistory = string.Empty;
-
-        // Append previous messages, if allowed.
-        if (chatHistoryTokenBudget > 0)
-        {
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
-            chatHistory = await this.ExtractChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
-            chatContext.ThrowIfFailed();
-        }
-
-        // Append the plan result last, if exists, to imply precedence.
+        // Append the plan result. Omit chat history to reduce any potential noise.
         if (!string.IsNullOrWhiteSpace(planResult))
         {
             promptTemplate.AddSystemMessage(planResult);
         }
+        else
+        {
+            // Fill in the chat history if there is any token budget left
+            var chatHistoryTokenBudget = remainingTokenBudget - chatContextTokenCount - TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, planResult);
+
+            // Append previous messages, if allowed.
+            if (chatHistoryTokenBudget > 0)
+            {
+                await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
+                chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
+                chatContext.ThrowIfFailed();
+            }
+        }
 
         var promptView = new BotResponsePrompt(this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
-        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetChatHistoryTokenCount(promptTemplate).ToString(CultureInfo.InvariantCulture));
+        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.InvariantCulture));
         chatContext.ThrowIfFailed();
 
         // Stream the response to the client
@@ -718,10 +726,10 @@ public class ChatSkill
     /// </summary>
     /// <param name="promptTemplate">All current messages to use for chat completion</param>
     /// <returns>The remaining token limit.</returns>
-    private int GetChatContextTokenLimit(ChatHistory promptTemplate)
+    private int GetChatContextTokenLimit(ChatCompletionContextMessages promptTemplate)
     {
         return this._promptOptions.CompletionTokenLimit
-            - TokenUtilities.GetChatHistoryTokenCount(promptTemplate)
+            - TokenUtilities.GetContextMessagesTokenCount(promptTemplate)
             - this._promptOptions.ResponseTokenLimit;
     }
 

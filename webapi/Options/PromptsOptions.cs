@@ -68,7 +68,7 @@ public class PromptsOptions
     internal string[] SystemAudiencePromptComponents => new string[]
     {
         this.SystemAudience,
-        "{{ChatSkill.ExtractChatHistoryAsString}}",
+        "{{ChatSkill.ExtractChatHistory}}",
         this.SystemAudienceContinuation
     };
 
@@ -78,7 +78,7 @@ public class PromptsOptions
     {
         this.SystemDescription,
         this.SystemIntent,
-        "{{ChatSkill.ExtractChatHistoryAsString}}",
+        "{{ChatSkill.ExtractChatHistory}}",
         this.SystemIntentContinuation
     };
 
@@ -108,7 +108,7 @@ public class PromptsOptions
         $"{this.LongTermMemoryName} Description:\n{this.LongTermMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
-        "{{ChatSkill.ExtractChatHistoryAsString}}",
+        "{{ChatSkill.ExtractChatHistory}}",
         this.MemoryContinuation
     };
 
@@ -124,7 +124,7 @@ public class PromptsOptions
         $"{this.WorkingMemoryName} Description:\n{this.WorkingMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
-        "{{ChatSkill.ExtractChatHistoryAsString}}",
+        "{{ChatSkill.ExtractChatHistory}}",
         this.MemoryContinuation
     };
 

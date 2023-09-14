@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using Microsoft.SemanticKernel.Orchestration;
@@ -87,26 +88,32 @@ public static class TokenUtilities
     /// <summary>
     /// Calculate the number of tokens in a string.
     /// </summary>
+    /// <param name="text">The string to calculate the number of tokens in.</param>
     internal static int TokenCount(string text) => GPT3Tokenizer.Encode(text).Count;
 
     /// <summary>
     /// Rough token costing of ChatHistory's message object.
+    /// Follows the syntax defined by Azure OpenAI's ChatMessage object: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chatmessage
+    /// e.g., "message": {"role":"assistant","content":"Yes }
     /// </summary>
-    internal static int GetChatMessageTokenCount(AuthorRole authorRole, string content)
+    /// <param name="authorRole">Author role of the message.</param>
+    /// <param name="content">Content of the message.</param>
+    internal static int GetContextMessageTokenCount(AuthorRole authorRole, string content)
     {
         var tokenCount = authorRole == AuthorRole.System ? TokenCount("\n") : 0;
-        return tokenCount + TokenCount($"Role:{authorRole.Label}") + TokenCount($"Content:{content}");
+        return tokenCount + TokenCount($"role:{authorRole.Label}") + TokenCount($"content:{content}");
     }
 
     /// <summary>
-    /// Rough token costing of ChatHistory object.
+    /// Rough token costing of ChatCompletionContextMessages object.
     /// </summary>
-    internal static int GetChatHistoryTokenCount(ChatHistory chatHistory)
+    /// <param name="chatHistory">ChatCompletionContextMessages object to calculate the number of tokens of.</param>
+    internal static int GetContextMessagesTokenCount(ChatCompletionContextMessages chatHistory)
     {
         var tokenCount = 0;
         foreach (var message in chatHistory.Messages)
         {
-            tokenCount += GetChatMessageTokenCount(message.Role, message.Content);
+            tokenCount += GetContextMessageTokenCount(message.Role, message.Content);
         }
 
         return tokenCount;
