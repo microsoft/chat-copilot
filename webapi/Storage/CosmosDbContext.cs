@@ -59,7 +59,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
             throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
         }
 
-        await this._container.CreateItemAsync(entity);
+        await this._container.CreateItemAsync(entity, new PartitionKey(entity.Partition));
     }
 
     /// <inheritdoc/>
