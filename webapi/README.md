@@ -22,7 +22,7 @@ The following material is under development and may not be complete or accurate.
 2. In Solution Explorer, right-click on `CopilotChatWebApi` and select `Set as Startup Project`.
 3. Start debugging by pressing `F5` or selecting the menu item `Debug`->`Start Debugging`.
 
-4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options for `SemanticMemory:ImageOcrType` in `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
+4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options for `SemanticMemory:ImageOcrType` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
    - **Tesseract** we have included the [Tesseract](https://www.nuget.org/packages/Tesseract) nuget package.
      - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `SemanticMemory:Services:Tesseract:FilePath` location in `./appsettings.json`.
      - Set the `Copy to Output Directory` value to `Copy if newer`.
@@ -93,6 +93,60 @@ To enable sequential planner,
      ```
      \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
 1. Restart the `webapi` - Copilot Chat should be now running locally with SequentialPlanner.
+
+## (Optional) Enabling Cosmos Chat Store.
+
+[Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) can be used as a persistent chat store for Chat Copilot. Chat stores are used for storing chat sessions, participants, and messages.
+
+### Prerequisites
+
+#### 1. Containers and PartitionKeys
+
+In an effort to optimize performance, each container must be created with a specific partition key:
+| Store | ContainerName | PartitionKey |
+| ----- | ------------- | ------------ |
+| Chat Sessions | chatsessions | /id (default) |
+| Chat Messages | chatmessages | /chatId |
+| Chat Memory Sources | chatmemorysources | /chatId |
+| Chat Partipants | chatparticipants | /userId |
+
+> For existing customers using CosmosDB before [Release 0.3](https://github.com/microsoft/chat-copilot/releases/tag/0.3), our recommendation is to remove the existing Cosmos DB containers and redeploy to realize the performance update related to the partition schema. To preserve existing chats, containers can be migrated as described [here](https://learn.microsoft.com/en-us/azure/cosmos-db/intra-account-container-copy#copy-a-container).
+
+## (Optional) Enabling the Qdrant Memory Store
+
+By default, the service uses an in-memory volatile memory store that, when the service stops or restarts, forgets all memories.
+[Qdrant](https://github.com/qdrant/qdrant) is a persistent scalable vector search engine that can be deployed locally in a container or [at-scale in the cloud](https://github.com/Azure-Samples/qdrant-azure).
+
+To enable the Qdrant memory store, you must first deploy Qdrant locally and then configure the Copilot Chat API service to use it.
+
+### 1. Configure your environment
+
+Before you get started, make sure you have the following additional requirements in place:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) for hosting the [Qdrant](https://github.com/qdrant/qdrant) vector search engine.
+
+### 2. Deploy Qdrant VectorDB locally
+
+1. Open a terminal and use Docker to pull down the container image.
+
+   ```bash
+   docker pull qdrant/qdrant
+   ```
+
+2. Change directory to this repo and create a `./data/qdrant` directory to use as persistent storage.
+   Then start the Qdrant container on port `6333` using the `./data/qdrant` folder as the persistent storage location.
+
+   ```bash
+   mkdir ./data/qdrant
+   docker run --name copilotchat -p 6333:6333 -v "$(pwd)/data/qdrant:/qdrant/storage" qdrant/qdrant
+   ```
+
+   > To stop the container, in another terminal window run `docker container stop copilotchat; docker container rm copilotchat;`.
+
+## (Optional) Enabling the Azure Cognitive Search Memory Store
+
+Azure Cognitive Search can be used as a persistent memory store for Copilot Chat.
+The service uses its [vector search](https://learn.microsoft.com/en-us/azure/search/vector-search-overview) capabilities.
 
 ## (Optional) Enable Application Insights telemetry
 

@@ -32,7 +32,7 @@ public interface IRepository<T> where T : IStorageEntity
     /// Finds an entity by its id.
     /// </summary>
     /// <param name="id">Id of the entity.</param>
-    /// <param name="partition">Partition of the entity.</param>
+    /// <param name="partition">Partition key value of the entity.</param>
     /// <returns>An entity</returns>
     Task<T> FindByIdAsync(string id, string partition);
 
@@ -40,7 +40,7 @@ public interface IRepository<T> where T : IStorageEntity
     /// Tries to find an entity by its id.
     /// </summary>
     /// <param name="id">Id of the entity.</param>
-    /// <param name="partition">Partition of the entity.</param>
+    /// <param name="partition">Partition key value of the entity.</param>
     /// <param name="callback">The entity delegate. Note async methods don't support ref or out parameters.</param>
     /// <returns>True if the entity was found, false otherwise.</returns>
     Task<bool> TryFindByIdAsync(string id, string partition, Action<T?> callback);
