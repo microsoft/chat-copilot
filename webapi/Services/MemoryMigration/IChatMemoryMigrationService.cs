@@ -14,5 +14,5 @@ public interface IChatMemoryMigrationService
     /// Migrates all non-document memory to the semantic-memory index.
     /// Subsequent/redunant migration is non-destructive/no-impact to migrated index.
     /// </summary>
-    Task MigrateAsync(CancellationToken cancelToken = default);
+    Task MigrateAsync(CancellationToken cancellationToken = default);
 }

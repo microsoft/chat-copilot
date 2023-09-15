@@ -46,11 +46,11 @@ public class MaintenanceMiddleware
         // Skip inspection if _isInMaintenance explicitly false.
         if (!(this._isInMaintenance ?? false))
         {
-            // Maintance never false => true; always true => false or just false;
+            // Maintenance never false => true; always true => false or just false;
             this._isInMaintenance = await this.InspectMaintenanceActionAsync().ConfigureAwait(false);
         }
 
-        // In mainteance if actions say so or explicitly configured.
+        // In maintenance if actions say so or explicitly configured.
         if ((this._isInMaintenance ?? false) || this._serviceOptions.Value.InMaintenance)
         {
             await this._messageRelayHubContext.Clients.All.SendAsync(MaintenanceController.GlobalSiteMaintenance, "Site undergoing maintenance...").ConfigureAwait(false);

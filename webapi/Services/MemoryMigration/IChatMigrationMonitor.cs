@@ -13,5 +13,5 @@ public interface IChatMigrationMonitor
     /// <summary>
     /// Inspects the current state of affairs to determine the chat migration status.
     /// </summary>
-    Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancelToken = default);
+    Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancellationToken = default);
 }

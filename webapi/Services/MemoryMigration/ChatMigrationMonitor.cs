@@ -39,7 +39,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     }
 
     /// <inheritdoc/>
-    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancelToken = default)
+    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancellationToken = default)
     {
         if (_cachedStatus == null)
         {
@@ -80,7 +80,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 if (_hasCurrentIndex == null)
                 {
                     // Cache "found" index state to reduce query count and avoid handling truth mutation.
-                    var collections = await memory.GetCollectionsAsync(cancelToken).ConfigureAwait(false);
+                    var collections = await this.memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false);
 
                     // Does the new "target" index already exist?
                     _hasCurrentIndex = collections.Any(c => c.Equals(this._indexNameAllMemory, StringComparison.OrdinalIgnoreCase));
@@ -106,11 +106,11 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 try
                 {
                     var result =
-                        await memory.GetAsync(
+                        await this.memory.GetAsync(
                             this._indexNameAllMemory,
                             MigrationKey,
                             withEmbedding: false,
-                            cancelToken).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
 
                     if (result != null)
                     {

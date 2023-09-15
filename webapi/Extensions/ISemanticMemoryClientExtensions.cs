@@ -60,9 +60,9 @@ internal static class ISemanticMemoryClientExtensions
         float relevanceThreshold,
         string chatId,
         string? memoryName = null,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
-        return memoryClient.SearchMemoryAsync(indexName, query, relevanceThreshold, resultCount: -1, chatId, memoryName, cancelToken);
+        return memoryClient.SearchMemoryAsync(indexName, query, relevanceThreshold, resultCount: -1, chatId, memoryName, cancellationToken);
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
@@ -73,7 +73,7 @@ internal static class ISemanticMemoryClientExtensions
     int resultCount,
     string chatId,
     string? memoryName = null,
-    CancellationToken cancelToken = default)
+    CancellationToken cancellationToken = default)
     {
         var filter =
             new MemoryFilter
@@ -94,7 +94,7 @@ internal static class ISemanticMemoryClientExtensions
                 indexName,
                 filter,
                 resultCount,
-                cancelToken)
+                cancellationToken)
             .ConfigureAwait(false);
 
         return searchResult;
@@ -108,7 +108,7 @@ internal static class ISemanticMemoryClientExtensions
         string memoryName,
         string fileName,
         Stream fileContent,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
         var uploadRequest =
             new DocumentUploadRequest
@@ -121,7 +121,7 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
-        await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
+        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
     }
 
     public static Task StoreMemoryAsync(
@@ -130,9 +130,9 @@ internal static class ISemanticMemoryClientExtensions
         string chatId,
         string memoryName,
         string memory,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
-        return memoryClient.StoreMemoryAsync(indexName, chatId, memoryName, memoryId: Guid.NewGuid().ToString(), memory, cancelToken);
+        return memoryClient.StoreMemoryAsync(indexName, chatId, memoryName, memoryId: Guid.NewGuid().ToString(), memory, cancellationToken);
     }
 
     public static async Task StoreMemoryAsync(
@@ -142,7 +142,7 @@ internal static class ISemanticMemoryClientExtensions
         string memoryName,
         string memoryId,
         string memory,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
@@ -165,19 +165,19 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
-        await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
+        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
     }
 
     public static async Task RemoveChatMemoriesAsync(
         this ISemanticMemoryClient memoryClient,
         string indexName,
         string chatId,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
-        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancelToken: cancelToken);
+        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancellationToken);
         foreach (var memory in memories.Results)
         {
-            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancelToken);
+            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancellationToken);
         }
     }
 }

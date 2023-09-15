@@ -88,7 +88,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
                 foreach (var memoryType in this._promptOptions.MemoryMap.Keys)
                 {
                     var indexName = $"{chat.Id}-{memoryType}";
-                    var memories = await memory.SearchAsync(indexName, "*", limit: int.MaxValue, minRelevanceScore: -1, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
+                    var memories = await this.memory.SearchAsync(indexName, "*", limit: int.MaxValue, minRelevanceScore: -1, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
 
                     foreach (var memory in memories)
                     {
@@ -99,15 +99,15 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         }
 
         // Inline function to read the token memory
-        async Task<MemoryQueryResult?> GetTokenMemory(CancellationToken cancelToken)
+        async Task<MemoryQueryResult?> GetTokenMemory(CancellationToken cancellationToken)
         {
-            return await memory.GetAsync(this._promptOptions.MemoryIndexName, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancelToken).ConfigureAwait(false);
+            return await this.memory.GetAsync(this._promptOptions.MemoryIndexName, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken).ConfigureAwait(false);
         }
 
         // Inline function to write the token memory
-        async Task SetTokenMemory(string token, CancellationToken cancelToken)
+        async Task SetTokenMemory(string token, CancellationToken cancellationToken)
         {
-            await memory.SaveInformationAsync(this._promptOptions.MemoryIndexName, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancelToken).ConfigureAwait(false);
+            await this.memory.SaveInformationAsync(this._promptOptions.MemoryIndexName, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken).ConfigureAwait(false);
         }
 
         async Task RemoveMemorySourcesAsync()

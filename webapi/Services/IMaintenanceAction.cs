@@ -6,7 +6,7 @@ using System.Threading;
 namespace CopilotChat.WebApi.Services;
 
 /// <summary>
-/// Defines discrete maintenace action responsible for both inspecting state
+/// Defines discrete maintenance action responsible for both inspecting state
 /// and performing maintenace.
 /// </summary>
 public interface IMaintenanceAction
