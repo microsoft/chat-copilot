@@ -46,16 +46,16 @@ public class MaintenanceController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<MigrationResult?> GetMaintenanceStatus(
+    public ActionResult<MaintenanceResult?> GetMaintenanceStatus(
         [FromServices] IKernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
     {
-        MigrationResult? result = null;
+        MaintenanceResult? result = null;
 
         if (this._serviceOptions.Value.InMaintenance)
         {
-            result = new MigrationResult();
+            result = new MaintenanceResult();
         }
 
         return this.Ok(result);
