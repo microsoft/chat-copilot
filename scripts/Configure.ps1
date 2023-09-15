@@ -139,19 +139,64 @@ else {
 
 $webapiProjectPath = Join-Path "$PSScriptRoot" '../webapi'
 
-Write-Host "Setting 'AIService:Key' user secret for $AIService..."
-dotnet user-secrets set --project $webapiProjectPath  AIService:Key $ApiKey
-if ($LASTEXITCODE -ne 0) { exit(1) }
+Write-Host "Setting 'APIKey' user secret for $AIService..."
+if ($AIService -eq $varOpenAI) {
+    dotnet user-secrets set --project $webapiProjectPath SemanticMemory:Services:OpenAI:APIKey $ApiKey
+    if ($LASTEXITCODE -ne 0) { exit(1) }
+    $AIServiceOverrides = @{
+        OpenAI = @{
+            TextModel      = $CompletionModel;
+            EmbeddingModel = $EmbeddingModel;
+        }
+    };
+}
+else {
+    dotnet user-secrets set --project $webapiProjectPath SemanticMemory:Services:AzureOpenAIText:APIKey $ApiKey
+    if ($LASTEXITCODE -ne 0) { exit(1) }
+    dotnet user-secrets set --project $webapiProjectPath SemanticMemory:Services:AzureOpenAIEmbedding:APIKey $ApiKey
+    if ($LASTEXITCODE -ne 0) { exit(1) }
+    $AIServiceOverrides = @{
+        AzureOpenAIText      = @{
+            Endpoint   = $Endpoint;
+            Deployment = $CompletionModel;
+        };
+        AzureOpenAIEmbedding = @{
+            Endpoint   = $Endpoint;
+            Deployment = $EmbeddingModel;
+        }
+    };
+}
 
 $appsettingsOverrides = @{
-    AIService      = @{ Type = $AIService; Endpoint = $Endpoint; Models = @{ Completion = $CompletionModel; Embedding = $EmbeddingModel; Planner = $PlannerModel } };
-    Authentication = @{ Type = $authType; AzureAd = @{ Instance = $Instance; TenantId = $TenantId; ClientId = $BackendClientId; Scopes = $varScopes } }
+    Authentication = @{
+        Type    = $authType;
+        AzureAd = @{
+            Instance = $Instance;
+            TenantId = $TenantId;
+            ClientId = $BackendClientId;
+            Scopes   = $varScopes
+        }
+    };
+    Planner        = @{
+        Model = $PlannerModel
+    };
+    SemanticMemory = @{
+        TextGeneratorType = $AIService;
+        DataIngestion     = @{
+            EmbeddingGeneratorTypes = @($AIService)
+        };
+        Retrieval         = @{
+            EmbeddingGeneratorType = $AIService
+        };
+        Services          = $AIServiceOverrides;
+    };
 }
 $appSettingsJson = -join ("appsettings.", $varASPNetCore, ".json");
 $appsettingsOverridesFilePath = Join-Path $webapiProjectPath $appSettingsJson
 
 Write-Host "Setting up '$appSettingsJson' for $AIService..."
-ConvertTo-Json $appsettingsOverrides | Out-File -Encoding utf8 $appsettingsOverridesFilePath
+# Setting depth to 100 to avoid truncating the JSON
+ConvertTo-Json $appsettingsOverrides -Depth 100 | Out-File -Encoding utf8 $appsettingsOverridesFilePath
 
 Write-Host "($appsettingsOverridesFilePath)"
 Write-Host "========"

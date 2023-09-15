@@ -16,9 +16,9 @@ To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/de
 
 You will need the following items to run the sample:
 
-- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup install.* script)_
-- [Node.js](https://nodejs.org/en/download) _(via Setup install.*  script)_
-- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup install.*  script)_
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup install.\* script)_
+- [Node.js](https://nodejs.org/en/download) _(via Setup install.\* script)_
+- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup install.\* script)_
 - AI Service
 
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -148,6 +148,10 @@ You will need the following items to run the sample:
      ```powershell
      ./start-backend.sh
      ```
+
+## (Optional) Run the [memory pipeline](./memorypipeline/README.md)
+
+By default, the webapi is configured to work without the memory pipeline for synchronous processing documents. To enable asynchronous document processing, you need to configure the webapi and the memory pipeline. Please refer to the [webapi README](./webapi/README.md) and the [memory pipeline README](./memorypipeline/README.md) for more information.
 
 ## (Optional) Enable backend authentication via Azure AD
 
