@@ -285,15 +285,16 @@ public class ChatSkill
                 if (chatMessage.AuthorRole == ChatMessage.AuthorRoles.Bot)
                 {
                     // Message doesn't have to be formatted for bot. This helps with asserting a natural language response from the LLM (no date or author preamble).
-                    allottedChatHistory.AddAssistantMessage(chatMessage.Type == ChatMessage.ChatMessageType.Plan ? formattedMessage : chatMessage.Content);
+                    var botMessage = chatMessage.Type == ChatMessage.ChatMessageType.Plan ? formattedMessage : chatMessage.Content;
+                    allottedChatHistory.AddAssistantMessage(botMessage.Trim());
                 }
                 else
                 {
                     // Omit user name if Auth is disabled.
-                    allottedChatHistory.AddUserMessage(
-                        PassThroughAuthenticationHandler.IsDefaultUser(chatMessage.UserId)
+                    var userMessage = PassThroughAuthenticationHandler.IsDefaultUser(chatMessage.UserId)
                             ? $"[{chatMessage.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {chatMessage.Content}"
-                            : formattedMessage);
+                            : formattedMessage;
+                    allottedChatHistory.AddUserMessage(userMessage.Trim());
                 }
 
                 remainingToken -= tokenCount;
@@ -333,7 +334,7 @@ public class ChatSkill
 
         // Save this new message to memory such that subsequent chat responses can use it
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving user message to chat history", cancellationToken);
-        await this.SaveNewMessageAsync(message, userId, userName, chatId, messageType, cancellationToken);
+        var newUserMessage = await this.SaveNewMessageAsync(message, userId, userName, chatId, messageType, cancellationToken);
 
         // Clone the context to avoid modifying the original context variables.
         var chatContext = context.Clone();
@@ -357,7 +358,7 @@ public class ChatSkill
         else
         {
             // Get the chat response
-            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, cancellationToken);
+            chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, newUserMessage, cancellationToken);
         }
 
         context.Variables.Update(chatMessage.Content);
@@ -382,9 +383,10 @@ public class ChatSkill
     /// <param name="chatId">The chat ID</param>
     /// <param name="userId">The user ID</param>
     /// <param name="chatContext">The SKContext.</param>
+    /// <param name="userMessage">ChatMessage object representing new user message.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The created chat message containing the model-generated response.</returns>
-    private async Task<ChatMessage> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, CancellationToken cancellationToken)
+    private async Task<ChatMessage> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, ChatMessage userMessage, CancellationToken cancellationToken)
     {
         // Render system instruction components
         var promptRenderer = new PromptTemplateEngine();
@@ -411,7 +413,7 @@ public class ChatSkill
 
         // Calculate the remaining token budget.
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating remaining token budget", cancellationToken);
-        var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate, chatContext.Variables.Input);
+        var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate, userMessage.ToFormattedString());
 
         // Acquire external information from planner
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Acquiring external information from planner", cancellationToken);
@@ -463,17 +465,14 @@ public class ChatSkill
             chatContextTokenCount += TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, contextComponent);
         }
 
-        // Fill in the chat history if there is any token budget left
+        // Fill in the chat history with remaining token budget.
         string chatHistory = string.Empty;
         var chatHistoryTokenBudget = remainingTokenBudget - chatContextTokenCount - TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, planResult);
 
-        // Append previous messages, if allowed.
-        if (chatHistoryTokenBudget > 0)
-        {
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
-            chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
-            chatContext.ThrowIfFailed();
-        }
+        // Append previous messages
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
+        chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
+        chatContext.ThrowIfFailed();
 
         // Append the plan result last, if exists, to imply precedence.
         if (!string.IsNullOrWhiteSpace(planResult))
