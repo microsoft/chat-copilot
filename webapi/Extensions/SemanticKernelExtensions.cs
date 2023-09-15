@@ -88,6 +88,16 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
+    /// Add Planner services
+    /// </summary>
+    public static WebApplicationBuilder AddBotConfig(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped(sp => sp.WithBotConfig(builder.Configuration));
+
+        return builder;
+    }
+
+    /// <summary>
     /// Register the chat skill with the kernel.
     /// </summary>
     public static IKernel RegisterChatSkill(this IKernel kernel, IServiceProvider sp)
