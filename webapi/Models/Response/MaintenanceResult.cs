@@ -3,12 +3,12 @@
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// Defines optional messaging for maintenace mode.
+/// Defines optional messaging for maintenance mode.
 /// </summary>
 public class MaintenanceResult
 {
     /// <summary>
-    /// The maintenace notification title.
+    /// The maintenance notification title.
     /// </summary>
     /// <remarks>
     /// Will utilize default if not defined.
@@ -16,7 +16,7 @@ public class MaintenanceResult
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// The maintenace notification message.
+    /// The maintenance notification message.
     /// </summary>
     /// <remarks>
     /// Will utilize default if not defined.
@@ -24,7 +24,7 @@ public class MaintenanceResult
     public string Message { get; set; } = string.Empty;
 
     /// <summary>
-    /// The maintenace notification note.
+    /// The maintenance notification note.
     /// </summary>
     /// <remarks>
     /// Will utilize default if not defined.
