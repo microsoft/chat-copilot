@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Models.Response;
