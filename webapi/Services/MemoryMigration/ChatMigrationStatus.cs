@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.SemanticKernel.Memory;
-
-namespace CopilotChat.WebApi.Services;
+namespace CopilotChat.WebApi.Services.MemoryMigration;
 
 /// <summary>
 /// Set of migration states/status for chat memory migration.
@@ -38,15 +34,4 @@ public sealed class ChatMigrationStatus
     {
         this.Label = label;
     }
-}
-
-/// <summary>
-/// Contract for monitoring the status of chat memory migration.
-/// </summary>
-public interface IChatMigrationMonitor
-{
-    /// <summary>
-    /// Inspects the current state of affairs to determine the chat migration status.
-    /// </summary>
-    Task<ChatMigrationStatus> GetCurrentStatusAsync(ISemanticTextMemory memory, CancellationToken cancelToken = default);
 }

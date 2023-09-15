@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 
-namespace CopilotChat.WebApi.Services;
+namespace CopilotChat.WebApi.Services.MemoryMigration;
 
 /// <summary>
 /// Service implementation of <see cref=IChatMigrationMonitor""/>.
@@ -25,6 +25,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
 
     private readonly ILogger<ChatMigrationMonitor> _logger;
     private readonly string _indexNameAllMemory;
+    private readonly ISemanticTextMemory memory; // $$$
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatMigrationMonitor"/> class.
@@ -38,7 +39,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     }
 
     /// <inheritdoc/>
-    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(ISemanticTextMemory memory, CancellationToken cancelToken = default)
+    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancelToken = default)
     {
         if (_cachedStatus == null)
         {
@@ -59,7 +60,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             // Refresh status if we have a cached value for any state other than: ChatVersionStatus.None.
             switch (_cachedStatus)
             {
-                case (ChatMigrationStatus s) when (s == ChatMigrationStatus.RequiresUpgrade || s == ChatMigrationStatus.Upgrading):
+                case ChatMigrationStatus s when s == ChatMigrationStatus.RequiresUpgrade || s == ChatMigrationStatus.Upgrading:
                     _cachedStatus = await QueryStatusAsync().ConfigureAwait(false);
                     break;
 

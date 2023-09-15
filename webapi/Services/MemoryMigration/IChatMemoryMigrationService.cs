@@ -2,9 +2,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SemanticKernel.Memory;
 
-namespace CopilotChat.WebApi.Services;
+namespace CopilotChat.WebApi.Services.MemoryMigration;
 
 /// <summary>
 /// Defines contract for migrating chat memory.
@@ -15,5 +14,5 @@ public interface IChatMemoryMigrationService
     /// Migrates all non-document memory to the semantic-memory index.
     /// Subsequent/redunant migration is non-destructive/no-impact to migrated index.
     /// </summary>
-    Task MigrateAsync(ISemanticTextMemory memory, CancellationToken cancelToken = default);
+    Task MigrateAsync(CancellationToken cancelToken = default);
 }
