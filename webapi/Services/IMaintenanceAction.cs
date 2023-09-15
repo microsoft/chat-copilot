@@ -7,7 +7,7 @@ namespace CopilotChat.WebApi.Services;
 
 /// <summary>
 /// Defines discrete maintenance action responsible for both inspecting state
-/// and performing maintenace.
+/// and performing maintenance.
 /// </summary>
 public interface IMaintenanceAction
 {
