@@ -308,7 +308,7 @@ public class ChatSkill
         allottedChatHistory.Reverse();
         chatHistory?.AddRange(allottedChatHistory);
 
-        return historyText.Trim();
+        return $"Chat history:\n{historyText.Trim()}";
     }
 
     /// <summary>
