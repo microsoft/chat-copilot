@@ -53,7 +53,7 @@ internal static class ISemanticMemoryClientExtensions
         appBuilder.Services.AddSingleton(memory);
     }
 
-    public static async Task<SearchResult> SearchMemoryAsync(
+    public static Task<SearchResult> SearchMemoryAsync(
         this ISemanticMemoryClient memoryClient,
         string indexName,
         string query,
@@ -61,6 +61,19 @@ internal static class ISemanticMemoryClientExtensions
         string chatId,
         string? memoryName = null,
         CancellationToken cancelToken = default)
+    {
+        return memoryClient.SearchMemoryAsync(indexName, query, relevanceThreshold, resultCount: -1, chatId, memoryName, cancelToken);
+    }
+
+    public static async Task<SearchResult> SearchMemoryAsync(
+    this ISemanticMemoryClient memoryClient,
+    string indexName,
+    string query,
+    float relevanceThreshold,
+    int resultCount,
+    string chatId,
+    string? memoryName = null,
+    CancellationToken cancelToken = default)
     {
         var filter =
             new MemoryFilter
@@ -78,9 +91,10 @@ internal static class ISemanticMemoryClientExtensions
         var searchResult =
             await memoryClient.SearchAsync(
                 query,
-                index: indexName,
-                filter: filter,
-                cancellationToken: cancelToken)
+                indexName,
+                filter,
+                resultCount,
+                cancelToken)
             .ConfigureAwait(false);
 
         return searchResult;

@@ -108,6 +108,7 @@ internal static class SemanticChatMemoryExtractor
                         options.MemoryIndexName,
                         memory,
                         options.SemanticMemoryRelevanceUpper,
+                        resultCount: 1,
                         chatId,
                         memoryName,
                         cancellationToken);

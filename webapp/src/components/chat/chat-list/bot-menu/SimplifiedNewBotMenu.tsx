@@ -23,7 +23,7 @@ interface SimplifiedNewBotMenuProps {
     onFileUpload: () => void;
 }
 
-export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = ({ onFileUpload }) => {
+export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = () => {
     const chat = useChat();
     const { features } = useAppSelector((state: RootState) => state.app);
 
@@ -56,14 +56,6 @@ export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = ({ onFileUplo
                             New Chat Session
                         </MenuItem>
                         <Divider />
-                        <MenuItem
-                            data-testid="uploadABotMenuItem"
-                            disabled={!features[FeatureKeys.BotAsDocs].enabled}
-                            // TODO: [Issue #47] Fix, not sure if it works right
-                            onClick={onFileUpload}
-                        >
-                            <div>Upload Saved Chat</div>
-                        </MenuItem>
                         <MenuItem
                             data-testid="joinABotMenuItem"
                             disabled={!features[FeatureKeys.MultiUserChat].enabled}

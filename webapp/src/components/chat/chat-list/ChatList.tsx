@@ -133,19 +133,15 @@ export const ChatList: FC = () => {
 
     useEffect(() => {
         // Ensure local component state is in line with app state.
-        if (filterText !== '') {
-            // Reapply search string to the updated conversations list.
-            const filteredConversations: Conversations = {};
-            for (const key in conversations) {
-                if (conversations[key].title.toLowerCase().includes(filterText.toLowerCase())) {
-                    filteredConversations[key] = conversations[key];
-                }
+        const nonHiddenConversations: Conversations = {};
+        for (const key in conversations) {
+            const conversation = conversations[key];
+            if (!conversation.hidden && (!filterText || conversation.title.toLowerCase().includes(filterText))) {
+                nonHiddenConversations[key] = conversation;
             }
-            setConversationsView({ filteredConversations: filteredConversations });
-        } else {
-            // If no search string, show full conversations list.
-            setConversationsView(sortConversations(conversations));
         }
+
+        setConversationsView(sortConversations(nonHiddenConversations));
     }, [conversations, filterText]);
 
     const onFilterClick = () => {

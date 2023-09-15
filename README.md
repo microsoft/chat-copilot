@@ -2,7 +2,9 @@
 
 This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft [Semantic Kernel](https://github.com/microsoft/semantic-kernel) and has two components: a frontend [React web app](./webapp/) and a backend [.NET web API service](./webapi/).
 
-These quick-start instructions run the sample locally. To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/deploy/README.md) after meeting the [requirements](#requirements) described below.
+These quick-start instructions run the sample locally. They can also be found on the official Chat Copilot Microsoft Learn documentation page for [getting started](https://learn.microsoft.com/semantic-kernel/chat-copilot/getting-started).
+
+To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/deploy/README.md) after meeting the [requirements](#requirements) described below.
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
@@ -14,9 +16,9 @@ These quick-start instructions run the sample locally. To deploy the sample to A
 
 You will need the following items to run the sample:
 
-- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup install.* script)_
-- [Node.js](https://nodejs.org/en/download) _(via Setup install.*  script)_
-- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup install.*  script)_
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup install.\* script)_
+- [Node.js](https://nodejs.org/en/download) _(via Setup install.\* script)_
+- [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup install.\* script)_
 - AI Service
 
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -65,6 +67,12 @@ You will need the following items to run the sample:
    It may take a few minutes for Yarn packages to install on the first run.
 
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+
+   - (Optional) To start ONLY the backend:
+
+     ```powershell
+     .\Start-Backend.ps1
+     ```
 
 ## Linux/macOS
 
@@ -134,6 +142,16 @@ You will need the following items to run the sample:
    It may take a few minutes for Yarn packages to install on the first run.
 
    > NOTE: Confirm pop-ups are not blocked and you are logged in with the same account used to register the application.
+
+   - (Optional) To start ONLY the backend:
+
+     ```powershell
+     ./start-backend.sh
+     ```
+
+## (Optional) Run the [memory pipeline](./memorypipeline/README.md)
+
+By default, the webapi is configured to work without the memory pipeline for synchronous processing documents. To enable asynchronous document processing, you need to configure the webapi and the memory pipeline. Please refer to the [webapi README](./webapi/README.md) and the [memory pipeline README](./memorypipeline/README.md) for more information.
 
 ## (Optional) Enable backend authentication via Azure AD
 
@@ -323,7 +341,7 @@ Bug reports and fixes are welcome!
 
 To learn more and get started:
 
-- Read the [documentation](https://learn.microsoft.com/en-us/semantic-kernel/chat-copilot/)
+- Read the [documentation](https://learn.microsoft.com/semantic-kernel/chat-copilot/)
 - Join the [Discord community](https://aka.ms/SKDiscord)
 - [Contribute](CONTRIBUTING.md) to the project
 - Follow the team on our [blog](https://aka.ms/sk/blog)

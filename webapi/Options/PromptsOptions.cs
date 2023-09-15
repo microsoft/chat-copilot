@@ -27,13 +27,7 @@ public class PromptsOptions
     /// Weight of memories in the contextual part of the final prompt.
     /// Contextual prompt excludes all the system commands and user intent.
     /// </summary>
-    internal double MemoriesResponseContextWeight { get; } = 0.3;
-
-    /// <summary>
-    /// Weight of documents in the contextual part of the final prompt.
-    /// Contextual prompt excludes all the system commands and user intent.
-    /// </summary>
-    internal double DocumentContextWeight { get; } = 0.3;
+    internal double MemoriesResponseContextWeight { get; } = 0.6;
 
     /// <summary>
     /// Weight of information returned from planner (i.e., responses from OpenAPI skills).
