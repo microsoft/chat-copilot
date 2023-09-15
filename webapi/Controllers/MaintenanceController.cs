@@ -48,7 +48,7 @@ public class MaintenanceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MaintenanceResult?>> GetMaintenanceStatusAsync(
-        [FromServices] IChatMigrationMonitor migrationMonitor, // $$$ WRONG INTERFACE
+        [FromServices] IChatMigrationMonitor migrationMonitor, // $$$ WRONG INTERFACE (IReadOnlyList<IMaintenanceAction> actions)
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
     {

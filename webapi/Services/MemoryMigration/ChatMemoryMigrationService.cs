@@ -21,7 +21,7 @@ namespace CopilotChat.WebApi.Services.MemoryMigration;
 public class ChatMemoryMigrationService : IChatMemoryMigrationService
 {
     private readonly ILogger<ChatMemoryMigrationService> _logger;
-    private readonly ISemanticTextMemory memory; // $$$
+    private readonly ISemanticTextMemory _memory;
     private readonly ISemanticMemoryClient _memoryClient;
     private readonly ChatSessionRepository _chatSessionRepository;
     private readonly ChatMemorySourceRepository _memorySourceRepository;
@@ -36,13 +36,16 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         IOptions<PromptsOptions> promptOptions,
         ISemanticMemoryClient memoryClient,
         ChatSessionRepository chatSessionRepository,
-        ChatMemorySourceRepository memorySourceRepository)
+        ChatMemorySourceRepository memorySourceRepository,
+        SemanticKernelProvider provider)
     {
         this._logger = logger;
         this._promptOptions = promptOptions.Value;
         this._memoryClient = memoryClient;
         this._chatSessionRepository = chatSessionRepository;
         this._memorySourceRepository = memorySourceRepository;
+        var kernel = provider.GetMigrationKernel();
+        this._memory = kernel.Memory;
     }
 
     ///<inheritdoc/>
@@ -88,7 +91,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
                 foreach (var memoryType in this._promptOptions.MemoryMap.Keys)
                 {
                     var indexName = $"{chat.Id}-{memoryType}";
-                    var memories = await this.memory.SearchAsync(indexName, "*", limit: int.MaxValue, minRelevanceScore: -1, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
+                    var memories = await this._memory.SearchAsync(indexName, "*", limit: int.MaxValue, minRelevanceScore: -1, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
 
                     foreach (var memory in memories)
                     {
@@ -101,13 +104,13 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         // Inline function to read the token memory
         async Task<MemoryQueryResult?> GetTokenMemory(CancellationToken cancellationToken)
         {
-            return await this.memory.GetAsync(this._promptOptions.MemoryIndexName, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken).ConfigureAwait(false);
+            return await this._memory.GetAsync(this._promptOptions.MemoryIndexName, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken).ConfigureAwait(false);
         }
 
         // Inline function to write the token memory
         async Task SetTokenMemory(string token, CancellationToken cancellationToken)
         {
-            await this.memory.SaveInformationAsync(this._promptOptions.MemoryIndexName, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken).ConfigureAwait(false);
+            await this._memory.SaveInformationAsync(this._promptOptions.MemoryIndexName, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken).ConfigureAwait(false);
         }
 
         async Task RemoveMemorySourcesAsync()

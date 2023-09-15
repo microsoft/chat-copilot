@@ -25,17 +25,20 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
 
     private readonly ILogger<ChatMigrationMonitor> _logger;
     private readonly string _indexNameAllMemory;
-    private readonly ISemanticTextMemory memory; // $$$
+    private readonly ISemanticTextMemory _memory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatMigrationMonitor"/> class.
     /// </summary>
     public ChatMigrationMonitor(
         ILogger<ChatMigrationMonitor> logger,
-        IOptions<PromptsOptions> promptOptions)
+        IOptions<PromptsOptions> promptOptions,
+        SemanticKernelProvider provider)
     {
         this._logger = logger;
         this._indexNameAllMemory = promptOptions.Value.MemoryIndexName;
+        var kernel = provider.GetMigrationKernel();
+        this._memory = kernel.Memory;
     }
 
     /// <inheritdoc/>
@@ -80,7 +83,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 if (_hasCurrentIndex == null)
                 {
                     // Cache "found" index state to reduce query count and avoid handling truth mutation.
-                    var collections = await this.memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false);
+                    var collections = await this._memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false);
 
                     // Does the new "target" index already exist?
                     _hasCurrentIndex = collections.Any(c => c.Equals(this._indexNameAllMemory, StringComparison.OrdinalIgnoreCase));
@@ -106,7 +109,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 try
                 {
                     var result =
-                        await this.memory.GetAsync(
+                        await this._memory.GetAsync(
                             this._indexNameAllMemory,
                             MigrationKey,
                             withEmbedding: false,

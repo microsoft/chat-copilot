@@ -93,7 +93,7 @@ public static class CopilotChatServiceExtensions
     {
         services.AddSingleton<IChatMigrationMonitor, ChatMigrationMonitor>();
         services.AddSingleton<IChatMemoryMigrationService, ChatMemoryMigrationService>();
-        services.AddSingleton<IMaintenanceAction, ChatMigrationMaintenanceAction>(); // $$$ MIGRATION
+        services.AddSingleton<IMaintenanceAction, ChatMigrationMaintenanceAction>();
         services.AddSingleton<IReadOnlyList<IMaintenanceAction>>(
             sp =>
                 (IReadOnlyList<IMaintenanceAction>)
