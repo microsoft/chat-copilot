@@ -47,7 +47,6 @@ public sealed class Program
             .AddCopilotChatAuthentication(builder.Configuration)
             .AddCopilotChatAuthorization();
 
-
         // Configure and add semantic services
         builder
             .AddBotConfig()
