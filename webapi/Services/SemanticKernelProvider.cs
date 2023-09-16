@@ -125,7 +125,7 @@ public sealed class SemanticKernelProvider
         switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
-            case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIEmbedding");
                 return kernelBuilder.WithAzureTextEmbeddingGenerationService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
 

@@ -89,11 +89,14 @@ public static class CopilotChatServiceExtensions
         return services.AddScoped<AskConverter>();
     }
 
-    internal static IServiceCollection AddMigrationServices(this IServiceCollection services)
+    internal static IServiceCollection AddMainetnanceServices(this IServiceCollection services)
     {
+        // Inject migration services
         services.AddSingleton<IChatMigrationMonitor, ChatMigrationMonitor>();
         services.AddSingleton<IChatMemoryMigrationService, ChatMemoryMigrationService>();
-        services.AddSingleton<IMaintenanceAction, ChatMigrationMaintenanceAction>();
+
+        // Inject actions so they can be part of the action-list.
+        services.AddSingleton<ChatMigrationMaintenanceAction>();
         services.AddSingleton<IReadOnlyList<IMaintenanceAction>>(
             sp =>
                 (IReadOnlyList<IMaintenanceAction>)
