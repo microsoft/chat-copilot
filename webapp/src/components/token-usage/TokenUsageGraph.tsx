@@ -47,6 +47,9 @@ const useClasses = makeStyles({
     legend: {
         'flex-flow': 'wrap',
     },
+    divider: {
+        width: '97%',
+    },
 });
 
 interface ITokenUsageGraph {
@@ -176,7 +179,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                     </>
                 )}
             </div>
-            <Divider />
+            <Divider className={classes.divider} />
         </>
     );
 };
