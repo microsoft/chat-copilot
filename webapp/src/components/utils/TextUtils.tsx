@@ -51,7 +51,7 @@ export function formatChatTextContent(messageContent: string) {
 /*
  * Formats text containing `\n` or `\r` into paragraphs.
  */
-export function formatParagraphTextContent(messageContent: string) {
+export function formatParagraphTextContent(messageContent = '') {
     messageContent = messageContent.replaceAll('\r\n', '\n\r');
 
     return (

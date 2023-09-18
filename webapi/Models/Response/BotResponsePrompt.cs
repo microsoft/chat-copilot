@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -46,19 +47,13 @@ public class BotResponsePrompt
     public string ChatHistory { get; set; } = string.Empty;
 
     /// <summary>
-    /// Preamble to the LLM's response.
+    /// The collection of context messages associated with this chat completions request.
+    /// See https://learn.microsoft.com/en-us/dotnet/api/azure.ai.openai.chatcompletionsoptions.messages?view=azure-dotnet-preview#azure-ai-openai-chatcompletionsoptions-messages.
     /// </summary>
-    [JsonPropertyName("systemChatContinuation")]
-    public string SystemChatContinuation { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Raw content of the rendered prompt.
-    /// </summary>
-    [JsonPropertyName("rawContent")]
-    public string RawContent { get; set; } = string.Empty;
+    [JsonPropertyName("metaPromptTemplate")]
+    public ChatCompletionContextMessages MetaPromptTemplate { get; set; } = new();
 
     public BotResponsePrompt(
-        string rawContent,
         string systemDescription,
         string systemResponse,
         string audience,
@@ -67,16 +62,15 @@ public class BotResponsePrompt
         string documentMemories,
         SemanticDependency<StepwiseThoughtProcess> externalInformation,
         string chatHistory,
-        string systemChatContinuation
-        )
+        ChatCompletionContextMessages metaPromptTemplate
+    )
     {
-        this.RawContent = rawContent;
         this.SystemPersona = string.Join("\n", systemDescription, systemResponse);
         this.Audience = audience;
         this.UserIntent = userIntent;
         this.PastMemories = string.Join("\n", chatMemories, documentMemories).Trim();
         this.ExternalInformation = externalInformation;
         this.ChatHistory = chatHistory;
-        this.SystemChatContinuation = systemChatContinuation;
+        this.MetaPromptTemplate = metaPromptTemplate;
     }
 }

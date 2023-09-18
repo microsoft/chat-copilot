@@ -42,4 +42,9 @@ public class PassThroughAuthenticationHandler : AuthenticationHandler<Authentica
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
+
+    /// <summary>
+    /// Returns true if the given user ID is the default user guest ID.
+    /// </summary>
+    public static bool IsDefaultUser(string userId) => userId == DefaultUserId;
 }
