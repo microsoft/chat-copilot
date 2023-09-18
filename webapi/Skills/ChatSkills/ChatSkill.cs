@@ -472,7 +472,6 @@ public class ChatSkill
         // Append previous messages
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
         chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
-        chatContext.ThrowIfFailed();
 
         // Append the plan result last, if exists, to imply precedence.
         if (!string.IsNullOrWhiteSpace(planResult))
@@ -481,8 +480,7 @@ public class ChatSkill
         }
 
         var promptView = new BotResponsePrompt(this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
-        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.InvariantCulture));
-        chatContext.ThrowIfFailed();
+        chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.CurrentCulture));
 
         // Stream the response to the client
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
