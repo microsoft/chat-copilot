@@ -68,7 +68,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
         originalPlan.steps[0].parameters = originalPlan.parameters;
     }
 
-    const userIntentPrefix = 'User Intent:User intent: ';
+    const userIntentPrefix = 'User intent: ';
     const userIntentIndex = originalPlan.description.indexOf(userIntentPrefix) as number;
     const description: string =
         userIntentIndex !== -1

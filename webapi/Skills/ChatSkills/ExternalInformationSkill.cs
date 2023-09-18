@@ -53,11 +53,6 @@ public class ExternalInformationSkill
     public StepwiseThoughtProcess? StepwiseThoughtProcess { get; private set; }
 
     /// <summary>
-    /// Preamble to add to the related information text.
-    /// </summary>
-    private const string PromptPreamble = "[SOURCE START]";
-
-    /// <summary>
     /// Supplement to help guide model in using data.
     /// </summary>
     private const string PromptSupplement = "This is the result of invoking the functions listed after \"PLUGINS USED:\" to retrieve additional information outside of the data you were trained on. You can use this data to help answer the user's query.";
@@ -66,11 +61,6 @@ public class ExternalInformationSkill
     /// Header to indicate plan results.
     /// </summary>
     private const string ResultHeader = "RESULT: ";
-
-    /// <summary>
-    /// Postamble to add to the related information text.
-    /// </summary>
-    private const string PromptPostamble = "[SOURCE END]";
 
     /// <summary>
     /// Create a new instance of ExternalInformationSkill.
@@ -104,8 +94,8 @@ public class ExternalInformationSkill
             return string.Empty;
         }
 
-        var contextString = string.Join("\n", context.Variables.Where(v => v.Key != "userIntent").Select(v => $"{v.Key}: {v.Value}"));
-        var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\nUser Intent:{userIntent}";
+        var contextString = string.Join("\n", context.Variables.Select(v => $"{v.Key}: {v.Value}"));
+        var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\n{userIntent}";
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
             var plannerContext = context.Clone();
@@ -114,7 +104,7 @@ public class ExternalInformationSkill
                 plannerContext.Variables["stepsTaken"],
                 plannerContext.Variables["timeTaken"],
                 plannerContext.Variables["skillCount"]);
-            return $"{PromptPreamble}\n{plannerContext.Variables.Input.Trim()}\n{PromptPostamble}\n";
+            return $"{plannerContext.Variables.Input.Trim()}\n";
         }
 
         // Check if plan exists in ask's context variables.
@@ -136,8 +126,6 @@ public class ExternalInformationSkill
 
             int tokenLimit =
                 int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo()) -
-                TokenUtilities.TokenCount(PromptPreamble) -
-                TokenUtilities.TokenCount(PromptPostamble) -
                 TokenUtilities.TokenCount(functionsUsed) -
                 TokenUtilities.TokenCount(ResultHeader);
 
@@ -154,7 +142,7 @@ public class ExternalInformationSkill
                 planResult = newPlanContext.Variables.Input;
             }
 
-            return $"{PromptPreamble}\n{PromptSupplement}\n{functionsUsed}\n{ResultHeader}{planResult.Trim()}\n{PromptPostamble}\n";
+            return $"{PromptSupplement}\n{functionsUsed}\n{ResultHeader}{planResult.Trim()}\n";
         }
         else
         {
