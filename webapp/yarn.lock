@@ -2572,10 +2572,10 @@
   resolved "https://registry.yarnpkg.com/@leichtgewicht/ip-codec/-/ip-codec-2.0.4.tgz#b2ac626d6cb9c8718ab459166d4bb405b8ffa78b"
   integrity sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==
 
-"@microsoft/signalr@^7.0.10":
-  version "7.0.10"
-  resolved "https://registry.yarnpkg.com/@microsoft/signalr/-/signalr-7.0.10.tgz#ead378d517cc590c3e8cd5df3f91b0e135427c8e"
-  integrity sha512-tOEn32i5EatAx4sZbzmLgcBc2VbKQmx+F4rI2/Ioq2MnBaYcFxbDzOoZgISIS4IR9H1ij/sKoU8zQOAFC8GJKg==
+"@microsoft/signalr@^7.0.11":
+  version "7.0.11"
+  resolved "https://registry.yarnpkg.com/@microsoft/signalr/-/signalr-7.0.11.tgz#f31d9f37308484fd525549f1fdc78fe1bacd8e00"
+  integrity sha512-//6ipnYKhHf2MJgM+MQSlgB5L/pcYeZ+v4w6YAr4epRM1iSDQ6WjUkCVX2ZMxcY06XGlLzggs3Z9ZIcL9ws9KQ==
   dependencies:
     abort-controller "^3.0.0"
     eventsource "^2.0.2"
