@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.3" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.23.230906.2-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner" Version="0.23.230906.2-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.23.230906.2-preview" />
