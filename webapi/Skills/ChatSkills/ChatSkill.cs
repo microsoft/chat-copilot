@@ -389,6 +389,7 @@ public class ChatSkill
     private async Task<ChatMessage> GetChatResponseAsync(string chatId, string userId, SKContext chatContext, ChatMessage userMessage, CancellationToken cancellationToken)
     {
         // Render system instruction components
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
         var promptRenderer = new PromptTemplateEngine();
         var systemInstructions = await promptRenderer.RenderAsync(
             this._promptOptions.SystemPersona,
