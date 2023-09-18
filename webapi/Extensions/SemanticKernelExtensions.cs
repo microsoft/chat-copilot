@@ -43,7 +43,7 @@ internal static class SemanticKernelExtensions
     public delegate Task RegisterSkillsWithKernel(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
-    /// Delegate to register skills with a Semantic Kernel
+    /// Delegate to register skills with the planner's kernel (i.e., omits skills not required to generate bot response).
     /// </summary>
     public delegate Task RegisterSkillsWithPlanner(IServiceProvider sp, IKernel kernel);
 
@@ -156,8 +156,7 @@ internal static class SemanticKernelExtensions
         // Time skill
         kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
 
-        RegisterSkillsAsync(sp, kernel);
-        return Task.CompletedTask;
+        return RegisterSkillsAsync(sp, kernel);
     }
 
     /// <summary>
