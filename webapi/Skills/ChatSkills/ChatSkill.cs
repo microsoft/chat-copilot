@@ -165,8 +165,6 @@ public class ChatSkill
         // Get token usage from ChatCompletion result and add to context
         TokenUtilities.GetFunctionTokenUsage(result, context, this._logger, "SystemIntentExtraction");
 
-        result.ThrowIfFailed();
-
         return $"User intent: {result}";
     }
 
@@ -208,8 +206,6 @@ public class ChatSkill
 
         // Get token usage from ChatCompletion result and add to context
         TokenUtilities.GetFunctionTokenUsage(result, context, this._logger, "SystemAudienceExtraction");
-
-        result.ThrowIfFailed();
 
         return $"List of participants: {result}";
     }
@@ -400,16 +396,21 @@ public class ChatSkill
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
         var promptTemplate = chatCompletion.CreateNewChat(systemInstructions);
 
-        // Get the audience
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting audience", cancellationToken);
-        var audience = await this.GetAudienceAsync(chatContext, cancellationToken);
-        chatContext.ThrowIfFailed();
-        promptTemplate.AddSystemMessage(audience);
+        // Bypass audience extraction if Auth is disabled
+        var audience = string.Empty;
+        if (!PassThroughAuthenticationHandler.IsDefaultUser(userId))
+        {
+            // Get the audience
+            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting audience", cancellationToken);
+            audience = await SemanticKernelExtensions.SafeInvokeAsync(
+                () => this.GetAudienceAsync(chatContext, cancellationToken), nameof(GetAudienceAsync));
+            promptTemplate.AddSystemMessage(audience);
+        }
 
         // Extract user intent from the conversation history.
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting user intent", cancellationToken);
-        var userIntent = await this.GetUserIntentAsync(chatContext, cancellationToken);
-        chatContext.ThrowIfFailed();
+        var userIntent = await SemanticKernelExtensions.SafeInvokeAsync(
+            () => this.GetUserIntentAsync(chatContext, cancellationToken), nameof(GetUserIntentAsync));
         promptTemplate.AddSystemMessage(userIntent);
 
         // Calculate the remaining token budget.
@@ -419,8 +420,8 @@ public class ChatSkill
         // Acquire external information from planner
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Acquiring external information from planner", cancellationToken);
         var externalInformationTokenLimit = (int)(remainingTokenBudget * this._promptOptions.ExternalInformationContextWeight);
-        var planResult = await this.AcquireExternalInformationAsync(chatContext, userIntent, externalInformationTokenLimit, cancellationToken);
-        chatContext.ThrowIfFailed();
+        var planResult = await SemanticKernelExtensions.SafeInvokeAsync(
+            () => this.AcquireExternalInformationAsync(chatContext, userIntent, externalInformationTokenLimit, cancellationToken), nameof(AcquireExternalInformationAsync));
 
         // Extract additional details about planner execution in chat context
         // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
@@ -480,7 +481,7 @@ public class ChatSkill
             promptTemplate.AddSystemMessage(planResult);
         }
 
-        var promptView = new BotResponsePrompt(this._promptOptions.SystemDescription, this._promptOptions.SystemResponse, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
+        var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, chatMemories, documentMemories, plannerDetails, chatHistory, promptTemplate);
         chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.CurrentCulture));
 
         // Stream the response to the client
@@ -517,7 +518,6 @@ public class ChatSkill
     private async Task<string> GetAudienceAsync(SKContext context, CancellationToken cancellationToken)
     {
         SKContext audienceContext = context.Clone();
-
         var audience = await this.ExtractAudienceAsync(audienceContext, cancellationToken);
 
         // Copy token usage into original chat context
@@ -526,9 +526,6 @@ public class ChatSkill
         {
             context.Variables.Set(functionKey, tokenUsage);
         }
-
-        // Propagate the error
-        audienceContext.ThrowIfFailed();
 
         return audience;
     }
@@ -553,8 +550,6 @@ public class ChatSkill
             {
                 context.Variables.Set(functionKey!, tokenUsage);
             }
-
-            intentContext.ThrowIfFailed();
         }
 
         return userIntent;
@@ -598,13 +593,7 @@ public class ChatSkill
     {
         SKContext planContext = context.Clone();
         planContext.Variables.Set("tokenLimit", tokenLimit.ToString(new NumberFormatInfo()));
-
-        var plan = await this._externalInformationSkill.AcquireExternalInformationAsync(userIntent, planContext, cancellationToken);
-
-        // Propagate the error
-        planContext.ThrowIfFailed();
-
-        return plan;
+        return await this._externalInformationSkill.AcquireExternalInformationAsync(userIntent, planContext, cancellationToken);
     }
 
     /// <summary>

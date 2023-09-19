@@ -23,7 +23,6 @@ using Microsoft.SemanticKernel.Connectors.Memory.Postgres;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Skills.Core;
 using Npgsql;
 using Pgvector.Npgsql;
@@ -117,15 +116,22 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Propagate exception from within semantic function
+    /// Invokes an asynchronous callback function and tags any exception that occurs with function name.
     /// </summary>
-    public static void ThrowIfFailed(this SKContext context)
+    /// <typeparam name="T">The type of the result returned by the callback function.</typeparam>
+    /// <param name="callback">The asynchronous callback function to invoke.</param>
+    /// <param name="functionName">The name of the function that calls this method, for logging purposes.</param>
+    /// <returns>A task that represents the asynchronous operation and contains the result of the callback function.</returns>
+    public static async Task<T> SafeInvokeAsync<T>(Func<Task<T>> callback, string functionName)
     {
-        if (context.ErrorOccurred)
+        try
         {
-            var logger = context.LoggerFactory.CreateLogger(nameof(SKContext));
-            logger.LogError(context.LastException, "{0}", context.LastException?.Message);
-            throw context.LastException!;
+            // Invoke the callback and await the result
+            return await callback();
+        }
+        catch (Exception ex)
+        {
+            throw new SKException($"{functionName} failed.", ex);
         }
     }
 
