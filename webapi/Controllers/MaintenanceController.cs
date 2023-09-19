@@ -69,7 +69,7 @@ public class MaintenanceController : ControllerBase
 
         if (this._serviceOptions.Value.InMaintenance)
         {
-           result = new MaintenanceResult(); // Default maintenance message
+            result = new MaintenanceResult(); // Default maintenance message
         }
 
         if (result != null)

@@ -54,7 +54,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     /// <inheritdoc/>
     public async Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancellationToken = default)
     {
-       if (_cachedStatus == null)
+        if (_cachedStatus == null)
         {
             // Attempt to determine migration status looking at index existence. (Once)
             Interlocked.CompareExchange(
