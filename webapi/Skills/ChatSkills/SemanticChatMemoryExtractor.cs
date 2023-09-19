@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -140,11 +141,11 @@ internal static class SemanticChatMemoryExtractor
     {
         var memoryCollectionName = SemanticChatMemoryExtractor.MemoryCollectionName(chatId, memoryName);
 
-#pragma warning disable CA1031 // Each connector may throw different exception type
+        IList<MemoryQueryResult>? memories = null;
         try
         {
             // Search if there is already a memory item that has a high similarity score with the new item.
-            var memories = await semanticTextMemory.SearchAsync(
+            memories = await semanticTextMemory.SearchAsync(
                     collection: memoryCollectionName,
                     query: item.ToFormattedString(),
                     limit: 1,
@@ -153,8 +154,16 @@ internal static class SemanticChatMemoryExtractor
                 )
                 .ToListAsync()
                 .ConfigureAwait(false);
+        }
+        catch (Exception connectorException) when (!connectorException.IsCriticalException())
+        {
+            // A store exception might be thrown if the collection does not exist or there are no related memories, depending on the memory store connector.
+            logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
+        }
 
-            if (memories.Count == 0)
+        try
+        {
+            if ((memories?.Count ?? 0) == 0)
             {
                 await semanticTextMemory.SaveInformationAsync(
                     collection: memoryCollectionName,
@@ -165,12 +174,11 @@ internal static class SemanticChatMemoryExtractor
                 );
             }
         }
-        catch (Exception connectorException)
+        catch (Exception connectorException) when (!connectorException.IsCriticalException())
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
             logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
         }
-#pragma warning restore CA1031 // Each connector may throw different exception type
     }
 
     /// <summary>

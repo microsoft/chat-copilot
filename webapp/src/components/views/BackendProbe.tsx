@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { Body1, Spinner, Title3 } from '@fluentui/react-components';
-import { FC, useEffect, useRef } from 'react';
-import { useSharedClasses } from '../../styles';
+import { FC, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { setMaintenance } from '../../redux/features/app/appSlice';
+import { useSharedClasses } from '../../styles';
 
 interface IData {
     uri: string;
@@ -25,7 +25,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
     const healthUrl = new URL('healthz', uri);
     const migrationUrl = new URL('maintenancestatus', uri);
 
-    const model = useRef<IMaintenance | null>(null);
+    const [model, setModel] = useState<IMaintenance | null>(null);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -44,14 +44,18 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                     return;
                 }
 
-                const json: unknown = await result.json();
-
-                if (json === null) {
-                    dispatch(setMaintenance(false));
-                    onBackendFound();
-                }
-
-                model.current = json as IMaintenance | null;
+                // Parse json from body
+                result
+                    .json()
+                    .then((data) => {
+                        // Body has payload.  This means the app is in maintenance
+                        setModel(data as IMaintenance);
+                    })
+                    .catch(() => {
+                        // JSON Exception since response has no body.  This means app is not in maintenance.
+                        dispatch(setMaintenance(false));
+                        onBackendFound();
+                    });
             };
 
             if (!isMaintenance) {
@@ -74,15 +78,14 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
         <>
             {isMaintenance ? (
                 <div className={classes.informativeView}>
-                    <Title3>{model.current?.title ?? 'Site undergoing maintenance...'}</Title3>
+                    <Title3>{model?.title ?? 'Site undergoing maintenance...'}</Title3>
                     <Spinner />
                     <Body1>
-                        {model.current?.message ??
-                            'Planned site maintenance is underway.  We apologize for the disruption.'}
+                        {model?.message ?? 'Planned site maintenance is underway.  We apologize for the disruption.'}
                     </Body1>
                     <Body1>
                         <strong>
-                            {model.current?.note ??
+                            {model?.note ??
                                 "Note: If this message doesn't resolve after a significant duration, refresh the browser."}
                         </strong>
                     </Body1>
