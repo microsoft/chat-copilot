@@ -138,22 +138,13 @@ public class PromptsOptions
     };
 
     // Chat commands
-    internal string SystemChatContinuation = "SINGLE RESPONSE FROM BOT TO USER:\n[{{TimeSkill.Now}} {{timeSkill.Second}}] bot:";
-
-    // Regex to match system chat continuation preamble in rendered prompt
-    internal const string SYSTEM_CHAT_CONTINUATION_REGEX = @"(SINGLE RESPONSE FROM BOT TO USER:\n\[.*] bot:)";
-
-    internal string[] SystemChatPromptComponents => new string[]
+    internal string[] SystemPersonaComponents => new string[]
     {
         this.SystemDescription,
         this.SystemResponse,
-        "{{$audience}}",
-        "{{$userIntent}}",
-        "{{$chatContext}}",
-        this.SystemChatContinuation
     };
 
-    internal string SystemChatPrompt => string.Join("\n\n", this.SystemChatPromptComponents);
+    internal string SystemPersona => string.Join("\n\n", this.SystemPersonaComponents);
 
     internal double ResponseTemperature { get; } = 0.7;
     internal double ResponseTopP { get; } = 1;

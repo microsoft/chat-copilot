@@ -10,6 +10,7 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Divider,
     Label,
     Link,
     SelectTabEventHandler,
@@ -24,17 +25,30 @@ import {
 import { Info16Regular } from '@fluentui/react-icons';
 import React from 'react';
 import { BotResponsePrompt, DependencyDetails, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
-import { IChatMessage } from '../../../libs/models/ChatMessage';
+import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { PlanType } from '../../../libs/models/Plan';
 import { StepwiseThoughtProcess } from '../../../libs/models/StepwiseThoughtProcess';
-import { useDialogClasses } from '../../../styles';
+import { SharedStyles, useDialogClasses } from '../../../styles';
 import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 import { formatParagraphTextContent } from '../../utils/TextUtils';
 import { StepwiseThoughtProcessView } from './stepwise-planner/StepwiseThoughtProcessView';
 
 const useClasses = makeStyles({
-    prompt: {
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.overflow('hidden'),
+    },
+    outer: {
+        paddingRight: tokens.spacingVerticalXS,
+    },
+    promptDetails: {
         marginTop: tokens.spacingHorizontalS,
+    },
+    content: {
+        height: '100%',
+        ...SharedStyles.scroll,
+        paddingRight: tokens.spacingVerticalL,
     },
     infoButton: {
         ...shorthands.padding(0),
@@ -91,8 +105,8 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                 value += '\nNo relevant document memories.';
             }
 
-            return value && key !== 'rawContent' ? (
-                <div className={classes.prompt} key={`prompt-details-${key}`}>
+            return value && key !== 'metaPromptTemplate' ? (
+                <div className={classes.promptDetails} key={`prompt-details-${key}`}>
                     <Body1Strong>{PromptSectionsNameMap[key]}</Body1Strong>
                     {isStepwiseThoughtProcess ? (
                         <StepwiseThoughtProcessView thoughtProcess={value as DependencyDetails} />
@@ -111,10 +125,14 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                     <Button className={classes.infoButton} icon={<Info16Regular />} appearance="transparent" />
                 </Tooltip>
             </DialogTrigger>
-            <DialogSurface>
-                <DialogBody>
+            <DialogSurface className={classes.outer}>
+                <DialogBody
+                    style={{
+                        height: message.type !== ChatMessageType.Message || !message.prompt ? 'fit-content' : '825px',
+                    }}
+                >
                     <DialogTitle>Prompt</DialogTitle>
-                    <DialogContent>
+                    <DialogContent className={classes.root}>
                         <TokenUsageGraph promptView tokenUsage={message.tokenUsage ?? {}} />
                         {message.prompt && typeof prompt !== 'string' && (
                             <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
@@ -126,9 +144,19 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                                 </Tab>
                             </TabList>
                         )}
-                        {selectedTab === 'formatted' && promptDetails}
-                        {selectedTab === 'rawContent' &&
-                            formatParagraphTextContent((prompt as BotResponsePrompt).rawContent)}
+                        <div className={message.prompt && typeof prompt !== 'string' ? classes.content : undefined}>
+                            {selectedTab === 'formatted' && promptDetails}
+                            {selectedTab === 'rawContent' &&
+                                (prompt as BotResponsePrompt).metaPromptTemplate.map((contextMessage, index) => {
+                                    return (
+                                        <div key={`context-message-${index}`}>
+                                            <p>{`Role: ${contextMessage.Role.Label}`}</p>
+                                            {formatParagraphTextContent(`Content: ${contextMessage.Content}`)}
+                                            <Divider />
+                                        </div>
+                                    );
+                                })}
+                        </div>
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>
                         <Label size="small" color="brand">

@@ -20,11 +20,9 @@ export interface BotResponsePrompt {
     // Recent messages from history of the conversation.
     chatHistory: string;
 
-    // Preamble to the LLM's response.
-    systemChatContinuation: string;
-
-    // Raw content of the rendered prompt.
-    rawContent: string;
+    // The collection of context messages associated with this chat completions request.
+    // Also serves as the rendered prompt template.
+    metaPromptTemplate: ContextMessage[];
 }
 
 export const PromptSectionsNameMap: Record<string, string> = {
@@ -34,7 +32,6 @@ export const PromptSectionsNameMap: Record<string, string> = {
     chatMemories: 'Chat Memories',
     externalInformation: 'Planner Results',
     chatHistory: 'Chat History',
-    systemChatContinuation: 'System Chat Continuation',
 };
 
 // Information about semantic dependencies of the prompt.
@@ -44,4 +41,23 @@ export interface DependencyDetails {
 
     // Result of the dependency. This is the output that's injected into the prompt.
     result: string;
+}
+
+// As defined by ChatRole struct in the Azure OpenAI SDK.
+// See https://learn.microsoft.com/en-us/dotnet/api/azure.ai.openai.chatrole?view=azure-dotnet-preview.
+enum AuthorRoles {
+    System = 'System',
+    User = 'User',
+    Assistant = 'Assistant',
+    Tool = 'Tool',
+    Function = 'Function',
+}
+
+// The collection of context messages associated with this chat completions request.
+// See https://learn.microsoft.com/en-us/dotnet/api/azure.ai.openai.chatcompletionsoptions.messages?view=azure-dotnet-preview#azure-ai-openai-chatcompletionsoptions-messages.
+interface ContextMessage {
+    Role: {
+        Label: AuthorRoles;
+    };
+    Content: string;
 }
