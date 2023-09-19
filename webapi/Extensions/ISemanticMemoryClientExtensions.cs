@@ -99,8 +99,7 @@ internal static class ISemanticMemoryClientExtensions
                 indexName,
                 filter,
                 resultCount,
-                cancellationToken)
-            .ConfigureAwait(false);
+                cancellationToken);
 
         return searchResult;
     }

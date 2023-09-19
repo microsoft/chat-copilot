@@ -59,13 +59,13 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             // Attempt to determine migration status looking at index existence. (Once)
             Interlocked.CompareExchange(
                 ref _cachedStatus,
-                await QueryCollectionAsync().ConfigureAwait(false),
+                await QueryCollectionAsync(),
                 null);
 
             if (_cachedStatus == null)
             {
                 // Attempt to determine migration status looking at index state.
-                _cachedStatus = await QueryStatusAsync().ConfigureAwait(false);
+                _cachedStatus = await QueryStatusAsync();
             }
         }
         else
@@ -74,7 +74,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             switch (_cachedStatus)
             {
                 case ChatMigrationStatus s when s != ChatMigrationStatus.None:
-                    _cachedStatus = await QueryStatusAsync().ConfigureAwait(false);
+                    _cachedStatus = await QueryStatusAsync();
                     break;
 
                 default: // ChatVersionStatus.None
@@ -92,7 +92,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 try
                 {
                     // Cache "found" index state to reduce query count and avoid handling truth mutation.
-                    var collections = await this._memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false);
+                    var collections = await this._memory.GetCollectionsAsync(cancellationToken);
 
                     // Does the new "target" index already exist?
                     _hasCurrentIndex = collections.Any(c => c.Equals(this._indexNameAllMemory, StringComparison.OrdinalIgnoreCase));
@@ -122,7 +122,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                         withEmbeddings: false,
                         cancellationToken)
                     .SingleOrDefaultAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                    ;
 
                 if (result == null)
                 {

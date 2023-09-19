@@ -55,7 +55,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
     {
         try
         {
-            await this.InternalMigrateAsync(cancellationToken).ConfigureAwait(false);
+            await this.InternalMigrateAsync(cancellationToken);
         }
         catch (Exception exception) when (!exception.IsCriticalException())
         {
@@ -65,9 +65,9 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
 
     private async Task InternalMigrateAsync(CancellationToken cancellationToken = default)
     {
-        var collectionNames = (await this._memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var collectionNames = (await this._memory.GetCollectionsAsync(cancellationToken)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var tokenMemory = await GetTokenMemory(cancellationToken).ConfigureAwait(false);
+        var tokenMemory = await GetTokenMemory(cancellationToken);
         if (tokenMemory != null)
         {
             //  Create memory token already exists
@@ -76,9 +76,9 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
 
         //  Create memory token
         var token = Guid.NewGuid().ToString();
-        await SetTokenMemory(token, cancellationToken).ConfigureAwait(false);
+        await SetTokenMemory(token, cancellationToken);
 
-        await RemoveMemorySourcesAsync().ConfigureAwait(false);
+        await RemoveMemorySourcesAsync();
 
         bool needsZombie = true;
         // Extract and store memories, using the original id to avoid duplication should a retry be required.
@@ -93,12 +93,12 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
             await this._memoryClient.StoreMemoryAsync(this._promptOptions.MemoryIndexName, Guid.Empty.ToString(), "zombie", Guid.NewGuid().ToString(), "Initialized", cancellationToken);
         }
 
-        await SetTokenMemory(ChatMigrationMonitor.MigrationCompletionToken, cancellationToken).ConfigureAwait(false);
+        await SetTokenMemory(ChatMigrationMonitor.MigrationCompletionToken, cancellationToken);
 
         // Inline function to extract all memories for a given chat and memory type.
         async IAsyncEnumerable<(string chatId, string memoryName, string memoryId, string memoryText)> QueryMemoriesAsync()
         {
-            var chats = await this._chatSessionRepository.GetAllChatsAsync().ConfigureAwait(false);
+            var chats = await this._chatSessionRepository.GetAllChatsAsync();
             foreach (var chat in chats)
             {
                 foreach (var memoryType in this._promptOptions.MemoryMap.Keys)
@@ -122,7 +122,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         {
             try
             {
-                return await this._memory.GetAsync(this._globalIndex, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken).ConfigureAwait(false);
+                return await this._memory.GetAsync(this._globalIndex, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken);
             }
             catch (Exception ex) when (!ex.IsCriticalException())
             {
@@ -133,14 +133,14 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         // Inline function to write the token memory
         async Task SetTokenMemory(string token, CancellationToken cancellationToken)
         {
-            await this._memory.SaveInformationAsync(this._globalIndex, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken).ConfigureAwait(false);
+            await this._memory.SaveInformationAsync(this._globalIndex, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken);
         }
 
         async Task RemoveMemorySourcesAsync()
         {
-            var documentMemories = await this._memorySourceRepository.GetAllAsync().ConfigureAwait(false);
+            var documentMemories = await this._memorySourceRepository.GetAllAsync();
 
-            await Task.WhenAll(documentMemories.Select(memory => this._memorySourceRepository.DeleteAsync(memory))).ConfigureAwait(false);
+            await Task.WhenAll(documentMemories.Select(memory => this._memorySourceRepository.DeleteAsync(memory)));
         }
     }
 }

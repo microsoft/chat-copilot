@@ -29,7 +29,7 @@ public class ChatMigrationMaintenanceAction : IMaintenanceAction
 
     public async Task<bool> InvokeAsync(CancellationToken cancellation = default)
     {
-        var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(cancellation).ConfigureAwait(false);
+        var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(cancellation);
 
         switch (migrationStatus)
         {

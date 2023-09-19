@@ -47,13 +47,13 @@ public class MaintenanceMiddleware
         if (this._isInMaintenance == null || this._isInMaintenance.Value)
         {
             // Maintenance never false => true; always true => false or just false;
-            this._isInMaintenance = await this.InspectMaintenanceActionAsync().ConfigureAwait(false);
+            this._isInMaintenance = await this.InspectMaintenanceActionAsync();
         }
 
         // In maintenance if actions say so or explicitly configured.
         if (this._serviceOptions.Value.InMaintenance)
         {
-            await this._messageRelayHubContext.Clients.All.SendAsync(MaintenanceController.GlobalSiteMaintenance, "Site undergoing maintenance...").ConfigureAwait(false);
+            await this._messageRelayHubContext.Clients.All.SendAsync(MaintenanceController.GlobalSiteMaintenance, "Site undergoing maintenance...");
         }
 
         await this._next(ctx);
@@ -65,7 +65,7 @@ public class MaintenanceMiddleware
 
         foreach (var action in this._actions)
         {
-            inMaintenance |= await action.InvokeAsync().ConfigureAwait(false);
+            inMaintenance |= await action.InvokeAsync();
         }
 
         return inMaintenance;
