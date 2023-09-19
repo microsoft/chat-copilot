@@ -487,6 +487,15 @@ public class ChatSkill
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
         var chatMessage = await this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken);
 
+        // Calculate total token usage for dependency functions and prompt template and send to client
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
+        chatMessage.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
+        await this.UpdateMessageOnClient(chatMessage, cancellationToken);
+
+        // Save the message with final completion token usage
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
+        await this._chatMessageRepository.UpsertAsync(chatMessage);
+
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
         await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
@@ -496,15 +505,6 @@ public class ChatSkill
             this._promptOptions,
             this._logger,
             cancellationToken);
-
-        // Calculate total token usage for dependency functions and prompt template and send to client
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
-        chatMessage.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
-        await this.UpdateMessageOnClient(chatMessage, cancellationToken);
-
-        // Save the message with final completion token usage
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
-        await this._chatMessageRepository.UpsertAsync(chatMessage);
 
         return chatMessage;
     }
