@@ -2,10 +2,10 @@
 
 import { Body1, Spinner, Title3 } from '@fluentui/react-components';
 import { FC, useEffect, useState } from 'react';
-import { useSharedClasses } from '../../styles';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { setMaintenance } from '../../redux/features/app/appSlice';
+import { useSharedClasses } from '../../styles';
 
 interface IData {
     uri: string;
@@ -43,11 +43,15 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                     return;
                 }
 
-                result.json()
-                    .then(data => {
+                // Parse json from body
+                result
+                    .json()
+                    .then((data) => {
+                        // Body has payload.  This means the app is in maintenance
                         setModel(data as IMaintenance);
                     })
                     .catch(() => {
+                        // JSON Exception since response has no body.  This means app is not in maintenance.
                         dispatch(setMaintenance(false));
                         onBackendFound();
                     });
@@ -76,8 +80,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                     <Title3>{model?.title ?? 'Site undergoing maintenance...'}</Title3>
                     <Spinner />
                     <Body1>
-                        {model?.message ??
-                            'Planned site maintenance is underway.  We apologize for the disruption.'}
+                        {model?.message ?? 'Planned site maintenance is underway.  We apologize for the disruption.'}
                     </Body1>
                     <Body1>
                         <strong>

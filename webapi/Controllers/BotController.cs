@@ -184,7 +184,6 @@ public class BotController : ControllerBase
     /// <returns>The list of chat messages in descending order of the timestamp</returns>
     private async Task<List<ChatMessage>> GetAllChatMessagesAsync(string chatId)
     {
-        // TODO: [Issue #47] We might want to set limitation on the number of messages that are pulled from the storage.
         return (await this._chatMessageRepository.FindByChatIdAsync(chatId))
             .OrderByDescending(m => m.Timestamp).ToList();
     }

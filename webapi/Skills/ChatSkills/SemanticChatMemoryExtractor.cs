@@ -9,7 +9,6 @@ using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticMemory;
 
@@ -118,10 +117,10 @@ internal static class SemanticChatMemoryExtractor
                     await memoryClient.StoreMemoryAsync(options.MemoryIndexName, chatId, memoryName, memory, cancellationToken);
                 }
             }
-            catch (SKException connectorException)
+            catch (Exception exception) when (!exception.IsCriticalException())
             {
                 // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-                logger.LogError(connectorException, "Unexpected failure searching {0}", options.MemoryIndexName);
+                logger.LogError(exception, "Unexpected failure searching {0}", options.MemoryIndexName);
             }
         }
     }
