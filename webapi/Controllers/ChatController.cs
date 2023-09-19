@@ -147,23 +147,21 @@ public class ChatController : ControllerBase, IDisposable
                 : null;
 
             result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
+            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, true);
         }
-        finally
+        catch (Exception ex)
         {
-            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, (!result?.ErrorOccurred) ?? false);
-        }
+            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, false);
 
-        if (result.ErrorOccurred)
-        {
-            if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)
+            if (ex is OperationCanceledException || ex.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 504 response
                 this._logger.LogError("The chat operation timed out.");
                 return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
             }
 
-            var errorMessage = result.LastException!.Message.IsNullOrEmpty() ? result.LastException!.InnerException?.Message : result.LastException!.Message;
-            return this.BadRequest(errorMessage);
+            var errorMessage = ex.Message.IsNullOrEmpty() ? ex.InnerException?.Message : ex.Message;
+            throw ex;
         }
 
         AskResult chatSkillAskResult = new()
