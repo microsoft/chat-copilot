@@ -114,7 +114,7 @@ public class BotController : ControllerBase
 
         foreach (var memory in this._promptOptions.MemoryMap.Keys)
         {
-            bot.DocumentEmbeddings.Add(
+            bot.Embeddings.Add(
                 memory,
                 await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(chatIdString, memory, cancellationToken));
         }
