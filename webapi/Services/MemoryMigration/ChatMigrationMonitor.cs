@@ -84,7 +84,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
 
         return _cachedStatus ?? ChatMigrationStatus.None;
 
-        // Reports and caches migration state as either: None or null depending on existince of the target index.
+        // Reports and caches migration state as either: None or null depending on existence of the target index.
         async Task<ChatMigrationStatus?> QueryCollectionAsync()
         {
             if (_hasCurrentIndex == null)
