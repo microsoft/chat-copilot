@@ -34,15 +34,8 @@ public class ChatMigrationMaintenanceAction : IMaintenanceAction
         switch (migrationStatus)
         {
             case ChatMigrationStatus s when (s == ChatMigrationStatus.RequiresUpgrade):
-                try
-                {
-                    // Migrate all chats to single index (in background)
-                    var task = this._migrationService.MigrateAsync(cancellation);
-                }
-                catch (Exception ex) when (!ex.IsCriticalException())
-                {
-                    this._logger.LogError(ex, "Error migrating chat memories");
-                }
+                // Migrate all chats to single index (in background)
+                var task = this._migrationService.MigrateAsync(cancellation);
                 return true; // In maintenance
 
             case ChatMigrationStatus s when (s == ChatMigrationStatus.Upgrading):
