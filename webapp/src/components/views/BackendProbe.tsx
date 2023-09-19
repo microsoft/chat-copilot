@@ -39,6 +39,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
 
             const fetchMaintenanceAsync = async () => {
                 const result = await fetch(migrationUrl);
+
                 if (!result.ok) {
                     return;
                 }
