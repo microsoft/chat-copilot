@@ -54,8 +54,7 @@ public class BotResponsePrompt
     public ChatCompletionContextMessages MetaPromptTemplate { get; set; } = new();
 
     public BotResponsePrompt(
-        string systemDescription,
-        string systemResponse,
+        string systemInstructions,
         string audience,
         string userIntent,
         string chatMemories,
@@ -65,7 +64,7 @@ public class BotResponsePrompt
         ChatCompletionContextMessages metaPromptTemplate
     )
     {
-        this.SystemPersona = string.Join("\n", systemDescription, systemResponse);
+        this.SystemPersona = systemInstructions;
         this.Audience = audience;
         this.UserIntent = userIntent;
         this.PastMemories = string.Join("\n", chatMemories, documentMemories).Trim();

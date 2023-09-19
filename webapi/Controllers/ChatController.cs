@@ -25,7 +25,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
@@ -147,23 +146,19 @@ public class ChatController : ControllerBase, IDisposable
                 : null;
 
             result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
+            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, true);
         }
-        finally
+        catch (Exception ex)
         {
-            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, (!result?.ErrorOccurred) ?? false);
-        }
-
-        if (result.ErrorOccurred)
-        {
-            if (result.LastException is OperationCanceledException || result.LastException?.InnerException is OperationCanceledException)
+            if (ex is OperationCanceledException || ex.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 504 response
                 this._logger.LogError("The chat operation timed out.");
                 return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
             }
 
-            var errorMessage = result.LastException!.Message.IsNullOrEmpty() ? result.LastException!.InnerException?.Message : result.LastException!.Message;
-            return this.BadRequest(errorMessage);
+            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, false);
+            throw ex;
         }
 
         AskResult chatSkillAskResult = new()

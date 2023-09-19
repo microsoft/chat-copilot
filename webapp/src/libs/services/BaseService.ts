@@ -47,15 +47,17 @@ export class BaseService {
             });
 
             if (!response.ok) {
-                const responseText = await response.text();
-
                 if (response.status === 504) {
                     throw Object.assign(new Error('The request timed out. Please try sending your message again.'));
                 }
 
-                const errorMessage = `${response.status}: ${response.statusText}${
-                    responseText ? ` => ${responseText}` : ''
-                }`;
+                const responseText = await response.text();
+                const responseDetails = responseText.split('--->');
+                const errorDetails =
+                    responseDetails.length > 1
+                        ? `${responseDetails[0].trim()} ---> ${responseDetails[1].trim()}`
+                        : responseDetails[0];
+                const errorMessage = `${response.status}: ${response.statusText}${errorDetails}`;
 
                 throw Object.assign(new Error(errorMessage));
             }
