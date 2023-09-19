@@ -38,7 +38,7 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Add Semantic Kernel services
     /// </summary>
-    internal static WebApplicationBuilder AddSemanticKernelServices(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddSemanticKernelServices(this WebApplicationBuilder builder)
     {
         // Semantic Kernel
         builder.Services.AddScoped<IKernel>(

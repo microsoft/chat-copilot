@@ -45,7 +45,12 @@ internal static class ISemanticMemoryClientExtensions
         }
         else
         {
-            memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+            memoryBuilder.WithoutSummarizeHandlers();
+
+            if (hasOcr)
+            {
+                memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+            }
         }
 
         ISemanticMemoryClient memory = memoryBuilder.FromAppSettings().Build();
@@ -60,9 +65,9 @@ internal static class ISemanticMemoryClientExtensions
         float relevanceThreshold,
         string chatId,
         string? memoryName = null,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
-        return memoryClient.SearchMemoryAsync(indexName, query, relevanceThreshold, resultCount: -1, chatId, memoryName, cancelToken);
+        return memoryClient.SearchMemoryAsync(indexName, query, relevanceThreshold, resultCount: -1, chatId, memoryName, cancellationToken);
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
@@ -73,7 +78,7 @@ internal static class ISemanticMemoryClientExtensions
     int resultCount,
     string chatId,
     string? memoryName = null,
-    CancellationToken cancelToken = default)
+    CancellationToken cancellationToken = default)
     {
         var filter =
             new MemoryFilter
@@ -94,7 +99,7 @@ internal static class ISemanticMemoryClientExtensions
                 indexName,
                 filter,
                 resultCount,
-                cancelToken)
+                cancellationToken)
             .ConfigureAwait(false);
 
         return searchResult;
@@ -108,7 +113,7 @@ internal static class ISemanticMemoryClientExtensions
         string memoryName,
         string fileName,
         Stream fileContent,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
         var uploadRequest =
             new DocumentUploadRequest
@@ -121,7 +126,7 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
-        await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
+        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
     }
 
     public static async Task StoreMemoryAsync(
@@ -163,7 +168,7 @@ internal static class ISemanticMemoryClientExtensions
         string chatId,
         CancellationToken cancelToken = default)
     {
-        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancelToken: cancelToken);
+        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancelToken);
         foreach (var memory in memories.Results)
         {
             await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancelToken);
