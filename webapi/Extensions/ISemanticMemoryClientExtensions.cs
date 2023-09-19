@@ -135,7 +135,7 @@ internal static class ISemanticMemoryClientExtensions
         string chatId,
         string memoryName,
         string memory,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
@@ -159,7 +159,7 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
-        await memoryClient.ImportDocumentAsync(uploadRequest, cancelToken);
+        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
     }
 
     public static async Task RemoveChatMemoriesAsync(
