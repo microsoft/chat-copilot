@@ -51,13 +51,11 @@ public class MaintenanceController : ControllerBase
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
     {
-        MigrationResult? result = null;
-
         if (this._serviceOptions.Value.InMaintenance)
         {
-            result = new MigrationResult();
+            return this.Ok(new MigrationResult());
         }
 
-        return this.Ok(result);
+        return this.Ok();
     }
 }
