@@ -55,9 +55,9 @@ public class MaintenanceController : ControllerBase
 
         if (this._serviceOptions.Value.InMaintenance)
         {
-            result = new MigrationResult();
+            return this.Ok(new MigrationResult());
         }
 
-        return this.Ok(result);
+        return this.Ok();
     }
 }
