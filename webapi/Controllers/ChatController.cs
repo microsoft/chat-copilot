@@ -151,8 +151,6 @@ public class ChatController : ControllerBase, IDisposable
         }
         catch (Exception ex)
         {
-            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, false);
-
             if (ex is OperationCanceledException || ex.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 504 response
@@ -160,7 +158,7 @@ public class ChatController : ControllerBase, IDisposable
                 return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
             }
 
-            var errorMessage = ex.Message.IsNullOrEmpty() ? ex.InnerException?.Message : ex.Message;
+            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, false);
             throw ex;
         }
 
