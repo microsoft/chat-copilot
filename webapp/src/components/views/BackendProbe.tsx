@@ -44,14 +44,15 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                     return;
                 }
 
+                // Parse json from body
                 result
                     .json()
                     .then((data) => {
-                        // Has payload is maintenance
+                        // Body has payload.  This means the app is in maintenance
                         setModel(data as IMaintenance);
                     })
                     .catch(() => {
-                        // No maintenance payload
+                        // Exception respons has no body.  This means app is not in maintenance.
                         dispatch(setMaintenance(false));
                         onBackendFound();
                     });
