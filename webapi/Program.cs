@@ -93,6 +93,13 @@ public sealed class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+
+            // Redirect root URL to Swagger UI URL
+            app.MapWhen(
+                context => context.Request.Path == "/",
+                appBuilder =>
+                    appBuilder.Run(
+                        async context => await Task.Run(() => context.Response.Redirect("/swagger"))));
         }
 
         // Start the service
