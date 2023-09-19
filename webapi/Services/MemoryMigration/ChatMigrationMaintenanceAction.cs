@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace CopilotChat.WebApi.Services.MemoryMigration;
 
 /// <summary>
-/// Middleware for determining is site is undergoing maintenance.
+/// Middleware action to handle memory migration maintenance.
 /// </summary>
 public class ChatMigrationMaintenanceAction : IMaintenanceAction
 {
@@ -31,24 +31,28 @@ public class ChatMigrationMaintenanceAction : IMaintenanceAction
     {
         var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(cancellation).ConfigureAwait(false);
 
-        if (migrationStatus != ChatMigrationStatus.None)
-        {
-            return true;
-        }
+        this._logger.LogCritical($"ACTION CURRENT: {migrationStatus.Label}");
 
-        if (migrationStatus == ChatMigrationStatus.RequiresUpgrade)
+        switch (migrationStatus)
         {
-            try
-            {
-                // Migrate all chats to single index
-                await this._migrationService.MigrateAsync(cancellation).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (!ex.IsCriticalException())
-            {
-                this._logger.LogError(ex, "Error migrating chat memories");
-            }
-        }
+            case ChatMigrationStatus s when (s == ChatMigrationStatus.RequiresUpgrade):
+                try
+                {
+                    // Migrate all chats to single index
+                    this._migrationService.MigrateAsync(cancellation); // Don't block
+                }
+                catch (Exception ex) when (!ex.IsCriticalException())
+                {
+                    this._logger.LogError(ex, "Error migrating chat memories");
+                }
+                return true; // In maintenance
 
-        return false;
+            case ChatMigrationStatus s when (s == ChatMigrationStatus.Upgrading):
+                return true; // In maintenance
+
+            case ChatMigrationStatus s when (s == ChatMigrationStatus.None):
+            default:
+                return false; // No maintenance
+        }
     }
 }

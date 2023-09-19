@@ -25,6 +25,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
     private readonly ISemanticMemoryClient _memoryClient;
     private readonly ChatSessionRepository _chatSessionRepository;
     private readonly ChatMemorySourceRepository _memorySourceRepository;
+    private readonly string _globalIndex;
     private readonly PromptsOptions _promptOptions;
 
     /// <summary>
@@ -44,6 +45,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         this._memoryClient = memoryClient;
         this._chatSessionRepository = chatSessionRepository;
         this._memorySourceRepository = memorySourceRepository;
+        this._globalIndex = documentMemoryOptions.Value.GlobalDocumentCollectionName;
         var kernel = provider.GetMigrationKernel();
         this._memory = kernel.Memory;
     }
@@ -51,33 +53,44 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
     ///<inheritdoc/>
     public async Task MigrateAsync(CancellationToken cancellationToken = default)
     {
-        var shouldMigrate = false;
+        try
+        {
+            await this.InternalMigrateAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (!exception.IsCriticalException())
+        {
+            this._logger.LogError(exception, "Error migrating chat memories");
+        }
+    }
+
+    private async Task InternalMigrateAsync(CancellationToken cancellationToken = default)
+    {
+        var collectionNames = (await this._memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var tokenMemory = await GetTokenMemory(cancellationToken).ConfigureAwait(false);
-        if (tokenMemory == null)
+        if (tokenMemory != null)
         {
-            //  Create token memory
-            var token = Guid.NewGuid().ToString();
-            await SetTokenMemory(token, cancellationToken).ConfigureAwait(false);
-            // Allow writes that are racing time to land
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
-            // Retrieve token memory
-            tokenMemory = await GetTokenMemory(cancellationToken).ConfigureAwait(false);
-            // Set migrate flag if token matches
-            shouldMigrate = tokenMemory != null && tokenMemory.Metadata.Text.Equals(token, StringComparison.OrdinalIgnoreCase);
-        }
-
-        if (!shouldMigrate)
-        {
+            //  Create memory token already exists
             return;
         }
 
+        //  Create memory token
+        var token = Guid.NewGuid().ToString();
+        await SetTokenMemory(token, cancellationToken).ConfigureAwait(false);
+
         await RemoveMemorySourcesAsync().ConfigureAwait(false);
 
+        bool needsZombie = true;
         // Extract and store memories, using the original id to avoid duplication should a retry be required.
         await foreach ((string chatId, string memoryName, string memoryId, string memoryText) in QueryMemoriesAsync())
         {
             await this._memoryClient.StoreMemoryAsync(this._promptOptions.MemoryIndexName, chatId, memoryName, memoryId, memoryText, cancellationToken);
+            needsZombie = false;
+        }
+
+        if (needsZombie)
+        {
+            await this._memoryClient.StoreMemoryAsync(this._promptOptions.MemoryIndexName, Guid.Empty.ToString(), "zombie", Guid.NewGuid().ToString(), "Initialized", cancellationToken);
         }
 
         await SetTokenMemory(ChatMigrationMonitor.MigrationCompletionToken, cancellationToken).ConfigureAwait(false);
@@ -91,11 +104,16 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
                 foreach (var memoryType in this._promptOptions.MemoryMap.Keys)
                 {
                     var indexName = $"{chat.Id}-{memoryType}";
-                    var memories = await this._memory.SearchAsync(indexName, "*", limit: int.MaxValue, minRelevanceScore: -1, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
-
-                    foreach (var memory in memories)
+                    this._logger.LogCritical($"CHECK: {indexName}");
+                    if (collectionNames.Contains(indexName))
                     {
-                        yield return (chat.Id, memoryType, memory.Metadata.Id, memory.Metadata.Text);
+                        this._logger.LogCritical($"MIGRATE: {indexName}");
+                        var memories = await this._memory.SearchAsync(indexName, "*", limit: 10000, minRelevanceScore: 0, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
+
+                        foreach (var memory in memories)
+                        {
+                            yield return (chat.Id, memoryType, memory.Metadata.Id, memory.Metadata.Text);
+                        }
                     }
                 }
             }
@@ -104,13 +122,20 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         // Inline function to read the token memory
         async Task<MemoryQueryResult?> GetTokenMemory(CancellationToken cancellationToken)
         {
-            return await this._memory.GetAsync(this._promptOptions.MemoryIndexName, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return await this._memory.GetAsync(this._globalIndex, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (!ex.IsCriticalException())
+            {
+                return null;
+            }
         }
 
         // Inline function to write the token memory
         async Task SetTokenMemory(string token, CancellationToken cancellationToken)
         {
-            await this._memory.SaveInformationAsync(this._promptOptions.MemoryIndexName, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken).ConfigureAwait(false);
+            await this._memory.SaveInformationAsync(this._globalIndex, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken).ConfigureAwait(false);
         }
 
         async Task RemoveMemorySourcesAsync()

@@ -45,7 +45,12 @@ internal static class ISemanticMemoryClientExtensions
         }
         else
         {
-            memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+            memoryBuilder.WithoutSummarizeHandlers();
+
+            if (hasOcr)
+            {
+                memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+            }
         }
 
         ISemanticMemoryClient memory = memoryBuilder.FromAppSettings().Build();

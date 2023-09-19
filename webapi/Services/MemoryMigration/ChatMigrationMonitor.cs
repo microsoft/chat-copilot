@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
@@ -15,6 +14,14 @@ namespace CopilotChat.WebApi.Services.MemoryMigration;
 /// <summary>
 /// Service implementation of <see cref=IChatMigrationMonitor""/>.
 /// </summary>
+/// <remarks>
+/// Migration is fundamentally determined by presence of the new consolidated index.
+/// That is, if the new index exists then migration was considered to have occurred.
+/// A tracking record is created in the historical global-document index: <see cref="DocumentMemoryOptions.GlobalDocumentCollectionName"/>
+/// to managed race condition during the migration process (having migration triggered a second time while in progress).
+/// In the event that somehow two migration processes are initiated in parallel, no duplication will result...only extraneous procesing.
+/// If the desire exists to reset/re-execute migration, simply delete the new index.
+/// </remarks>
 public class ChatMigrationMonitor : IChatMigrationMonitor
 {
     internal const string MigrationCompletionToken = "DONE";
@@ -24,6 +31,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     private static bool? _hasCurrentIndex;
 
     private readonly ILogger<ChatMigrationMonitor> _logger;
+    private readonly string _indexNameGlobalDocs;
     private readonly string _indexNameAllMemory;
     private readonly ISemanticTextMemory _memory;
 
@@ -32,10 +40,12 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     /// </summary>
     public ChatMigrationMonitor(
         ILogger<ChatMigrationMonitor> logger,
+        IOptions<DocumentMemoryOptions> docOptions,
         IOptions<PromptsOptions> promptOptions,
         SemanticKernelProvider provider)
     {
         this._logger = logger;
+        this._indexNameGlobalDocs = docOptions.Value.GlobalDocumentCollectionName;
         this._indexNameAllMemory = promptOptions.Value.MemoryIndexName;
         var kernel = provider.GetMigrationKernel();
         this._memory = kernel.Memory;
@@ -44,7 +54,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     /// <inheritdoc/>
     public async Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancellationToken = default)
     {
-        if (_cachedStatus == null)
+       if (_cachedStatus == null)
         {
             // Attempt to determine migration status looking at index existence. (Once)
             Interlocked.CompareExchange(
@@ -63,7 +73,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             // Refresh status if we have a cached value for any state other than: ChatVersionStatus.None.
             switch (_cachedStatus)
             {
-                case ChatMigrationStatus s when s == ChatMigrationStatus.RequiresUpgrade || s == ChatMigrationStatus.Upgrading:
+                case ChatMigrationStatus s when s != ChatMigrationStatus.None:
                     _cachedStatus = await QueryStatusAsync().ConfigureAwait(false);
                     break;
 
@@ -74,13 +84,12 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
 
         return _cachedStatus ?? ChatMigrationStatus.None;
 
-        // Inline function to determine if the new "target" index already exists.
-        // If not, we need to upgrade; otherwise, further inspection is required.
+        // Reports and caches migration state as either: None or null depending on existince of the target index.
         async Task<ChatMigrationStatus?> QueryCollectionAsync()
         {
-            try
+            if (_hasCurrentIndex == null)
             {
-                if (_hasCurrentIndex == null)
+                try
                 {
                     // Cache "found" index state to reduce query count and avoid handling truth mutation.
                     var collections = await this._memory.GetCollectionsAsync(cancellationToken).ConfigureAwait(false);
@@ -88,52 +97,48 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                     // Does the new "target" index already exist?
                     _hasCurrentIndex = collections.Any(c => c.Equals(this._indexNameAllMemory, StringComparison.OrdinalIgnoreCase));
 
-                    if (!_hasCurrentIndex ?? false)
-                    {
-                        return ChatMigrationStatus.RequiresUpgrade; // No index == update required
-                    }
+                    return (_hasCurrentIndex ?? false) ? ChatMigrationStatus.None : null;
+                }
+                catch (Exception exception) when (!exception.IsCriticalException())
+                {
+                    this._logger.LogError(exception, "Unable to search collections");
                 }
             }
-            catch (SKException exception)
-            {
-                this._logger.LogError(exception, "Unable to search collections");
-            }
 
-            return null; // Further inspection required
+            return (_hasCurrentIndex ?? false) ? ChatMigrationStatus.None : null;
         }
 
+        // Note: Only called once determined that target index does not exist.
         async Task<ChatMigrationStatus> QueryStatusAsync()
         {
-            if (_hasCurrentIndex ?? false)
+            try
             {
-                try
+                var result =
+                    await this._memory.SearchAsync(
+                        this._indexNameGlobalDocs,
+                        MigrationKey,
+                        limit: 1,
+                        minRelevanceScore: -1,
+                        withEmbeddings: false,
+                        cancellationToken)
+                    .SingleOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (result == null)
                 {
-                    var result =
-                        await this._memory.GetAsync(
-                            this._indexNameAllMemory,
-                            MigrationKey,
-                            withEmbedding: false,
-                            cancellationToken).ConfigureAwait(false);
-
-                    if (result != null)
-                    {
-                        var text = result.Metadata.Text;
-
-                        if (!string.IsNullOrWhiteSpace(text) && text.Equals(MigrationCompletionToken, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return ChatMigrationStatus.None;
-                        }
-
-                        return ChatMigrationStatus.Upgrading;
-                    }
+                    // No migration token
+                    return ChatMigrationStatus.RequiresUpgrade;
                 }
-                catch (SKException exception)
-                {
-                    this._logger.LogError(exception, "Unable to search collection {0}", this._indexNameAllMemory);
-                }
+
+                var isDone = MigrationCompletionToken.Equals(result.Metadata.Text, StringComparison.OrdinalIgnoreCase);
+
+                return isDone ? ChatMigrationStatus.None : ChatMigrationStatus.Upgrading;
             }
-
-            return ChatMigrationStatus.RequiresUpgrade;
+            catch (Exception exception) when (!exception.IsCriticalException())
+            {
+                this._logger.LogWarning("Failure searching collections: {0}\n{1}", this._indexNameGlobalDocs, exception.Message);
+                return ChatMigrationStatus.RequiresUpgrade;
+            }
         }
     }
 }

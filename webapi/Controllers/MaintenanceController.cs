@@ -48,7 +48,7 @@ public class MaintenanceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MaintenanceResult?>> GetMaintenanceStatusAsync(
-        [FromServices] IChatMigrationMonitor migrationMonitor, // $$$ WRONG INTERFACE (IReadOnlyList<IMaintenanceAction> actions)
+        [FromServices] IChatMigrationMonitor migrationMonitor,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
     {
@@ -69,9 +69,14 @@ public class MaintenanceController : ControllerBase
 
         if (this._serviceOptions.Value.InMaintenance)
         {
-            result = new MaintenanceResult();
+           result = new MaintenanceResult(); // Default maintenance message
         }
 
-        return this.Ok(result);
+        if (result != null)
+        {
+            return this.Ok(result);
+        }
+
+        return this.Ok();
     }
 }

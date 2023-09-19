@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Controllers;
@@ -44,14 +45,14 @@ public class MaintenanceMiddleware
     public async Task Invoke(HttpContext ctx, IKernel kernel)
     {
         // Skip inspection if _isInMaintenance explicitly false.
-        if (!(this._isInMaintenance ?? false))
+        if (this._isInMaintenance == null || this._isInMaintenance.Value)
         {
             // Maintenance never false => true; always true => false or just false;
             this._isInMaintenance = await this.InspectMaintenanceActionAsync().ConfigureAwait(false);
         }
 
         // In maintenance if actions say so or explicitly configured.
-        if ((this._isInMaintenance ?? false) || this._serviceOptions.Value.InMaintenance)
+        if (this._serviceOptions.Value.InMaintenance)
         {
             await this._messageRelayHubContext.Clients.All.SendAsync(MaintenanceController.GlobalSiteMaintenance, "Site undergoing maintenance...").ConfigureAwait(false);
         }
