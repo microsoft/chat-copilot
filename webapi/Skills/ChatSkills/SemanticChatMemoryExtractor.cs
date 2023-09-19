@@ -157,7 +157,7 @@ internal static class SemanticChatMemoryExtractor
         }
         catch (Exception connectorException) when (!connectorException.IsCriticalException())
         {
-            // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
+            // A store exception might be thrown if the collection does not exist or there are no related memories, depending on the memory store connector.
             logger.LogError(connectorException, "Cannot search collection {0}", memoryCollectionName);
         }
 
