@@ -114,7 +114,7 @@ internal static class SemanticChatMemoryExtractor
 
                 if (searchResult.Results.Count == 0)
                 {
-                    await memoryClient.StoreMemoryAsync(options.MemoryIndexName, chatId, memoryName, memory, cancellationToken);
+                    await memoryClient.StoreMemoryAsync(options.MemoryIndexName, chatId, memoryName, memory, cancellationToken: cancellationToken);
                 }
             }
             catch (Exception exception) when (!exception.IsCriticalException())
