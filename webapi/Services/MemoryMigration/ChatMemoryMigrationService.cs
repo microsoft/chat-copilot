@@ -104,10 +104,8 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
                 foreach (var memoryType in this._promptOptions.MemoryMap.Keys)
                 {
                     var indexName = $"{chat.Id}-{memoryType}";
-                    this._logger.LogCritical($"CHECK: {indexName}");
                     if (collectionNames.Contains(indexName))
                     {
-                        this._logger.LogCritical($"MIGRATE: {indexName}");
                         var memories = await this._memory.SearchAsync(indexName, "*", limit: 10000, minRelevanceScore: 0, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
 
                         foreach (var memory in memories)

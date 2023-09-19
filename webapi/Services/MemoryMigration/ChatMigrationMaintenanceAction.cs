@@ -31,15 +31,13 @@ public class ChatMigrationMaintenanceAction : IMaintenanceAction
     {
         var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(cancellation).ConfigureAwait(false);
 
-        this._logger.LogCritical($"ACTION CURRENT: {migrationStatus.Label}");
-
         switch (migrationStatus)
         {
             case ChatMigrationStatus s when (s == ChatMigrationStatus.RequiresUpgrade):
                 try
                 {
-                    // Migrate all chats to single index
-                    this._migrationService.MigrateAsync(cancellation); // Don't block
+                    // Migrate all chats to single index (in background)
+                    var task = this._migrationService.MigrateAsync(cancellation);
                 }
                 catch (Exception ex) when (!ex.IsCriticalException())
                 {
