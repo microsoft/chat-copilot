@@ -52,7 +52,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                         setModel(data as IMaintenance);
                     })
                     .catch(() => {
-                        // Exception respons has no body.  This means app is not in maintenance.
+                        // Exception response has no body.  This means app is not in maintenance.
                         dispatch(setMaintenance(false));
                         onBackendFound();
                     });
