@@ -19,7 +19,7 @@ namespace CopilotChat.WebApi.Services.MemoryMigration;
 /// That is, if the new index exists then migration was considered to have occurred.
 /// A tracking record is created in the historical global-document index: <see cref="DocumentMemoryOptions.GlobalDocumentCollectionName"/>
 /// to managed race condition during the migration process (having migration triggered a second time while in progress).
-/// In the event that somehow two migration processes are initiated in parallel, no duplication will result...only extraneous procesing.
+/// In the event that somehow two migration processes are initiated in parallel, no duplication will result...only extraneous processing.
 /// If the desire exists to reset/re-execute migration, simply delete the new index.
 /// </remarks>
 public class ChatMigrationMonitor : IChatMigrationMonitor
