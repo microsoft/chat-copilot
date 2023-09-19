@@ -88,6 +88,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
             needsZombie = false;
         }
 
+        // Store "Zombie" memory in order to create the index since zero writes have occurred.  Won't affect any chats.
         if (needsZombie)
         {
             await this._memoryClient.StoreMemoryAsync(this._promptOptions.MemoryIndexName, Guid.Empty.ToString(), "zombie", Guid.NewGuid().ToString(), "Initialized", cancellationToken);
