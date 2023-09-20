@@ -75,7 +75,7 @@ param deploySpeechServices bool = true
 param deployWebApiPackage bool = true
 
 @description('Whether to deploy the memory pipeline package')
-param deployMemoryPipelinePackage bool = false
+param deployMemoryPipelinePackage bool = true
 
 @description('Region for the resources')
 param location string = resourceGroup().location

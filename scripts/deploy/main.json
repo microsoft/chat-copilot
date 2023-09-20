@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "16636864050728771101"
+      "templateHash": "14023436275934784880"
     }
   },
   "parameters": {
@@ -157,7 +157,7 @@
     },
     "deployMemoryPipelinePackage": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
         "description": "Whether to deploy the memory pipeline package"
       }
