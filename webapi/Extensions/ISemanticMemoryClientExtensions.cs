@@ -99,8 +99,7 @@ internal static class ISemanticMemoryClientExtensions
                 indexName,
                 filter,
                 resultCount,
-                cancellationToken)
-            .ConfigureAwait(false);
+                cancellationToken);
 
         return searchResult;
     }
@@ -129,11 +128,23 @@ internal static class ISemanticMemoryClientExtensions
         await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
     }
 
+    public static Task StoreMemoryAsync(
+        this ISemanticMemoryClient memoryClient,
+        string indexName,
+        string chatId,
+        string memoryName,
+        string memory,
+        CancellationToken cancellationToken = default)
+    {
+        return memoryClient.StoreMemoryAsync(indexName, chatId, memoryName, memoryId: Guid.NewGuid().ToString(), memory, cancellationToken);
+    }
+
     public static async Task StoreMemoryAsync(
         this ISemanticMemoryClient memoryClient,
         string indexName,
         string chatId,
         string memoryName,
+        string memoryId,
         string memory,
         CancellationToken cancellationToken = default)
     {
@@ -143,10 +154,9 @@ internal static class ISemanticMemoryClientExtensions
         await writer.FlushAsync();
         stream.Position = 0;
 
-        var id = Guid.NewGuid().ToString();
         var uploadRequest = new DocumentUploadRequest
         {
-            DocumentId = id,
+            DocumentId = memoryId,
             Index = indexName,
             Files =
                 new()
@@ -166,12 +176,12 @@ internal static class ISemanticMemoryClientExtensions
         this ISemanticMemoryClient memoryClient,
         string indexName,
         string chatId,
-        CancellationToken cancelToken = default)
+        CancellationToken cancellationToken = default)
     {
-        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancelToken);
+        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancellationToken);
         foreach (var memory in memories.Results)
         {
-            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancelToken);
+            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancellationToken);
         }
     }
 }

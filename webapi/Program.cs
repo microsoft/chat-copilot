@@ -69,6 +69,7 @@ public sealed class Program
 
         // Add in the rest of the services.
         builder.Services
+            .AddMainetnanceServices()
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
             .AddCorsPolicy(builder.Configuration)
