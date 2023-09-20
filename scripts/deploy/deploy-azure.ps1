@@ -77,7 +77,11 @@ param(
 
     [switch]
     # Switches on verbose template deployment output
-    $DebugDeployment
+    $DebugDeployment,
+
+    [switch]
+    # Switches on wheter to deploy release packages
+    $NoDeployPacakge
 )
 
 # if AIService is AzureOpenAI
@@ -117,6 +121,8 @@ $jsonConfig = "
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
+    `\`"deployWebApiPackage`\`": { `\`"value`\`": $(If (!($NoDeployPacakge)) {"true"} Else {"false"}) },
+    `\`"deployMemoryPipelinePackage`\`": { `\`"value`\`": $(If (!($NoDeployPacakge)) {"true"} Else {"false"}) },
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
     `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
     `\`"webApiClientId`\`": { `\`"value`\`": `\`"$BackendClientId`\`"},

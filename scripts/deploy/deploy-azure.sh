@@ -34,92 +34,92 @@ usage() {
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
-        -d|--deployment-name)
+    -d | --deployment-name)
         DEPLOYMENT_NAME="$2"
         shift
         shift
         ;;
-        -s|--subscription)
+    -s | --subscription)
         SUBSCRIPTION="$2"
         shift
         shift
         ;;
-        -c|--client-id)
+    -c | --client-id)
         BACKEND_CLIENT_ID="$2"
         shift
         shift
         ;;
-        -t|--tenant-id)
+    -t | --tenant-id)
         AZURE_AD_TENANT_ID="$2"
         shift
         shift
         ;;
-        -ai|--ai-service)
+    -ai | --ai-service)
         AI_SERVICE_TYPE="$2"
         shift
         shift
         ;;
-        -aikey|--ai-service-key)
+    -aikey | --ai-service-key)
         AI_SERVICE_KEY="$2"
         shift
         shift
         ;;
-        -aiend|--ai-endpoint)
+    -aiend | --ai-endpoint)
         AI_ENDPOINT="$2"
         shift
         shift
         ;;
-        -rg|--resource-group)
+    -rg | --resource-group)
         RESOURCE_GROUP="$2"
         shift
         shift
         ;;
-        -r|--region)
+    -r | --region)
         REGION="$2"
         shift
         shift
         ;;
-        -wr|--web-app-region)
+    -wr | --web-app-region)
         WEB_APP_REGION="$2"
         shift
         shift
         ;;
-        -a|--app-service-sku)
+    -a | --app-service-sku)
         WEB_APP_SVC_SKU="$2"
         shift
         shift
         ;;
-        -i|--instance)
+    -i | --instance)
         AZURE_AD_INSTANCE="$2"
         shift
         shift
         ;;
-        -ms|--memory-store)
+    -ms | --memory-store)
         MEMORY_STORE=="$2"
         shift
         ;;
-        -sap|--sql-admin-password)
+    -sap | --sql-admin-password)
         SQL_ADMIN_PASSWORD="$2"
         shift
         shift
         ;;
-        -nc|--no-cosmos-db)
+    -nc | --no-cosmos-db)
         NO_COSMOS_DB=true
         shift
         ;;
-        -ns|--no-speech-services)
+    -ns | --no-speech-services)
         NO_SPEECH_SERVICES=true
         shift
         ;;
-        -dd|--debug-deployment)
+    -dd | --debug-deployment)
         DEBUG_DEPLOYMENT=true
         shift
         ;;
-        -ndp|--no-deploy-package)
+    -ndp | --no-deploy-package)
         NO_DEPLOY_PACKAGE=true
         shift
         ;;
-        *)
+    *)
         echo "Unknown option $1"
         usage
         exit 1
@@ -198,13 +198,15 @@ az account set -s "$SUBSCRIPTION"
 : "${NO_SPEECH_SERVICES:=false}"
 
 # Create JSON config
-JSON_CONFIG=$(cat << EOF
+JSON_CONFIG=$(
+    cat <<EOF
 {
     "webAppServiceSku": { "value": "$WEB_APP_SVC_SKU" },
     "webappLocation": { "value": "$WEB_APP_REGION" },
     "aiService": { "value": "$AI_SERVICE_TYPE" },
     "aiApiKey": { "value": "$AI_SERVICE_KEY" },
     "deployWebApiPackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
+    "deployMemoryPipelinePackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
     "aiEndpoint": { "value": "$([ ! -z "$AI_ENDPOINT" ] && echo "$AI_ENDPOINT")" },
     "azureAdInstance": { "value": "$AZURE_AD_INSTANCE" },
     "azureAdTenantId": { "value": "$AZURE_AD_TENANT_ID" },
