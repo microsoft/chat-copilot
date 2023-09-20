@@ -19,7 +19,7 @@ param webApiPackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
 @description('Location of package to deploy as the memory pipeline')
 #disable-next-line no-hardcoded-env-urls
 // TODO: Update to use the latest version of the memory pipeline package
-param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
+param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/memorypipeline/latest'
 
 @description('Underlying AI service')
 @allowed([
