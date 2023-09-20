@@ -187,3 +187,63 @@ customEvents
 ```
 
 Then use a Time chart on the Visual tab.
+
+## (Optional) Custom Semantic Kernel Setup
+
+### Add Custom Setup to Chat Copilot's Kernel
+
+Chat Copilot's Semantic Kernel can be customized with additional skills or settings by using a custom hook that performs any complimentary setup of the kernel. A custom hook is a delegate that takes an IServiceProvider and an IKernel as parameters and performs any desired actions on the kernel, such as registering additional skills, setting kernel options, adding dependency injections, importing data, etc. To use a custom hook, you can pass it as an argument to the `AddKernelSetupHook` call in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`.
+
+For example, the following code snippet shows how to create a custom hook that registers a skill called MySkill and passes it to AddKernelSetupHook:
+
+```
+// Define a custom hook that registers MySkill with the kernel
+
+private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
+{
+   // Import the skill into the kernel with the name "MySkill"
+   kernel.ImportSkill(new MySkill(), nameof(MySkill));
+
+   // Perform any other setup actions on the kernel
+   // ...
+}
+```
+
+Then in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddKernelSetupHook` call:
+
+```
+internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
+{
+   ...
+
+   // Add any additional setup needed for the kernel.
+   // Uncomment the following line and pass in your custom hook.
+   services.AddKernelSetupHook(MyCustomSetupHook);
+
+   return services;
+}
+```
+
+### Add Custom Plugin Registration to the Planner's Kernel
+
+The planner uses a separate kernel instance that can be configured with skills or plugins that are specific to the planning process. Note that these skills will be persistent across all chat requests.
+
+To customize the planner's kernel, you can use a custom hook that registers skills at build time. A custom hook is a delegate that takes an IServiceProvider and an IKernel as parameters and performs any desired actions on the kernel. By default, the planner will register skills using `SemanticKernelExtensions.RegisterSkillsAsync` to load files from the `Service.SemanticSkillsDirectory` and `Service.NativeSkillsDirectory` option values in `appsettings.json`.
+
+To use a custom hook, you can pass it as an argument to the `AddPlannerSetupHook` call in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, which will invoke the hook after the planner's kernel is created. See section above for an example of a custom hook function.
+
+Then in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddPlannerSetupHook` call:
+
+```
+internal static IServiceCollection AddPlannerServices(this IServiceCollection services)
+{
+   ...
+
+   // Register any custom skills with the planner's kernel.
+   services.AddPlannerSetupHook(MyCustomSetupHook);
+
+   return services;
+}
+```
+
+Note that this will override the call to `RegisterSkillsAsync`.
