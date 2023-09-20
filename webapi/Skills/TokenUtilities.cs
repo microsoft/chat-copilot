@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.Tokenizers;
 using Microsoft.SemanticKernel.Orchestration;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
@@ -69,27 +68,40 @@ public static class TokenUtilities
     /// <returns> true if token usage is found in result context; otherwise, false.</returns>
     internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, ILogger logger, string? functionName = null)
     {
-        var functionKey = GetFunctionKey(logger, functionName);
-        if (functionKey == null)
+        try
         {
-            return;
-        }
+            var functionKey = GetFunctionKey(logger, functionName);
+            if (functionKey == null)
+            {
+                return;
+            }
 
-        if (result.ModelResults == null || result.ModelResults.Count == 0)
+            if (result.ModelResults == null || result.ModelResults.Count == 0)
+            {
+                logger.LogError("Unable to determine token usage for {0}", functionKey);
+                return;
+            }
+
+            var tokenUsage = result.ModelResults.First().GetResult<ChatModelResult>().Usage.TotalTokens;
+            chatContext.Variables.Set(functionKey!, tokenUsage.ToString(CultureInfo.InvariantCulture));
+        }
+        catch (Exception e)
         {
-            logger.LogError("Unable to determine token usage for {0}", functionKey);
-            return;
+            logger.LogError(e, "Unable to determine token usage for {0}", functionName);
+            throw e;
         }
-
-        var tokenUsage = result.ModelResults.First().GetResult<ChatModelResult>().Usage.TotalTokens;
-        chatContext.Variables.Set(functionKey!, tokenUsage.ToString(CultureInfo.InvariantCulture));
     }
 
     /// <summary>
-    /// Calculate the number of tokens in a string.
+    /// Calculate the number of tokens in a string using custom SharpToken token counter implementation with cl100k_base encoding.
     /// </summary>
     /// <param name="text">The string to calculate the number of tokens in.</param>
-    internal static int TokenCount(string text) => GPT3Tokenizer.Encode(text).Count;
+    internal static int TokenCount(string text)
+    {
+        var tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
+        var tokens = tokenizer.Encode(text);
+        return tokens.Count;
+    }
 
     /// <summary>
     /// Rough token costing of ChatHistory's message object.
