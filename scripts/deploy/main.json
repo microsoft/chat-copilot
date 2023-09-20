@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.20.4.51522",
-      "templateHash": "6650859180423000030"
+      "version": "0.21.1.54444",
+      "templateHash": "16636864050728771101"
     }
   },
   "parameters": {
@@ -42,7 +42,7 @@
     },
     "memoryPipelinePackageUri": {
       "type": "string",
-      "defaultValue": "https://aka.ms/copilotchat/webapi/latest",
+      "defaultValue": "https://aka.ms/copilotchat/memorypipeline/latest",
       "metadata": {
         "description": "Location of package to deploy as the memory pipeline"
       }
