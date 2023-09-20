@@ -80,8 +80,8 @@ param(
     $DebugDeployment,
 
     [switch]
-    # Switches on wheter to deploy release packages
-    $NoDeployPacakge
+    # Switches on whether to deploy release packages
+    $NoDeployPackage
 )
 
 # if AIService is AzureOpenAI
@@ -121,8 +121,8 @@ $jsonConfig = "
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
-    `\`"deployWebApiPackage`\`": { `\`"value`\`": $(If (!($NoDeployPacakge)) {"true"} Else {"false"}) },
-    `\`"deployMemoryPipelinePackage`\`": { `\`"value`\`": $(If (!($NoDeployPacakge)) {"true"} Else {"false"}) },
+    `\`"deployWebApiPackage`\`": { `\`"value`\`": $(If (!($NoDeployPackage)) {"true"} Else {"false"}) },
+    `\`"deployMemoryPipelinePackage`\`": { `\`"value`\`": $(If (!($NoDeployPackage)) {"true"} Else {"false"}) },
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
     `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
     `\`"webApiClientId`\`": { `\`"value`\`": `\`"$BackendClientId`\`"},
