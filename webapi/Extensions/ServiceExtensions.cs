@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Azure;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
+using CopilotChat.WebApi.Services.MemoryMigration;
 using CopilotChat.WebApi.Storage;
 using CopilotChat.WebApi.Utilities;
 using Microsoft.AspNetCore.Authentication;
@@ -18,7 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using Tesseract;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -28,6 +28,8 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 public static class CopilotChatServiceExtensions
 {
+    private const string SemanticMemoryOptionsName = "SemanticMemory";
+
     /// <summary>
     /// Parse configuration into options.
     /// </summary>
@@ -35,12 +37,6 @@ public static class CopilotChatServiceExtensions
     {
         // General configuration
         AddOptions<ServiceOptions>(ServiceOptions.PropertyName);
-
-        // Default AI service configurations for Semantic Kernel
-        AddOptions<AIServiceOptions>(AIServiceOptions.PropertyName);
-
-        // Memory store configuration
-        AddOptions<MemoryStoreOptions>(MemoryStoreOptions.PropertyName);
 
         // Authentication configuration
         AddOptions<ChatAuthenticationOptions>(ChatAuthenticationOptions.PropertyName);
@@ -63,11 +59,11 @@ public static class CopilotChatServiceExtensions
         // Planner options
         AddOptions<PlannerOptions>(PlannerOptions.PropertyName);
 
-        // OCR support options
-        AddOptions<OcrSupportOptions>(OcrSupportOptions.PropertyName);
-
         // Content safety options
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
+
+        // Semantic memory options
+        AddOptions<SemanticMemoryConfig>(SemanticMemoryOptionsName);
 
         return services;
 
@@ -93,12 +89,30 @@ public static class CopilotChatServiceExtensions
         return services.AddScoped<AskConverter>();
     }
 
+    internal static IServiceCollection AddMainetnanceServices(this IServiceCollection services)
+    {
+        // Inject migration services
+        services.AddSingleton<IChatMigrationMonitor, ChatMigrationMonitor>();
+        services.AddSingleton<IChatMemoryMigrationService, ChatMemoryMigrationService>();
+
+        // Inject actions so they can be part of the action-list.
+        services.AddSingleton<ChatMigrationMaintenanceAction>();
+        services.AddSingleton<IReadOnlyList<IMaintenanceAction>>(
+            sp =>
+                (IReadOnlyList<IMaintenanceAction>)
+                new[]
+                {
+                    sp.GetRequiredService<ChatMigrationMaintenanceAction>(),
+                });
+
+        return services;
+    }
+
     /// <summary>
     /// Add CORS settings.
     /// </summary>
-    internal static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+    internal static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
     {
-        IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         string[] allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
         if (allowedOrigins.Length > 0)
         {
@@ -112,40 +126,6 @@ public static class CopilotChatServiceExtensions
                             .AllowAnyHeader();
                     });
             });
-        }
-
-        return services;
-    }
-
-    /// <summary>
-    /// Adds persistent OCR support service.
-    /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
-    public static IServiceCollection AddPersistentOcrSupport(this IServiceCollection services)
-    {
-        OcrSupportOptions ocrSupportConfig = services.BuildServiceProvider().GetRequiredService<IOptions<OcrSupportOptions>>().Value;
-
-        switch (ocrSupportConfig.Type)
-        {
-            case OcrSupportOptions.OcrSupportType.AzureFormRecognizer:
-            {
-                services.AddSingleton<IOcrEngine>(sp => new AzureFormRecognizerOcrEngine(ocrSupportConfig.AzureFormRecognizer!.Endpoint!, new AzureKeyCredential(ocrSupportConfig.AzureFormRecognizer!.Key!)));
-                break;
-            }
-            case OcrSupportOptions.OcrSupportType.Tesseract:
-            {
-                services.AddSingleton<IOcrEngine>(sp => new TesseractEngineWrapper(new TesseractEngine(ocrSupportConfig.Tesseract!.FilePath, ocrSupportConfig.Tesseract!.Language, EngineMode.Default)));
-                break;
-            }
-            case OcrSupportOptions.OcrSupportType.None:
-            {
-                services.AddSingleton<IOcrEngine>(sp => new NullOcrEngine());
-                break;
-            }
-            default:
-            {
-                throw new InvalidOperationException($"Unsupported OcrSupport:Type '{ocrSupportConfig.Type}'");
-            }
         }
 
         return services;
@@ -291,6 +271,12 @@ public static class CopilotChatServiceExtensions
             {
                 // Skip enumerations
                 if (property.PropertyType.IsEnum)
+                {
+                    continue;
+                }
+
+                // Skip index properties
+                if (property.GetIndexParameters().Length == 0)
                 {
                     continue;
                 }

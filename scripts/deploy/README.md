@@ -176,6 +176,32 @@ npm install -g @azure/static-web-apps-cli
 ./deploy-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --client-id {YOUR_FRONTEND_APPLICATION_ID}
 ```
 
+# (Optional) Deploy Memory Pipeline
+
+> **_NOTE:_** This step can be skipped if the WebApi is not configured to run asynchronously for document processing. By default, the WebApi is configured to run asynchronously for document processing in deployment.
+
+> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The deployMemoryPipelinePackage = true setting in main.bicep ensures that the latest copilot chat memory pipeline is deployed.
+
+To deploy the memorypipeline, build the deployment package first and deploy it to the Azure resources created above.
+
+## PowerShell
+
+```powershell
+./package-memorypipeline.ps1
+
+./deploy-memorypipeline.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME}
+```
+
+## Bash
+
+```bash
+chmod +x ./package-memorypipeline.sh
+./package-memorypipeline.sh
+
+chmod +x ./deploy-memorypipeline.sh
+./deploy-memorypipeline.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME}
+```
+
 Your Chat Copilot application is now deployed!
 
 # Appendix

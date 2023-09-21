@@ -78,7 +78,7 @@ interface TableItem {
         label: string;
         timestamp: number;
     };
-    tokens: number;
+    size: number;
 }
 
 export const DocumentsTab: React.FC = () => {
@@ -104,7 +104,7 @@ export const DocumentsTab: React.FC = () => {
                           name: document,
                           sharedBy: 'N/A',
                           createdOn: 0,
-                          tokens: 0,
+                          size: 0,
                       } as ChatMemorySource;
                   })
                 : [];
@@ -152,7 +152,7 @@ export const DocumentsTab: React.FC = () => {
                 {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
-                    <Label size="large">Vector Database</Label>
+                    <Label size="large">Vector Database:</Label>
                     <RadioGroup
                         defaultValue={serviceOptions.memoryStore.selectedType}
                         layout="horizontal"
@@ -233,22 +233,22 @@ function useTable(resources: ChatMemorySource[]) {
             },
         }),
         createTableColumn<TableItem>({
-            columnId: 'tokenCounts',
+            columnId: 'fileSize',
             renderHeaderCell: () => (
-                <TableHeaderCell key="tokenCounts" {...headerSortProps('tokenCounts')}>
-                    Token Count
+                <TableHeaderCell key="fileSize" {...headerSortProps('fileSize')}>
+                    Size (bytes)
                 </TableHeaderCell>
             ),
             renderCell: (item) => (
                 <TableCell key={`${item.id}-tokens`}>
-                    {item.id.startsWith('in-progress') ? 'N/A' : item.tokens}
+                    {item.id.startsWith('in-progress') ? 'N/A' : item.size.toLocaleString()}
                 </TableCell>
             ),
             compare: (a, b) => {
                 const aAccess = getAccessString(a.chatId);
                 const bAccess = getAccessString(b.chatId);
                 const comparison = aAccess.localeCompare(bAccess);
-                return getSortDirection('tokenCounts') === 'ascending' ? comparison : comparison * -1;
+                return getSortDirection('fileSize') === 'ascending' ? comparison : comparison * -1;
             },
         }),
         createTableColumn<TableItem>({
@@ -307,7 +307,7 @@ function useTable(resources: ChatMemorySource[]) {
             label: timestampToDateString(item.createdOn),
             timestamp: item.createdOn,
         },
-        tokens: item.tokens,
+        size: item.size,
     }));
 
     const {

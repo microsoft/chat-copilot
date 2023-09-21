@@ -42,16 +42,12 @@ public sealed class Config
     /// <summary>
     /// Redirect URI for the app as registered in Azure AD.
     /// </summary>
-#pragma warning disable CA1056 // URI-like properties should not be strings
     public string RedirectUri { get; set; } = string.Empty;
-#pragma warning restore CA1056 // URI-like properties should not be strings
 
     /// <summary>
     /// Uri for the service that is running the chat.
     /// </summary>
-#pragma warning disable CA1056 // URI-like properties should not be strings
     public string ServiceUri { get; set; } = string.Empty;
-#pragma warning restore CA1056 // URI-like properties should not be strings
 
     /// <summary>
     /// Gets configuration from appsettings.json.

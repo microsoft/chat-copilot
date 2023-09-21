@@ -9,7 +9,7 @@ on:
   workflow_call:
     outputs:
       artifact:
-        description: "The name of the uploaded artifact."
+        description: "The name of the uploaded web api artifact."
         value: ${{jobs.webapi.outputs.artifact}}
 
 permissions:

@@ -20,8 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -33,22 +32,23 @@ namespace CopilotChat.WebApi.Controllers;
 [ApiController]
 public class ChatHistoryController : ControllerBase
 {
+    private const string ChatEditedClientCall = "ChatEdited";
+    private const string ChatDeletedClientCall = "ChatDeleted";
+
     private readonly ILogger<ChatHistoryController> _logger;
-    private readonly IMemoryStore _memoryStore;
+    private readonly ISemanticMemoryClient _memoryClient;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly PromptsOptions _promptOptions;
     private readonly IAuthInfo _authInfo;
-    private const string ChatEditedClientCall = "ChatEdited";
-    private const string ChatDeletedClientCall = "ChatDeleted";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatHistoryController"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    /// <param name="memoryStore">Memory store.</param>
+    /// <param name="memoryClient">Memory client.</param>
     /// <param name="sessionRepository">The chat session repository.</param>
     /// <param name="messageRepository">The chat message repository.</param>
     /// <param name="participantRepository">The chat participant repository.</param>
@@ -57,7 +57,7 @@ public class ChatHistoryController : ControllerBase
     /// <param name="authInfo">The auth info for the current request.</param>
     public ChatHistoryController(
         ILogger<ChatHistoryController> logger,
-        IMemoryStore memoryStore,
+        ISemanticMemoryClient memoryClient,
         ChatSessionRepository sessionRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
@@ -66,7 +66,7 @@ public class ChatHistoryController : ControllerBase
         IAuthInfo authInfo)
     {
         this._logger = logger;
-        this._memoryStore = memoryStore;
+        this._memoryClient = memoryClient;
         this._sessionRepository = sessionRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
@@ -101,6 +101,7 @@ public class ChatHistoryController : ControllerBase
             newChat.Id,
             this._promptOptions.InitialBotMessage,
             string.Empty, // The initial bot message doesn't need a prompt.
+            null,
             TokenUtilities.EmptyTokenUsages());
         await this._messageRepository.CreateAsync(chatMessage);
 
@@ -254,9 +255,7 @@ public class ChatHistoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
-    public async Task<ActionResult<IEnumerable<MemorySource>>> GetSourcesAsync(
-        [FromServices] IKernel kernel,
-        Guid chatId)
+    public async Task<ActionResult<IEnumerable<MemorySource>>> GetSourcesAsync(Guid chatId)
     {
         this._logger.LogInformation("Get imported sources of chat session {0}", chatId);
 
@@ -344,15 +343,7 @@ public class ChatHistoryController : ControllerBase
         }
 
         // Create and store the tasks for deleting semantic memories.
-        // TODO: [Issue #47] Filtering memory collections by name might be fragile.
-        var memoryCollections = (await this._memoryStore.GetCollectionsAsync(cancellationToken).ToListAsync<string>())
-            .Where(collection =>
-                collection.StartsWith(chatId, StringComparison.OrdinalIgnoreCase) || // chat memory
-                collection.Equals($"chat-documents-{chatId}", StringComparison.OrdinalIgnoreCase)); // document memory
-        foreach (var collection in memoryCollections)
-        {
-            cleanupTasks.Add(this._memoryStore.DeleteCollectionAsync(collection, cancellationToken));
-        }
+        cleanupTasks.Add(this._memoryClient.RemoveChatMemoriesAsync(this._promptOptions.MemoryIndexName, chatId, cancellationToken));
 
         // Create a task that represents the completion of all cleanupTasks
         Task aggregationTask = Task.WhenAll(cleanupTasks);

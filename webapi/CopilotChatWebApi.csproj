@@ -1,32 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
+    <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <RootNamespace>CopilotChat.WebApi</RootNamespace>
-    <UserSecretsId>aspnet-SKWebApi-1581687a-bee4-40ea-a886-ce22524aea88</UserSecretsId>
+    <UserSecretsId>5ee045b0-aea3-4f08-8d31-32d1a6f8fed0</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Chroma" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Postgres" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.13.4" />
-    <PackageReference Include="PdfPig" Version="0.1.8" />
-    <PackageReference Include="SharpToken" Version="1.2.12" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-  </ItemGroup>
 
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -34,6 +15,28 @@
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.13.4" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planning.StepwisePlanner" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.24.230918.1-preview" />
+    <PackageReference Include="Microsoft.SemanticMemory.Core" Version="0.2.230919.2-preview" />
+    <PackageReference Include="SharpToken" Version="1.2.12" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\shared\CopilotChatShared.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview1.23165.1">
@@ -65,8 +68,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-
-    <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>

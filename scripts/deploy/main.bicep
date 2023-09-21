@@ -14,7 +14,12 @@ param webAppServiceSku string = 'B1'
 
 @description('Location of package to deploy as the web service')
 #disable-next-line no-hardcoded-env-urls
-param packageUri string = 'https://aka.ms/copilotchat/webapi/latest'
+param webApiPackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
+
+@description('Location of package to deploy as the memory pipeline')
+#disable-next-line no-hardcoded-env-urls
+// TODO: Update to use the latest version of the memory pipeline package
+param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/memorypipeline/latest'
 
 @description('Underlying AI service')
 @allowed([
@@ -68,6 +73,9 @@ param deploySpeechServices bool = true
 
 @description('Whether to deploy the backend Web API package')
 param deployWebApiPackage bool = true
+
+@description('Whether to deploy the memory pipeline package')
+param deployMemoryPipelinePackage bool = true
 
 @description('Region for the resources')
 param location string = resourceGroup().location
@@ -132,7 +140,7 @@ resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: 'asp-${uniqueName}-webapi'
+  name: 'asp-${uniqueName}-${name}'
   location: location
   kind: 'app'
   sku: {
@@ -177,30 +185,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
     webSocketsEnabled: true
     appSettings: [
       {
-        name: 'AIService:Type'
-        value: aiService
-      }
-      {
-        name: 'AIService:Endpoint'
-        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
-      }
-      {
-        name: 'AIService:Key'
-        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
-      }
-      {
-        name: 'AIService:Models:Completion'
-        value: completionModel
-      }
-      {
-        name: 'AIService:Models:Embedding'
-        value: embeddingModel
-      }
-      {
-        name: 'AIService:Models:Planner'
-        value: plannerModel
-      }
-      {
         name: 'Authentication:Type'
         value: 'AzureAd'
       }
@@ -219,6 +203,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'Authentication:AzureAd:Scopes'
         value: 'access_as_user'
+      }
+      {
+        name: 'Planner:Model'
+        value: plannerModel
       }
       {
         name: 'ChatStore:Type'
@@ -313,16 +301,116 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'Warning'
       }
       {
+        name: 'Logging:ApplicationInsights:LogLevel:Default'
+        value: 'Warning'
+      }
+      {
         name: 'ApplicationInsights:ConnectionString'
-        value: appInsights.properties.ConnectionString
+        value: appInsightsWeb.properties.ConnectionString
       }
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-        value: appInsights.properties.ConnectionString
+        value: appInsightsWeb.properties.ConnectionString
       }
       {
         name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
         value: '~2'
+      }
+      {
+        name: 'SemanticMemory:ContentStorageType'
+        value: 'AzureBlobs'
+      }
+      {
+        name: 'SemanticMemory:TextGeneratorType'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:OrchestrationType'
+        value: 'Distributed'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
+        value: 'AzureQueue'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:VectorDbTypes:0'
+        value: memoryStore
+      }
+      {
+        name: 'SemanticMemory:Retrieval:VectorDbType'
+        value: memoryStore
+      }
+      {
+        name: 'SemanticMemory:Retrieval:EmbeddingGeneratorType'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:ConnectionString'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Container'
+        value: 'chatmemory'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:ConnectionString'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Endpoint'
+        value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:APIKey'
+        value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Endpoint'
+        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:APIKey'
+        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Deployment'
+        value: completionModel
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint'
+        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:APIKey'
+        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Deployment'
+        value: embeddingModel
       }
     ]
   }
@@ -333,19 +421,188 @@ resource appServiceWebDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (d
   kind: 'string'
   parent: appServiceWeb
   properties: {
-    packageUri: packageUri
+    packageUri: webApiPackageUri
   }
   dependsOn: [
     appServiceWebConfig
   ]
 }
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'appins-${uniqueName}'
+resource appServiceMemoryPipeline 'Microsoft.Web/sites@2022-09-01' = {
+  name: 'app-${uniqueName}-memorypipeline'
+  location: location
+  kind: 'app'
+  tags: {
+    skweb: '1'
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+    siteConfig: {
+      alwaysOn: true
+    }
+  }
+}
+
+resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' = {
+  parent: appServiceMemoryPipeline
+  name: 'web'
+  properties: {
+    alwaysOn: true
+    detailedErrorLoggingEnabled: true
+    minTlsVersion: '1.2'
+    netFrameworkVersion: 'v6.0'
+    use32BitWorkerProcess: false
+    appSettings: [
+      {
+        name: 'SemanticMemory:ContentStorageType'
+        value: 'AzureBlobs'
+      }
+      {
+        name: 'SemanticMemory:TextGeneratorType'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:ImageOcrType'
+        value: 'AzureFormRecognizer'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:OrchestrationType'
+        value: 'Distributed'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType'
+        value: 'AzureQueue'
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:DataIngestion:VectorDbTypes:0'
+        value: memoryStore
+      }
+      {
+        name: 'SemanticMemory:Retrieval:VectorDbType'
+        value: memoryStore
+      }
+      {
+        name: 'SemanticMemory:Retrieval:EmbeddingGeneratorType'
+        value: aiService
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:ConnectionString'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureBlobs:Container'
+        value: 'chatmemory'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:Auth'
+        value: 'ConnectionString'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureQueue:ConnectionString'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:Endpoint'
+        value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
+      }
+      {
+        name: 'SemanticMemory:Services:AzureCognitiveSearch:APIKey'
+        value: memoryStore == 'AzureCognitiveSearch' ? azureCognitiveSearch.listAdminKeys().primaryKey : ''
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Endpoint'
+        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:APIKey'
+        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIText:Deployment'
+        value: completionModel
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint'
+        value: deployNewAzureOpenAI ? openAI.properties.endpoint : aiEndpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:APIKey'
+        value: deployNewAzureOpenAI ? openAI.listKeys().key1 : aiApiKey
+      }
+      {
+        name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Deployment'
+        value: embeddingModel
+      }
+      {
+        name: 'SemanticMemory:Services:AzureFormRecognizer:Auth'
+        value: 'ApiKey'
+      }
+      {
+        name: 'SemanticMemory:Services:AzureFormRecognizer:Endpoint'
+        value: ocrAccount.properties.endpoint
+      }
+      {
+        name: 'SemanticMemory:Services:AzureFormRecognizer:APIKey'
+        value: ocrAccount.listKeys().key1
+      }
+      {
+        name: 'Logging:LogLevel:Default'
+        value: 'Information'
+      }
+      {
+        name: 'Logging:LogLevel:AspNetCore'
+        value: 'Warning'
+      }
+      {
+        name: 'Logging:ApplicationInsights:LogLevel:Default'
+        value: 'Warning'
+      }
+      {
+        name: 'ApplicationInsights:ConnectionString'
+        value: appInsightsMemoryPipeline.properties.ConnectionString
+      }
+    ]
+  }
+}
+
+resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployMemoryPipelinePackage) {
+  name: 'MSDeploy'
+  kind: 'string'
+  parent: appServiceMemoryPipeline
+  properties: {
+    packageUri: memoryPipelinePackageUri
+  }
+  dependsOn: [
+    appServiceMemoryPipelineConfig
+  ]
+}
+
+resource appInsightsWeb 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appins-${uniqueName}-webapi'
   location: location
   kind: 'string'
   tags: {
-    displayName: 'AppInsight'
+    displayName: 'AppInsightWeb'
   }
   properties: {
     Application_Type: 'web'
@@ -353,8 +610,27 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource appInsightExtension 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
+resource appInsightExtensionWeb 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
   parent: appServiceWeb
+  name: 'Microsoft.ApplicationInsights.AzureWebSites'
+  dependsOn: [ appServiceWebConfig ]
+}
+
+resource appInsightsMemoryPipeline 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appins-${uniqueName}-memorypipeline'
+  location: location
+  kind: 'string'
+  tags: {
+    displayName: 'AppInsightMemoryPipeline'
+  }
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalyticsWorkspace.id
+  }
+}
+
+resource appInsightExtensionMemoryPipeline 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
+  parent: appServiceMemoryPipeline
   name: 'Microsoft.ApplicationInsights.AzureWebSites'
   dependsOn: [ appServiceWebConfig ]
 }
@@ -378,7 +654,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   }
 }
 
-resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (memoryStore == 'Qdrant') {
+resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: 'st${rgIdHash}' // Not using full unique name to avoid hitting 24 char limit
   location: location
   kind: 'StorageV2'
@@ -389,7 +665,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2022-09-01' = if (memoryStor
     supportsHttpsTrafficOnly: true
     allowBlobPublicAccess: false
   }
-  resource fileservices 'fileServices' = {
+  resource fileservices 'fileServices' = if (memoryStore == 'Qdrant') {
     name: 'default'
     resource share 'shares' = {
       name: storageFileShareName
@@ -810,7 +1086,7 @@ resource postgresPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/private
 }
 
 resource speechAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deploySpeechServices) {
-  name: 'cog-${uniqueName}'
+  name: 'cog-speech-${uniqueName}'
   location: location
   sku: {
     name: 'S0'
@@ -820,7 +1096,26 @@ resource speechAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (d
     type: 'None'
   }
   properties: {
-    customSubDomainName: 'cog-${uniqueName}'
+    customSubDomainName: 'cog-speech-${uniqueName}'
+    networkAcls: {
+      defaultAction: 'Allow'
+    }
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+resource ocrAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
+  name: 'cog-ocr-${uniqueName}'
+  location: location
+  sku: {
+    name: 'S0'
+  }
+  kind: 'FormRecognizer'
+  identity: {
+    type: 'None'
+  }
+  properties: {
+    customSubDomainName: 'cog-ocr-${uniqueName}'
     networkAcls: {
       defaultAction: 'Allow'
     }
@@ -844,3 +1139,4 @@ output webappUrl string = staticWebApp.properties.defaultHostname
 output webappName string = staticWebApp.name
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
+output memoryPipelineName string = appServiceMemoryPipeline.name
