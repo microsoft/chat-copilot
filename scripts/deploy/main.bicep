@@ -140,7 +140,7 @@ resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: 'asp-${uniqueName}-${name}'
+  name: 'asp-${uniqueName}-webapi'
   location: location
   kind: 'app'
   sku: {
