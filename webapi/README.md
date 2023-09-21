@@ -22,12 +22,56 @@ The following material is under development and may not be complete or accurate.
 2. In Solution Explorer, right-click on `CopilotChatWebApi` and select `Set as Startup Project`.
 3. Start debugging by pressing `F5` or selecting the menu item `Debug`->`Start Debugging`.
 
-4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options within the `OcrSupport` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
+4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options for `SemanticMemory:ImageOcrType` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
    - **Tesseract** we have included the [Tesseract](https://www.nuget.org/packages/Tesseract) nuget package.
-     - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `OcrSupport:Tesseract:FilePath` location in `./appsettings.json`.
+     - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `SemanticMemory:Services:Tesseract:FilePath` location in `./appsettings.json`.
      - Set the `Copy to Output Directory` value to `Copy if newer`.
    - **Azure Form Recognizer** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
-     - You will need to obtain an [Azure Form Recognizer](https://azure.microsoft.com/en-us/services/form-recognizer/) resource and add the `OcrSupport:AzureFormRecognizer:Endpoint` and `OcrSupport:AzureFormRecognizer:Key` values to the `./appsettings.json` file.
+     - You will need to obtain an [Azure Form Recognizer](https://azure.microsoft.com/en-us/services/form-recognizer/) resource and add the `SemanticMemory:Services:AzureFormRecognizer:Endpoint` and `SemanticMemory:Services:AzureFormRecognizer:Key` values to the `./appsettings.json` file.
+
+## Running [Memory Service](https://github.com/microsoft/semantic-memory)
+
+The memory service handles the creation and querying of semantic memory, including cognitive memory and documents.
+
+### InProcess Processing (Default)
+
+Running the memory creation pipeline in the webapi process. This also means the memory creation is synchronous.
+
+No additional configuration is needed.
+
+> You can choose either **Volatile** or **TextFile** as the SimpleVectorDb implementation.
+
+### Distributed Processing
+
+Running the memory creation pipeline steps in different processes. This means the memory creation is asynchronous. This allows better scalability if you have many chat sessions active at the same time or you have big documents that require minutes to process.
+
+1. In [./webapi/appsettings.json](./appsettings.json), set `SemanticMemory:DataIngestion:OrchestrationType` to `Distributed`.
+2. In [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:OrchestrationType` to `Distributed`.
+3. Make sure the following settings in the [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json) respectively point to the same locations on your machine so that both processes can access the data:
+   - `SemanticMemory:Services:SimpleFileStorage:Directory`
+   - `SemanticMemory:Services:SimpleQueues:Directory`
+   - `SemanticMemory:Services:SimpleVectorDb:Directory`
+     > Do not configure SimpleVectorDb to use Volatile. Volatile storage cannot be shared across processes.
+4. You need to run both the [webapi](./README.md) and the [memorypipeline](../memorypipeline/README.md).
+
+### (Optional) Use hosted resources: [Azure Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview), [Azure Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
+
+1. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:ContentStorageType` to `AzureBlobs`.
+2. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:DistributedOrchestration:QueueType` to `AzureQueue`.
+3. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:VectorDbTypes:0` to `AzureCognitiveSearch`.
+4. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:Retrieval:VectorDbType` to `AzureCognitiveSearch`.
+5. Run the following to set up the authentication to the resources:
+
+   ```bash
+   dotnet user-secrets set SemanticMemory:Services:AzureBlobs:Auth ConnectionString
+   dotnet user-secrets set SemanticMemory:Services:AzureBlobs:ConnectionString [your secret]
+   dotnet user-secrets set SemanticMemory:Services:AzureQueue:Auth ConnectionString   # Only needed when running distributed processing
+   dotnet user-secrets set SemanticMemory:Services:AzureQueue:ConnectionString [your secret]   # Only needed when running distributed processing
+   dotnet user-secrets set SemanticMemory:Services:AzureCognitiveSearch:Endpoint [your secret]
+   dotnet user-secrets set SemanticMemory:Services:AzureCognitiveSearch:APIKey [your secret]
+   ```
+
+6. For more information and other options, please refer to the [memorypipeline](../memorypipeline/README.md).
 
 ## Enabling Sequential Planner
 
@@ -37,17 +81,17 @@ To enable sequential planner,
 
 1. In [./webapi/appsettings.json](appsettings.json), set `"Type": "Sequential"` under the `Planner` section.
 1. Then, set your preferred Planner model (`gpt-4` or `gpt-3.5-turbo`) under the `AIService` configuration section.
-   1. If using `gpt-4`, no other changes are required.
-   1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Skills/ChatSkills/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
-      - Add `using` statement to top of file:
-        ```
-        using Microsoft.SemanticKernel.Planning.Sequential;
-        ```
-      - The `CreatePlanAsync` method should return the following line if `this._plannerOptions?.Type == "Sequential"` is true:
-        ```
-        return new SequentialPlanner(this.Kernel, new SequentialPlannerConfig { RelevancyThreshold = 0.75 }).CreatePlanAsync(goal);
-        ```
-        \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
+1. If using `gpt-4`, no other changes are required.
+1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Skills/ChatSkills/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
+   - Add `using` statement to top of file:
+     ```
+     using Microsoft.SemanticKernel.Planning.Sequential;
+     ```
+   - The `CreatePlanAsync` method should return the following line if `this._plannerOptions?.Type == "Sequential"` is true:
+     ```
+     return new SequentialPlanner(this.Kernel, new SequentialPlannerConfig { RelevancyThreshold = 0.75 }).CreatePlanAsync(goal);
+     ```
+     \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
 1. Restart the `webapi` - Copilot Chat should be now running locally with SequentialPlanner.
 
 ## (Optional) Enabling Cosmos Chat Store.

@@ -7,8 +7,10 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -20,17 +22,20 @@ public class ServiceOptionsController : ControllerBase
 {
     private readonly ILogger<ServiceOptionsController> _logger;
 
-    private readonly MemoryStoreOptions _memoryStoreOptions;
+    private readonly IConfiguration Configuration;
+
+    private readonly SemanticMemoryConfig memoryOptions;
 
     public ServiceOptionsController(
         ILogger<ServiceOptionsController> logger,
-        IOptions<MemoryStoreOptions> memoryStoreOptions)
+        IConfiguration configuration,
+        IOptions<SemanticMemoryConfig> memoryOptions)
     {
         this._logger = logger;
-        this._memoryStoreOptions = memoryStoreOptions.Value;
+        this.Configuration = configuration;
+        this.memoryOptions = memoryOptions.Value;
     }
 
-    // TODO: [Issue #95] Include all service options in a single response.
     /// <summary>
     /// Return the memory store type that is configured.
     /// </summary>
@@ -43,8 +48,8 @@ public class ServiceOptionsController : ControllerBase
         {
             MemoryStore = new MemoryStoreOptionResponse()
             {
-                Types = Enum.GetNames(typeof(MemoryStoreOptions.MemoryStoreType)),
-                SelectedType = this._memoryStoreOptions.Type.ToString()
+                Types = Enum.GetNames(typeof(MemoryStoreType)),
+                SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
             },
             Version = GetAssemblyFileVersion()
         };

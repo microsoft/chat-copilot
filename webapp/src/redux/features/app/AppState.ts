@@ -80,7 +80,7 @@ export const Features = {
     },
     [FeatureKeys.BotAsDocs]: {
         enabled: false,
-        label: 'Save/Load Chat Sessions',
+        label: 'Export Chat Sessions',
     },
     [FeatureKeys.MultiUserChat]: {
         enabled: false,

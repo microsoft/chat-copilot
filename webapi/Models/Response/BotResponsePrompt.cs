@@ -58,7 +58,6 @@ public class BotResponsePrompt
         string audience,
         string userIntent,
         string chatMemories,
-        string documentMemories,
         SemanticDependency<StepwiseThoughtProcess> externalInformation,
         string chatHistory,
         ChatCompletionContextMessages metaPromptTemplate
@@ -67,7 +66,7 @@ public class BotResponsePrompt
         this.SystemPersona = systemInstructions;
         this.Audience = audience;
         this.UserIntent = userIntent;
-        this.PastMemories = string.Join("\n", chatMemories, documentMemories).Trim();
+        this.PastMemories = chatMemories;
         this.ExternalInformation = externalInformation;
         this.ChatHistory = chatHistory;
         this.MetaPromptTemplate = metaPromptTemplate;

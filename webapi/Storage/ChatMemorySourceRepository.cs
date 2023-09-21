@@ -41,4 +41,13 @@ public class ChatMemorySourceRepository : Repository<MemorySource>
     {
         return base.StorageContext.QueryEntitiesAsync(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
+
+    /// <summary>
+    /// Retrieves all memory sources.
+    /// </summary>
+    /// <returns>A list of memory sources.</returns>
+    public Task<IEnumerable<MemorySource>> GetAllAsync()
+    {
+        return base.StorageContext.QueryEntitiesAsync(e => true);
+    }
 }

@@ -2,31 +2,23 @@
 
 using System;
 using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.Embeddings;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
-using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using Microsoft.SemanticKernel.Connectors.Memory.Chroma;
-using Microsoft.SemanticKernel.Connectors.Memory.Postgres;
-using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Skills.Core;
-using Npgsql;
-using Pgvector.Npgsql;
-using static CopilotChat.WebApi.Options.MemoryStoreOptions;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -43,55 +35,63 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Add Semantic Kernel services
     /// </summary>
-    internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
+    public static WebApplicationBuilder AddSemanticKernelServices(this WebApplicationBuilder builder)
     {
+        builder.InitializeKernelProvider();
+
         // Semantic Kernel
-        services.AddScoped<IKernel>(sp =>
-        {
-            IKernel kernel = Kernel.Builder
-                .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
-                .WithCompletionBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
-                .WithEmbeddingBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
-                .Build();
+        builder.Services.AddScoped<IKernel>(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<SemanticKernelProvider>();
+                var kernel = provider.GetCompletionKernel();
 
-            sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
-            return kernel;
-        });
-
-        // Semantic memory
-        services.AddSemanticTextMemory();
+                sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
+                return kernel;
+            });
 
         // Azure Content Safety
-        services.AddContentSafety();
+        builder.Services.AddContentSafety();
 
         // Register skills
-        services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
+        builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
 
-        return services;
+        return builder;
     }
 
     /// <summary>
     /// Add Planner services
     /// </summary>
-    public static IServiceCollection AddPlannerServices(this IServiceCollection services)
+    public static WebApplicationBuilder AddPlannerServices(this WebApplicationBuilder builder)
     {
-        IOptions<PlannerOptions>? plannerOptions = services.BuildServiceProvider().GetService<IOptions<PlannerOptions>>();
-        services.AddScoped<CopilotChatPlanner>(sp =>
+        builder.InitializeKernelProvider();
+
+        builder.Services.AddScoped<CopilotChatPlanner>(sp =>
         {
-            IKernel plannerKernel = Kernel.Builder
-                .WithLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                .WithMemory(sp.GetRequiredService<ISemanticTextMemory>())
-                // TODO: [sk Issue #2046] verify planner has AI service configured
-                .WithPlannerBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
-                .Build();
+            sp.WithBotConfig(builder.Configuration);
+
+            var plannerOptions = sp.GetRequiredService<IOptions<PlannerOptions>>();
+
+            var provider = sp.GetRequiredService<SemanticKernelProvider>();
+            var plannerKernel = provider.GetPlannerKernel();
+
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
         // Register Planner skills (AI plugins) here.
         // TODO: [sk Issue #2046] Move planner skill registration from ChatController to this location.
 
-        return services;
+        return builder;
+    }
+
+    /// <summary>
+    /// Add Planner services
+    /// </summary>
+    public static WebApplicationBuilder AddBotConfig(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped(sp => sp.WithBotConfig(builder.Configuration));
+
+        return builder;
     }
 
     /// <summary>
@@ -100,8 +100,10 @@ internal static class SemanticKernelExtensions
     public static IKernel RegisterChatSkill(this IKernel kernel, IServiceProvider sp)
     {
         // Chat skill
-        kernel.ImportSkill(new ChatSkill(
-                kernel: kernel,
+        kernel.ImportSkill(
+            new ChatSkill(
+                kernel,
+                memoryClient: sp.GetRequiredService<ISemanticMemoryClient>(),
                 chatMessageRepository: sp.GetRequiredService<ChatMessageRepository>(),
                 chatSessionRepository: sp.GetRequiredService<ChatSessionRepository>(),
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
@@ -133,6 +135,11 @@ internal static class SemanticKernelExtensions
         {
             throw new SKException($"{functionName} failed.", ex);
         }
+    }
+
+    private static void InitializeKernelProvider(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddSingleton(sp => new SemanticKernelProvider(sp, builder.Configuration));
     }
 
     /// <summary>
@@ -168,182 +175,49 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Add the semantic memory.
-    /// </summary>
-    private static void AddSemanticTextMemory(this IServiceCollection services)
-    {
-        MemoryStoreOptions config = services.BuildServiceProvider().GetRequiredService<IOptions<MemoryStoreOptions>>().Value;
-
-        switch (config.Type)
-        {
-            case MemoryStoreType.Volatile:
-                services.AddSingleton<IMemoryStore, VolatileMemoryStore>();
-                break;
-
-            case MemoryStoreType.Qdrant:
-                if (config.Qdrant == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is Qdrant and Qdrant configuration is null.");
-                }
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                    if (!string.IsNullOrWhiteSpace(config.Qdrant.Key))
-                    {
-                        httpClient.DefaultRequestHeaders.Add("api-key", config.Qdrant.Key);
-                    }
-
-                    var endPointBuilder = new UriBuilder(config.Qdrant.Host);
-                    endPointBuilder.Port = config.Qdrant.Port;
-
-                    return new QdrantMemoryStore(
-                        httpClient: httpClient,
-                        config.Qdrant.VectorSize,
-                        endPointBuilder.ToString(),
-                        loggerFactory: sp.GetRequiredService<ILoggerFactory>()
-                    );
-                });
-                break;
-
-            case MemoryStoreType.AzureCognitiveSearch:
-                if (config.AzureCognitiveSearch == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is AzureCognitiveSearch and AzureCognitiveSearch configuration is null.");
-                }
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    return new AzureCognitiveSearchMemoryStore(config.AzureCognitiveSearch.Endpoint, config.AzureCognitiveSearch.Key);
-                });
-                break;
-
-            case MemoryStoreOptions.MemoryStoreType.Chroma:
-                if (config.Chroma == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is Chroma and Chroma configuration is null.");
-                }
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
-                    var endPointBuilder = new UriBuilder(config.Chroma.Host);
-                    endPointBuilder.Port = config.Chroma.Port;
-
-                    return new ChromaMemoryStore(
-                        httpClient: httpClient,
-                        endpoint: endPointBuilder.ToString(),
-                        loggerFactory: sp.GetRequiredService<ILoggerFactory>()
-                    );
-                });
-                break;
-
-            case MemoryStoreOptions.MemoryStoreType.Postgres:
-                if (config.Postgres == null)
-                {
-                    throw new InvalidOperationException("MemoryStore type is Postgres and Postgres configuration is null.");
-                }
-
-                var dataSourceBuilder = new NpgsqlDataSourceBuilder(config.Postgres.ConnectionString);
-                dataSourceBuilder.UseVector();
-
-                services.AddSingleton<IMemoryStore>(sp =>
-                {
-                    return new PostgresMemoryStore(
-                        dataSource: dataSourceBuilder.Build(),
-                        vectorSize: config.Postgres.VectorSize
-                    );
-                });
-
-                break;
-
-            default:
-                throw new InvalidOperationException($"Invalid 'MemoryStore' type '{config.Type}'.");
-        }
-
-        services.AddScoped<ISemanticTextMemory>(sp => new SemanticTextMemory(
-            sp.GetRequiredService<IMemoryStore>(),
-            sp.GetRequiredService<IOptions<AIServiceOptions>>().Value
-                .ToTextEmbeddingsService(loggerFactory: sp.GetRequiredService<ILoggerFactory>())));
-    }
-
-    /// <summary>
     /// Adds Azure Content Safety
     /// </summary>
     internal static void AddContentSafety(this IServiceCollection services)
     {
         IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        ContentSafetyOptions options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>();
+        var options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>();
 
-        if (options.Enabled)
+        if (options?.Enabled ?? false)
         {
             services.AddSingleton<IContentSafetyService, AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
         }
     }
 
     /// <summary>
-    /// Add the completion backend to the kernel config
+    /// Get the embedding model from the configuration.
     /// </summary>
-    private static KernelBuilder WithCompletionBackend(this KernelBuilder kernelBuilder, AIServiceOptions options)
+    private static BotEmbeddingConfig WithBotConfig(this IServiceProvider provider, IConfiguration configuration)
     {
-        return options.Type switch
-        {
-            AIServiceOptions.AIServiceType.AzureOpenAI
-                => kernelBuilder.WithAzureChatCompletionService(options.Models.Completion, options.Endpoint, options.Key),
-            AIServiceOptions.AIServiceType.OpenAI
-                => kernelBuilder.WithOpenAIChatCompletionService(options.Models.Completion, options.Key),
-            _
-                => throw new ArgumentException($"Invalid {nameof(options.Type)} value in '{AIServiceOptions.PropertyName}' settings."),
-        };
-    }
+        var memoryOptions = provider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
 
-    /// <summary>
-    /// Add the embedding backend to the kernel config
-    /// </summary>
-    private static KernelBuilder WithEmbeddingBackend(this KernelBuilder kernelBuilder, AIServiceOptions options)
-    {
-        return options.Type switch
+        switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {
-            AIServiceOptions.AIServiceType.AzureOpenAI
-                => kernelBuilder.WithAzureTextEmbeddingGenerationService(options.Models.Embedding, options.Endpoint, options.Key),
-            AIServiceOptions.AIServiceType.OpenAI
-                => kernelBuilder.WithOpenAITextEmbeddingGenerationService(options.Models.Embedding, options.Key),
-            _
-                => throw new ArgumentException($"Invalid {nameof(options.Type)} value in '{AIServiceOptions.PropertyName}' settings."),
-        };
-    }
+            case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
+            case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
+                var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
+                return
+                    new BotEmbeddingConfig
+                    {
+                        AIService = BotEmbeddingConfig.AIServiceType.AzureOpenAIEmbedding,
+                        DeploymentOrModelId = azureAIOptions.Deployment,
+                    };
 
-    /// <summary>
-    /// Add the completion backend to the kernel config for the planner.
-    /// </summary>
-    private static KernelBuilder WithPlannerBackend(this KernelBuilder kernelBuilder, AIServiceOptions options)
-    {
-        return options.Type switch
-        {
-            AIServiceOptions.AIServiceType.AzureOpenAI => kernelBuilder.WithAzureChatCompletionService(options.Models.Planner, options.Endpoint, options.Key),
-            AIServiceOptions.AIServiceType.OpenAI => kernelBuilder.WithOpenAIChatCompletionService(options.Models.Planner, options.Key),
-            _ => throw new ArgumentException($"Invalid {nameof(options.Type)} value in '{AIServiceOptions.PropertyName}' settings."),
-        };
-    }
+            case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
+                var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
+                return
+                    new BotEmbeddingConfig
+                    {
+                        AIService = BotEmbeddingConfig.AIServiceType.OpenAI,
+                        DeploymentOrModelId = openAIOptions.EmbeddingModel,
+                    };
 
-    /// <summary>
-    /// Construct IEmbeddingGeneration from <see cref="AIServiceOptions"/>
-    /// </summary>
-    /// <param name="options">The service configuration</param>
-    /// <param name="httpClient">Custom <see cref="HttpClient"/> for HTTP requests.</param>
-    /// <param name="loggerFactory">Custom <see cref="ILoggerFactory"/> for logging.</param>
-    private static ITextEmbeddingGeneration ToTextEmbeddingsService(this AIServiceOptions options,
-        HttpClient? httpClient = null,
-        ILoggerFactory? loggerFactory = null)
-    {
-        return options.Type switch
-        {
-            AIServiceOptions.AIServiceType.AzureOpenAI
-                => new AzureTextEmbeddingGeneration(options.Models.Embedding, options.Endpoint, options.Key, httpClient: httpClient, loggerFactory: loggerFactory),
-            AIServiceOptions.AIServiceType.OpenAI
-                => new OpenAITextEmbeddingGeneration(options.Models.Embedding, options.Key, httpClient: httpClient, loggerFactory: loggerFactory),
-            _
-                => throw new ArgumentException("Invalid AIService value in embeddings backend settings"),
-        };
+            default:
+                throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'SemanticMemory' settings.");
+        }
     }
 }

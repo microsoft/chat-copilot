@@ -42,14 +42,16 @@ public static class Program
             "This console app imports files to the CopilotChat WebAPI's document memory store."
         )
         {
-            filesOption, chatCollectionOption
+            filesOption,
+            chatCollectionOption
         };
 
         rootCommand.SetHandler(async (files, chatCollectionId) =>
             {
                 await ImportFilesAsync(files, config!, chatCollectionId);
             },
-            filesOption, chatCollectionOption
+            filesOption,
+            chatCollectionOption
         );
 
         rootCommand.Invoke(args);
@@ -121,25 +123,18 @@ public static class Program
             formContent.Add(filesContent[i], "formFiles", files.ElementAt(i).Name);
         }
 
+
         if (chatCollectionId != Guid.Empty)
         {
             Console.WriteLine($"Uploading and parsing file to chat {chatCollectionId}...");
-            using var chatScopeContent = new StringContent("Chat");
-            using var chatCollectionIdContent = new StringContent(chatCollectionId.ToString());
-            formContent.Add(chatScopeContent, "documentScope");
-            formContent.Add(chatCollectionIdContent, "chatId");
 
-            // Calling UploadAsync here to make sure disposable objects are still in scope.
-            await UploadAsync(formContent, accessToken, config);
+            await UploadAsync(chatCollectionId);
         }
         else
         {
             Console.WriteLine("Uploading and parsing file to global collection...");
-            using var globalScopeContent = new StringContent("Global");
-            formContent.Add(globalScopeContent, "documentScope");
 
-            // Calling UploadAsync here to make sure disposable objects are still in scope.
-            await UploadAsync(formContent, accessToken, config);
+            await UploadAsync();
         }
 
         // Dispose of all the file streams.
@@ -147,54 +142,50 @@ public static class Program
         {
             fileContent.Dispose();
         }
-    }
 
-    /// <summary>
-    /// Sends a POST request to the Document Store to upload a file for parsing.
-    /// </summary>
-    /// <param name="multipartFormDataContent">The multipart form data content to send.</param>
-    /// <param name="config">Configuration.</param>
-    private static async Task UploadAsync(
-        MultipartFormDataContent multipartFormDataContent,
-        string? accessToken,
-        Config config)
-    {
-        // Create a HttpClient instance and set the timeout to infinite since
-        // large documents will take a while to parse.
-        using HttpClientHandler clientHandler = new()
+        async Task UploadAsync(Guid? chatId = null)
         {
-            CheckCertificateRevocationList = true
-        };
-        using HttpClient httpClient = new(clientHandler)
-        {
-            Timeout = Timeout.InfiniteTimeSpan
-        };
-
-        if (config.AuthenticationType == "AzureAd")
-        {
-            // Add required properties to the request header.
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken!}");
-        }
-
-        try
-        {
-            using HttpResponseMessage response = await httpClient.PostAsync(
-                new Uri(new Uri(config.ServiceUri), "importDocuments"),
-                multipartFormDataContent
-            );
-
-            if (!response.IsSuccessStatusCode)
+            // Create a HttpClient instance and set the timeout to infinite since
+            // large documents will take a while to parse.
+            using HttpClientHandler clientHandler = new()
             {
-                Console.WriteLine($"Error: {response.StatusCode} {response.ReasonPhrase}");
-                Console.WriteLine(await response.Content.ReadAsStringAsync());
-                return;
+                CheckCertificateRevocationList = true
+            };
+            using HttpClient httpClient = new(clientHandler)
+            {
+                Timeout = Timeout.InfiniteTimeSpan
+            };
+
+            if (config.AuthenticationType == "AzureAd")
+            {
+                // Add required properties to the request header.
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken!}");
             }
 
-            Console.WriteLine("Uploading and parsing successful.");
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
+            string uriPath =
+                chatId.HasValue ?
+                $"chat/{chatId}/documents" :
+                "documents";
+
+            try
+            {
+                using HttpResponseMessage response = await httpClient.PostAsync(
+                    new Uri(new Uri(config.ServiceUri), uriPath),
+                    formContent);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"Error: {response.StatusCode} {response.ReasonPhrase}");
+                    Console.WriteLine(await response.Content.ReadAsStringAsync());
+                    return;
+                }
+
+                Console.WriteLine("Uploading and parsing successful.");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
         }
     }
 }
