@@ -30,17 +30,17 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class SemanticKernelExtensions
 {
     /// <summary>
-    /// Delegate to register skills with a Semantic Kernel
+    /// Delegate to register plugins with a Semantic Kernel
     /// </summary>
     public delegate Task RegisterSkillsWithKernel(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
-    /// Delegate to register skills with the planner's kernel (i.e., omits skills not required to generate bot response).
+    /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
     /// </summary>
     public delegate Task RegisterSkillsWithPlannerHook(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
-    /// Delegate for any complimentary setup of the kernel, i.e., registering custom skills, etc.
+    /// Delegate for any complimentary setup of the kernel, i.e., registering custom plugins, etc.
     /// </summary>
     public delegate Task KernelSetupHook(IServiceProvider sp, IKernel kernel);
 
@@ -66,7 +66,7 @@ internal static class SemanticKernelExtensions
         // Azure Content Safety
         builder.Services.AddContentSafety();
 
-        // Register skills
+        // Register plugins
         builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
 
         // Add any additional setup needed for the kernel.
@@ -96,7 +96,7 @@ internal static class SemanticKernelExtensions
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
-        // Register any custom skills with the planner's kernel.
+        // Register any custom plugins with the planner's kernel.
         builder.Services.AddPlannerSetupHook();
 
         return builder;
@@ -124,18 +124,18 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Register custom hook for registering skills with the planner's kernel.
-    /// These skills will be persistent and available to the planner on every request.
-    /// Transient skills requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
+    /// Register custom hook for registering plugins with the planner's kernel.
+    /// These plugins will be persistent and available to the planner on every request.
+    /// Transient plugins requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
     /// </summary>
-    /// <param name="registerSkillsHook">The delegate to register skills with the planner's kernel. If null, defaults to local runtime skill registration using RegisterSkillsAsync.</param>
-    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterSkillsWithPlannerHook? registerSkillsHook = null)
+    /// <param name="registerPluginsHook">The delegate to register plugins with the planner's kernel. If null, defaults to local runtime plugin registration using RegisterPluginsAsync.</param>
+    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterSkillsWithPlannerHook? registerPluginsHook = null)
     {
-        // Default to local runtime skill registration.
-        registerSkillsHook ??= RegisterSkillsAsync;
+        // Default to local runtime plugin registration.
+        registerPluginsHook ??= RegisterPluginsAsync;
 
         // Add the hook to the service collection
-        services.AddScoped<RegisterSkillsWithPlannerHook>(sp => registerSkillsHook);
+        services.AddScoped<RegisterSkillsWithPlannerHook>(sp => registerPluginsHook);
         return services;
     }
 
@@ -202,35 +202,35 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Register skills with a given kernel.
+    /// Register plugins with a given kernel.
     /// </summary>
-    private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterPluginsAsync(IServiceProvider sp, IKernel kernel)
     {
         var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
 
-        // Semantic skills
+        // Semantic plugins
         ServiceOptions options = sp.GetRequiredService<IOptions<ServiceOptions>>().Value;
-        if (!string.IsNullOrWhiteSpace(options.SemanticSkillsDirectory))
+        if (!string.IsNullOrWhiteSpace(options.SemanticPluginsDirectory))
         {
-            foreach (string subDir in Directory.GetDirectories(options.SemanticSkillsDirectory))
+            foreach (string subDir in Directory.GetDirectories(options.SemanticPluginsDirectory))
             {
                 try
                 {
-                    kernel.ImportSemanticSkillFromDirectory(options.SemanticSkillsDirectory, Path.GetFileName(subDir)!);
+                    kernel.ImportSemanticSkillFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
                 catch (SKException ex)
                 {
-                    logger.LogError("Could not load skill from {Directory}: {Message}", subDir, ex.Message);
+                    logger.LogError("Could not load plugin from {Directory}: {Message}", subDir, ex.Message);
                 }
             }
         }
 
-        // Native skills
-        if (!string.IsNullOrWhiteSpace(options.NativeSkillsDirectory))
+        // Native plugins
+        if (!string.IsNullOrWhiteSpace(options.NativePluginsDirectory))
         {
             // Loop through all the files in the directory that have the .cs extension
-            var skillFiles = Directory.GetFiles(options.NativeSkillsDirectory, "*.cs");
-            foreach (var file in skillFiles)
+            var pluginFiles = Directory.GetFiles(options.NativePluginsDirectory, "*.cs");
+            foreach (var file in pluginFiles)
             {
                 // Parse the name of the class from the file name (assuming it matches)
                 var className = Path.GetFileNameWithoutExtension(file);
@@ -244,12 +244,12 @@ internal static class SemanticKernelExtensions
                 {
                     try
                     {
-                        var skillInstance = Activator.CreateInstance(classType);
-                        kernel.ImportSkill(skillInstance!, classType.Name!);
+                        var plugin = Activator.CreateInstance(classType);
+                        kernel.ImportSkill(plugin!, classType.Name!);
                     }
                     catch (SKException ex)
                     {
-                        logger.LogError("Could not load skill from file {File}: {Details}", file, ex.Message);
+                        logger.LogError("Could not load plugin from file {File}: {Details}", file, ex.Message);
                     }
                 }
                 else

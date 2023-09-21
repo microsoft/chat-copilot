@@ -26,12 +26,12 @@ public class ServiceOptions
     /// <summary>
     /// Local directory in which to load semantic skills.
     /// </summary>
-    public string? SemanticSkillsDirectory { get; set; }
+    public string? SemanticPluginsDirectory { get; set; }
 
     /// <summary>
     /// Local directory in which to load native skills.
     /// </summary>
-    public string? NativeSkillsDirectory { get; set; }
+    public string? NativePluginsDirectory { get; set; }
 
     /// <summary>
     /// Setting indicating if the site is undergoing maintenance.
