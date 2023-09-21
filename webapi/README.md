@@ -234,6 +234,62 @@ Then use a Time chart on the Visual tab.
 
 ## (Optional) Custom Semantic Kernel Setup
 
+### Adding Custom Skills
+
+If you wish to load custom skills into the kernel or planner:
+
+1. Create two new folders under `./Skills` directory named `./SemanticSkills` and `./NativeSkills`. There, you can add your custom skills or plugins!
+2. Then, comment out the respective options in `appsettings.json`:
+
+   ```
+   "Service": {
+      // "TimeoutLimitInS": "120"
+      "SemanticSkillsDirectory": "./Skills/SemanticSkills",
+      "NativeSkillsDirectory": "./Skills/NativeSkills"
+      // "KeyVault": ""
+      // "InMaintenance":  true
+   },
+   ```
+
+3. By default, custom skills are only loaded into planner's kernel for discovery at runtime. If you want to load the skills into the core Kernel, you'll have to add the skill registration into the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`. Uncomment the line with `services.AddKernelSetupHook` and pass in the `RegisterSkillsAsync` hook:
+
+   ```
+   internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
+   {
+      ...
+
+      // Add any additional setup needed for the kernel.
+      // Uncomment the following line and pass in your custom hook.
+      builder.Services.AddKernelSetupHook(RegisterSkillsAsync);
+
+      return services;
+   }
+   ```
+
+#### Deploying with Custom Skills
+
+If you want to use local files for custom skills, you need to make sure that the files are copied to the output directory when you publish or run the app. The deployed app expects to find the files in a subdirectory specified by the `NativeSkillsDirectory` or `SemanticSkillsDirectory` option, which is relative to the assembly location by default.
+
+To copy the files to the output directory, you can either:
+
+1. Mark the files and the subdirectory as Copy to Output Directory in the project file or the file properties. For example, if your files are in a subdirectories called `.\Skills\NativeSkills` and `Skills\SemanticSkills`, you can add this to the `CopilotChatWebApi.csproj` file:
+
+   ```
+   <ItemGroup>
+      <None Update="Skills\NativeSkills">
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Skills\SemanticSkills">
+         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+   </ItemGroup>
+   ```
+
+Alternatively,
+
+2. You can change the respective directory option to use an absolute path or a different base path, but make sure that the files are accessible from that location.
+3. Create a function to load your custom skills at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the next two sections for details on how to do this. This bypasses the need to load the skills at runtime altogether, and consequently, there's no need to shop the source files for your custom skills. Remember to comment out the `NativeSkillsDirectory` or `SemanticSkillsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
+
 ### Add Custom Setup to Chat Copilot's Kernel
 
 Chat Copilot's Semantic Kernel can be customized with additional skills or settings by using a custom hook that performs any complimentary setup of the kernel. A custom hook is a delegate that takes an IServiceProvider and an IKernel as parameters and performs any desired actions on the kernel, such as registering additional skills, setting kernel options, adding dependency injections, importing data, etc. To use a custom hook, you can pass it as an argument to the `AddKernelSetupHook` call in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`.
@@ -241,31 +297,35 @@ Chat Copilot's Semantic Kernel can be customized with additional skills or setti
 For example, the following code snippet shows how to create a custom hook that registers a skill called MySkill and passes it to AddKernelSetupHook:
 
 ```
+
 // Define a custom hook that registers MySkill with the kernel
 
 private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
 {
-   // Import the skill into the kernel with the name "MySkill"
-   kernel.ImportSkill(new MySkill(), nameof(MySkill));
+// Import the skill into the kernel with the name "MySkill"
+kernel.ImportSkill(new MySkill(), nameof(MySkill));
 
-   // Perform any other setup actions on the kernel
-   // ...
+// Perform any other setup actions on the kernel
+// ...
 }
+
 ```
 
 Then in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddKernelSetupHook` call:
 
 ```
+
 internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
 {
-   ...
+...
 
-   // Add any additional setup needed for the kernel.
-   // Uncomment the following line and pass in your custom hook.
-   services.AddKernelSetupHook(MyCustomSetupHook);
+// Add any additional setup needed for the kernel.
+// Uncomment the following line and pass in your custom hook.
+builder.Services.AddKernelSetupHook(MyCustomSetupHook);
 
-   return services;
+return services;
 }
+
 ```
 
 ### Add Custom Plugin Registration to the Planner's Kernel
@@ -279,15 +339,17 @@ To use a custom hook, you can pass it as an argument to the `AddPlannerSetupHook
 Then in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddPlannerSetupHook` call:
 
 ```
+
 internal static IServiceCollection AddPlannerServices(this IServiceCollection services)
 {
-   ...
+...
 
-   // Register any custom skills with the planner's kernel.
-   services.AddPlannerSetupHook(MyCustomSetupHook);
+// Register any custom skills with the planner's kernel.
+builder.Services.AddPlannerSetupHook(MyCustomSetupHook);
 
-   return services;
+return services;
 }
+
 ```
 
 Note that this will override the call to `RegisterSkillsAsync`.
