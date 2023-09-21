@@ -45,7 +45,12 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Delegate to register skills with the planner's kernel (i.e., omits skills not required to generate bot response).
     /// </summary>
-    public delegate Task RegisterSkillsWithPlanner(IServiceProvider sp, IKernel kernel);
+    public delegate Task RegisterSkillsWithPlannerHook(IServiceProvider sp, IKernel kernel);
+
+    /// <summary>
+    /// Delegate for any complimentary setup of the kernel, i.e., registering custom skills, etc.
+    /// </summary>
+    public delegate Task KernelSetupHook(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -63,6 +68,8 @@ internal static class SemanticKernelExtensions
                 .Build();
 
             sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
+            sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
+
             return kernel;
         });
 
@@ -74,6 +81,10 @@ internal static class SemanticKernelExtensions
 
         // Register skills
         services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
+
+        // Add any additional setup needed for the kernel.
+        // Uncomment the following line and pass in a custom hook for any complimentary setup of the kernel.
+        // services.AddKernelSetupHook(customHook);
 
         return services;
     }
@@ -93,14 +104,40 @@ internal static class SemanticKernelExtensions
                 .WithPlannerBackend(sp.GetRequiredService<IOptions<AIServiceOptions>>().Value)
                 .Build();
 
-            sp.GetRequiredService<RegisterSkillsWithPlanner>()(sp, plannerKernel);
+            sp.GetService<RegisterSkillsWithPlannerHook>()?.Invoke(sp, plannerKernel);
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
-        // Register all custom skills as persistent skills in the Planner.
-        // Transient skills requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
-        services.AddScoped<RegisterSkillsWithPlanner>(sp => RegisterSkillsAsync);
+        // Register any custom skills with the planner's kernel.
+        services.AddPlannerSetupHook();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Register custom hook for any complimentary setup of the kernel.
+    /// </summary>
+    /// <param name="hook">The delegate to perform any additional setup of the kernel.</param>
+    public static IServiceCollection AddKernelSetupHook(this IServiceCollection services, KernelSetupHook hook)
+    {
+        // Add the hook to the service collection
+        services.AddScoped<KernelSetupHook>(sp => hook);
+        return services;
+    }
+
+    /// <summary>
+    /// Register custom hook for registering skills with the planner's kernel.
+    /// These skills will be persistent and available to the planner on every request.
+    /// Transient skills requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
+    /// </summary>
+    /// <param name="registerSkillsHook">The delegate to register skills with the planner's kernel. If null, defaults to local runtime skill registration using RegisterSkillsAsync.</param>
+    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterSkillsWithPlannerHook? registerSkillsHook = null)
+    {
+        // Default to local runtime skill registration.
+        registerSkillsHook ??= RegisterSkillsAsync;
+
+        // Add the hook to the service collection
+        services.AddScoped<RegisterSkillsWithPlannerHook>(sp => registerSkillsHook);
         return services;
     }
 
@@ -156,7 +193,7 @@ internal static class SemanticKernelExtensions
         // Time skill
         kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
 
-        return RegisterSkillsAsync(sp, kernel);
+        return Task.CompletedTask;
     }
 
     /// <summary>
