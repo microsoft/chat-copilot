@@ -496,6 +496,6 @@ tmp-cache
 tmp-database
 tmp-queues
 
-# Custom skills in default directories
-*/Skills/NativeSkills
-*/Skills/SemanticSkills
+# Custom plugins in default directories
+*/Skills/NativePlugins
+*/Skills/SemanticPlugins
