@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "14023436275934784880"
+      "templateHash": "10236995422520585325"
     }
   },
   "parameters": {
@@ -262,7 +262,7 @@
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2022-03-01",
-      "name": "[format('asp-{0}-{1}', variables('uniqueName'), parameters('name'))]",
+      "name": "[format('asp-{0}-webapi', variables('uniqueName'))]",
       "location": "[parameters('location')]",
       "kind": "app",
       "sku": {
@@ -279,7 +279,7 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
         "httpsOnly": true,
         "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
         "siteConfig": {
@@ -287,7 +287,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
         "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
     },
@@ -577,13 +577,13 @@
         "skweb": "1"
       },
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
         "siteConfig": {
           "alwaysOn": true
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-{1}', variables('uniqueName'), parameters('name')))]"
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
       ]
     },
     {
