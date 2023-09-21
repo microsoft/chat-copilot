@@ -43,8 +43,10 @@ jobs:
           WebApi_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}
         run: |
           dotnet dev-certs https
-          dotnet user-secrets set "AIService:Key" "$AzureOpenAI__ApiKey"
-          dotnet user-secrets set "AIService:Endpoint" "$AzureOpenAI__Endpoint"
+          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIText:APIKey" "$AzureOpenAI__ApiKey"
+          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIText:Endpoint" "$AzureOpenAI__Endpoint"
+          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIEmbedding:APIKey" "$AzureOpenAI__ApiKey"
+          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint" "$AzureOpenAI__Endpoint"
           dotnet user-secrets set "Authentication:Type" "AzureAd"
           dotnet user-secrets set "Authentication:AzureAd:TenantId" "$TenantId"
           dotnet user-secrets set "Authentication:AzureAd:ClientId" "$WebApi_ClientId"
