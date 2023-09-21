@@ -196,7 +196,7 @@ public class ChatController : ControllerBase, IDisposable
             if (match.Success)
             {
                 // Use the first capture group as the key and the header value as the value
-                openApiSkillsAuthHeaders.Add(match.Groups[1].Value.ToUpperInvariant(), header.Value);
+                openApiSkillsAuthHeaders.Add(match.Groups[1].Value.ToUpperInvariant(), header.Value!);
             }
         }
 

@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -37,15 +37,13 @@ public class Bot
     /// </summary>
     public List<ChatMessage> ChatHistory { get; set; } = new List<ChatMessage>();
 
-    // TODO: [Issue #47] Change from MemoryQueryResult to MemoryRecord
     /// <summary>
     /// The embeddings of the bot.
     /// </summary>
-    public List<KeyValuePair<string, List<MemoryQueryResult>>> Embeddings { get; set; } = new List<KeyValuePair<string, List<MemoryQueryResult>>>();
+    public Dictionary<string, List<Citation>> Embeddings { get; set; } = new Dictionary<string, List<Citation>>();
 
-    // TODO: [Issue #47] Change from MemoryQueryResult to MemoryRecord
     /// <summary>
     /// The embeddings of uploaded documents in Copilot Chat. It represents the document memory which is accessible to all chat sessions of a given user.
     /// </summary>
-    public List<KeyValuePair<string, List<MemoryQueryResult>>> DocumentEmbeddings { get; set; } = new List<KeyValuePair<string, List<MemoryQueryResult>>>();
+    public Dictionary<string, List<Citation>> DocumentEmbeddings { get; set; } = new Dictionary<string, List<Citation>>();
 }

@@ -37,6 +37,12 @@ public class PlannerOptions
     public const string PropertyName = "Planner";
 
     /// <summary>
+    /// The model name used by the planner.
+    /// </summary>
+    [Required]
+    public string Model { get; set; } = string.Empty;
+
+    /// <summary>
     /// The type of planner to used to create plan.
     /// </summary>
     [Required]

@@ -11,8 +11,6 @@ export class DocumentImportService extends BaseService {
         accessToken: string,
     ) => {
         const formData = new FormData();
-        formData.append('chatId', chatId);
-        formData.append('documentScope', 'Chat');
         formData.append('useContentSafety', useContentSafety.toString());
         for (const document of documents) {
             formData.append('formFiles', document);
@@ -20,7 +18,7 @@ export class DocumentImportService extends BaseService {
 
         return await this.getResponseAsync<IChatMessage>(
             {
-                commandPath: 'importDocuments',
+                commandPath: `chats/${chatId}/documents`,
                 method: 'POST',
                 body: formData,
             },

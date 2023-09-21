@@ -1,4 +1,5 @@
 import { Body1, tokens } from '@fluentui/react-components';
+import { IChatMessage } from '../../libs/models/ChatMessage';
 
 /*
  * Function to check if date is today.
@@ -75,4 +76,19 @@ export function formatParagraphTextContent(messageContent = '') {
             ))}
         </Body1>
     );
+}
+
+/*
+ * Function to replace citation links with indices matching the citation list.
+ */
+export function replaceCitationLinksWithIndices(formattedMessageContent: string, message: IChatMessage) {
+    const citations = message.citations;
+    if (citations) {
+        citations.forEach((citation, index) => {
+            const citationLink = citation.link;
+            formattedMessageContent = formattedMessageContent.replaceAll(citationLink, (index + 1).toString());
+        });
+    }
+
+    return formattedMessageContent;
 }

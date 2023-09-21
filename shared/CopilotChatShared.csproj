@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>CopilotChat.Shared</RootNamespace>
+    <TargetFramework>net6.0</TargetFramework>
+    <RollForward>LatestMajor</RollForward>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticMemory.Core" Version="0.2.230919.2-preview" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+  </ItemGroup>
+
+</Project>

@@ -6,7 +6,10 @@ on:
       ENVIRONMENT:
         required: true
         type: string
-      ARTIFACT_NAME:
+      WEBAPI_ARTIFACT_NAME:
+        required: true
+        type: string
+      MEMORYPIPELINE_ARTIFACT_NAME:
         required: true
         type: string
     secrets:
@@ -42,7 +45,19 @@ jobs:
     needs: [deploy-infra]
     uses: ./.github/workflows/copilot-deploy-backend.yml
     with:
-      ARTIFACT_NAME: ${{inputs.ARTIFACT_NAME}}
+      ARTIFACT_NAME: ${{inputs.WEBAPI_ARTIFACT_NAME}}
+      DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
+      ENVIRONMENT: ${{inputs.ENVIRONMENT}}
+    secrets:
+      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+  deploy-memorypipeline:
+    needs: [deploy-infra]
+    uses: ./.github/workflows/copilot-deploy-memorypipeline.yml
+    with:
+      ARTIFACT_NAME: ${{inputs.MEMORYPIPELINE_ARTIFACT_NAME}}
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
     secrets:

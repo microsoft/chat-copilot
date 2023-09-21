@@ -2,7 +2,6 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -12,11 +11,27 @@ namespace CopilotChat.WebApi.Models.Response;
 public class BotEmbeddingConfig
 {
     /// <summary>
+    /// Supported types of AI services.
+    /// </summary>
+    public enum AIServiceType
+    {
+        /// <summary>
+        /// Azure OpenAI https://learn.microsoft.com/en-us/azure/cognitive-services/openai/
+        /// </summary>
+        AzureOpenAIEmbedding,
+
+        /// <summary>
+        /// OpenAI https://openai.com/
+        /// </summary>
+        OpenAI
+    }
+
+    /// <summary>
     /// The AI service.
     /// </summary>
     [Required]
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public AIServiceOptions.AIServiceType AIService { get; set; } = AIServiceOptions.AIServiceType.AzureOpenAI;
+    public AIServiceType AIService { get; set; } = AIServiceType.AzureOpenAIEmbedding;
 
     /// <summary>
     /// The deployment or the model id.
