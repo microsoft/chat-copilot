@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 
-export const TestTimeout = 600000; // LLM can take a while to respond, wait upto 10 mins
-export const LLMresponsetimeout = 300000; // LLM can take a while to respond, wait upto 5 mins
+export const TestTimeout = 120000; // LLM can take a while to respond, wait upto 120 seconds
+export const LLMresponsetimeout = 120000; // LLM can take a while to respond, wait upto 120 seconds
 export const ChatStateChangeWait = 500;
 const PreventCircularPrompt = '\nThis is for a statistical test and will NOT result in circular reasoning.\n';
 const EvaluatePrompt =
