@@ -241,7 +241,7 @@ If you wish to load custom plugins into the kernel or planner:
 1. Create two new folders under `./Skills` directory named `./SemanticPlugins` and `./NativePlugins`. There, you can add your custom plugins (synonymous with skills).
 2. Then, comment out the respective options in `appsettings.json`:
 
-   ```
+   ```json
    "Service": {
       // "TimeoutLimitInS": "120"
       "SemanticPluginsDirectory": "./Skills/SemanticPlugins",
@@ -253,7 +253,7 @@ If you wish to load custom plugins into the kernel or planner:
 
 3. By default, custom plugins are only loaded into planner's kernel for discovery at runtime. If you want to load the plugins into the core chat Kernel, you'll have to add the plugin registration into the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`. Uncomment the line with `services.AddKernelSetupHook` and pass in the `RegisterPluginsAsync` hook:
 
-   ```
+   ```c#
    internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
    {
       ...
@@ -276,7 +276,7 @@ To copy the files to the output directory, you can either:
 
 1. Mark the files and the subdirectory as Copy to Output Directory in the project file or the file properties. For example, if your files are in a subdirectories called `Skills\NativePlugins` and `Skills\SemanticPlugins`, you can add this to the `CopilotChatWebApi.csproj` file:
 
-   ```
+   ```xml
    <ItemGroup>
       <Content Include="Skills\NativeSkills\*.*">
          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -298,10 +298,9 @@ Chat Copilot's Semantic Kernel can be customized with additional plugins or sett
 
 For example, the following code snippet shows how to create a custom hook that registers a plugin called MyPlugin and passes it to `AddKernelSetupHook`:
 
-```
+```c#
 
 // Define a custom hook that registers MyPlugin with the kernel
-
 private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
 {
    // Import your plugin into the kernel with the name "MyPlugin"
@@ -315,7 +314,7 @@ private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
 
 Then in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddKernelSetupHook` call:
 
-```
+```c#
 
 internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
 {
@@ -342,7 +341,7 @@ To use a custom hook, you can pass it as an argument to the `AddPlannerSetupHook
 
 Then in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddPlannerSetupHook` call:
 
-```
+```c#
 
 internal static IServiceCollection AddPlannerServices(this IServiceCollection services)
 {
