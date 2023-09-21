@@ -302,11 +302,11 @@ For example, the following code snippet shows how to create a custom hook that r
 
 private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
 {
-// Import the skill into the kernel with the name "MySkill"
-kernel.ImportSkill(new MySkill(), nameof(MySkill));
+   // Import the skill into the kernel with the name "MySkill"
+   kernel.ImportSkill(new MySkill(), nameof(MySkill));
 
-// Perform any other setup actions on the kernel
-// ...
+   // Perform any other setup actions on the kernel
+   // ...
 }
 
 ```
@@ -317,13 +317,13 @@ Then in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`,
 
 internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
 {
-...
+   ...
 
-// Add any additional setup needed for the kernel.
-// Uncomment the following line and pass in your custom hook.
-builder.Services.AddKernelSetupHook(MyCustomSetupHook);
+   // Add any additional setup needed for the kernel.
+   // Uncomment the following line and pass in your custom hook.
+   builder.Services.AddKernelSetupHook(MyCustomSetupHook);
 
-return services;
+   return services;
 }
 
 ```
@@ -342,12 +342,12 @@ Then in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, pass y
 
 internal static IServiceCollection AddPlannerServices(this IServiceCollection services)
 {
-...
+   ...
 
-// Register any custom skills with the planner's kernel.
-builder.Services.AddPlannerSetupHook(MyCustomSetupHook);
+   // Register any custom skills with the planner's kernel.
+   builder.Services.AddPlannerSetupHook(MyCustomSetupHook);
 
-return services;
+   return services;
 }
 
 ```
