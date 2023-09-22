@@ -59,6 +59,8 @@ internal static class SemanticKernelExtensions
                 var kernel = provider.GetCompletionKernel();
 
                 sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
+
+                // If KernelSetupHook is not null, invokes custom kernel setup.
                 sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
                 return kernel;
             });
@@ -69,7 +71,7 @@ internal static class SemanticKernelExtensions
         // Register plugins
         builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
 
-        // Add any additional setup needed for the kernel.
+        // Add any additional setup needed for the kernel. See webapi/README.md#Add-Custom-Setup-to-Chat-Copilot's-Kernel for more details.
         // Uncomment the following line and pass in a custom hook for any complimentary setup of the kernel.
         // builder.Services.AddKernelSetupHook(customHook);
 
