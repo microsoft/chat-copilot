@@ -78,6 +78,12 @@ PUBLISH_OUTPUT_DIRECTORY="$OUTPUT_DIRECTORY/publish"
 PUBLISH_ZIP_DIRECTORY="$OUTPUT_DIRECTORY/out"
 PACKAGE_FILE_PATH="$PUBLISH_ZIP_DIRECTORY/webapi.zip"
 
+# Ensure frontend static files exist
+if [[ ! -f "$SCRIPT_ROOT/../../webapp/build" ]]; then
+    echo "Frontend static files not found. Have you run 'build-webapp.ps1' yet?"
+    exit 1
+fi
+
 if [[ ! -d "$PUBLISH_OUTPUT_DIRECTORY" ]]; then
     mkdir -p "$PUBLISH_OUTPUT_DIRECTORY"
 fi
@@ -90,6 +96,9 @@ dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" --configurat
 if [ $? -ne 0 ]; then
     exit 1
 fi
+
+Write-Host "Copying frontend files to package"
+cp -R "$SCRIPT_ROOT/../../webapp/build" "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
 
 # if not NO_ZIP then zip the package
 if [[ -z "$NO_ZIP" ]]; then

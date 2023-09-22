@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Deploy CopilotChat's WebApp to Azure
+Build Copilot Chat's frontend (aka webapp)
 #>
 
 param(
@@ -26,7 +26,7 @@ param(
 
     [string]
     # Version to display in UI.
-    $Version = "",
+    $Version = "0.0.0",
 
     [string]
     # Additional information given in version info. (Ex: commit SHA)
@@ -48,12 +48,8 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "Getting deployment outputs..."
 $deployment = $(az deployment group show --name $DeploymentName --resource-group $ResourceGroupName --output json | ConvertFrom-Json)
-$webappUrl = $deployment.properties.outputs.webappUrl.value
-$webappName = $deployment.properties.outputs.webappName.value
 $webapiUrl = $deployment.properties.outputs.webapiUrl.value
 $webapiName = $deployment.properties.outputs.webapiName.value
-Write-Host "webappUrl: $webappUrl"
-Write-Host "webappName: $webappName"
 Write-Host "webapiName: $webapiName"
 Write-Host "webapiUrl: $webapiUrl"
 
@@ -76,17 +72,8 @@ Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_SK_VERSION=$Version" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_BUILD_INFO=$VersionInfo" | Out-File -FilePath $envFilePath -Append
 
-Write-Host "Generating SWA config..."
-$swaConfig = $(Get-Content "$PSScriptRoot/../../webapp/template.swa-cli.config.json" -Raw)
-$swaConfig = $swaConfig.Replace("{{appDevserverUrl}}", "https://$webappUrl")
-$swaConfig = $swaConfig.Replace("{{appName}}", "$webappName")
-$swaConfig = $swaConfig.Replace("{{resourceGroup}}", "$ResourceGroupName")
-$swaConfig = $swaConfig.Replace("{{subscription-id}}", "$Subscription")
-
-$swaConfig | Out-File -FilePath "$PSScriptRoot/../../webapp/swa-cli.config.json"
-Write-Host $(Get-Content "$PSScriptRoot/../../webapp/swa-cli.config.json" -Raw)
-
 Push-Location -Path "$PSScriptRoot/../../webapp"
+
 Write-Host "Installing yarn dependencies..."
 yarn install
 if ($LASTEXITCODE -ne 0) {
@@ -94,25 +81,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Building webapp..."
-swa build
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
-}
-
-Write-Host "Deploying webapp..."
-swa deploy
+yarn build
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
 Pop-Location
 
-$origin = "https://$webappUrl"
-Write-Host "Ensuring '$origin' is included in CORS origins for webapi '$webapiName'..."
-if (-not ((az webapp cors show --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription | ConvertFrom-Json).allowedOrigins -contains $origin)) {
-    az webapp cors add --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins $origin
-}
-
+$origin = "https://$webapiUrl"
 Write-Host "Ensuring '$origin' is included in AAD app registration's redirect URIs..."
 $objectId = (az ad app show --id $FrontendClientId | ConvertFrom-Json).id
 $redirectUris = (az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$objectId" --headers 'Content-Type=application/json' | ConvertFrom-Json).spa.redirectUris
@@ -135,5 +111,4 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-
-Write-Host "To verify your deployment, go to 'https://$webappUrl' in your browser."
+Write-Host "To verify your deployment, go to 'https://$webapiUrl' in your browser."

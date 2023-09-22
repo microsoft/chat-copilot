@@ -29,6 +29,12 @@ param(
     $InformationalVersion = ""
 )
 
+# Ensure frontend static files exist
+if (!(Test-Path "$PSScriptRoot/../../webapp/build")) {
+    Write-Error "Frontend static files not found. Have you run 'build-webapp.ps1' yet?"
+    exit 1
+}
+
 Write-Host "BuildConfiguration: $BuildConfiguration"
 Write-Host "DotNetFramework: $DotNetFramework"
 Write-Host "TargetRuntime: $TargetRuntime"
@@ -49,6 +55,9 @@ dotnet publish "$PSScriptRoot/../../webapi/CopilotChatWebApi.csproj" --configura
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
+
+Write-Host "Copying frontend files to package"
+Copy-Item -Path "$PSScriptRoot/../../webapp/build" -Destination "$publishOutputDirectory\wwwroot" -Recurse -Force
 
 Write-Host "Compressing to $publishedZipFilePath"
 Compress-Archive -Path $publishOutputDirectory\* -DestinationPath $publishedZipFilePath -Force

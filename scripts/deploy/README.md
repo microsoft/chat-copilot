@@ -21,7 +21,6 @@ Before you get started, make sure you have the following requirements in place:
 - Azure CLI (i.e., az) (if you already installed Azure CLI, make sure to update your installation to the latest version)
   - Windows, go to https://aka.ms/installazurecliwindows
   - Linux, run "`curl -L https://aka.ms/InstallAzureCli | bash`"
-- Azure Static Web App CLI (i.e., swa) can be installed by running "`npm install -g @azure/static-web-apps-cli`"
 - (Linux only) `zip` can be installed by running "`sudo apt install zip`"
 
 ## App registrations (identity)
@@ -129,51 +128,31 @@ You can also deploy the infrastructure directly from the Azure Portal by clickin
 
 > To find the deployment name when using `Deploy to Azure`, look for a deployment in your resource group that starts with `Microsoft.Template`.
 
-# Deploy Backend (WebAPI)
+# Deploy Application
 
-> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The `deployWebApiPackage = true` setting in main.bicep ensures that the latest copilot chat api is deployed.
-
-To deploy the backend, build the deployment package first and deploy it to the Azure resources created above.
+To deploy the application, first build its frontend part, then build the deployment package and then deploy it to the Azure resources created above.
 
 ## PowerShell
 
 ```powershell
+./build-webapp.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName {YOUR_RESOURCE_GROUP_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME} -FrontendClientId {YOUR_FRONTEND_APPLICATION_ID}
+
 ./package-webapi.ps1
 
-./deploy-webapi.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME}
+./deploy-webapi.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName {YOUR_RESOURCE_GROUP_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME}
 ```
 
 ## Bash
 
 ```bash
+chmod +x ./build-webapp.sh
+./build-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group {YOUR_RESOURCE_GROUP_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --client-id {YOUR_FRONTEND_APPLICATION_ID}
+
 chmod +x ./package-webapi.sh
 ./package-webapi.sh
 
 chmod +x ./deploy-webapi.sh
-./deploy-webapi.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME}
-```
-
-# Deploy Frontend (WebApp)
-
-## Prerequisites
-
-### Install Azure's Static Web Apps CLI
-
-```bash
-npm install -g @azure/static-web-apps-cli
-```
-
-## PowerShell
-
-```powershell
-
-./deploy-webapp.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME} -FrontendClientId {YOUR_FRONTEND_APPLICATION_ID}
-```
-
-## Bash
-
-```bash
-./deploy-webapp.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME} --client-id {YOUR_FRONTEND_APPLICATION_ID}
+./deploy-webapi.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group {YOUR_RESOURCE_GROUP_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME}
 ```
 
 # (Optional) Deploy Memory Pipeline

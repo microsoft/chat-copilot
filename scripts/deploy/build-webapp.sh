@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Deploy CopilotChat's WebApp to Azure
+# Build Copilot Chat's frontend (aka webapp).
 
 set -e
 
@@ -82,10 +82,6 @@ az account set -s "$SUBSCRIPTION"
 echo "Getting deployment outputs..."
 DEPLOYMENT_JSON=$(az deployment group show --name $DEPLOYMENT_NAME --resource-group $RESOURCE_GROUP --output json)
 # get the webapiUrl from the deployment outputs
-eval WEB_APP_URL=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webappUrl.value')
-echo "WEB_APP_URL: $WEB_APP_URL"
-eval WEB_APP_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webappName.value')
-echo "WEB_APP_NAME: $WEB_APP_NAME"
 eval WEB_API_URL=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiUrl.value')
 echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
@@ -109,16 +105,6 @@ echo "REACT_APP_AAD_API_SCOPE=api://$WEB_API_CLIENT_ID/$WEB_API_SCOPE" >> $ENV_F
 echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
 
-echo "Writing swa-cli.config.json..."
-SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../../webapp/swa-cli.config.json"
-SWA_CONFIG_TEMPLATE_FILE_PATH="$SCRIPT_ROOT/../../webapp/template.swa-cli.config.json"
-swaConfig=`cat $SWA_CONFIG_TEMPLATE_FILE_PATH`
-swaConfig=$(echo $swaConfig | sed "s/{{appDevserverUrl}}/https:\/\/${WEB_APP_URL}/")
-swaConfig=$(echo $swaConfig | sed "s/{{appName}}/$WEB_API_NAME/")
-swaConfig=$(echo $swaConfig | sed "s/{{resourceGroup}}/$RESOURCE_GROUP/")
-swaConfig=$(echo $swaConfig | sed "s/{{subscription-id}}/$SUBSCRIPTION/")
-echo $swaConfig > $SWA_CONFIG_FILE_PATH
-
 pushd "$SCRIPT_ROOT/../../webapp"
 
 echo "Installing yarn dependencies..."
@@ -129,29 +115,15 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Building webapp..."
-swa build
+yarn build
 if [ $? -ne 0 ]; then
     echo "Failed to build webapp"
     exit 1
 fi
 
-echo "Deploying webapp..."
-swa deploy --subscription-id $SUBSCRIPTION --app-name $WEB_APP_NAME --env production
-if [ $? -ne 0 ]; then
-    echo "Failed to deploy webapp"
-    exit 1
-fi
-
 popd
 
-ORIGIN="https://$WEB_APP_URL"
-echo "Ensuring origin '$ORIGIN' is included in CORS origins for webapi '$WEB_API_NAME'..."
-CORS_RESULT=$(az webapp cors show --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
-if [[ "$CORS_RESULT" == "null" ]]; then
-    echo "Adding CORS origin '$ORIGIN' to webapi '$WEB_API_NAME'..."
-    az webapp cors add --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
-fi
-
+ORIGIN="https://$WEB_API_URL"
 echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
 eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
 
@@ -174,4 +146,4 @@ if [ "$NO_REDIRECT" != true ]; then
     fi
 fi
 
-echo "To verify your deployment, go to 'https://$WEB_APP_URL' in your browser."
+echo "To verify your deployment, go to 'https://$WEB_API_URL' in your browser."

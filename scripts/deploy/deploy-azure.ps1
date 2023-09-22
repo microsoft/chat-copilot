@@ -24,11 +24,10 @@ param(
     # Azure AD tenant ID for authenticating users
     $TenantId,
 
-    [Parameter(Mandatory)]
     [ValidateSet("AzureOpenAI", "OpenAI")]
     [string]
     # AI service to use
-    $AIService,
+    $AIService = "AzureOpenAI",
 
     [string]
     # API key for existing Azure OpenAI resource or OpenAI account
@@ -45,10 +44,6 @@ param(
     [string]
     # Region to which to make the deployment (ignored when deploying to an existing resource group)
     $Region = "southcentralus",
-
-    [string]
-    # Region to deploy to the static web app into. This must be a region that supports static web apps.
-    $WebAppRegion = "westus2",
 
     [string]
     # SKU for the Azure App Service plan
@@ -117,7 +112,6 @@ if ($MemoryStore -eq "Postgres" -and !$SqlAdminPassword) {
 $jsonConfig = "
 {
     `\`"webAppServiceSku`\`": { `\`"value`\`": `\`"$WebAppServiceSku`\`" },
-    `\`"webappLocation`\`": { `\`"value`\`": `\`"$WebAppRegion`\`" },
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
