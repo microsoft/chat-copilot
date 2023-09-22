@@ -3,12 +3,13 @@ import { CheckmarkCircle24Regular, DismissCircle24Regular, Info24Regular } from 
 import { useState } from 'react';
 import { GetResponseOptions } from '../../../libs/hooks/useChat';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
-import { IPlanInput, PlanState, PlanType } from '../../../libs/models/Plan';
-import { IAskVariables } from '../../../libs/semantic-kernel/model/Ask';
+import { PlanState, ProposedPlan } from '../../../libs/models/Plan';
+import { ContextVariable } from '../../../libs/semantic-kernel/model/AskResult';
+import { getPlanGoal } from '../../../libs/utils/PlanUtils';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
-import { PlanStepCard } from './PlanStepCard';
+import { PlanBody } from './PlanBody';
 
 const useClasses = makeStyles({
     container: {
@@ -38,43 +39,21 @@ interface PlanViewerProps {
     getResponse: (options: GetResponseOptions) => Promise<void>;
 }
 
-/**
- * See Semantic Kernel's `Plan` object below for full definition.
- * Not explicitly defining the type here to avoid additional overhead of property maintenance.
- * https://github.com/microsoft/semantic-kernel/blob/df07fc6f28853a481dd6f47e60d39a52fc6c9967/dotnet/src/SemanticKernel/Planning/Plan.cs#
- */
-
-/*
-eslint-disable 
+/* eslint-disable 
     @typescript-eslint/no-unsafe-assignment,
     @typescript-eslint/no-unsafe-member-access,
     @typescript-eslint/no-unsafe-call,
 */
-export type Plan = any;
-
 export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, getResponse }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
 
     // Track original plan from user message
-    const parsedContent: Plan = JSON.parse(message.content);
+    const parsedContent: ProposedPlan = JSON.parse(message.content);
     const originalPlan = parsedContent.proposedPlan;
-
+    const description = getPlanGoal(originalPlan.description);
     const planState = message.planState ?? parsedContent.state;
-
-    // If plan came from ActionPlanner, use parameters from top-level of plan
-    if (parsedContent.type === PlanType.Action) {
-        originalPlan.steps[0].parameters = originalPlan.parameters;
-    }
-
-    const userIntentPrefix = 'User intent: ';
-    const userIntentIndex = originalPlan.description.indexOf(userIntentPrefix) as number;
-    const description: string =
-        userIntentIndex !== -1
-            ? originalPlan.description.substring(userIntentIndex + userIntentPrefix.length).trim()
-            : '';
-
     const [plan, setPlan] = useState(originalPlan);
 
     const onPlanAction = async (planState: PlanState.PlanApproved | PlanState.PlanRejected) => {
@@ -95,7 +74,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
             }),
         );
 
-        const contextVariables: IAskVariables[] = [
+        const contextVariables: ContextVariable[] = [
             {
                 key: 'responseMessageId',
                 value: message.id ?? '',
@@ -127,28 +106,10 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
         });
     };
 
-    const onDeleteStep = (index: number) => {
-        setPlan({
-            ...plan,
-            steps: plan.steps.filter((_step: IPlanInput, i: number) => i !== index),
-        });
-    };
-
     return (
         <div className={classes.container}>
             <Text>Based on the request, Copilot Chat will run the following steps:</Text>
-            <Text weight="bold">{`Goal: ${description}`}</Text>
-            {plan.steps.map((step: any, index: number) => {
-                return (
-                    <PlanStepCard
-                        key={`Plan step: ${index}`}
-                        step={{ ...step, index }}
-                        enableEdits={planState === PlanState.PlanApprovalRequired}
-                        enableStepDelete={plan.steps.length > 1}
-                        onDeleteStep={onDeleteStep}
-                    />
-                );
-            })}
+            <PlanBody plan={plan} setPlan={setPlan} planState={planState} />
             {planState === PlanState.PlanApprovalRequired && (
                 <>
                     Would you like to proceed with the plan?

@@ -18,10 +18,12 @@ import {
     useTableSort,
 } from '@fluentui/react-components';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
+import { Plan, ProposedPlan } from '../../../libs/models/Plan';
+import { getPlanGoal } from '../../../libs/utils/PlanUtils';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { timestampToDateString } from '../../utils/TextUtils';
-import { PlanJsonViewer } from '../plan-viewer/PlanJsonViewer';
+import { PlanDialogView } from '../plan-viewer/PlanDialogView';
 import { TabView } from './TabView';
 
 const useClasses = makeStyles({
@@ -35,13 +37,14 @@ const useClasses = makeStyles({
 
 interface TableItem {
     index: number;
-    ask: string;
+    parsedPlan: Plan;
+    goal: string;
     createdOn: {
         label: string;
         timestamp: number;
     };
     tokens: number;
-    message: IChatMessage;
+    planJson: string;
 }
 
 export const PlansTab: React.FC = () => {
@@ -60,7 +63,7 @@ export const PlansTab: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                     {rows.map((item) => (
-                        <TableRow key={item.ask}>{columns.map((column) => column.renderCell(item))}</TableRow>
+                        <TableRow key={item.goal}>{columns.map((column) => column.renderCell(item))}</TableRow>
                     ))}
                 </TableBody>
             </Table>
@@ -78,22 +81,22 @@ function useTable(planMessages: IChatMessage[]) {
 
     const columns: Array<TableColumnDefinition<TableItem>> = [
         createTableColumn<TableItem>({
-            columnId: 'ask',
+            columnId: 'goal',
             renderHeaderCell: () => (
-                <TableHeaderCell key="ask" {...headerSortProps('ask')}>
-                    Ask
+                <TableHeaderCell key="goal" {...headerSortProps('goal')}>
+                    Goal
                 </TableHeaderCell>
             ),
             renderCell: (item) => (
                 <TableCell key={`plan-${item.index}`}>
                     <TableCellLayout>
-                        <PlanJsonViewer goal={item.ask} json={item.message.content} />
+                        <PlanDialogView goal={item.goal} parsedPlan={item.parsedPlan} planJson={item.planJson} />
                     </TableCellLayout>
                 </TableCell>
             ),
             compare: (a, b) => {
-                const comparison = a.ask.localeCompare(b.ask);
-                return getSortDirection('name') === 'ascending' ? comparison : comparison * -1;
+                const comparison = a.goal.localeCompare(b.goal);
+                return getSortDirection('goal') === 'ascending' ? comparison : comparison * -1;
             },
         }),
         createTableColumn<TableItem>({
@@ -136,30 +139,20 @@ function useTable(planMessages: IChatMessage[]) {
         }),
     ];
 
-    // TODO: [Issue #63] Define a plan model
-    /*
-    eslint-disable
-        @typescript-eslint/no-unsafe-assignment,
-        @typescript-eslint/no-unsafe-member-access,
-    */
     const items = planMessages.map((message, index) => {
-        const plan = JSON.parse(message.content);
-        const planDescription = plan.proposedPlan.description as string;
-        const planAsk =
-            planDescription
-                .split('\n')
-                .find((line: string) => line.startsWith('INPUT:'))
-                ?.replace('INPUT:', '')
-                .trim() ?? 'N/A';
+        const parsedMessage = JSON.parse(message.content) as ProposedPlan;
+        const plangoal = getPlanGoal(parsedMessage.proposedPlan.description);
+
         return {
             index: index,
-            ask: planAsk,
+            goal: plangoal,
+            parsedPlan: parsedMessage.proposedPlan,
             createdOn: {
                 label: timestampToDateString(message.timestamp),
                 timestamp: message.timestamp,
             },
             tokens: 0, // TODO: [Issue #2106] Get token count from plan
-            message: message,
+            planJson: message.content,
         };
     });
 
