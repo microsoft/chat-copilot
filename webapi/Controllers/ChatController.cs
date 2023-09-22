@@ -48,19 +48,26 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
     private readonly PlannerOptions _plannerOptions;
+    private readonly IDictionary<string, Plugin> _plugins;
 
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string ProcessPlanFunctionName = "ProcessPlan";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions, IOptions<PlannerOptions> plannerOptions)
+    public ChatController(
+        ILogger<ChatController> logger,
+        ITelemetryService telemetryService,
+        IOptions<ServiceOptions> serviceOptions,
+        IOptions<PlannerOptions> plannerOptions,
+        IDictionary<string, Plugin> plugins)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
         this._plannerOptions = plannerOptions.Value;
+        this._plugins = plugins;
     }
 
     /// <summary>

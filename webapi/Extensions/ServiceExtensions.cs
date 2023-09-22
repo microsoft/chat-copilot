@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Storage;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.SemanticMemory;
@@ -84,6 +86,54 @@ public static class CopilotChatServiceExtensions
     internal static IServiceCollection AddUtilities(this IServiceCollection services)
     {
         return services.AddScoped<AskConverter>();
+    }
+
+    internal static IServiceCollection AddPlugins(this IServiceCollection services, IConfiguration configuration)
+    {
+        var plugins = configuration.GetSection("Plugins").Get<List<Plugin>>() ?? new List<Plugin>();
+        var logger = services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+        logger.LogDebug("Found {0} plugins.", plugins.Count);
+
+        // Validate the plugins
+        IDictionary<string, Plugin> validatedPlugins = new Dictionary<string, Plugin>();
+        foreach (Plugin plugin in plugins)
+        {
+            if (validatedPlugins.ContainsKey(plugin.Name))
+            {
+                logger.LogWarning("Plugin '{0}' is defined more than once. Skipping...", plugin.Name);
+                continue;
+            }
+
+            if (Uri.TryCreate(plugin.Url, ".well-known/ai-plugin.json", out var pluginManifestUrl))
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    try
+                    {
+                        var response = httpClient.GetAsync(pluginManifestUrl).Result;
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            throw new InvalidOperationException($"Plugin '{plugin.Name}' at '{pluginManifestUrl}' returned status code '{response.StatusCode}'.");
+                        }
+                        logger.LogDebug("Adding plugin: {0}.", plugin);
+                        validatedPlugins.Add(plugin.Name, plugin);
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException || ex is AggregateException)
+                    {
+                        logger.LogWarning("Plugin '{0}' at {1} is not responding. Skipping...", plugin.Name, pluginManifestUrl);
+                    }
+                }
+            }
+            else
+            {
+                logger.LogWarning("Plugin '{0}' at {1} is not a valid URL. Skipping...", plugin.Name, pluginManifestUrl);
+            }
+        }
+
+        // Add the plugins
+        services.AddSingleton<IDictionary<string, Plugin>>(validatedPlugins);
+
+        return services;
     }
 
     internal static IServiceCollection AddMainetnanceServices(this IServiceCollection services)

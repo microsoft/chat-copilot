@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Storage;
+using Microsoft.Graph.TermStore;
 
 namespace CopilotChat.WebApi.Models.Storage;
 
@@ -39,6 +41,11 @@ public class ChatSession : IStorageEntity
     /// the relevance threshold of long term memory and increasing the threshold score of working memory.
     /// </summary>
     public float MemoryBalance { get; set; } = 0.5F;
+
+    /// <summary>
+    /// A list of enabled plugins.
+    /// </summary>
+    public HashSet<string> EnabledPlugins { get; set; } = new();
 
     /// <summary>
     /// Used to determine if the current chat requires upgrade.
