@@ -24,9 +24,14 @@ public class ServiceOptions
     public string? KeyVault { get; set; }
 
     /// <summary>
-    /// Local directory in which to load semantic skills.
+    /// Local directory from which to load semantic plugins.
     /// </summary>
-    public string? SemanticSkillsDirectory { get; set; }
+    public string? SemanticPluginsDirectory { get; set; }
+
+    /// <summary>
+    /// Local directory from which to load native plugins.
+    /// </summary>
+    public string? NativePluginsDirectory { get; set; }
 
     /// <summary>
     /// Setting indicating if the site is undergoing maintenance.

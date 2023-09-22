@@ -2,6 +2,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
@@ -28,9 +30,21 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class SemanticKernelExtensions
 {
     /// <summary>
-    /// Delegate to register skills with a Semantic Kernel
+    /// Delegate to register plugins with a Semantic Kernel
     /// </summary>
     public delegate Task RegisterSkillsWithKernel(IServiceProvider sp, IKernel kernel);
+
+    /// <summary>
+    /// Delegate for any complimentary setup of the kernel, i.e., registering custom plugins, etc.
+    /// See webapi/README.md#Add-Custom-Setup-to-Chat-Copilot's-Kernel for more details.
+    /// </summary>
+    public delegate Task KernelSetupHook(IServiceProvider sp, IKernel kernel);
+
+    /// <summary>
+    /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
+    /// See webapi/README.md#Add-Custom-Plugin-Registration-to-the-Planner's-Kernel for more details.
+    /// </summary>
+    public delegate Task RegisterSkillsWithPlannerHook(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -47,14 +61,21 @@ internal static class SemanticKernelExtensions
                 var kernel = provider.GetCompletionKernel();
 
                 sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
+
+                // If KernelSetupHook is not null, invoke custom kernel setup.
+                sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
                 return kernel;
             });
 
         // Azure Content Safety
         builder.Services.AddContentSafety();
 
-        // Register skills
-        builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterSkillsAsync);
+        // Register plugins
+        builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
+
+        // Add any additional setup needed for the kernel.
+        // Uncomment the following line and pass in a custom hook for any complimentary setup of the kernel.
+        // builder.Services.AddKernelSetupHook(customHook);
 
         return builder;
     }
@@ -69,17 +90,19 @@ internal static class SemanticKernelExtensions
         builder.Services.AddScoped<CopilotChatPlanner>(sp =>
         {
             sp.WithBotConfig(builder.Configuration);
-
             var plannerOptions = sp.GetRequiredService<IOptions<PlannerOptions>>();
 
             var provider = sp.GetRequiredService<SemanticKernelProvider>();
             var plannerKernel = provider.GetPlannerKernel();
 
+            // Invoke custom plugin registration for planner's kernel.
+            sp.GetService<RegisterSkillsWithPlannerHook>()?.Invoke(sp, plannerKernel);
+
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
 
-        // Register Planner skills (AI plugins) here.
-        // TODO: [sk Issue #2046] Move planner skill registration from ChatController to this location.
+        // Register any custom plugins with the planner's kernel.
+        builder.Services.AddPlannerSetupHook();
 
         return builder;
     }
@@ -92,6 +115,33 @@ internal static class SemanticKernelExtensions
         builder.Services.AddScoped(sp => sp.WithBotConfig(builder.Configuration));
 
         return builder;
+    }
+
+    /// <summary>
+    /// Register custom hook for any complimentary setup of the kernel.
+    /// </summary>
+    /// <param name="hook">The delegate to perform any additional setup of the kernel.</param>
+    public static IServiceCollection AddKernelSetupHook(this IServiceCollection services, KernelSetupHook hook)
+    {
+        // Add the hook to the service collection
+        services.AddScoped<KernelSetupHook>(sp => hook);
+        return services;
+    }
+
+    /// <summary>
+    /// Register custom hook for registering plugins with the planner's kernel.
+    /// These plugins will be persistent and available to the planner on every request.
+    /// Transient plugins requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
+    /// </summary>
+    /// <param name="registerPluginsHook">The delegate to register plugins with the planner's kernel. If null, defaults to local runtime plugin registration using RegisterPluginsAsync.</param>
+    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterSkillsWithPlannerHook? registerPluginsHook = null)
+    {
+        // Default to local runtime plugin registration.
+        registerPluginsHook ??= RegisterPluginsAsync;
+
+        // Add the hook to the service collection
+        services.AddScoped<RegisterSkillsWithPlannerHook>(sp => registerPluginsHook);
+        return services;
     }
 
     /// <summary>
@@ -143,9 +193,9 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Register the skills with the kernel.
+    /// Register skills with the main kernel responsible for handling Chat Copilot requests.
     /// </summary>
-    private static Task RegisterSkillsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterChatCopilotSkillsAsync(IServiceProvider sp, IKernel kernel)
     {
         // Copilot chat skills
         kernel.RegisterChatSkill(sp);
@@ -153,20 +203,63 @@ internal static class SemanticKernelExtensions
         // Time skill
         kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
 
-        // Semantic skills
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Register plugins with a given kernel.
+    /// </summary>
+    private static Task RegisterPluginsAsync(IServiceProvider sp, IKernel kernel)
+    {
+        var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
+
+        // Semantic plugins
         ServiceOptions options = sp.GetRequiredService<IOptions<ServiceOptions>>().Value;
-        if (!string.IsNullOrWhiteSpace(options.SemanticSkillsDirectory))
+        if (!string.IsNullOrWhiteSpace(options.SemanticPluginsDirectory))
         {
-            foreach (string subDir in Directory.GetDirectories(options.SemanticSkillsDirectory))
+            foreach (string subDir in Directory.GetDirectories(options.SemanticPluginsDirectory))
             {
                 try
                 {
-                    kernel.ImportSemanticSkillFromDirectory(options.SemanticSkillsDirectory, Path.GetFileName(subDir)!);
+                    kernel.ImportSemanticSkillFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
                 catch (SKException ex)
                 {
-                    var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
-                    logger.LogError("Could not load skill from {Directory}: {Message}", subDir, ex.Message);
+                    logger.LogError("Could not load plugin from {Directory}: {Message}", subDir, ex.Message);
+                }
+            }
+        }
+
+        // Native plugins
+        if (!string.IsNullOrWhiteSpace(options.NativePluginsDirectory))
+        {
+            // Loop through all the files in the directory that have the .cs extension
+            var pluginFiles = Directory.GetFiles(options.NativePluginsDirectory, "*.cs");
+            foreach (var file in pluginFiles)
+            {
+                // Parse the name of the class from the file name (assuming it matches)
+                var className = Path.GetFileNameWithoutExtension(file);
+
+                // Get the type of the class from the current assembly
+                var assembly = Assembly.GetExecutingAssembly();
+                var classType = assembly.GetTypes().FirstOrDefault(t => t.Name.Contains(className, StringComparison.CurrentCultureIgnoreCase));
+
+                // If the type is found, create an instance of the class using the default constructor
+                if (classType != null)
+                {
+                    try
+                    {
+                        var plugin = Activator.CreateInstance(classType);
+                        kernel.ImportSkill(plugin!, classType.Name!);
+                    }
+                    catch (SKException ex)
+                    {
+                        logger.LogError("Could not load plugin from file {File}: {Details}", file, ex.Message);
+                    }
+                }
+                else
+                {
+                    logger.LogError("Class type not found. Make sure the class type matches exactly with the file name {FileName}", className);
                 }
             }
         }
