@@ -62,7 +62,7 @@ internal static class SemanticKernelExtensions
 
                 sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
 
-                // If KernelSetupHook is not null, invoke custom kernel setup.
+                // Invoke custom plugin registration for planner's kernel.
                 sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
                 return kernel;
             });
