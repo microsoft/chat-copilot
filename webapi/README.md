@@ -236,7 +236,11 @@ Then use a Time chart on the Visual tab.
 
 ### Adding Custom Plugins
 
+> Though plugins can contain both semantic and native functions, Chat Copilot currently only supports plugins of isolated types due to import limitations, so you must separate your plugins into respective folders for each.
+
 If you wish to load custom plugins into the kernel or planner:
+
+#### Deploying with Custom Plugins
 
 1. Create two new folders under `./Skills` directory named `./SemanticPlugins` and `./NativePlugins`. There, you can add your custom plugins (synonymous with skills).
 2. Then, comment out the respective options in `appsettings.json`:
@@ -268,29 +272,30 @@ If you wish to load custom plugins into the kernel or planner:
 
 #### Deploying with Custom Plugins
 
-> Though plugins can contain both semantic and native functions, Chat Copilot currently only supports plugins of isolated types due to import limitations, so you must separate your plugins into respective folders for each.
+If you want to deploy your custom plugins with the webapi, additional configuration is required. You have the following options:
 
-If you want to use local files for custom plugins, you need to make sure that the files are copied to the output directory when you publish or run the app. The deployed app expects to find the files in a subdirectory specified by the `NativePluginsDirectory` or `SemanticPluginsDirectory` option, which is relative to the assembly location by default.
+1. **[Recommended]** Create custom setup hooks to import your skills into the kernel and planner.
 
-To copy the files to the output directory, you can either:
+   > The default `RegisterSkillsAsync` function uses reflection to import native functions from your custom plugin files. C# reflection is a powerful but slow mechanism that dynamically inspects and invokes types and methods at runtime. It works well for loading a few plugin files, but it can degrade performance and increase memory usage if you have many plugins or complex types. Therefore, we recommend creating your own import function to load your custom plugins manually. This way, you can avoid reflection overhead and have more control over how and when your plugins are loaded.
 
-1. Mark the files and the subdirectory as Copy to Output Directory in the project file or the file properties. For example, if your files are in a subdirectories called `Skills\NativePlugins` and `Skills\SemanticPlugins`, you can add this to the `CopilotChatWebApi.csproj` file:
-
-   ```xml
-   <ItemGroup>
-      <Content Include="Skills\NativeSkills\*.*">
-         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="Skills\SemanticSkills\*.*">
-         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-   </ItemGroup>
-   ```
+   Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the [next two sections](#Add-Custom-Setup-to-Chat-Copilot's-Kernel) for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
 
 Alternatively,
 
-2. You can change the respective directory option to use an absolute path or a different base path, but make sure that the files are accessible from that location.
-3. Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the next two sections for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
+2. If you want to use local files for custom plugins and don't mind exposing your source code, you need to make sure that the files are copied to the output directory when you publish or run the app. The deployed app expects to find the files in a subdirectory specified by the `NativePluginsDirectory` or `SemanticPluginsDirectory` option, which is relative to the assembly location by default. To copy the files to the output directory,
+
+   Mark the files and the subdirectory as Copy to Output Directory in the project file or the file properties. For example, if your files are in a subdirectories called `Skills\NativePlugins` and `Skills\SemanticPlugins`, you can uncomment the following lines the `CopilotChatWebApi.csproj` file:
+
+   ```xml
+   <Content Include="Skills\NativePlugins\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Skills\SemanticPlugins\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+   ```
+
+3. Change the respective directory option to use an absolute path or a different base path, but make sure that the files are accessible from that location.
 
 ### Add Custom Setup to Chat Copilot's Kernel
 
