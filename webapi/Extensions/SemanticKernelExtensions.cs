@@ -62,7 +62,7 @@ internal static class SemanticKernelExtensions
 
                 sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
 
-                // Invoke custom plugin registration for planner's kernel.
+                // If KernelSetupHook is not null, invoke custom kernel setup.
                 sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
                 return kernel;
             });
@@ -95,7 +95,7 @@ internal static class SemanticKernelExtensions
             var provider = sp.GetRequiredService<SemanticKernelProvider>();
             var plannerKernel = provider.GetPlannerKernel();
 
-            // If RegisterSkillsWithPlannerHook is not null, invoke custom planner setup.
+            // Invoke custom plugin registration for planner's kernel.
             sp.GetService<RegisterSkillsWithPlannerHook>()?.Invoke(sp, plannerKernel);
 
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
