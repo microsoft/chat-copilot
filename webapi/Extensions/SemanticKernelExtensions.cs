@@ -35,14 +35,16 @@ internal static class SemanticKernelExtensions
     public delegate Task RegisterSkillsWithKernel(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
-    /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
-    /// </summary>
-    public delegate Task RegisterSkillsWithPlannerHook(IServiceProvider sp, IKernel kernel);
-
-    /// <summary>
     /// Delegate for any complimentary setup of the kernel, i.e., registering custom plugins, etc.
+    /// See webapi/README.md#Add-Custom-Setup-to-Chat-Copilot's-Kernel for more details.
     /// </summary>
     public delegate Task KernelSetupHook(IServiceProvider sp, IKernel kernel);
+
+    /// <summary>
+    /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
+    /// See webapi/README.md#Add-Custom-Plugin-Registration-to-the-Planner's-Kernel for more details.
+    /// </summary>
+    public delegate Task RegisterSkillsWithPlannerHook(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -60,7 +62,7 @@ internal static class SemanticKernelExtensions
 
                 sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
 
-                // If KernelSetupHook is not null, invokes custom kernel setup.
+                // If KernelSetupHook is not null, invoke custom kernel setup.
                 sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
                 return kernel;
             });
@@ -71,7 +73,7 @@ internal static class SemanticKernelExtensions
         // Register plugins
         builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
 
-        // Add any additional setup needed for the kernel. See webapi/README.md#Add-Custom-Setup-to-Chat-Copilot's-Kernel for more details.
+        // Add any additional setup needed for the kernel.
         // Uncomment the following line and pass in a custom hook for any complimentary setup of the kernel.
         // builder.Services.AddKernelSetupHook(customHook);
 
@@ -93,6 +95,7 @@ internal static class SemanticKernelExtensions
             var provider = sp.GetRequiredService<SemanticKernelProvider>();
             var plannerKernel = provider.GetPlannerKernel();
 
+            // If RegisterSkillsWithPlannerHook is not null, invoke custom planner setup.
             sp.GetService<RegisterSkillsWithPlannerHook>()?.Invoke(sp, plannerKernel);
 
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
