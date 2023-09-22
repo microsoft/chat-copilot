@@ -9,8 +9,8 @@ $cmd = get-command 'pwsh'
 $ErrorActionPreference = 'Continue'
 
 if (!$cmd) {
-	Write-Warning "Please update your powershell installation: https://aka.ms/powershell"
-	return;
+    Write-Warning "Please update your powershell installation: https://aka.ms/powershell"
+    return;
 }
 
 $BackendScript = Join-Path "$PSScriptRoot" 'Start-Backend.ps1'
