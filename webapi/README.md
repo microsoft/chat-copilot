@@ -240,8 +240,6 @@ Then use a Time chart on the Visual tab.
 
 If you wish to load custom plugins into the kernel or planner:
 
-#### Deploying with Custom Plugins
-
 1. Create two new folders under `./Skills` directory named `./SemanticPlugins` and `./NativePlugins`. There, you can add your custom plugins (synonymous with skills).
 2. Then, comment out the respective options in `appsettings.json`:
 
@@ -278,7 +276,7 @@ If you want to deploy your custom plugins with the webapi, additional configurat
 
    > The default `RegisterSkillsAsync` function uses reflection to import native functions from your custom plugin files. C# reflection is a powerful but slow mechanism that dynamically inspects and invokes types and methods at runtime. It works well for loading a few plugin files, but it can degrade performance and increase memory usage if you have many plugins or complex types. Therefore, we recommend creating your own import function to load your custom plugins manually. This way, you can avoid reflection overhead and have more control over how and when your plugins are loaded.
 
-   Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the [next two sections](#Add-Custom-Setup-to-Chat-Copilot's-Kernel) for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
+   Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the [next two sections](#add-custom-setup-to-chat-copilots-kernel) for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
 
 Alternatively,
 
