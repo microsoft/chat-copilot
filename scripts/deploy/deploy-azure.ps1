@@ -21,6 +21,11 @@ param(
 
     [Parameter(Mandatory)]
     [string]
+    # Azure AD client ID for the frontend app registration
+    $FrontendClientId,
+
+    [Parameter(Mandatory)]
+    [string]
     # Azure AD tenant ID for authenticating users
     $TenantId,
 
@@ -120,6 +125,7 @@ $jsonConfig = "
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
     `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
     `\`"webApiClientId`\`": { `\`"value`\`": `\`"$BackendClientId`\`"},
+    `\`"frontendClientId`\`": { `\`"value`\`": `\`"$FrontendClientId`\`"},
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },

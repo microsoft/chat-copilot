@@ -47,6 +47,9 @@ param aiApiKey string = ''
 @description('Azure AD client ID for the backend web API')
 param webApiClientId string = ''
 
+@description('Azure AD client ID for the frontend')
+param frontendClientId string = ''
+
 @description('Azure AD tenant ID for authenticating users')
 param azureAdTenantId string = ''
 
@@ -272,6 +275,14 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'Kestrel:Endpoints:Https:Url'
         value: 'https://localhost:443'
+      }
+      {
+        name: 'Frontend:AadClientId'
+        value: frontendClientId
+      }
+      {
+        name: 'Frontend:BackendUri'
+        value: 'https://${appServiceWeb.name}.azurewebsites.net/'
       }
       {
         name: 'Logging:LogLevel:Default'

@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
+using CopilotChat.WebApi.Middleware;
 using CopilotChat.WebApi.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
@@ -82,6 +83,12 @@ public sealed class Program
 
         // Configure middleware and endpoints
         WebApplication app = builder.Build();
+        app.UseWhen(context => context.Request.Path.Value?.Contains("/static/js/main.", StringComparison.InvariantCultureIgnoreCase) == true &&
+                               context.Request.Path.Value?.EndsWith(".js", StringComparison.InvariantCultureIgnoreCase) == true,
+                    appBuilder => // Use middleware to replace tokens only for /static/js/main.*.js requests
+        {
+            appBuilder.UseResponseTokenReplacer();
+        });
         app.UseDefaultFiles();
         app.UseStaticFiles();
         app.UseCors();

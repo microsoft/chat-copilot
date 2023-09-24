@@ -11,6 +11,7 @@ usage() {
     echo "  -d, --deployment-name DEPLOYMENT_NAME      Name for the deployment (mandatory)"
     echo "  -s, --subscription SUBSCRIPTION            Subscription to which to make the deployment (mandatory)"
     echo "  -c, --client-id BACKEND_CLIENT_ID          Azure AD client ID for the Web API backend app registration (mandatory)"
+    echo "  -fc, --frontend-client-id FE_CLIENT_ID     Azure AD client ID for the frontend app registration (mandatory)"
     echo "  -t, --tenant-id AZURE_AD_TENANT_ID         Azure AD tenant ID for authenticating users (mandatory)"
     echo "  -ai, --ai-service AI_SERVICE_TYPE          Type of AI service to use (i.e., OpenAI or AzureOpenAI) (mandatory)"
     echo "  -aiend, --ai-endpoint AI_ENDPOINT          Endpoint for existing Azure OpenAI resource"
@@ -45,6 +46,11 @@ while [[ $# -gt 0 ]]; do
         ;;
     -c | --client-id)
         BACKEND_CLIENT_ID="$2"
+        shift
+        shift
+        ;;
+    -fc | --frontend-client-id)
+        FRONTEND_CLIENT_ID="$2"
         shift
         shift
         ;;
@@ -122,7 +128,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Check mandatory arguments
-if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$BACKEND_CLIENT_ID" ]] || [[ -z "$AZURE_AD_TENANT_ID" ]] || [[ -z "$AI_SERVICE_TYPE" ]]; then
+if [[ -z "$DEPLOYMENT_NAME" ]] || [[ -z "$SUBSCRIPTION" ]] || [[ -z "$BACKEND_CLIENT_ID" ]] || [[ -z "$FRONTEND_CLIENT_ID" ]] || [[ -z "$AZURE_AD_TENANT_ID" ]] || [[ -z "$AI_SERVICE_TYPE" ]]; then
     usage
     exit 1
 fi
@@ -203,6 +209,7 @@ JSON_CONFIG=$(
     "azureAdInstance": { "value": "$AZURE_AD_INSTANCE" },
     "azureAdTenantId": { "value": "$AZURE_AD_TENANT_ID" },
     "webApiClientId": { "value": "$BACKEND_CLIENT_ID" },
+    "frontendClientId": { "value": "$FRONTEND_CLIENT_ID" },
     "deployNewAzureOpenAI": { "value": $([ "$NO_NEW_AZURE_OPENAI" = true ] && echo "false" || echo "true") },
     "memoryStore": { "value": "$MEMORY_STORE" },
     "sqlAdminPassword": { "value": "$SQL_ADMIN_PASSWORD" },
