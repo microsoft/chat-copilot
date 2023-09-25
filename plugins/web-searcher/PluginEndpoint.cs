@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -40,7 +41,7 @@ public class PluginEndpoint
     /// Gets the plugin manifest.
     /// </summary>
     /// <param name="req">The http request data.</param>
-    /// <returns></returns>
+    /// <returns>The manifest in Json</returns>
     [Function("WellKnownAIPlugin")]
     public async Task<HttpResponseData> WellKnownAIPlugin(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = ".well-known/ai-plugin.json")] HttpRequestData req)
@@ -58,16 +59,44 @@ public class PluginEndpoint
             Api = new PluginApi()
             {
                 Type = "openapi",
-                Url = string.Empty
+                Url = $"{req.Url.Scheme}://{req.Url.Host}:{req.Url.Port}/swagger.json"
             },
+            LogoUrl = $"{req.Url.Scheme}://{req.Url.Host}:{req.Url.Port}/.well-known/icon",
         };
-        pluginManifest.Api.Url = $"{req.Url.Scheme}://{req.Url.Host}:{req.Url.Port}/swagger.json";
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(pluginManifest);
         return response;
     }
 
+    /// <summary>
+    /// Gets the plugin's icon.
+    /// </summary>
+    /// <param name="req">The http request data.</param>
+    /// <returns>The icon.</returns>
+    [Function("Icon")]
+    public async Task<HttpResponseData> Icon(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = ".well-known/icon")] HttpRequestData req)
+    {
+        if (!File.Exists("./Icons/bing.png"))
+        {
+            return req.CreateResponse(HttpStatusCode.NotFound);
+        }
+
+        using (var stream = new FileStream("./Icons/bing.png", FileMode.Open))
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("Content-Type", "image/png");
+            await stream.CopyToAsync(response.Body);
+            return response;
+        }
+    }
+
+    /// <summary>
+    /// Search the web for the given query.
+    /// </summary>
+    /// <param name="req">The http request data.</param>
+    /// <returns>A string representing the search result.</returns>
     [OpenApiOperation(operationId: "Search", tags: new[] { "WebSearchfunction" }, Description = "Searches the web for the given query.")]
     [OpenApiParameter(name: "Query", In = ParameterLocation.Query, Required = true, Type = typeof(string), Description = "The query")]
     [OpenApiParameter(name: "NumResults", In = ParameterLocation.Query, Required = true, Type = typeof(int), Description = "The maximum number of results to return")]

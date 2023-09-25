@@ -7,13 +7,16 @@ import { addPlugin } from '../../redux/features/plugins/pluginsSlice';
 import { AuthHelper } from '../auth/AuthHelper';
 import { AlertType } from '../models/AlertType';
 import { PluginManifest, requiresUserLevelAuth } from '../models/PluginManifest';
+import { HostedPlugin } from '../models/ServiceOptions';
 import { ChatService } from '../services/ChatService';
+import { PluginService } from '../services/PluginService';
 import { getErrorDetails } from './useChat';
 
 export const usePlugins = () => {
-    const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
+    const dispatch = useAppDispatch();
     const chatService = React.useMemo(() => new ChatService(process.env.REACT_APP_BACKEND_URI as string), []);
+    const pluginService = new PluginService(process.env.REACT_APP_BACKEND_URI as string);
 
     const addCustomPlugin = (manifest: PluginManifest, manifestDomain: string) => {
         const newPlugin: Plugin = {
@@ -45,8 +48,14 @@ export const usePlugins = () => {
         [chatService, dispatch, inProgress, instance],
     );
 
+    const getHostedPluginManifestAsync = async (plugin: HostedPlugin): Promise<PluginManifest> => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        return await pluginService.getPluginManifestAsync(plugin, accessToken);
+    };
+
     return {
         addCustomPlugin,
         getPluginManifest,
+        getHostedPluginManifestAsync,
     };
 };

@@ -5,7 +5,13 @@ export interface MemoryStore {
     selectedType: string;
 }
 
+export interface HostedPlugin {
+    name: string;
+    url: string;
+}
+
 export interface ServiceOptions {
     memoryStore: MemoryStore;
+    availablePlugins: HostedPlugin[];
     version: string;
 }
