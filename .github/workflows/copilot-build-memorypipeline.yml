@@ -1,6 +1,7 @@
 ﻿name: copilot-build-memorypipeline
 
 on:
+  workflow_dispatch:  
   pull_request:
     branches: ["main"]
     paths:
