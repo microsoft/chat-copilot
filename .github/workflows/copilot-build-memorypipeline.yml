@@ -1,4 +1,4 @@
-﻿name: copilot-build-memorypipeline
+name: copilot-build-memorypipeline
 
 on:
   pull_request:
@@ -25,7 +25,7 @@ jobs:
       artifact: ${{steps.artifactoutput.outputs.artifactname}}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           clean: true
           fetch-depth: 0
