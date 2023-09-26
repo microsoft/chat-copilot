@@ -18,6 +18,7 @@ usage() {
     echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
     echo "  -i  --info INFO                        Additional info to put in version details"
     echo "  -nz, --no-zip                          Do not zip package (default: false)"
+    echo "  -nf, --no-frontend                     Do not build frontend files"
 }
 
 # Parse arguments
@@ -58,6 +59,10 @@ while [[ $# -gt 0 ]]; do
         NO_ZIP=true
         shift
         ;;
+        -nf|--no-frontend)
+        NO_FRONTEND=true
+        shift
+        ;;
         *)
         echo "Unknown option $1"
         usage
@@ -93,38 +98,40 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Building static frontend files..."
+if [[ -z "$NO_FRONTEND" ]]; then
+    echo "Building static frontend files..."
 
-ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
-echo "Writing environment variables to '$ENV_FILE_PATH'..."
-echo "REACT_APP_BACKEND_URI=<-=TOKEN=->Frontend:BackendUri</-=TOKEN=->" > $ENV_FILE_PATH
-echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_AUTHORITY=<-=TOKEN=->Authentication:AzureAd:Instance</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:TenantId</-=TOKEN=->" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_CLIENT_ID=<-=TOKEN=->Frontend:AadClientId</-=TOKEN=->" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_API_SCOPE=api://<-=TOKEN=->Authentication:AzureAd:ClientId</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:Scopes</-=TOKEN=->" >> $ENV_FILE_PATH
-echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
-echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
+    ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
+    echo "Writing environment variables to '$ENV_FILE_PATH'..."
+    echo "REACT_APP_BACKEND_URI=<-=TOKEN=->Frontend:BackendUri</-=TOKEN=->" > $ENV_FILE_PATH
+    echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
+    echo "REACT_APP_AAD_AUTHORITY=<-=TOKEN=->Authentication:AzureAd:Instance</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:TenantId</-=TOKEN=->" >> $ENV_FILE_PATH
+    echo "REACT_APP_AAD_CLIENT_ID=<-=TOKEN=->Frontend:AadClientId</-=TOKEN=->" >> $ENV_FILE_PATH
+    echo "REACT_APP_AAD_API_SCOPE=api://<-=TOKEN=->Authentication:AzureAd:ClientId</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:Scopes</-=TOKEN=->" >> $ENV_FILE_PATH
+    echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
+    echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
 
-pushd "$SCRIPT_ROOT/../../webapp"
+    pushd "$SCRIPT_ROOT/../../webapp"
 
-echo "Installing yarn dependencies..."
-yarn install
-if [ $? -ne 0 ]; then
-    echo "Failed to install yarn dependencies"
-    exit 1
+    echo "Installing yarn dependencies..."
+    yarn install
+    if [ $? -ne 0 ]; then
+        echo "Failed to install yarn dependencies"
+        exit 1
+    fi
+
+    echo "Building webapp..."
+    yarn build
+    if [ $? -ne 0 ]; then
+        echo "Failed to build webapp"
+        exit 1
+    fi
+
+    popd
+
+    echo "Copying frontend files to package"
+    cp -R "$SCRIPT_ROOT/../../webapp/build" "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
 fi
-
-echo "Building webapp..."
-yarn build
-if [ $? -ne 0 ]; then
-    echo "Failed to build webapp"
-    exit 1
-fi
-
-popd
-
-echo "Copying frontend files to package"
-cp -R "$SCRIPT_ROOT/../../webapp/build" "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
 
 # if not NO_ZIP then zip the package
 if [[ -z "$NO_ZIP" ]]; then

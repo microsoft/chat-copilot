@@ -192,7 +192,7 @@ This will get you to the CORS page where you can add your allowed hosts.
 ```powershell
 $webApiName = $(az deployment group show --name {DEPLOYMENT_NAME} --resource-group {YOUR_RESOURCE_GROUP_NAME} --output json | ConvertFrom-Json).properties.outputs.webapiName.value
 
-($(az webapp config appsettings list --name $webapiName --resource-group {YOUR_RESOURCE_GROUP_NAME} | ConvertFrom-JSON) | Where-Object -Property name -EQ -Value Authorization:ApiKey).value
+az webapp cors add --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins YOUR_FRONTEND_URL
 ```
 
 ### Bash
@@ -200,5 +200,5 @@ $webApiName = $(az deployment group show --name {DEPLOYMENT_NAME} --resource-gro
 ```bash
 eval WEB_API_NAME=$(az deployment group show --name $DEPLOYMENT_NAME --resource-group $RESOURCE_GROUP --output json) | jq -r '.properties.outputs.webapiName.value'
 
-$(az webapp config appsettings list --name $WEB_API_NAME --resource-group {YOUR_RESOURCE_GROUP_NAME} | jq '.[] | select(.name=="Authorization:ApiKey").value')
+az webapp cors add --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins YOUR_FRONTEND_URL
 ```

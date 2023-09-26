@@ -21,7 +21,11 @@ param(
 
     [string]
     # Copilot Chat application package to deploy
-    $PackageFilePath = "$PSScriptRoot/out/webapi.zip"
+    $PackageFilePath = "$PSScriptRoot/out/webapi.zip",
+
+    [switch]
+    # Switch to add our URI in app registration's redirect URIs if missing
+    $EnsureUriInAppRegistration
 )
 
 # Ensure $PackageFilePath exists
@@ -54,7 +58,7 @@ if ($null -eq $webApiName) {
 Write-Host "Azure WebApp name: $webApiName"
 
 Write-Host "Configuring Azure WebApp to run from package..."
-az webapp config appsettings set --resource-group $ResourceGroupName --name $webApiName --settings WEBSITE_RUN_FROM_PACKAGE="1" | out-null
+az webapp config appsettings set --resource-group $ResourceGroupName --name $webApiName --settings WEBSITE_RUN_FROM_PACKAGE="1" --output none
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
@@ -65,32 +69,33 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+if ($EnsureUriInAppRegistration) {
+    $origin = "https://$webApiUrl"
+    Write-Host "Ensuring '$origin' is included in AAD app registration's redirect URIs..."
 
-$origin = "https://$webApiUrl"
-Write-Host "Ensuring '$origin' is included in AAD app registration's redirect URIs..."
+    $webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
+    $frontendClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Frontend:AadClientId).value
 
-$webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
-$frontendClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Frontend:AadClientId).value
+    $objectId = (az ad app show --id $frontendClientId | ConvertFrom-Json).id
+    $redirectUris = (az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$objectId" --headers 'Content-Type=application/json' | ConvertFrom-Json).spa.redirectUris
+    if ($redirectUris -notcontains "$origin") {
+        $redirectUris += "$origin"
 
-$objectId = (az ad app show --id $frontendClientId | ConvertFrom-Json).id
-$redirectUris = (az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$objectId" --headers 'Content-Type=application/json' | ConvertFrom-Json).spa.redirectUris
-if ($redirectUris -notcontains "$origin") {
-    $redirectUris += "$origin"
+        $body = "{spa:{redirectUris:["
+        foreach ($uri in $redirectUris) {
+            $body += "'$uri',"
+        }
+        $body += "]}}"
 
-    $body = "{spa:{redirectUris:["
-    foreach ($uri in $redirectUris) {
-        $body += "'$uri',"
+        az rest `
+            --method PATCH `
+            --uri "https://graph.microsoft.com/v1.0/applications/$objectId" `
+            --headers 'Content-Type=application/json' `
+            --body $body
     }
-    $body += "]}}"
-
-    az rest `
-        --method PATCH `
-        --uri "https://graph.microsoft.com/v1.0/applications/$objectId" `
-        --headers 'Content-Type=application/json' `
-        --body $body
-}
-if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
 }
 
 Write-Host "To verify your deployment, go to 'https://$webApiUrl/' in your browser."

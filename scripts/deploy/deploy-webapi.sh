@@ -12,6 +12,7 @@ usage() {
     echo "  -s, --subscription SUBSCRIPTION         Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP    Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -p, --package PACKAGE_FILE_PATH         Path to the package file from a 'package-webapi.sh' run (default: \"./out/webapi.zip\")"
+    echo "  -r, --register-app                      Switch to add our URI in app registration's redirect URIs if missing"
 }
 
 # Parse arguments
@@ -35,6 +36,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         -p|--package)
         PACKAGE_FILE_PATH="$2"
+        shiftregister-app
+        shift
+        ;;
+        -r|--package)
+        REGISTER_APP=true
         shift
         shift
         ;;
@@ -84,7 +90,7 @@ fi
 echo "Azure WebApp name: $WEB_API_NAME"
 
 echo "Configuring Azure WebApp to run from package..."
-az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $WEB_API_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1"
+az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $WEB_API_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1" --output none
 if [ $? -ne 0 ]; then
     echo "Could not configure Azure WebApp to run from package."
     exit 1
@@ -97,26 +103,30 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-ORIGIN="https://$WEB_API_URL"
-echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
-eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
+if [[ -n $REGISTER_APP ]]; then
+    ORIGIN="https://$WEB_API_URL"
+    echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
+    WEBAPI_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --output json)
+    FRONTEND_CLIENT_ID=$(echo $WEBAPI_SETTINGS | jq -r '.[] | select(.name == "Frontend:AadClientId") | .value')
+    eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
 
-if [ "$NO_REDIRECT" != true ]; then
-    REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
-    if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
-        BODY="{spa:{redirectUris:['"
-        eval BODY+=$(echo $REDIRECT_URIS | jq $'join("\',\'")')
-        BODY+="','$ORIGIN']}}"
+    if [ "$NO_REDIRECT" != true ]; then
+        REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
+        if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
+            BODY="{spa:{redirectUris:['"
+            eval BODY+=$(echo $REDIRECT_URIS | jq $'join("\',\'")')
+            BODY+="','$ORIGIN']}}"
 
-        az rest \
-        --method PATCH \
-        --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
-        --headers 'Content-Type=application/json' \
-        --body $BODY
-    fi
-    if [ $? -ne 0 ]; then
-        echo "Failed to update app registration"
-        exit 1
+            az rest \
+            --method PATCH \
+            --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
+            --headers 'Content-Type=application/json' \
+            --body $BODY
+        fi
+        if [ $? -ne 0 ]; then
+            echo "Failed to update app registration"
+            exit 1
+        fi
     fi
 fi
 
