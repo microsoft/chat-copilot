@@ -35,6 +35,7 @@ import * as React from 'react';
 import { useRef } from 'react';
 import { useChat, useFile } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
+import { Constants } from '../../../Constants';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { timestampToDateString } from '../../utils/TextUtils';
@@ -131,7 +132,7 @@ export const DocumentsTab: React.FC = () => {
                     type="file"
                     ref={documentFileRef}
                     style={{ display: 'none' }}
-                    accept=".txt,.pdf,.md,.jpg,.jpeg,.png,.tif,.tiff"
+                    accept={Constants.app.importTypes}
                     multiple={true}
                     onChange={() => {
                         void fileHandler.handleImport(selectedId, documentFileRef);
