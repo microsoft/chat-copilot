@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using CopilotChat.WebApi.Models.Request;
 
 namespace CopilotChat.WebApi.Options;
 
@@ -161,4 +163,29 @@ public class PromptsOptions
     /// </summary>
     /// <returns>A shallow copy of the options.</returns>
     internal PromptsOptions Copy() => (PromptsOptions)this.MemberwiseClone();
+
+    /// <summary>
+    /// Tries to retrieve the memoryName asociated with the specified memory type.
+    /// </summary>
+    internal bool TryGetMemoryName(string memoryType, out string memoryName)
+    {
+        memoryName = "";
+        if (!Enum.TryParse<SemanticMemoryType>(memoryType, true, out SemanticMemoryType semanitcMemoryType))
+        {
+            return false;
+        }
+
+        switch (semanitcMemoryType)
+        {
+            case SemanticMemoryType.LongTermMemory:
+                memoryName = this.LongTermMemoryName;
+                return true;
+
+            case SemanticMemoryType.WorkingMemory:
+                memoryName = this.WorkingMemoryName;
+                return true;
+
+            default: return false;
+        }
+    }
 }
