@@ -98,16 +98,16 @@ export const DocumentsTab: React.FC = () => {
         if (!conversations[selectedId].disabled) {
             const importingResources = importingDocuments
                 ? importingDocuments.map((document, index) => {
-                    return {
-                        id: `in-progress-${index}`,
-                        chatId: selectedId,
-                        sourceType: 'N/A',
-                        name: document,
-                        sharedBy: 'N/A',
-                        createdOn: 0,
-                        size: 0,
-                    } as ChatMemorySource;
-                })
+                      return {
+                          id: `in-progress-${index}`,
+                          chatId: selectedId,
+                          sourceType: 'N/A',
+                          name: document,
+                          sharedBy: 'N/A',
+                          createdOn: 0,
+                          size: 0,
+                      } as ChatMemorySource;
+                  })
                 : [];
             setResources(importingResources);
 
