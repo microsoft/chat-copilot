@@ -225,7 +225,7 @@ public class DocumentController : ControllerBase
                         this._promptOptions.MemoryIndexName,
                         memorySource.Id,
                         chatId.ToString(),
-                        this._promptOptions.DocumentMemoryName,
+                        PromptsOptions.DocumentMemoryName,
                         formFile.FileName,
                         stream);
 

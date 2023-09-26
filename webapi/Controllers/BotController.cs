@@ -124,7 +124,7 @@ public class BotController : ControllerBase
             "GlobalDocuments",
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
                 Guid.Empty.ToString(),
-                this._promptOptions.DocumentMemoryName,
+                PromptsOptions.DocumentMemoryName,
                 cancellationToken));
 
         // get the document memory collection names (user scope)
@@ -132,7 +132,7 @@ public class BotController : ControllerBase
             "ChatDocuments",
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
                 chatIdString,
-                this._promptOptions.DocumentMemoryName,
+                PromptsOptions.DocumentMemoryName,
                 cancellationToken));
 
         return bot;

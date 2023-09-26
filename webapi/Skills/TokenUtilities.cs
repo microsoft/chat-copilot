@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
@@ -28,8 +29,8 @@ public static class TokenUtilities
         { "SystemIntentExtraction", "userIntentExtraction" },
         { "SystemMetaPrompt", "metaPromptTemplate" },
         { "SystemCompletion", "responseCompletion"},
-        { "SystemCognitive_WorkingMemory", "workingMemoryExtraction" },
-        { "SystemCognitive_LongTermMemory", "longTermMemoryExtraction" }
+        { $"SystemCognitive_{PromptsOptions.WorkingMemoryName}", "workingMemoryExtraction" },
+        { $"SystemCognitive_{PromptsOptions.LongTermMemoryName}", "longTermMemoryExtraction" }
     };
 
     /// <summary>

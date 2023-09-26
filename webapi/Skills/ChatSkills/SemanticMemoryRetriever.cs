@@ -21,13 +21,18 @@ namespace CopilotChat.WebApi.Skills.ChatSkills;
 /// </summary>
 public class SemanticMemoryRetriever
 {
+    private static readonly HashSet<string> _memoryNames =
+        new(StringComparer.OrdinalIgnoreCase) {
+            PromptsOptions.DocumentMemoryName,
+            PromptsOptions.LongTermMemoryName,
+            PromptsOptions.WorkingMemoryName
+        };
+
     private readonly PromptsOptions _promptOptions;
 
     private readonly ChatSessionRepository _chatSessionRepository;
 
     private readonly ISemanticMemoryClient _memoryClient;
-
-    private readonly List<string> _memoryNames;
 
     /// <summary>
     /// High level logger.
@@ -47,12 +52,6 @@ public class SemanticMemoryRetriever
         this._chatSessionRepository = chatSessionRepository;
         this._memoryClient = memoryClient;
         this._logger = logger;
-
-        this._memoryNames = new List<string> {
-            this._promptOptions.DocumentMemoryName,
-            this._promptOptions.LongTermMemoryName,
-            this._promptOptions.WorkingMemoryName
-        };
     }
 
     /// <summary>
@@ -74,7 +73,7 @@ public class SemanticMemoryRetriever
 
         // Search for relevant memories.
         List<(Citation Citation, Citation.Partition Memory)> relevantMemories = new();
-        foreach (var memoryName in this._memoryNames)
+        foreach (var memoryName in _memoryNames)
         {
             await SearchMemoryAsync(memoryName).ConfigureAwait(false);
         }
@@ -116,7 +115,7 @@ public class SemanticMemoryRetriever
             /// </summary>
             void FormatSnippets()
             {
-                if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories) || memories.Count == 0)
+                if (!memoryMap.TryGetValue(PromptsOptions.DocumentMemoryName, out var memories) || memories.Count == 0)
                 {
                     return;
                 }
@@ -178,7 +177,7 @@ public class SemanticMemoryRetriever
                             result.Memory.Relevance
                         );
 
-                        if (this._memoryNames.Contains(memoryName))
+                        if (_memoryNames.Contains(memoryName))
                         {
                             if (!memoryMap.TryGetValue(memoryName, out var memories))
                             {
@@ -191,7 +190,7 @@ public class SemanticMemoryRetriever
                         }
 
                         // Only documents will have citations.
-                        if (memoryName == this._promptOptions.DocumentMemoryName)
+                        if (memoryName == PromptsOptions.DocumentMemoryName)
                         {
                             citationMap.TryAdd(result.Citation.Link, citationSource);
                         }
@@ -235,15 +234,15 @@ public class SemanticMemoryRetriever
             throw new ArgumentException($"Invalid memory balance: {memoryBalance}");
         }
 
-        if (memoryName == this._promptOptions.LongTermMemoryName)
+        if (memoryName == PromptsOptions.LongTermMemoryName)
         {
             return (lower - upper) * memoryBalance + upper;
         }
-        else if (memoryName == this._promptOptions.WorkingMemoryName)
+        else if (memoryName == PromptsOptions.WorkingMemoryName)
         {
             return (upper - lower) * memoryBalance + lower;
         }
-        else if (memoryName == this._promptOptions.DocumentMemoryName)
+        else if (memoryName == PromptsOptions.DocumentMemoryName)
         {
             return this._promptOptions.DocumentMemoryMinRelevance;
         }

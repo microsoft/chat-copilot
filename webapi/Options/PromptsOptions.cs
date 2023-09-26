@@ -90,7 +90,7 @@ public class PromptsOptions
     [Required, NotEmptyOrWhitespace] public string MemoryIndexName { get; set; } = string.Empty;
 
     // Document memory
-    [Required, NotEmptyOrWhitespace] public string DocumentMemoryName { get; set; } = string.Empty;
+    internal const string DocumentMemoryName = "DocumentMemory";
 
     // Memory extraction
     [Required, NotEmptyOrWhitespace] public string SystemCognitive { get; set; } = string.Empty;
@@ -99,13 +99,14 @@ public class PromptsOptions
     [Required, NotEmptyOrWhitespace] public string MemoryContinuation { get; set; } = string.Empty;
 
     // Long-term memory
-    [Required, NotEmptyOrWhitespace] public string LongTermMemoryName { get; set; } = string.Empty;
+    internal const string LongTermMemoryName = "LongTermMemory";
+
     [Required, NotEmptyOrWhitespace] public string LongTermMemoryExtraction { get; set; } = string.Empty;
 
     internal string[] LongTermMemoryPromptComponents => new string[]
     {
         this.SystemCognitive,
-        $"{this.LongTermMemoryName} Description:\n{this.LongTermMemoryExtraction}",
+        $"{LongTermMemoryName} Description:\n{this.LongTermMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
         "{{ChatSkill.ExtractChatHistory}}",
@@ -115,13 +116,14 @@ public class PromptsOptions
     internal string LongTermMemory => string.Join("\n", this.LongTermMemoryPromptComponents);
 
     // Working memory
-    [Required, NotEmptyOrWhitespace] public string WorkingMemoryName { get; set; } = string.Empty;
+    internal const string WorkingMemoryName = "WorkingMemory";
+
     [Required, NotEmptyOrWhitespace] public string WorkingMemoryExtraction { get; set; } = string.Empty;
 
     internal string[] WorkingMemoryPromptComponents => new string[]
     {
         this.SystemCognitive,
-        $"{this.WorkingMemoryName} Description:\n{this.WorkingMemoryExtraction}",
+        $"{WorkingMemoryName} Description:\n{this.WorkingMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
         "{{ChatSkill.ExtractChatHistory}}",
@@ -133,8 +135,8 @@ public class PromptsOptions
     // Memory map
     internal IDictionary<string, string> MemoryMap => new Dictionary<string, string>()
     {
-        { this.LongTermMemoryName, this.LongTermMemory },
-        { this.WorkingMemoryName, this.WorkingMemory }
+        { LongTermMemoryName, this.LongTermMemory },
+        { WorkingMemoryName, this.WorkingMemory }
     };
 
     // Chat commands
