@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Storage;
-using Microsoft.Graph.TermStore;
 
 namespace CopilotChat.WebApi.Models.Storage;
 

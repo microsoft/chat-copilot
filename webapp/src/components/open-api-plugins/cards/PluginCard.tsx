@@ -8,9 +8,10 @@ import { BaseCard } from './BaseCard';
 
 interface PluginCardProps {
     plugin: Plugin;
+    isHosted: boolean;
 }
 
-export const PluginCard: React.FC<PluginCardProps> = ({ plugin }) => {
+export const PluginCard: React.FC<PluginCardProps> = ({ plugin, isHosted }) => {
     const { name, publisher, enabled, authRequirements, apiProperties, icon, description, inactive } = plugin;
     const dispatch = useAppDispatch();
 
@@ -43,6 +44,7 @@ export const PluginCard: React.FC<PluginCardProps> = ({ plugin }) => {
                         authRequirements={authRequirements}
                         apiProperties={apiProperties}
                         inactive={inactive}
+                        isHosted={isHosted}
                     />
                 )
             }

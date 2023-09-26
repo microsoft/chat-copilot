@@ -50,12 +50,18 @@ export const usePlugins = () => {
 
     const getHostedPluginManifestAsync = async (plugin: HostedPlugin): Promise<PluginManifest> => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-        return await pluginService.getPluginManifestAsync(plugin, accessToken);
+        return await pluginService.getHostedPluginManifestAsync(plugin, accessToken);
+    };
+
+    const setPluginStateAsync = async (chatId: string, pluginName: string, enabled: boolean): Promise<void> => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        await pluginService.setPluginStateAsync(chatId, pluginName, accessToken, enabled);
     };
 
     return {
         addCustomPlugin,
         getPluginManifest,
         getHostedPluginManifestAsync,
+        setPluginStateAsync,
     };
 };

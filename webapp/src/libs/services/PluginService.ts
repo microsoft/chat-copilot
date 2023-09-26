@@ -5,7 +5,10 @@ import { HostedPlugin } from '../models/ServiceOptions';
 import { BaseService } from './BaseService';
 
 export class PluginService extends BaseService {
-    public getPluginManifestAsync = async (plugin: HostedPlugin, accessToken: string): Promise<PluginManifest> => {
+    public getHostedPluginManifestAsync = async (
+        plugin: HostedPlugin,
+        accessToken: string,
+    ): Promise<PluginManifest> => {
         return await this.getResponseAsync<PluginManifest>(
             {
                 baseUrl: plugin.url,
@@ -16,16 +19,18 @@ export class PluginService extends BaseService {
         );
     };
 
-    // public setPluginStateAsync = async (plugin: Plugin, accessToken: string, enabled: boolean): Promise<void> => {
-    //     await this.getResponseAsync(
-    //         {
-    //             commandPath: plugin.url + 'api/plugins/state',
-    //             method: 'POST',
-    //             body: {
-    //                 enabled,
-    //             },
-    //         },
-    //         accessToken,
-    //     );
-    // };
+    public setPluginStateAsync = async (
+        chatId: string,
+        pluginName: string,
+        accessToken: string,
+        enabled: boolean,
+    ): Promise<void> => {
+        await this.getResponseAsync(
+            {
+                commandPath: `chatSession/pluginState/${chatId}/${pluginName}/${enabled}`,
+                method: 'PUT',
+            },
+            accessToken,
+        );
+    };
 }

@@ -169,7 +169,7 @@ public static class CopilotChatServiceExtensions
                     policy =>
                     {
                         policy.WithOrigins(allowedOrigins)
-                            .WithMethods("GET", "POST", "DELETE")
+                            .WithMethods("POST", "GET", "PUT", "DELETE")
                             .AllowAnyHeader();
                     });
             });

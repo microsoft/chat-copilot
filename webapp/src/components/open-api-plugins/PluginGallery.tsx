@@ -30,7 +30,7 @@ import { PluginCard } from './cards/PluginCard';
 const useClasses = makeStyles({
     root: {
         maxWidth: '1052px',
-        height: '632px',
+        height: '852px',
         width: 'fit-content',
         display: 'flex',
     },
@@ -69,13 +69,13 @@ export const PluginGallery: React.FC = () => {
     const [open, setOpen] = useState(false);
 
     const [hostedPlugins, setHostedPlugins] = useState([] as Plugin[]);
-    const { getPluginManifestAsync } = usePlugins();
+    const { getHostedPluginManifestAsync } = usePlugins();
 
     useEffect(() => {
         function updateHostedPlugin() {
             setHostedPlugins([]);
             serviceOptions.availablePlugins.forEach((availablePlugin) => {
-                getPluginManifestAsync(availablePlugin)
+                getHostedPluginManifestAsync(availablePlugin)
                     .then((manifest) => {
                         const newHostedPlugin = {
                             name: manifest.name_for_human,
@@ -147,7 +147,7 @@ export const PluginGallery: React.FC = () => {
                         <div className={classes.content}>
                             {Object.entries(plugins).map((entry) => {
                                 const plugin = entry[1];
-                                return <PluginCard key={plugin.name} plugin={plugin} />;
+                                return <PluginCard key={plugin.name} plugin={plugin} isHosted={false} />;
                             })}
                         </div>
                         <Subtitle2 block className={classes.title}>
@@ -156,7 +156,7 @@ export const PluginGallery: React.FC = () => {
                         <div className={classes.content}>
                             {Object.entries(hostedPlugins).map((entry) => {
                                 const plugin = entry[1];
-                                return <PluginCard key={plugin.name} plugin={plugin} />;
+                                return <PluginCard key={plugin.name} plugin={plugin} isHosted={true} />;
                             })}
                         </div>
                         <Label size="small" color="brand">
