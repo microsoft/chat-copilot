@@ -8,6 +8,7 @@ import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { AuthorRoles, IChatMessage } from '../../libs/models/ChatMessage';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
+import { FeatureKeys, Features } from '../../redux/features/app/AppState';
 import { addMessageToConversationFromUser } from '../../redux/features/conversations/conversationsSlice';
 import { SharedStyles } from '../../styles';
 import { ChatInput } from './ChatInput';
@@ -104,6 +105,22 @@ export const ChatRoom: React.FC = () => {
 
         setShouldAutoScroll(true);
     };
+
+    if (conversations[selectedId].hidden) {
+        return (
+            <div className={classes.root}>
+                <div className={classes.scroll}>
+                    <div className={classes.history}>
+                        <h3>
+                            This conversation is not visible in the app because{' '}
+                            {Features[FeatureKeys.MultiUserChat].label} is disabled. Please enable the feature in the
+                            settings to view the conversation, select a different one, or create a new conversation.
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={classes.root} onDragEnter={onDragEnter} onDragOver={onDragEnter} onDragLeave={onDragLeave}>
