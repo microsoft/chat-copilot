@@ -114,7 +114,7 @@ export const ChatRoom: React.FC = () => {
                         <h3>
                             This conversation is not visible in the app because{' '}
                             {Features[FeatureKeys.MultiUserChat].label} is disabled. Please enable the feature in the
-                            settings to view the conversation, or select a different or create a new conversation.
+                            settings to view the conversation, select a different or create a new conversation.
                         </h3>
                     </div>
                 </div>

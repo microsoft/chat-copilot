@@ -371,10 +371,7 @@ export const useChat = () => {
             .then(() => {
                 dispatch(deleteConversation(chatId));
 
-                if (Object.values(conversations).filter((c) => c.id != chatId).length === 0) {
-                    // If there is no chat left, create a new chat
-                    void createChat();
-                } else if (Object.values(conversations).filter((c) => !c.hidden && c.id !== chatId).length === 0) {
+                if (Object.values(conversations).filter((c) => !c.hidden && c.id !== chatId).length === 0) {
                     // If there are no non-hidden chats, create a new chat
                     void createChat();
                 }
