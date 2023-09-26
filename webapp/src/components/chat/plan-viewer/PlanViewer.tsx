@@ -1,11 +1,9 @@
 import { Button, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import { CheckmarkCircle24Regular, DismissCircle24Regular, Info24Regular } from '@fluentui/react-icons';
 import { useState } from 'react';
-import { GetResponseOptions } from '../../../libs/hooks/useChat';
-import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
+import { useChat } from '../../../libs/hooks/useChat';
+import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { PlanState, ProposedPlan } from '../../../libs/models/Plan';
-import { ContextVariable } from '../../../libs/semantic-kernel/model/AskResult';
-import { getPlanGoal } from '../../../libs/utils/PlanUtils';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
@@ -36,7 +34,6 @@ const useClasses = makeStyles({
 interface PlanViewerProps {
     message: IChatMessage;
     messageIndex: number;
-    getResponse: (options: GetResponseOptions) => Promise<void>;
 }
 
 /* eslint-disable 
@@ -44,25 +41,28 @@ interface PlanViewerProps {
     @typescript-eslint/no-unsafe-member-access,
     @typescript-eslint/no-unsafe-call,
 */
-export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, getResponse }) => {
+export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const chat = useChat();
 
     // Track original plan from user message
     const parsedContent: ProposedPlan = JSON.parse(message.content);
     const originalPlan = parsedContent.proposedPlan;
-    const description = getPlanGoal(originalPlan.description);
     const planState = message.planState ?? parsedContent.state;
     const [plan, setPlan] = useState(originalPlan);
 
-    const onPlanAction = async (planState: PlanState.PlanApproved | PlanState.PlanRejected) => {
+    const onPlanAction = async (planState: PlanState.Approved | PlanState.Rejected) => {
         const updatedPlan = JSON.stringify({
+            ...parsedContent,
             proposedPlan: plan,
             type: parsedContent.type,
             state: planState,
+            generatedPlanMessageId: message.id,
         });
 
+        // Update bot message with new plan state
         dispatch(
             updateMessageProperty({
                 messageIdOrIndex: messageIndex,
@@ -74,42 +74,18 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
             }),
         );
 
-        const contextVariables: ContextVariable[] = [
-            {
-                key: 'responseMessageId',
-                value: message.id ?? '',
-            },
-            {
-                key: 'proposedPlan',
-                value: updatedPlan,
-            },
-        ];
-
-        contextVariables.push(
-            planState === PlanState.PlanApproved
-                ? {
-                      key: 'planUserIntent',
-                      value: description,
-                  }
-                : {
-                      key: 'userCancelledPlan',
-                      value: 'true',
-                  },
-        );
-
-        // Invoke plan
-        await getResponse({
-            value: planState === PlanState.PlanApproved ? 'Yes, proceed' : 'No, cancel',
-            contextVariables,
-            messageType: ChatMessageType.Message,
-            chatId: selectedId,
-        });
+        await chat.processPlan(selectedId, planState, updatedPlan);
     };
 
     return (
         <div className={classes.container}>
             <Text>Based on the request, Copilot Chat will run the following steps:</Text>
-            <PlanBody plan={plan} setPlan={setPlan} planState={planState} />
+            <PlanBody
+                plan={plan}
+                setPlan={setPlan}
+                planState={planState}
+                description={parsedContent.userIntent ?? parsedContent.originalUserInput}
+            />
             {planState === PlanState.PlanApprovalRequired && (
                 <>
                     Would you like to proceed with the plan?
@@ -118,7 +94,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
                             data-testid="cancelPlanButton"
                             appearance="secondary"
                             onClick={() => {
-                                void onPlanAction(PlanState.PlanRejected);
+                                void onPlanAction(PlanState.Rejected);
                             }}
                         >
                             No, cancel plan
@@ -128,7 +104,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
                             type="submit"
                             appearance="primary"
                             onClick={() => {
-                                void onPlanAction(PlanState.PlanApproved);
+                                void onPlanAction(PlanState.Approved);
                             }}
                         >
                             Yes, proceed
@@ -136,13 +112,13 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
                     </div>
                 </>
             )}
-            {planState === PlanState.PlanApproved && (
+            {planState === PlanState.Approved && (
                 <div className={mergeClasses(classes.buttons, classes.status)}>
                     <CheckmarkCircle24Regular />
                     <Text className={classes.text}> Plan Executed</Text>
                 </div>
             )}
-            {planState === PlanState.PlanRejected && (
+            {planState === PlanState.Rejected && (
                 <div className={mergeClasses(classes.buttons, classes.status)}>
                     <DismissCircle24Regular />
                     <Text className={classes.text}> Plan Cancelled</Text>

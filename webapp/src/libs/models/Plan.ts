@@ -6,11 +6,11 @@ export interface IPlanInput {
 
 export enum PlanState {
     NoOp,
-    PlanApproved,
-    PlanRejected,
+    Approved,
+    Rejected,
     PlanApprovalRequired,
     Disabled,
-    SavedPlan,
+    Derived,
 }
 
 export enum PlanType {
@@ -78,4 +78,13 @@ export interface ProposedPlan {
 
     // State of plan
     state: PlanState;
+
+    // User input that prompted the plan
+    originalUserInput: string;
+
+    // User intent to serves as goal of plan.
+    userIntent?: string;
+
+    // Id tracking bot message of generated plan in chat history
+    generatedPlanMessageId?: string;
 }

@@ -15,15 +15,11 @@ interface IPlanBodyProps {
     plan: Plan;
     setPlan: React.Dispatch<any>;
     planState: PlanState;
+    description: string;
 }
 
-export const PlanBody: React.FC<IPlanBodyProps> = ({ plan, setPlan, planState }) => {
+export const PlanBody: React.FC<IPlanBodyProps> = ({ plan, setPlan, planState, description }) => {
     const classes = useClasses();
-
-    const userIntentPrefix = 'User intent: ';
-    const userIntentIndex = plan.description.indexOf(userIntentPrefix);
-    const description: string =
-        userIntentIndex !== -1 ? plan.description.substring(userIntentIndex + userIntentPrefix.length).trim() : '';
 
     const onDeleteStep = (index: number) => {
         setPlan({
@@ -40,7 +36,7 @@ export const PlanBody: React.FC<IPlanBodyProps> = ({ plan, setPlan, planState })
                     <PlanStepCard
                         key={`Plan step: ${index}`}
                         step={{ ...step, index } as Plan}
-                        enableEdits={planState === PlanState.PlanApprovalRequired || planState === PlanState.SavedPlan}
+                        enableEdits={planState === PlanState.PlanApprovalRequired || planState === PlanState.Derived}
                         enableStepDelete={plan.steps.length > 1}
                         onDeleteStep={onDeleteStep}
                     />

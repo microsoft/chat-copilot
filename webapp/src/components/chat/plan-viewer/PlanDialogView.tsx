@@ -18,7 +18,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import React from 'react';
-import { Plan, PlanState } from '../../../libs/models/Plan';
+import { PlanState, ProposedPlan } from '../../../libs/models/Plan';
 import { useDialogClasses } from '../../../styles';
 import { PlanBody } from './PlanBody';
 
@@ -37,22 +37,19 @@ const useClasses = makeStyles({
 
 interface IPlanDialogViewProps {
     goal: string;
-    parsedPlan: Plan;
-    planJson: string;
+    plan: ProposedPlan;
 }
 
-export const PlanDialogView: React.FC<IPlanDialogViewProps> = ({ goal, parsedPlan, planJson }) => {
+export const PlanDialogView: React.FC<IPlanDialogViewProps> = ({ goal, plan }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
+    const [planView, setPlanView] = React.useState(plan.proposedPlan);
 
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('formatted');
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
     };
 
-    const [plan, setPlan] = React.useState(parsedPlan);
-
-    // TODO: Hook up Run Plan action.
     return (
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
@@ -67,18 +64,23 @@ export const PlanDialogView: React.FC<IPlanDialogViewProps> = ({ goal, parsedPla
                                 Formatted
                             </Tab>
                             <Tab data-testid="json" id="json" value="json">
-                                JSON
+                                Original JSON
                             </Tab>
                         </TabList>
                         <div className={dialogClasses.innerContent}>
                             {selectedTab === 'formatted' && (
                                 <div className={classes.planView}>
-                                    <PlanBody plan={plan} setPlan={setPlan} planState={PlanState.SavedPlan} />
+                                    <PlanBody
+                                        plan={planView}
+                                        setPlan={setPlanView}
+                                        planState={PlanState.Derived}
+                                        description={goal}
+                                    />
                                 </div>
                             )}
                             {selectedTab === 'json' && (
                                 <pre className={dialogClasses.text}>
-                                    <code>{JSON.stringify(JSON.parse(planJson), null, 2)}</code>
+                                    <code>{JSON.stringify(plan.proposedPlan, null, 2)}</code>
                                 </pre>
                             )}
                         </div>

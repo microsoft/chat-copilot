@@ -53,11 +53,6 @@ public class ExternalInformationSkill
     public StepwiseThoughtProcess? StepwiseThoughtProcess { get; private set; }
 
     /// <summary>
-    /// Supplement to help guide model in using data.
-    /// </summary>
-    private const string PromptSupplement = "This is the result of invoking the functions listed after \"PLUGINS USED:\" to retrieve additional information outside of the data you were trained on. You can use this data to help answer the user's query.";
-
-    /// <summary>
     /// Header to indicate plan results.
     /// </summary>
     private const string ResultHeader = "RESULT: ";
@@ -75,14 +70,16 @@ public class ExternalInformationSkill
         this._logger = logger;
     }
 
+    public string FormattedFunctionsString(Plan plan) { return string.Join("; ", this.GetPlanSteps(plan)); }
+
     /// <summary>
-    /// Extract relevant additional knowledge using a planner.
+    /// Invoke planner to generate a new plan or extract relevant additional knowledge.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     [SKFunction, Description("Acquire external information")]
     [SKParameter("tokenLimit", "Maximum number of tokens")]
     [SKParameter("proposedPlan", "Previously proposed plan that is approved")]
-    public async Task<string> AcquireExternalInformationAsync(
+    public async Task<string> InvokePlannerAsync(
         [Description("The intent to whether external information is needed")] string userIntent,
         SKContext context,
         CancellationToken cancellationToken = default)
@@ -107,91 +104,85 @@ public class ExternalInformationSkill
             return $"{plannerContext.Variables.Input.Trim()}\n";
         }
 
-        // Check if plan exists in ask's context variables.
-        var planExists = context.Variables.TryGetValue("proposedPlan", out string? proposedPlanJson);
-        var deserializedPlan = planExists && !string.IsNullOrWhiteSpace(proposedPlanJson) ? JsonSerializer.Deserialize<ProposedPlan>(proposedPlanJson) : null;
+        // Create a plan and set it in context for approval.
+        Plan? plan = null;
+        var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions(); // Use default planner options if planner options are null.
+        int retriesAvail = plannerOptions.ErrorHandling.AllowRetries
+            ? plannerOptions.ErrorHandling.MaxRetriesAllowed : 0;
 
-        // Run plan if it was approved
-        if (deserializedPlan != null && deserializedPlan.State == PlanState.Approved)
-        {
-            string planJson = JsonSerializer.Serialize(deserializedPlan.Plan);
-            // Reload the plan with the planner's kernel so
-            // it has full context to be executed
-            var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.LoggerFactory);
-            var plan = Plan.FromJson(planJson, newPlanContext);
-
-            // Invoke plan
-            newPlanContext = await plan.InvokeAsync(newPlanContext, cancellationToken: cancellationToken);
-            var functionsUsed = $"PLUGINS USED: {string.Join("; ", this.GetPlanSteps(plan))}.";
-
-            int tokenLimit =
-                int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo()) -
-                TokenUtilities.TokenCount(functionsUsed) -
-                TokenUtilities.TokenCount(ResultHeader);
-
-            // The result of the plan may be from an OpenAPI skill. Attempt to extract JSON from the response.
-            bool extractJsonFromOpenApi =
-                this.TryExtractJsonFromOpenApiPlanResult(newPlanContext, newPlanContext.Result, out string planResult);
-            if (extractJsonFromOpenApi)
+        do
+        { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
+            try
             {
-                planResult = this.OptimizeOpenApiSkillJson(planResult, tokenLimit, plan);
+                plan = await this._planner.CreatePlanAsync(goal, this._logger, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                if (--retriesAvail >= 0)
+                {
+                    this._logger.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
+                    continue;
+                }
+                throw;
+            }
+        } while (plan == null);
+
+        if (plan.Steps.Count > 0)
+        {
+            // Merge any variables from ask context into plan parameters as these will be used on plan execution.
+            // These context variables come from user input, so they are prioritized.
+            if (plannerOptions.Type == PlanType.Action)
+            {
+                // Parameters stored in plan's top level state
+                this.MergeContextIntoPlan(context.Variables, plan.Parameters);
             }
             else
             {
-                // If not, use result of the plan execution result directly.
-                planResult = newPlanContext.Variables.Input;
+                foreach (var step in plan.Steps)
+                {
+                    this.MergeContextIntoPlan(context.Variables, step.Parameters);
+                }
             }
 
-            return $"{PromptSupplement}\n{functionsUsed}\n{ResultHeader}{planResult.Trim()}\n";
-        }
-        else
-        {
-            // Create a plan and set it in context for approval.
-            Plan? plan = null;
-            // Use default planner options if planner options are null.
-            var plannerOptions = this._planner.PlannerOptions ?? new PlannerOptions();
-            int retriesAvail = plannerOptions.ErrorHandling.AllowRetries
-                ? plannerOptions.ErrorHandling.MaxRetriesAllowed : 0;
-
-            do
-            { // TODO: [Issue #2256] Remove InvalidPlan retry logic once Core team stabilizes planner
-                try
-                {
-                    plan = await this._planner.CreatePlanAsync(goal, this._logger, cancellationToken);
-                }
-                catch (Exception e)
-                {
-                    if (--retriesAvail >= 0)
-                    {
-                        this._logger.LogWarning("Retrying CreatePlan on error: {0}", e.Message);
-                        continue;
-                    }
-                    throw;
-                }
-            } while (plan == null);
-
-            if (plan.Steps.Count > 0)
-            {
-                // Merge any variables from ask context into plan parameters as these will be used on plan execution.
-                // These context variables come from user input, so they are prioritized.
-                if (plannerOptions.Type == PlanType.Action)
-                {
-                    // Parameters stored in plan's top level state
-                    this.MergeContextIntoPlan(context.Variables, plan.Parameters);
-                }
-                else
-                {
-                    foreach (var step in plan.Steps)
-                    {
-                        this.MergeContextIntoPlan(context.Variables, step.Parameters);
-                    }
-                }
-
-                this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp);
-            }
+            this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp, userIntent, context.Variables.Input);
         }
 
         return string.Empty;
+    }
+
+    public async Task<string> ExecutePlanAsync(
+        SKContext context,
+        Plan plan,
+        CancellationToken cancellationToken = default)
+    {
+        // Reload the plan with the planner's kernel so it has full context to be executed
+        var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.LoggerFactory);
+        string planJson = JsonSerializer.Serialize(plan);
+        plan = Plan.FromJson(planJson, newPlanContext);
+
+        // Invoke plan
+        newPlanContext = await plan.InvokeAsync(newPlanContext, cancellationToken: cancellationToken);
+        var functionsUsed = $"FUNCTIONS USED: {this.FormattedFunctionsString(plan)}";
+
+        // TODO: #2581 Account for planner system instructions
+        int tokenLimit = int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo())
+            - TokenUtilities.TokenCount(functionsUsed)
+            - TokenUtilities.TokenCount(ResultHeader);
+
+        // The result of the plan may be from an OpenAPI skill. Attempt to extract JSON from the response.
+        bool extractJsonFromOpenApi =
+            this.TryExtractJsonFromOpenApiPlanResult(newPlanContext, newPlanContext.Result, out string planResult);
+        if (extractJsonFromOpenApi)
+        {
+            planResult = this.OptimizeOpenApiSkillJson(planResult, tokenLimit, plan);
+        }
+        else
+        {
+            // If not, use result of plan execution directly.
+            planResult = newPlanContext.Variables.Input;
+        }
+
+        return $"{functionsUsed}\n{ResultHeader}{planResult.Trim()}";
     }
 
     #region Private

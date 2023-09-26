@@ -18,8 +18,7 @@ import {
     useTableSort,
 } from '@fluentui/react-components';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
-import { Plan, ProposedPlan } from '../../../libs/models/Plan';
-import { getPlanGoal } from '../../../libs/utils/PlanUtils';
+import { ProposedPlan } from '../../../libs/models/Plan';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { timestampToDateString } from '../../utils/TextUtils';
@@ -37,14 +36,13 @@ const useClasses = makeStyles({
 
 interface TableItem {
     index: number;
-    parsedPlan: Plan;
+    parsedPlan: ProposedPlan;
     goal: string;
     createdOn: {
         label: string;
         timestamp: number;
     };
     tokens: number;
-    planJson: string;
 }
 
 export const PlansTab: React.FC = () => {
@@ -90,7 +88,7 @@ function useTable(planMessages: IChatMessage[]) {
             renderCell: (item) => (
                 <TableCell key={`plan-${item.index}`}>
                     <TableCellLayout>
-                        <PlanDialogView goal={item.goal} parsedPlan={item.parsedPlan} planJson={item.planJson} />
+                        <PlanDialogView goal={item.goal} plan={item.parsedPlan} />
                     </TableCellLayout>
                 </TableCell>
             ),
@@ -140,19 +138,18 @@ function useTable(planMessages: IChatMessage[]) {
     ];
 
     const items = planMessages.map((message, index) => {
-        const parsedMessage = JSON.parse(message.content) as ProposedPlan;
-        const plangoal = getPlanGoal(parsedMessage.proposedPlan.description);
+        const parsedPlan = JSON.parse(message.content) as ProposedPlan;
+        const plangoal = parsedPlan.userIntent ?? parsedPlan.originalUserInput;
 
         return {
             index: index,
             goal: plangoal,
-            parsedPlan: parsedMessage.proposedPlan,
+            parsedPlan: parsedPlan,
             createdOn: {
                 label: timestampToDateString(message.timestamp),
                 timestamp: message.timestamp,
             },
             tokens: 0, // TODO: [Issue #2106] Get token count from plan
-            planJson: message.content,
         };
     });
 
