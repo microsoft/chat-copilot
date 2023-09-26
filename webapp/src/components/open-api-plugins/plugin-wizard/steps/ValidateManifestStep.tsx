@@ -1,3 +1,4 @@
+import { useMsal } from '@azure/msal-react';
 import {
     Accordion,
     AccordionHeader,
@@ -12,10 +13,10 @@ import {
 } from '@fluentui/react-components';
 import { CheckmarkCircle20Regular, DismissCircle20Regular } from '@fluentui/react-icons';
 import { useEffect, useState } from 'react';
-import { Constants } from '../../../../Constants';
+import { AuthHelper } from '../../../../libs/auth/AuthHelper';
 import { PluginManifest } from '../../../../libs/models/PluginManifest';
+import { ChatService } from '../../../../libs/services/ChatService';
 import { isValidOpenAPISpec, isValidPluginManifest } from '../../../utils/PluginUtils';
-import { fetchJson } from '../../../utils/FileUtils';
 
 const useClasses = makeStyles({
     start: {
@@ -45,7 +46,7 @@ enum ValidationState {
 }
 
 interface IValidateManifestStepProps {
-    manifestDomain?: string;
+    manifestDomain: string;
     onPluginValidated: () => void;
     pluginManifest?: PluginManifest;
     onManifestValidated: (manifest: PluginManifest) => void;
@@ -68,38 +69,33 @@ export const ValidateManifestStep: React.FC<IValidateManifestStepProps> = ({
         setErrorMessage(errorMessage);
     };
 
+    const { instance, inProgress } = useMsal();
     useEffect(() => {
         setErrorMessage(undefined);
+        AuthHelper.getSKaaSAccessToken(instance, inProgress)
+            .then(async (accessToken) => {
+                const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
+                const pluginManifest = await chatService.getPluginManifest(manifestDomain, accessToken);
+                if (isValidPluginManifest(pluginManifest)) {
+                    setManifestValidationState(ValidationState.Success);
+                    setOpenApiSpecValidationState(ValidationState.Loading);
+                    onManifestValidated(pluginManifest);
 
-        try {
-            const manifestUrl = new URL(Constants.plugins.MANIFEST_PATH, manifestDomain);
-            void fetchJson(manifestUrl)
-                .then(async (response: Response) => {
-                    const pluginManifest = (await response.json()) as PluginManifest;
-
-                    if (isValidPluginManifest(pluginManifest)) {
-                        setManifestValidationState(ValidationState.Success);
-                        setOpenApiSpecValidationState(ValidationState.Loading);
-                        onManifestValidated(pluginManifest);
-
-                        try {
-                            if (isValidOpenAPISpec(pluginManifest.api.url)) {
-                                onPluginValidated();
-                            }
-                            setOpenApiSpecValidationState(ValidationState.Success);
-                        } catch (e: any) {
-                            setOpenApiSpecValidationState(ValidationState.Failed);
-                            setErrorMessage((e as Error).message);
+                    try {
+                        if (isValidOpenAPISpec(pluginManifest.api.url)) {
+                            onPluginValidated();
                         }
+                        setOpenApiSpecValidationState(ValidationState.Success);
+                    } catch (e: any) {
+                        setOpenApiSpecValidationState(ValidationState.Failed);
+                        setErrorMessage((e as Error).message);
                     }
-                })
-                .catch((e) => {
-                    onManifestValidationFailed((e as Error).message);
-                });
-        } catch (e: unknown) {
-            onManifestValidationFailed((e as Error).message);
-        }
-    }, [manifestDomain, onManifestValidated, onPluginValidated]);
+                }
+            })
+            .catch((e: unknown) => {
+                onManifestValidationFailed((e as Error).message);
+            });
+    }, [manifestDomain, onManifestValidated, onPluginValidated, instance, inProgress]);
 
     const statusComponent = (type: FileType, status: ValidationState) => {
         const fileType = type;
