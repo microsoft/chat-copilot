@@ -224,7 +224,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                         type="file"
                         ref={documentFileRef}
                         style={{ display: 'none' }}
-                        accept=".txt,.pdf,.docx,.md,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.gif"
+                        accept={Constants.app.importTypes}
                         multiple={true}
                         onChange={() => {
                             void fileHandler.handleImport(selectedId, documentFileRef);

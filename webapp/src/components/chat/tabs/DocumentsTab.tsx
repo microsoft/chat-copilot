@@ -35,6 +35,7 @@ import * as React from 'react';
 import { useRef } from 'react';
 import { useChat, useFile } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
+import { Constants } from '../../../Constants';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { timestampToDateString } from '../../utils/TextUtils';
@@ -97,16 +98,16 @@ export const DocumentsTab: React.FC = () => {
         if (!conversations[selectedId].disabled) {
             const importingResources = importingDocuments
                 ? importingDocuments.map((document, index) => {
-                      return {
-                          id: `in-progress-${index}`,
-                          chatId: selectedId,
-                          sourceType: 'N/A',
-                          name: document,
-                          sharedBy: 'N/A',
-                          createdOn: 0,
-                          size: 0,
-                      } as ChatMemorySource;
-                  })
+                    return {
+                        id: `in-progress-${index}`,
+                        chatId: selectedId,
+                        sourceType: 'N/A',
+                        name: document,
+                        sharedBy: 'N/A',
+                        createdOn: 0,
+                        size: 0,
+                    } as ChatMemorySource;
+                })
                 : [];
             setResources(importingResources);
 
@@ -131,7 +132,7 @@ export const DocumentsTab: React.FC = () => {
                     type="file"
                     ref={documentFileRef}
                     style={{ display: 'none' }}
-                    accept=".txt,.pdf,.docx,.md,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.gif"
+                    accept={Constants.app.importTypes}
                     multiple={true}
                     onChange={() => {
                         void fileHandler.handleImport(selectedId, documentFileRef);
