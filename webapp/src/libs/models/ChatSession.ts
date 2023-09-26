@@ -7,6 +7,7 @@ export interface IChatSession {
     title: string;
     systemDescription: string;
     memoryBalance: number;
+    enabledPlugins: string[];
 }
 
 export interface ICreateChatSessionResponse {

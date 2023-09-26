@@ -22,10 +22,10 @@ namespace CopilotChat.WebApi.Controllers;
 [ApiController]
 public class PluginController : ControllerBase
 {
+    private const string PluginStateChanged = "PluginStateChanged";
     private readonly ILogger<PluginController> _logger;
     private readonly IDictionary<string, Plugin> _availablePlugins;
     private readonly ChatSessionRepository _sessionRepository;
-
 
     public PluginController(
         ILogger<PluginController> logger,
@@ -58,8 +58,9 @@ public class PluginController : ControllerBase
             return this.NotFound("Plugin not found.");
         }
 
+        var chatIdString = chatId.ToString();
         ChatSession? chat = null;
-        if (!(await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), callback: v => chat = v)) || chat == null)
+        if (!(await this._sessionRepository.TryFindByIdAsync(chatIdString, callback: v => chat = v)) || chat == null)
         {
             return this.NotFound("Chat not found.");
         }
@@ -72,6 +73,9 @@ public class PluginController : ControllerBase
         {
             chat.EnabledPlugins.Remove(pluginName);
         }
+
+        await this._sessionRepository.UpsertAsync(chat);
+        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(PluginStateChanged, chatIdString, pluginName, enabled);
 
         return this.NoContent();
     }

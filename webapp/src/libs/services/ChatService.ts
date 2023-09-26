@@ -85,6 +85,7 @@ export class ChatService extends BaseService {
             title,
             systemDescription,
             memoryBalance,
+            enabledPlugins: [], // edit will not modify the enabled plugins
         };
 
         const result = await this.getResponseAsync<IChatSession>(

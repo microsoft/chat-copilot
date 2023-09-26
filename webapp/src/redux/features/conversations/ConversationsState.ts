@@ -34,3 +34,9 @@ export interface ConversationSystemDescriptionChange {
     id: string;
     newSystemDescription: string;
 }
+
+export interface PluginStateChangedPayload {
+    id: string;
+    pluginName: string;
+    newState: boolean;
+}

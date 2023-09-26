@@ -88,6 +88,7 @@ export const useChat = () => {
                         systemDescription: result.chatSession.systemDescription,
                         memoryBalance: result.chatSession.memoryBalance,
                         messages: [result.initialBotMessage],
+                        enabledHostedPlugins: result.chatSession.enabledPlugins,
                         users: [loggedInUser],
                         botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
                         input: '',
@@ -178,6 +179,7 @@ export const useChat = () => {
                         memoryBalance: chatSession.memoryBalance,
                         users: chatUsers,
                         messages: chatMessages,
+                        enabledHostedPlugins: chatSession.enabledPlugins,
                         botProfilePicture: getBotProfilePicture(Object.keys(loadedConversations).length),
                         input: '',
                         botResponseStatus: undefined,
@@ -227,13 +229,14 @@ export const useChat = () => {
             await botService.uploadAsync(bot, accessToken).then(async (chatSession: IChatSession) => {
                 const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
-                const newChat = {
+                const newChat: ChatState = {
                     id: chatSession.id,
                     title: chatSession.title,
                     systemDescription: chatSession.systemDescription,
                     memoryBalance: chatSession.memoryBalance,
                     users: [loggedInUser],
                     messages: chatMessages,
+                    enabledHostedPlugins: chatSession.enabledPlugins,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
                     input: '',
                     botResponseStatus: undefined,
@@ -337,6 +340,7 @@ export const useChat = () => {
                     systemDescription: result.systemDescription,
                     memoryBalance: result.memoryBalance,
                     messages: chatMessages,
+                    enabledHostedPlugins: result.enabledPlugins,
                     users: chatUsers,
                     botProfilePicture: getBotProfilePicture(Object.keys(conversations).length),
                     input: '',

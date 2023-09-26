@@ -66,6 +66,7 @@ export const PluginGallery: React.FC = () => {
 
     const { plugins } = useAppSelector((state: RootState) => state.plugins);
     const { serviceOptions } = useAppSelector((state: RootState) => state.app);
+    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const [open, setOpen] = useState(false);
 
     const [hostedPlugins, setHostedPlugins] = useState([] as Plugin[]);
@@ -81,7 +82,7 @@ export const PluginGallery: React.FC = () => {
                             name: manifest.name_for_human,
                             publisher: 'N/A',
                             description: manifest.description_for_human,
-                            enabled: false,
+                            enabled: conversations[selectedId].enabledHostedPlugins.includes(availablePlugin.name),
                             authRequirements: {} as PluginAuthRequirements,
                             icon: manifest.logo_url,
                         } as Plugin;
@@ -97,7 +98,7 @@ export const PluginGallery: React.FC = () => {
             updateHostedPlugin();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, serviceOptions.availablePlugins]);
+    }, [conversations[selectedId], open, serviceOptions.availablePlugins]);
 
     return (
         <Dialog
