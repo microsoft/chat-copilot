@@ -21,7 +21,3 @@ documentation:
 # Add 'github actions' label to any change within the '.github/workflows' directory
 "github actions":
   - .github/workflows/**/*
-
-# Add 'PR: ready for review' label to all PRs
-"PR: ready for review":
-  - "**"
