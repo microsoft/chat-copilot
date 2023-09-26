@@ -1,4 +1,3 @@
-import { useMsal } from '@azure/msal-react';
 import {
     Accordion,
     AccordionHeader,
@@ -13,9 +12,8 @@ import {
 } from '@fluentui/react-components';
 import { CheckmarkCircle20Regular, DismissCircle20Regular } from '@fluentui/react-icons';
 import { useEffect, useState } from 'react';
-import { AuthHelper } from '../../../../libs/auth/AuthHelper';
+import { usePlugins } from '../../../../libs/hooks';
 import { PluginManifest } from '../../../../libs/models/PluginManifest';
-import { ChatService } from '../../../../libs/services/ChatService';
 import { isValidOpenAPISpec, isValidPluginManifest } from '../../../utils/PluginUtils';
 
 const useClasses = makeStyles({
@@ -69,13 +67,11 @@ export const ValidateManifestStep: React.FC<IValidateManifestStepProps> = ({
         setErrorMessage(errorMessage);
     };
 
-    const { instance, inProgress } = useMsal();
+    const { getPluginManifest } = usePlugins();
     useEffect(() => {
         setErrorMessage(undefined);
-        AuthHelper.getSKaaSAccessToken(instance, inProgress)
-            .then(async (accessToken) => {
-                const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
-                const pluginManifest = await chatService.getPluginManifest(manifestDomain, accessToken);
+        getPluginManifest(manifestDomain)
+            .then((pluginManifest) => {
                 if (isValidPluginManifest(pluginManifest)) {
                     setManifestValidationState(ValidationState.Success);
                     setOpenApiSpecValidationState(ValidationState.Loading);
@@ -95,7 +91,7 @@ export const ValidateManifestStep: React.FC<IValidateManifestStepProps> = ({
             .catch((e: unknown) => {
                 onManifestValidationFailed((e as Error).message);
             });
-    }, [manifestDomain, onManifestValidated, onPluginValidated, instance, inProgress]);
+    }, [manifestDomain, onManifestValidated, onPluginValidated, getPluginManifest]);
 
     const statusComponent = (type: FileType, status: ValidationState) => {
         const fileType = type;
