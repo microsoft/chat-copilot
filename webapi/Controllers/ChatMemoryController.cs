@@ -51,7 +51,7 @@ public class ChatMemoryController : ControllerBase
     /// </summary>
     /// <param name="semanticTextMemory">The semantic text memory instance.</param>
     /// <param name="chatId">The chat id.</param>
-    /// <param name="memoryType">Type of the memory type. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
+    /// <param name="memoryType">Type of memory. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
     [HttpGet]
     [Route("chatMemory/{chatId:guid}/{memoryType}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
