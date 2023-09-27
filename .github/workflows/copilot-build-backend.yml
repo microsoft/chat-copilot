@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { dotnet: "6.0", configuration: Release, os: windows-latest }
+          - { dotnet: "7.0", configuration: Release, os: windows-latest }
 
     runs-on: ${{ matrix.os }}
 
