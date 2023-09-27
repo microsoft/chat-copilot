@@ -66,8 +66,8 @@ public class ChatMemoryController : ControllerBase
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
         var sanitizedChatId = GetSanitizedParameter(chatId);
 
-        // Map the requested memorType to the memory store container name
-        if (!this._promptOptions.TryGetMemoryContainerName(memoryType, out string memoryConatinerName))
+        // Map the requested memoryType to the memory store container name
+        if (!this._promptOptions.TryGetMemoryContainerName(memoryType, out string memoryContainerName))
         {
             this._logger.LogWarning("Memory type: {0} is invalid.", memoryType);
             return this.BadRequest($"Memory type: {memoryType} is invalid.");
@@ -89,7 +89,7 @@ public class ChatMemoryController : ControllerBase
             // Search if there is already a memory item that has a high similarity score with the new item.
             var filter = new MemoryFilter();
             filter.ByTag("chatid", chatId);
-            filter.ByTag("memory", memoryConatinerName);
+            filter.ByTag("memory", memoryContainerName);
             filter.MinRelevance = 0;
 
             var searchResult =
@@ -99,7 +99,7 @@ public class ChatMemoryController : ControllerBase
                     relevanceThreshold: 0,
                     resultCount: 1,
                     chatId,
-                    memoryConatinerName)
+                    memoryContainerName)
                 .ConfigureAwait(false);
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
@@ -110,7 +110,7 @@ public class ChatMemoryController : ControllerBase
         catch (Exception connectorException) when (!connectorException.IsCriticalException())
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryConatinerName);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryContainerName);
         }
 
         return this.Ok(memories);
