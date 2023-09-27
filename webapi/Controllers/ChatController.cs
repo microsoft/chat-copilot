@@ -173,7 +173,7 @@ public class ChatController : ControllerBase, IDisposable
         }
 
         ChatSession? chat = null;
-        if (!(await chatSessionRepository.TryFindByIdAsync(chatId, callback: c => chat = c)) || chat is null)
+        if (!(await chatSessionRepository.TryFindByIdAsync(chatId, callback: c => chat = c)) || chat == null)
         {
             return this.NotFound("Failed to find chat session for the chatId specified in variables.");
         }
@@ -417,6 +417,10 @@ public class ChatController : ControllerBase, IDisposable
                 UriBuilder uriBuilder = new(plugin.Url);
                 uriBuilder.Path = "/.well-known/ai-plugin.json";
 
+                CustomAuthenticationProvider authenticationProvider = new(
+                    () => Task.FromResult("X-Functions-Key"),
+                    () => Task.FromResult(plugin.Key));
+
                 // Register the ChatGPT plugin with the planner's kernel.
                 await planner.Kernel.ImportAIPluginAsync(
                     plugin.Name,
@@ -425,7 +429,7 @@ public class ChatController : ControllerBase, IDisposable
                     {
                         HttpClient = new HttpClient(),
                         IgnoreNonCompliantErrors = true,
-                        AuthCallback = null
+                        AuthCallback = authenticationProvider.AuthenticateRequestAsync
                     });
             }
             else

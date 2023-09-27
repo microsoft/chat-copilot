@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using PluginShared;
@@ -44,7 +45,7 @@ public class PluginEndpoint
     /// <returns>The manifest in Json</returns>
     [Function("WellKnownAIPlugin")]
     public async Task<HttpResponseData> WellKnownAIPlugin(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = ".well-known/ai-plugin.json")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/ai-plugin.json")] HttpRequestData req)
     {
         var pluginManifest = new PluginManifest()
         {
@@ -76,7 +77,7 @@ public class PluginEndpoint
     /// <returns>The icon.</returns>
     [Function("Icon")]
     public async Task<HttpResponseData> Icon(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = ".well-known/icon")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/icon")] HttpRequestData req)
     {
         if (!File.Exists("./Icons/bing.png"))
         {
@@ -98,6 +99,7 @@ public class PluginEndpoint
     /// <param name="req">The http request data.</param>
     /// <returns>A string representing the search result.</returns>
     [OpenApiOperation(operationId: "Search", tags: new[] { "WebSearchfunction" }, Description = "Searches the web for the given query.")]
+    [OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "x-functions-key", In = OpenApiSecurityLocationType.Header)]
     [OpenApiParameter(name: "Query", In = ParameterLocation.Query, Required = true, Type = typeof(string), Description = "The query")]
     [OpenApiParameter(name: "NumResults", In = ParameterLocation.Query, Required = true, Type = typeof(int), Description = "The maximum number of results to return")]
     [OpenApiParameter(name: "Offset", In = ParameterLocation.Query, Required = false, Type = typeof(int), Description = "The number of results to skip")]

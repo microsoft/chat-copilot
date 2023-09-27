@@ -95,7 +95,7 @@ public static class CopilotChatServiceExtensions
         logger.LogDebug("Found {0} plugins.", plugins.Count);
 
         // Validate the plugins
-        IDictionary<string, Plugin> validatedPlugins = new Dictionary<string, Plugin>();
+        Dictionary<string, Plugin> validatedPlugins = new();
         foreach (Plugin plugin in plugins)
         {
             if (validatedPlugins.ContainsKey(plugin.Name))
@@ -110,6 +110,7 @@ public static class CopilotChatServiceExtensions
                 {
                     try
                     {
+                        logger.LogInformation("Checking plugin: {0}.", plugin.Name);
                         var response = httpClient.GetAsync(pluginManifestUrl).Result;
                         if (!response.IsSuccessStatusCode)
                         {
