@@ -3,11 +3,21 @@
 Initializes and runs both the backend and frontend for Chat Copilot.
 #>
 
+# Verify "Core" version of powershell installed (not "Desktop"): https://aka.ms/powershell
+$ErrorActionPreference = 'Ignore'
+$cmd = get-command 'pwsh'
+$ErrorActionPreference = 'Continue'
+
+if (!$cmd) {
+    Write-Warning "Please update your powershell installation: https://aka.ms/powershell"
+    return;
+}
+
 $BackendScript = Join-Path "$PSScriptRoot" 'Start-Backend.ps1'
 $FrontendScript = Join-Path "$PSScriptRoot" 'Start-Frontend.ps1'
 
 # Start backend (in new PS process)
-Start-Process pwsh -ArgumentList "-command $BackendScript"
+Start-Process pwsh -ArgumentList "-command ""& '$BackendScript'"""
 # check if the backend is running before proceeding
 $backendRunning = $false
 

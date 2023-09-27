@@ -479,27 +479,7 @@ public class ChatSkill
 
             // Get bot response and stream to client
             await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
-            chatMessage = await this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken);
-
-            // Extract semantic chat memory
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
-            await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
-                chatId,
-                this._memoryClient,
-                this._kernel,
-                chatContext,
-                this._promptOptions,
-                this._logger,
-                cancellationToken);
-
-            // Calculate total token usage for dependency functions and prompt template and send to client
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
-            chatMessage.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
-            await this.UpdateMessageOnClient(chatMessage, cancellationToken);
-
-            // Save the message with final completion token usage
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
-            await this._chatMessageRepository.UpsertAsync(chatMessage);
+            chatMessage = await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken);
         }
         else
         {
@@ -609,8 +589,45 @@ public class ChatSkill
 
         // Stream the response to the client
         var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, plannerDetails, chatHistory, promptTemplate);
+        ChatMessage chatMessage = await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken);
+
+        return chatMessage;
+    }
+
+    /// <summary>
+    /// Helper function to render system instruction components.
+    /// </summary>
+    /// <param name="chatId">The chat ID</param>
+    /// <param name="context">The SKContext.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    private async Task<string> RenderSystemInstructions(string chatId, SKContext context, CancellationToken cancellationToken)
+    {
+        // Render system instruction components
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
+        var promptRenderer = new PromptTemplateEngine();
+        return await promptRenderer.RenderAsync(
+            this._promptOptions.SystemPersona,
+            context,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Helper function to handle final steps of bot response generation, including streaming to client, generating semantic text memory, calculating final token usages, and saving to chat history.
+    /// </summary>
+    /// <param name="chatId">The chat ID</param>
+    /// <param name="userId">The user ID</param>
+    /// <param name="chatContext">Chat context.</param>
+    /// <param name="promptView">The prompt view.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    private async Task<ChatMessage> HandleBotResponseAsync(string chatId, string userId, SKContext chatContext, BotResponsePrompt promptView, CancellationToken cancellationToken)
+    {
+        // Get bot response and stream to client
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
-        var chatMessage = await this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citationMap.Values.AsEnumerable());
+        ChatMessage chatMessage = await this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken);
+
+        // Save the message into chat history
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
+        await this._chatMessageRepository.UpsertAsync(chatMessage);
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
@@ -623,27 +640,15 @@ public class ChatSkill
             this._logger,
             cancellationToken);
 
-        // Calculate total token usage for dependency functions and prompt template and send to client
+        // Calculate total token usage for dependency functions and prompt template
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
         chatMessage.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
-        await this.UpdateMessageOnClient(chatMessage, cancellationToken);
 
-        // Save the message with final completion token usage
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
+        // Update the message on client and in chat history with final completion token usage
+        await this.UpdateMessageOnClient(chatMessage, cancellationToken);
         await this._chatMessageRepository.UpsertAsync(chatMessage);
 
         return chatMessage;
-    }
-
-    private async Task<string> RenderSystemInstructions(string chatId, SKContext context, CancellationToken cancellationToken)
-    {
-        // Render system instruction components
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
-        var promptRenderer = new PromptTemplateEngine();
-        return await promptRenderer.RenderAsync(
-            this._promptOptions.SystemPersona,
-            context,
-            cancellationToken);
     }
 
     /// <summary>

@@ -5,6 +5,7 @@ export const Constants = {
         name: 'Copilot',
         updateCheckIntervalSeconds: 60 * 5,
         CONNECTION_ALERT_ID: 'connection-alert',
+        importTypes: '.txt,.pdf,.docx,.md,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.gif',
     },
     msal: {
         method: 'redirect', // 'redirect' | 'popup'
