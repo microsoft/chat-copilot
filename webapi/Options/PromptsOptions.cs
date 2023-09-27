@@ -165,7 +165,7 @@ public class PromptsOptions
     internal PromptsOptions Copy() => (PromptsOptions)this.MemberwiseClone();
 
     /// <summary>
-    /// Tries to retrieve the memoryName asociated with the specified memory type.
+    /// Tries to retrieve the memoryContainerName associated with the specified memory type.
     /// </summary>
     internal bool TryGetMemoryContainerName(string memoryType, out string memoryContainerName)
     {
