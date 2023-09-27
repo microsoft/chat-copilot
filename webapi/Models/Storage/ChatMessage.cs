@@ -259,12 +259,4 @@ public class ChatMessage : IStorageEntity
         var planPrefix = "proposedPlan\":";
         return response.IndexOf(planPrefix, StringComparison.Ordinal) != -1;
     }
-
-    /// <summary>
-    /// Convert a chat message to a generic string.
-    /// </summary>
-    /// <param name="role"></param>
-    /// <param name="content"></param>
-    /// <returns></returns>
-    public static string ToString(AuthorRoles role, string content) => $"{role}: {content}";
 }

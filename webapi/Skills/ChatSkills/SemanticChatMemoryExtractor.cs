@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Skills.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
@@ -71,7 +72,7 @@ internal static class SemanticChatMemoryExtractor
             var remainingToken =
                 tokenLimit -
                 options.ResponseTokenLimit -
-                TokenUtilities.TokenCount(memoryPrompt);
+                TokenUtils.TokenCount(memoryPrompt);
 
             var memoryExtractionContext = context.Clone();
             memoryExtractionContext.Variables.Set("tokenLimit", remainingToken.ToString(new NumberFormatInfo()));
@@ -87,7 +88,7 @@ internal static class SemanticChatMemoryExtractor
 
             // Get token usage from ChatCompletion result and add to context
             // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
-            TokenUtilities.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryName}");
+            TokenUtils.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryName}");
 
             SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
             return memory;

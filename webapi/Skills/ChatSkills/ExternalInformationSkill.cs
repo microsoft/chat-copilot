@@ -14,6 +14,7 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Skills.OpenApiPlugins.GitHubPlugin.Model;
 using CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
+using CopilotChat.WebApi.Skills.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Orchestration;
@@ -98,7 +99,7 @@ public class ExternalInformationSkill
             return string.Empty;
         }
 
-        var contextString = string.Join("\n", context.Variables.Where(v => !(v.Key.Contains("TokenUsage", StringComparison.CurrentCultureIgnoreCase) || v.Key.Contains("tokenLimit", StringComparison.CurrentCultureIgnoreCase) || v.Key.Contains("chatId", StringComparison.CurrentCultureIgnoreCase))).Select(v => $"{v.Key}: {v.Value}"));
+        var contextString = this.GetChatContextString(context);
         var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\n{userIntent}";
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
@@ -173,8 +174,8 @@ public class ExternalInformationSkill
 
         // TODO: #2581 Account for planner system instructions
         int tokenLimit = int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo())
-            - TokenUtilities.TokenCount(functionsUsed)
-            - TokenUtilities.TokenCount(ResultHeader);
+            - TokenUtils.TokenCount(functionsUsed)
+            - TokenUtils.TokenCount(ResultHeader);
 
         // The result of the plan may be from an OpenAPI skill. Attempt to extract JSON from the response.
         bool extractJsonFromOpenApi =
@@ -270,7 +271,7 @@ public class ExternalInformationSkill
             document = JsonDocument.Parse(jsonContent);
         }
 
-        int jsonContentTokenCount = TokenUtilities.TokenCount(jsonContent);
+        int jsonContentTokenCount = TokenUtils.TokenCount(jsonContent);
 
         // Return the JSON content if it does not exceed the token limit
         if (jsonContentTokenCount < tokenLimit)
@@ -296,7 +297,7 @@ public class ExternalInformationSkill
             {
                 // Save property name for result interpolation
                 JsonProperty firstProperty = document.RootElement.EnumerateObject().First();
-                tokenLimit -= TokenUtilities.TokenCount(firstProperty.Name);
+                tokenLimit -= TokenUtils.TokenCount(firstProperty.Name);
                 resultsDescriptor = string.Format(CultureInfo.InvariantCulture, "{0}: ", firstProperty.Name);
 
                 // Extract object to be truncated
@@ -311,7 +312,7 @@ public class ExternalInformationSkill
         {
             foreach (JsonProperty property in document.RootElement.EnumerateObject())
             {
-                int propertyTokenCount = TokenUtilities.TokenCount(property.ToString());
+                int propertyTokenCount = TokenUtils.TokenCount(property.ToString());
 
                 if (tokenLimit - propertyTokenCount > 0)
                 {
@@ -331,7 +332,7 @@ public class ExternalInformationSkill
         {
             foreach (JsonElement item in document.RootElement.EnumerateArray())
             {
-                int itemTokenCount = TokenUtilities.TokenCount(item.ToString());
+                int itemTokenCount = TokenUtils.TokenCount(item.ToString());
 
                 if (tokenLimit - itemTokenCount > 0)
                 {
@@ -401,6 +402,21 @@ public class ExternalInformationSkill
         }
 
         return steps;
+    }
+
+    /// <summary>
+    /// Returns a string representation of the chat context, excluding some variables that are only relevant to the ChatSkill execution context and should be ignored by the planner.
+    /// This helps clarify the context that is passed to the planner as well as save on tokens.
+    /// </summary>
+    /// <param name="context">The chat context object that contains the variables and their values.</param>
+    /// <returns>A string with one line per variable, in the format "key: value", except for variables that contain "TokenUsage", "tokenLimit", or "chatId" in their names, which are skipped.</returns>
+    private string GetChatContextString(SKContext context)
+    {
+        return string.Join("\n", context.Variables.Where(v => !(
+            v.Key.Contains("TokenUsage", StringComparison.CurrentCultureIgnoreCase)
+            || v.Key.Contains("tokenLimit", StringComparison.CurrentCultureIgnoreCase)
+            || v.Key.Contains("chatId", StringComparison.CurrentCultureIgnoreCase)))
+            .Select(v => $"{v.Key}: {v.Value}"));
     }
 
     #endregion
