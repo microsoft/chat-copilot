@@ -51,7 +51,7 @@ public class ChatMemoryController : ControllerBase
     /// </summary>
     /// <param name="semanticTextMemory">The semantic text memory instance.</param>
     /// <param name="chatId">The chat id.</param>
-    /// <param name="memoryName">Name of the memory type.</param>
+    /// <param name="memoryType">Type of the memory type. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
     [HttpGet]
     [Route("chatMemory/{chatId:guid}/{memoryType}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -66,7 +66,8 @@ public class ChatMemoryController : ControllerBase
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
         var sanitizedChatId = GetSanitizedParameter(chatId);
 
-        if (!this._promptOptions.TryGetMemoryName(memoryType, out string memoryName))
+        // Map the requested memorType to the memory store container name
+        if (!this._promptOptions.TryGetMemoryContainerName(memoryType, out string memoryConatinerName))
         {
             this._logger.LogWarning("Memory type: {0} is invalid.", memoryType);
             return this.BadRequest($"Memory type: {memoryType} is invalid.");
@@ -88,7 +89,7 @@ public class ChatMemoryController : ControllerBase
             // Search if there is already a memory item that has a high similarity score with the new item.
             var filter = new MemoryFilter();
             filter.ByTag("chatid", chatId);
-            filter.ByTag("memory", memoryName);
+            filter.ByTag("memory", memoryConatinerName);
             filter.MinRelevance = 0;
 
             var searchResult =
@@ -98,7 +99,7 @@ public class ChatMemoryController : ControllerBase
                     relevanceThreshold: 0,
                     resultCount: 1,
                     chatId,
-                    memoryName)
+                    memoryConatinerName)
                 .ConfigureAwait(false);
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
@@ -109,7 +110,7 @@ public class ChatMemoryController : ControllerBase
         catch (Exception connectorException) when (!connectorException.IsCriticalException())
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryName);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryConatinerName);
         }
 
         return this.Ok(memories);

@@ -42,7 +42,7 @@ internal static class SemanticChatMemoryExtractor
         {
             try
             {
-                if (!options.TryGetMemoryName(memoryType, out var memoryName))
+                if (!options.TryGetMemoryContainerName(memoryType, out var memoryName))
                 {
                     logger.LogInformation("Unable to extract semantic memory for invalid memory type {0}. Continuing...", memoryType);
                     continue;

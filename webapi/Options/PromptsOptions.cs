@@ -167,22 +167,22 @@ public class PromptsOptions
     /// <summary>
     /// Tries to retrieve the memoryName asociated with the specified memory type.
     /// </summary>
-    internal bool TryGetMemoryName(string memoryType, out string memoryName)
+    internal bool TryGetMemoryContainerName(string memoryType, out string memoryContainerName)
     {
-        memoryName = "";
-        if (!Enum.TryParse<SemanticMemoryType>(memoryType, true, out SemanticMemoryType semanitcMemoryType))
+        memoryContainerName = "";
+        if (!Enum.TryParse<SemanticMemoryType>(memoryType, true, out SemanticMemoryType semanticMemoryType))
         {
             return false;
         }
 
-        switch (semanitcMemoryType)
+        switch (semanticMemoryType)
         {
             case SemanticMemoryType.LongTermMemory:
-                memoryName = this.LongTermMemoryName;
+                memoryContainerName = this.LongTermMemoryName;
                 return true;
 
             case SemanticMemoryType.WorkingMemory:
-                memoryName = this.WorkingMemoryName;
+                memoryContainerName = this.WorkingMemoryName;
                 return true;
 
             default: return false;
