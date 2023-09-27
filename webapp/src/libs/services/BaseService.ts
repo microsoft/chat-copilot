@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { URLSearchParams } from 'url';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
 
 interface ServiceRequest {
     commandPath: string;
     method?: string;
     body?: unknown;
+    query?: URLSearchParams;
 }
 
 const noResponseBodyStatusCodes = [202, 204];
@@ -19,7 +21,7 @@ export class BaseService {
         accessToken: string,
         enabledPlugins?: Plugin[],
     ): Promise<T> => {
-        const { commandPath, method, body } = request;
+        const { commandPath, method, body, query } = request;
         const isFormData = body instanceof FormData;
 
         const headers = new Headers({
@@ -40,6 +42,10 @@ export class BaseService {
 
         try {
             const requestUrl = new URL(commandPath, this.serviceUrl);
+            if (query) {
+                requestUrl.search = `?${query.toString()}`;
+            }
+
             const response = await fetch(requestUrl, {
                 method: method ?? 'GET',
                 body: isFormData ? body : JSON.stringify(body),
