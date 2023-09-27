@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
+using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
 /// Configuration to be used by the frontend client to this service.
 /// </summary>
-public class FrontendConfig
+public class FrontendAuthConfig
 {
     /// <summary>
     /// Type of auth to use.

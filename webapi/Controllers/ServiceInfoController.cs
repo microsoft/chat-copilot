@@ -65,13 +65,13 @@ public class ServiceInfoController : ControllerBase
     }
 
     /// <summary>
-    /// Return the settings to be used by the frontend client to this service.
+    /// Return the auth config to be used by the frontend client to access this service.
     /// </summary>
-    [Route("frontendConfig")]
+    [Route("authConfig")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [AllowAnonymous]
-    public IActionResult GetFrontendConfig()
+    public IActionResult GetAuthConfig()
     {
         string authorityUriString = string.Empty;
         if (!string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.Instance) &&
@@ -82,7 +82,7 @@ public class ServiceInfoController : ControllerBase
             authorityUriString = authorityUri.ToString();
         }
 
-        var config = new FrontendConfig
+        var config = new FrontendAuthConfig
         {
             AuthType = this._chatAuthenticationOptions.Type.ToString(),
             AadAuthority = authorityUriString,
