@@ -406,8 +406,7 @@ export const useChat = () => {
         deleteChat,
     };
 };
-
-function getErrorDetails(e: any) {
+export function getErrorDetails(e: any) {
     return e instanceof Error ? e.message : String(e);
 }
 

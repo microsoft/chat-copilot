@@ -1,10 +1,19 @@
+import { useMsal } from '@azure/msal-react';
+import * as React from 'react';
 import { useAppDispatch } from '../../redux/app/hooks';
-import { addPlugin } from '../../redux/features/plugins/pluginsSlice';
+import { addAlert } from '../../redux/features/app/appSlice';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
+import { addPlugin } from '../../redux/features/plugins/pluginsSlice';
+import { AuthHelper } from '../auth/AuthHelper';
+import { AlertType } from '../models/AlertType';
 import { PluginManifest, requiresUserLevelAuth } from '../models/PluginManifest';
+import { ChatService } from '../services/ChatService';
+import { getErrorDetails } from './useChat';
 
 export const usePlugins = () => {
     const dispatch = useAppDispatch();
+    const { instance, inProgress } = useMsal();
+    const chatService = React.useMemo(() => new ChatService(process.env.REACT_APP_BACKEND_URI as string), []);
 
     const addCustomPlugin = (manifest: PluginManifest, manifestDomain: string) => {
         const newPlugin: Plugin = {
@@ -24,7 +33,20 @@ export const usePlugins = () => {
         dispatch(addPlugin(newPlugin));
     };
 
+    const getPluginManifest = React.useCallback(
+        (manifestDomain: string) =>
+            AuthHelper.getSKaaSAccessToken(instance, inProgress)
+                .then((accessToken) => chatService.getPluginManifest(manifestDomain, accessToken))
+                .catch((e: unknown) => {
+                    const errorMessage = `Error getting plugin manifest. Details: ${getErrorDetails(e)}`;
+                    dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+                    return undefined;
+                }),
+        [chatService, dispatch, inProgress, instance],
+    );
+
     return {
         addCustomPlugin,
+        getPluginManifest,
     };
 };

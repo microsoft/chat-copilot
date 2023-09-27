@@ -204,6 +204,20 @@ public class ChatController : ControllerBase, IDisposable
     }
 
     /// <summary>
+    /// Fetches a plugin's manifest.
+    /// </summary>
+    /// <param name="manifestDomain">The domain of the manifest.</param>
+    /// <returns>The plugin's manifest JSON.</returns>
+    [HttpGet]
+    [Route("getPluginManifest")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPluginManifest([FromQuery] Uri manifestDomain)
+    {
+        using HttpClient client = new();
+        return this.Ok(await client.GetStringAsync(this.GetPluginManifestUri(manifestDomain.ToString())));
+    }
+
+    /// <summary>
     /// Register skills with the planner's kernel.
     /// </summary>
     private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
@@ -275,10 +289,6 @@ public class ChatController : ControllerBase, IDisposable
                         // Register the ChatGPT plugin with the planner's kernel.
                         this._logger.LogInformation("Enabling {0} plugin.", plugin.NameForHuman);
 
-                        UriBuilder uriBuilder = new(plugin.ManifestDomain);
-                        // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
-                        uriBuilder.Path = "/.well-known/ai-plugin.json";
-
                         // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
@@ -288,7 +298,7 @@ public class ChatController : ControllerBase, IDisposable
 
                         await planner.Kernel.ImportAIPluginAsync(
                             $"{plugin.NameForModel}Plugin",
-                            uriBuilder.Uri,
+                            this.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenApiSkillExecutionParameters
                             {
                                 HttpClient = httpClient,
@@ -303,6 +313,15 @@ public class ChatController : ControllerBase, IDisposable
                 this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
             }
         }
+    }
+
+    private Uri GetPluginManifestUri(string manifestDomain)
+    {
+        UriBuilder uriBuilder = new(Uri.UnescapeDataString(manifestDomain));
+
+        // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
+        uriBuilder.Path = "/.well-known/ai-plugin.json";
+        return uriBuilder.Uri;
     }
 
     /// <summary>

@@ -141,7 +141,7 @@ export const PluginWizard: React.FC = () => {
             header: <>Verify Plugin</>,
             body: (
                 <ValidateManifestStep
-                    manifestDomain={manifestDomain}
+                    manifestDomain={manifestDomain ?? ''}
                     onPluginValidated={onPluginValidated}
                     pluginManifest={pluginManifest}
                     onManifestValidated={onManifestValidated}

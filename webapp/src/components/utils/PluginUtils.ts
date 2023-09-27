@@ -1,14 +1,17 @@
 import {
     PluginManifest,
     PluginManifestKeys,
-    isManifestAuthType,
     isHttpAuthorizationType,
+    isManifestAuthType,
     requiresUserLevelAuth,
 } from '../../libs/models/PluginManifest';
 
-export const isValidPluginManifest = (manifest: PluginManifest) => {
-    const missingKeys: string[] = [];
+export const isValidPluginManifest = (manifest?: PluginManifest): manifest is PluginManifest => {
+    if (!manifest) {
+        return false;
+    }
 
+    const missingKeys: string[] = [];
     PluginManifestKeys.forEach((key: string) => {
         if (!(key in manifest)) {
             missingKeys.push(key);
