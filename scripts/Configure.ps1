@@ -177,7 +177,7 @@ $appsettingsOverrides = @{
             Scopes   = $varScopes
         }
     };
-    Planner        = @{
+    Planner = @{
         Model = $PlannerModel
     };
     SemanticMemory = @{
@@ -189,6 +189,9 @@ $appsettingsOverrides = @{
             EmbeddingGeneratorType = $AIService
         };
         Services          = $AIServiceOverrides;
+    };
+    Frontend = @{
+        AadClientId = $FrontendClientId
     };
 }
 $appSettingsJson = -join ("appsettings.", $varASPNetCore, ".json");
