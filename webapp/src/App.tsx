@@ -4,11 +4,11 @@ import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, use
 import { FluentProvider, Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 import * as React from 'react';
-import { FC, useEffect } from 'react';
+import { useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
-import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
-import { AuthHelper } from './libs/auth/AuthHelper';
+import { ChatView, Error, Loading, Login } from './components/views';
+import { AuthHelper, AuthType, DefaultActiveUserInfo } from './libs/auth/AuthHelper';
 import { useChat, useFile } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
@@ -48,75 +48,92 @@ export const useClasses = makeStyles({
 });
 
 enum AppState {
-    ProbeForBackend,
     SettingUserInfo,
     ErrorLoadingUserInfo,
+    ErrorLoadingAuthInfo,
+    ErrorLoadingChats,
+    SiteMaintenance,
+    LoadingAuthInfo,
     LoadingChats,
     Chat,
     SigningOut,
 }
 
-const App: FC = () => {
+const App = () => {
     const classes = useClasses();
 
-    const [appState, setAppState] = React.useState(AppState.ProbeForBackend);
+    const [appState, setAppState] = React.useState(AppState.LoadingAuthInfo);
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { activeUserInfo, features, isMaintenance } = useAppSelector((state: RootState) => state.app);
+    const { authConfig, features, isMaintenance } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
     const file = useFile();
 
     useEffect(() => {
-        if (isMaintenance && appState !== AppState.ProbeForBackend) {
-            setAppState(AppState.ProbeForBackend);
-            return;
-        }
-
-        if (isAuthenticated) {
-            if (appState === AppState.SettingUserInfo) {
-                if (activeUserInfo === undefined) {
-                    const account = instance.getActiveAccount();
-                    if (!account) {
-                        setAppState(AppState.ErrorLoadingUserInfo);
-                    } else {
-                        dispatch(
-                            setActiveUserInfo({
-                                id: `${account.localAccountId}.${account.tenantId}`,
-                                email: account.username, // Username in an AccountInfo object is the email address
-                                username: account.name ?? account.username,
-                            }),
-                        );
-
-                        // Privacy disclaimer for internal Microsoft users
-                        if (account.username.split('@')[1] === 'microsoft.com') {
-                            dispatch(
-                                addAlert({
-                                    message:
-                                        'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
-                                    type: AlertType.Info,
-                                }),
-                            );
-                        }
-
-                        setAppState(AppState.LoadingChats);
-                    }
+        if (authConfig && appState === AppState.LoadingAuthInfo) {
+            if (Object.keys(authConfig).length) {
+                if (authConfig.authType === AuthType.AAD) {
+                    setAppState(AppState.SettingUserInfo);
                 } else {
+                    dispatch(setActiveUserInfo(DefaultActiveUserInfo));
                     setAppState(AppState.LoadingChats);
                 }
+            } else {
+                setAppState(AppState.ErrorLoadingAuthInfo);
+            }
+        }
+    }, [dispatch, appState, authConfig]);
+
+    useEffect(() => {
+        if (isMaintenance && appState !== AppState.SiteMaintenance) {
+            setAppState(AppState.SiteMaintenance);
+            return;
+        }
+    }, [appState, isMaintenance]);
+
+    useEffect(() => {
+        if (isAuthenticated && appState === AppState.SettingUserInfo) {
+            const account = instance.getActiveAccount();
+            if (!account) {
+                setAppState(AppState.ErrorLoadingUserInfo);
+            } else {
+                dispatch(
+                    setActiveUserInfo({
+                        id: `${account.localAccountId}.${account.tenantId}`,
+                        email: account.username, // Username in an AccountInfo object is the email address
+                        username: account.name ?? account.username,
+                    }),
+                );
+
+                // Privacy disclaimer for internal Microsoft users
+                if (account.username.split('@')[1] === 'microsoft.com') {
+                    dispatch(
+                        addAlert({
+                            message:
+                                'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
+                            type: AlertType.Info,
+                        }),
+                    );
+                }
+
+                setAppState(AppState.LoadingChats);
             }
         }
 
-        if ((isAuthenticated || !AuthHelper.IsAuthAAD) && appState === AppState.LoadingChats) {
+        if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
             void Promise.all([
                 // Load all chats from memory
-                chat.loadChats().then((succeeded) => {
-                    if (succeeded) {
+                chat
+                    .loadChats()
+                    .then(() => {
                         setAppState(AppState.Chat);
-                    }
-                }),
+                    })
+                    .catch(() => {
+                        setAppState(AppState.ErrorLoadingChats);
+                    }),
 
                 // Check if content safety is enabled
                 file.getContentSafetyStatus(),
@@ -131,7 +148,7 @@ const App: FC = () => {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
+    }, [instance, inProgress, isAuthenticated, appState]);
 
     // TODO: [Issue #41] handle error case of missing account information
     return (
@@ -139,7 +156,7 @@ const App: FC = () => {
             className="app-container"
             theme={features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme}
         >
-            {AuthHelper.IsAuthAAD ? (
+            {AuthHelper.isAuthAAD() ? (
                 <>
                     <UnauthenticatedTemplate>
                         <div className={classes.container}>
@@ -187,25 +204,21 @@ const Chat = ({
                     </div>
                 )}
             </div>
-            {appState === AppState.ProbeForBackend && (
-                <BackendProbe
-                    uri={process.env.REACT_APP_BACKEND_URI as string}
-                    onBackendFound={() => {
-                        if (AuthHelper.IsAuthAAD) {
-                            setAppState(AppState.SettingUserInfo);
-                        } else {
-                            setAppState(AppState.LoadingChats);
-                        }
-                    }}
-                />
-            )}
             {appState === AppState.SettingUserInfo && (
                 <Loading text={'Hang tight while we fetch your information...'} />
             )}
             {appState === AppState.ErrorLoadingUserInfo && (
                 <Error text={'Oops, something went wrong. Please try signing out and signing back in.'} />
             )}
-            {appState === AppState.LoadingChats && <Loading text="Loading Chats..." />}
+            {appState === AppState.ErrorLoadingAuthInfo && (
+                <Error text={'Oops, unable to authentication info. Please try refreshing the page.'} />
+            )}
+            {appState === AppState.ErrorLoadingChats && (
+                <Error text={'Oops, unable to load chats. Please try refreshing the page.'} />
+            )}
+            {appState === AppState.SiteMaintenance && <Loading text="Backend is currently under maintenance" />}
+            {appState === AppState.LoadingAuthInfo && <Loading text="Loading authentication info..." />}
+            {appState === AppState.LoadingChats && <Loading text="Loading chats..." />}
             {appState === AppState.Chat && <ChatView />}
         </div>
     );

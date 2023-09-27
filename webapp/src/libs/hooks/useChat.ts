@@ -143,52 +143,43 @@ export const useChat = () => {
     };
 
     const loadChats = async () => {
-        try {
-            const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            const chatSessions = await chatService.getAllChatsAsync(userId, accessToken);
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        const chatSessions = await chatService.getAllChatsAsync(userId, accessToken);
 
-            if (chatSessions.length > 0) {
-                const loadedConversations: Conversations = {};
-                for (const chatSession of chatSessions) {
-                    const chatUsers = await chatService.getAllChatParticipantsAsync(chatSession.id, accessToken);
-                    const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
+        if (chatSessions.length > 0) {
+            const loadedConversations: Conversations = {};
+            for (const chatSession of chatSessions) {
+                const chatUsers = await chatService.getAllChatParticipantsAsync(chatSession.id, accessToken);
+                const chatMessages = await chatService.getChatMessagesAsync(chatSession.id, 0, 100, accessToken);
 
-                    loadedConversations[chatSession.id] = {
-                        id: chatSession.id,
-                        title: chatSession.title,
-                        systemDescription: chatSession.systemDescription,
-                        memoryBalance: chatSession.memoryBalance,
-                        users: chatUsers,
-                        messages: chatMessages,
-                        botProfilePicture: getBotProfilePicture(Object.keys(loadedConversations).length),
-                        input: '',
-                        botResponseStatus: undefined,
-                        userDataLoaded: false,
-                        disabled: false,
-                        hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
-                    };
-                }
-
-                dispatch(setConversations(loadedConversations));
-
-                // If there are no non-hidden chats, create a new chat
-                const nonHiddenChats = Object.values(loadedConversations).filter((c) => !c.hidden);
-                if (nonHiddenChats.length === 0) {
-                    await createChat();
-                } else {
-                    dispatch(setSelectedConversation(nonHiddenChats[0].id));
-                }
-            } else {
-                // No chats exist, create first chat window
-                await createChat();
+                loadedConversations[chatSession.id] = {
+                    id: chatSession.id,
+                    title: chatSession.title,
+                    systemDescription: chatSession.systemDescription,
+                    memoryBalance: chatSession.memoryBalance,
+                    users: chatUsers,
+                    messages: chatMessages,
+                    botProfilePicture: getBotProfilePicture(Object.keys(loadedConversations).length),
+                    input: '',
+                    botResponseStatus: undefined,
+                    userDataLoaded: false,
+                    disabled: false,
+                    hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
+                };
             }
 
-            return true;
-        } catch (e: any) {
-            const errorMessage = `Unable to load chats. Details: ${getErrorDetails(e)}`;
-            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+            dispatch(setConversations(loadedConversations));
 
-            return false;
+            // If there are no non-hidden chats, create a new chat
+            const nonHiddenChats = Object.values(loadedConversations).filter((c) => !c.hidden);
+            if (nonHiddenChats.length === 0) {
+                await createChat();
+            } else {
+                dispatch(setSelectedConversation(nonHiddenChats[0].id));
+            }
+        } else {
+            // No chats exist, create first chat window
+            await createChat();
         }
     };
 

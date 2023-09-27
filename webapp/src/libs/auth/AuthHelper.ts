@@ -9,6 +9,7 @@ import {
 } from '@azure/msal-browser';
 import debug from 'debug';
 import { Constants } from '../../Constants';
+import { store } from '../../redux/app/store';
 import { ActiveUserInfo } from '../../redux/features/app/AppState';
 import { IChatUser } from '../models/ChatUser';
 import { TokenHelper } from './TokenHelper';
@@ -16,7 +17,15 @@ import { TokenHelper } from './TokenHelper';
 const log = debug(Constants.debug.root).extend('authHelper');
 
 export const enum AuthType {
+    None = 'None',
     AAD = 'AzureAd',
+}
+
+export interface AuthConfig {
+    authType: AuthType;
+    aadAuthority: string;
+    aadClientId: string;
+    aadApiScope: string;
 }
 
 // This is the default user information when authentication is set to 'None'.
@@ -106,15 +115,12 @@ const logoutAsync = (instance: IPublicClientApplication) => {
     }
 };
 
-/**
- * Determines if the app is configured to use Azure AD for authorization
- */
-const IsAuthAAD = process.env.REACT_APP_AUTH_TYPE === AuthType.AAD;
+const isAuthAAD = () => store.getState().app.authConfig?.authType === AuthType.AAD;
 
 // SKaaS = Semantic Kernel as a Service
 // Gets token with scopes to authorize SKaaS specifically
 const getSKaaSAccessToken = async (instance: IPublicClientApplication, inProgress: InteractionStatus) => {
-    return IsAuthAAD
+    return isAuthAAD()
         ? await TokenHelper.getAccessTokenUsingMsal(inProgress, instance, Constants.msal.semanticKernelScopes)
         : '';
 };
@@ -126,5 +132,5 @@ export const AuthHelper = {
     ssoSilentRequest,
     loginAsync,
     logoutAsync,
-    IsAuthAAD,
+    isAuthAAD,
 };
