@@ -13,7 +13,7 @@ public class FrontendConfig
     /// Type of auth to use.
     /// </summary>
     [JsonPropertyName("authType")]
-    public string AuthType { get; set; } = "AzureAd";
+    public string AuthType { get; set; } = ChatAuthenticationOptions.AuthenticationType.None.ToString();
 
     /// <summary>
     /// Azure Active Directory authority to use.
