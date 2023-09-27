@@ -97,7 +97,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
     React.useEffect(() => {
         async function initSpeechRecognizer() {
-            const speechService = new SpeechService(process.env.REACT_APP_BACKEND_URI as string);
+            const speechService = new SpeechService();
             const response = await speechService.getSpeechTokenAsync(
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );

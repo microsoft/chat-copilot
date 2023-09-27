@@ -12,10 +12,10 @@ interface ServiceRequest {
 
 const noResponseBodyStatusCodes = [202, 204];
 
-export class BaseService {
-    constructor(protected readonly _?: string) {}
+export const BackendServiceUrl = process.env.REACT_APP_BACKEND_URI ?? window.origin;
 
-    protected readonly serviceUrl = process.env.REACT_APP_BACKEND_URI ?? window.origin;
+export class BaseService {
+    constructor(protected readonly serviceUrl: string = BackendServiceUrl) {}
 
     protected readonly getResponseAsync = async <T>(
         request: ServiceRequest,
