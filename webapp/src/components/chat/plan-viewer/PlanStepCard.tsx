@@ -60,7 +60,7 @@ const useClasses = makeStyles({
         display: '-webkit-box',
         WebkitLineClamp: 1,
         WebkitBoxOrient: 'vertical',
-        width: '650px',
+        width: '100%',
         fontSize: tokens.fontSizeBase200,
     },
     dialog: {

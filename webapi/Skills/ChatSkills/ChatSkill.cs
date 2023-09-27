@@ -365,10 +365,26 @@ public class ChatSkill
         SKContext context,
         CancellationToken cancellationToken = default)
     {
-        // Set the system description in the prompt options
+        // Ensure that plan exists in ask's context variables.
+        // If a plan was returned at this point, that means it is a
+        //      1. Proposed plan that was approved or cancelled, or
+        //      2. Saved plan being re-run.
+        ProposedPlan? deserializedPlan;
+        if (string.IsNullOrWhiteSpace(planJson) || (deserializedPlan = JsonSerializer.Deserialize<ProposedPlan>(planJson)) == null)
+        {
+            throw new ArgumentException("Plan does not exist in request context. Ensure that a valid plan is saved in the ask's variables");
+        }
+
+        // Ensure plan is actionable by supported planners.
+        if (!(deserializedPlan.Type == PlanType.Action || deserializedPlan.Type == PlanType.Sequential))
+        {
+            throw new ArgumentException($"Plan of type {deserializedPlan.Type} cannot be executed. Only Action or Sequential plans can be re-run at this time.");
+        }
+
+        // Set the system description in the prompt options.
         await this.SetSystemDescriptionAsync(chatId, cancellationToken);
 
-        // Clone the context to avoid modifying the original context variablePs.
+        // Clone the context to avoid modifying the original context variables.
         var chatContext = context.Clone();
         chatContext.Variables.Set("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
 
@@ -376,21 +392,25 @@ public class ChatSkill
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving user message to chat history", cancellationToken);
         var newUserMessage = await this.SaveNewMessageAsync(message, userId, userName, chatId, ChatMessage.ChatMessageType.Message.ToString(), cancellationToken);
 
-        // Ensure that plan exists in ask's context variables.
-        // If a plan was returned at this point, that means it is a
-        //      1. Proposed plan that was approved or cancelled, or
-        //      2. Saved plan being re-run.Rend
-        ProposedPlan? deserializedPlan;
-        if (string.IsNullOrWhiteSpace(planJson) || (deserializedPlan = JsonSerializer.Deserialize<ProposedPlan>(planJson)) == null)
-        {
-            throw new ArgumentException("Plan does not exist in request context. Ensure that a valid plan is saved in the ask's variables");
-        }
-
         // If GeneratedPlanMessageId exists on plan object, update that message with new plan state.
         // This signals that this plan was freshly proposed by the model and already saved as a bot response message in chat history.
         if (!string.IsNullOrEmpty(deserializedPlan.GeneratedPlanMessageId))
         {
             await this.UpdateChatMessageContentAsync(planJson, deserializedPlan.GeneratedPlanMessageId, chatId, cancellationToken);
+        }
+
+        // If plan was derived from a previous plan, create a new bot message with the plan content and save to chat history.
+        if (deserializedPlan.State == PlanState.Derived)
+        {
+            await this.SaveNewResponseAsync(
+               planJson,
+               deserializedPlan.Plan.Description,
+               chatId,
+               userId,
+               null,
+               null,
+               cancellationToken
+           );
         }
 
         ChatMessage chatMessage;
@@ -438,18 +458,17 @@ public class ChatSkill
             // TODO: [Issue #51] Consider regenerating user intent if plan was modified
             promptTemplate.AddSystemMessage(deserializedPlan.UserIntent);
 
-            // Execute plan
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Executing plan", cancellationToken);
-            var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate);
-            var planResult = await SemanticKernelExtensions.SafeInvokeAsync(
-                () => this.AcquireExternalInformationAsync(chatContext, deserializedPlan.UserIntent, remainingTokenBudget, cancellationToken, deserializedPlan.Plan), nameof(AcquireExternalInformationAsync));
-
-            // Render system supplement with current time to help guide model in using data.
+            // Render system supplement to help guide model in using data.
             var promptSupplement = await promptRenderer.RenderAsync(
                 this._promptOptions.PlanResultsDescription,
                 chatContext,
                 cancellationToken);
-            planResult = $"{promptSupplement}\n{planResult}";
+
+            // Calculate remaining token budget and execute plan
+            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Executing plan", cancellationToken);
+            var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate) - TokenUtilities.GetContextMessageTokenCount(AuthorRole.System, promptSupplement);
+            var planResult = $"{promptSupplement}\n" + await SemanticKernelExtensions.SafeInvokeAsync(
+                    () => this.AcquireExternalInformationAsync(chatContext, deserializedPlan.UserIntent, remainingTokenBudget, cancellationToken, deserializedPlan.Plan), nameof(AcquireExternalInformationAsync));
             promptTemplate.AddSystemMessage(planResult);
 
             // Calculate token usage of prompt template
@@ -463,7 +482,6 @@ public class ChatSkill
             chatMessage = await this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken);
 
             // Extract semantic chat memory
-            // TODO: [#2581] should bot response by included in this generation?
             await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
             await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
                 chatId,
@@ -751,8 +769,8 @@ public class ChatSkill
             userId,
             prompt,
             response,
-            citations,
             cancellationToken,
+            citations,
             tokenUsage
         );
         await this._chatMessageRepository.UpsertAsync(chatMessage);
@@ -878,8 +896,8 @@ public class ChatSkill
             userId,
             JsonSerializer.Serialize(prompt),
             string.Empty,
-            citations,
-            cancellationToken
+            cancellationToken,
+            citations
         );
 
         // Stream the message to the client
@@ -899,8 +917,8 @@ public class ChatSkill
     /// <param name="userId">The user ID</param>
     /// <param name="prompt">Prompt used to generate the message</param>
     /// <param name="content">Content of the message</param>
-    /// <param name="citations">Citations for the message</param>
     /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="citations">Citations for the message</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
     /// <returns>The created chat message</returns>
     private async Task<ChatMessage> CreateBotMessageOnClient(
@@ -908,8 +926,8 @@ public class ChatSkill
         string userId,
         string prompt,
         string content,
-        IEnumerable<CitationSource>? citations,
         CancellationToken cancellationToken,
+        IEnumerable<CitationSource>? citations = null,
         Dictionary<string, int>? tokenUsage = null)
     {
         var chatMessage = ChatMessage.CreateBotResponseMessage(chatId, content, prompt, citations, tokenUsage);

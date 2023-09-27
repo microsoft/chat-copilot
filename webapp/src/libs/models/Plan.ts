@@ -8,9 +8,9 @@ export enum PlanState {
     NoOp,
     Approved,
     Rejected,
+    Derived,
     PlanApprovalRequired,
     Disabled,
-    Derived,
 }
 
 export enum PlanType {

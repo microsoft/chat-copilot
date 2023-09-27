@@ -266,6 +266,5 @@ public class ChatMessage : IStorageEntity
     /// <param name="role"></param>
     /// <param name="content"></param>
     /// <returns></returns>
-
     public static string ToString(AuthorRoles role, string content) => $"{role}: {content}";
 }

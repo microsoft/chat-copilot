@@ -34,7 +34,6 @@ public class BotResponsePrompt
     [JsonPropertyName("chatMemories")]
     public string PastMemories { get; set; } = string.Empty;
 
-
     /// <summary>
     /// Most recent messages from chat history.
     /// </summary>

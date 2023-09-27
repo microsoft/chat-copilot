@@ -408,7 +408,7 @@ export const useChat = () => {
             });
     };
 
-    const processPlan = async (chatId: string, planState: PlanState, serializedPlan: string) => {
+    const processPlan = async (chatId: string, planState: PlanState, serializedPlan: string, planGoal?: string) => {
         const contextVariables: ContextVariable[] = [
             {
                 key: 'proposedPlan',
@@ -416,9 +416,19 @@ export const useChat = () => {
             },
         ];
 
+        let message = 'Run plan' + (planGoal ? ` with goal of: ${planGoal}` : '');
+        switch (planState) {
+            case PlanState.Rejected:
+                message = 'No, cancel';
+                break;
+            case PlanState.Approved:
+                message = 'Yes, proceed';
+                break;
+        }
+
         // Send plan back for processing or execution
         await getResponse({
-            value: planState === PlanState.Approved ? 'Yes, proceed' : 'No, cancel',
+            value: message,
             contextVariables,
             messageType: ChatMessageType.Message,
             chatId: chatId,

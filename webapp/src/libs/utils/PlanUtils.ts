@@ -10,5 +10,5 @@ export const getPlanGoal = (description: string) => {
               .split('\n')
               .find((line: string) => line.startsWith('INPUT:'))
               ?.replace('INPUT:', '')
-              .trim() ?? 'N/A';
+              .trim() ?? description;
 };

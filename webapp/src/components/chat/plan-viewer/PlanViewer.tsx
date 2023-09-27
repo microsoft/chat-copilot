@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useChat } from '../../../libs/hooks/useChat';
 import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { PlanState, ProposedPlan } from '../../../libs/models/Plan';
+import { getPlanGoal } from '../../../libs/utils/PlanUtils';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
 import { PlanBody } from './PlanBody';
 
-const useClasses = makeStyles({
+export const usePlanViewClasses = makeStyles({
     container: {
         ...shorthands.gap(tokens.spacingVerticalM),
         display: 'flex',
@@ -42,7 +43,7 @@ interface PlanViewerProps {
     @typescript-eslint/no-unsafe-call,
 */
 export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex }) => {
-    const classes = useClasses();
+    const classes = usePlanViewClasses();
     const dispatch = useAppDispatch();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
     const chat = useChat();
@@ -50,14 +51,14 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex })
     // Track original plan from user message
     const parsedContent: ProposedPlan = JSON.parse(message.content);
     const originalPlan = parsedContent.proposedPlan;
-    const planState = message.planState ?? parsedContent.state;
+    const planState =
+        parsedContent.state === PlanState.Derived ? PlanState.Derived : message.planState ?? parsedContent.state;
     const [plan, setPlan] = useState(originalPlan);
 
     const onPlanAction = async (planState: PlanState.Approved | PlanState.Rejected) => {
         const updatedPlan = JSON.stringify({
             ...parsedContent,
             proposedPlan: plan,
-            type: parsedContent.type,
             state: planState,
             generatedPlanMessageId: message.id,
         });
@@ -84,7 +85,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex })
                 plan={plan}
                 setPlan={setPlan}
                 planState={planState}
-                description={parsedContent.userIntent ?? parsedContent.originalUserInput}
+                description={getPlanGoal(parsedContent.userIntent ?? parsedContent.originalUserInput)}
             />
             {planState === PlanState.PlanApprovalRequired && (
                 <>
@@ -112,7 +113,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex })
                     </div>
                 </>
             )}
-            {planState === PlanState.Approved && (
+            {(planState === PlanState.Approved || planState === PlanState.Derived) && (
                 <div className={mergeClasses(classes.buttons, classes.status)}>
                     <CheckmarkCircle24Regular />
                     <Text className={classes.text}> Plan Executed</Text>

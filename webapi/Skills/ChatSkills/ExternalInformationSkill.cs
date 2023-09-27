@@ -43,6 +43,12 @@ public class ExternalInformationSkill
     private readonly CopilotChatPlanner _planner;
 
     /// <summary>
+    ///  Options for the planner.
+    /// </summary>
+    private readonly PlannerOptions? _plannerOptions;
+    public PlannerOptions? PlannerOptions => this._plannerOptions;
+
+    /// <summary>
     /// Proposed plan to return for approval.
     /// </summary>
     public ProposedPlan? ProposedPlan { get; private set; }
@@ -67,6 +73,7 @@ public class ExternalInformationSkill
     {
         this._promptOptions = promptOptions.Value;
         this._planner = planner;
+        this._plannerOptions = planner.PlannerOptions;
         this._logger = logger;
     }
 
@@ -91,7 +98,7 @@ public class ExternalInformationSkill
             return string.Empty;
         }
 
-        var contextString = string.Join("\n", context.Variables.Select(v => $"{v.Key}: {v.Value}"));
+        var contextString = string.Join("\n", context.Variables.Where(v => !(v.Key.Contains("TokenUsage", StringComparison.CurrentCultureIgnoreCase) || v.Key.Contains("tokenLimit", StringComparison.CurrentCultureIgnoreCase) || v.Key.Contains("chatId", StringComparison.CurrentCultureIgnoreCase))).Select(v => $"{v.Key}: {v.Value}"));
         var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\n{userIntent}";
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
