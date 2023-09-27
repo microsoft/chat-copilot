@@ -7,7 +7,6 @@ import {
     DialogBody,
     DialogContent,
     DialogOpenChangeData,
-    DialogOpenChangeEvent,
     DialogSurface,
     DialogTitle,
     DialogTrigger,
@@ -87,8 +86,7 @@ export const PlanDialogView: React.FC<IPlanDialogViewProps> = ({ goal, plan, set
     return (
         <>
             <Dialog
-                onOpenChange={(_ev: DialogOpenChangeEvent, data: DialogOpenChangeData) => {
-                    // TODO: Reset plan view when dialog is closed without running the plan
+                onOpenChange={(_ev, data: DialogOpenChangeData) => {
                     if (data.open) setPlanView(plan.proposedPlan);
                 }}
             >

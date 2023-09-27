@@ -172,10 +172,7 @@ export const TokenUsageGraph: React.FC<ITokenUsageGraph> = ({ promptView, tokenU
                                 </div>
                             </>
                         ) : promptView ? (
-                            <Text>
-                                No tokens were used. This either is a hardcoded response or a plan derived from a
-                                previously generated plan.
-                            </Text>
+                            <Text>No tokens were used. This either is a hardcoded response or saved plan.</Text>
                         ) : (
                             <Text>No tokens have been used in this session yet.</Text>
                         )}

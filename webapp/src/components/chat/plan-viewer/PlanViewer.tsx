@@ -37,11 +37,6 @@ interface PlanViewerProps {
     messageIndex: number;
 }
 
-/* eslint-disable 
-    @typescript-eslint/no-unsafe-assignment,
-    @typescript-eslint/no-unsafe-member-access,
-    @typescript-eslint/no-unsafe-call,
-*/
 export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex }) => {
     const classes = usePlanViewClasses();
     const dispatch = useAppDispatch();
@@ -49,7 +44,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex })
     const chat = useChat();
 
     // Track original plan from user message
-    const parsedContent: ProposedPlan = JSON.parse(message.content);
+    const parsedContent = JSON.parse(message.content) as ProposedPlan;
     const originalPlan = parsedContent.proposedPlan;
     const planState =
         parsedContent.state === PlanState.Derived ? PlanState.Derived : message.planState ?? parsedContent.state;

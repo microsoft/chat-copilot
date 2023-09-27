@@ -440,7 +440,7 @@ public class ChatSkill
             promptTemplate.AddUserMessage(deserializedPlan.OriginalUserInput);
             chatHistoryString += "\n" + ChatMessage.ToString(ChatMessage.AuthorRoles.User, deserializedPlan.OriginalUserInput);
 
-            // Add bot message proposal as context message
+            // Add bot message proposal as prompt context message
             chatContext.Variables.Set("planFunctions", this._externalInformationSkill.FormattedFunctionsString(deserializedPlan.Plan));
             var promptRenderer = new PromptTemplateEngine();
             var proposedPlanBotMessage = await promptRenderer.RenderAsync(
@@ -450,9 +450,9 @@ public class ChatSkill
             promptTemplate.AddAssistantMessage(proposedPlanBotMessage);
             chatHistoryString += "\n" + ChatMessage.ToString(ChatMessage.AuthorRoles.Bot, proposedPlanBotMessage);
 
-            // Add user approval message
-            promptTemplate.AddUserMessage(message);
-            chatHistoryString += "\n" + ChatMessage.ToString(ChatMessage.AuthorRoles.User, message);
+            // Add user approval message as prompt context message
+            promptTemplate.AddUserMessage("Yes, proceed");
+            chatHistoryString += "\n" + ChatMessage.ToString(ChatMessage.AuthorRoles.User, "Yes, proceed");
 
             // Add user intent behind plan
             // TODO: [Issue #51] Consider regenerating user intent if plan was modified
@@ -475,15 +475,13 @@ public class ChatSkill
             chatContext.Variables.Set(TokenUtilities.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtilities.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.CurrentCulture));
 
             // TODO: [#2581] Consider Memory?
-            var promptView = new BotResponsePrompt(systemInstructions, "", deserializedPlan.UserIntent, "", new SemanticDependency<object>(planResult, null, deserializedPlan.Type.ToString()), chatHistoryString, promptTemplate);
-
             // Get bot response and stream to client
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
+            var promptView = new BotResponsePrompt(systemInstructions, "", deserializedPlan.UserIntent, "", new SemanticDependency<object>(planResult, null, deserializedPlan.Type.ToString()), chatHistoryString, promptTemplate);
             chatMessage = await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken);
         }
         else
         {
-            throw new ArgumentException($"Plan inactionable. Current plan state: {deserializedPlan.State}");
+            throw new ArgumentException($"Plan inactionable in current state: {deserializedPlan.State}");
         }
 
         context.Variables.Update(chatMessage.Content);
@@ -623,7 +621,8 @@ public class ChatSkill
     {
         // Get bot response and stream to client
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
-        ChatMessage chatMessage = await this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken);
+        ChatMessage chatMessage = await SemanticKernelExtensions.SafeInvokeAsync(
+            () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken), nameof(StreamResponseToClientAsync));
 
         // Save the message into chat history
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
@@ -631,14 +630,15 @@ public class ChatSkill
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
-        await SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
-            chatId,
-            this._memoryClient,
-            this._kernel,
-            chatContext,
-            this._promptOptions,
-            this._logger,
-            cancellationToken);
+        await SemanticKernelExtensions.SafeInvokeAsync(
+            () => SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync(
+                chatId,
+                this._memoryClient,
+                this._kernel,
+                chatContext,
+                this._promptOptions,
+                this._logger,
+                cancellationToken), nameof(SemanticChatMemoryExtractor.ExtractSemanticChatMemoryAsync));
 
         // Calculate total token usage for dependency functions and prompt template
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
