@@ -12,7 +12,7 @@ using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills;
+using CopilotChat.WebApi.Skills.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -102,7 +102,7 @@ public class ChatHistoryController : ControllerBase
             this._promptOptions.InitialBotMessage,
             string.Empty, // The initial bot message doesn't need a prompt.
             null,
-            TokenUtilities.EmptyTokenUsages());
+            TokenUtils.EmptyTokenUsages());
         await this._messageRepository.CreateAsync(chatMessage);
 
         // Add the user to the chat session

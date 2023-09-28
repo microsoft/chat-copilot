@@ -51,6 +51,7 @@ public class ChatController : ControllerBase, IDisposable
 
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
+    private const string ProcessPlanFunctionName = "ProcessPlan";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
     public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions, IOptions<PlannerOptions> plannerOptions)
@@ -91,8 +92,69 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] IAuthInfo authInfo,
         [FromBody] Ask ask)
     {
-        this._logger.LogDebug("Chat request received.");
+        this._logger.LogDebug("/chat request received.");
+        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+    }
 
+    /// <summary>
+    /// Invokes the chat skill to process and/or execute plan.
+    /// </summary>
+    /// <param name="kernel">Semantic kernel obtained through dependency injection.</param>
+    /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
+    /// <param name="planner">Planner to use to create function sequences.</param>
+    /// <param name="askConverter">Converter to use for converting Asks.</param>
+    /// <param name="chatSessionRepository">Repository of chat sessions.</param>
+    /// <param name="chatParticipantRepository">Repository of chat participants.</param>
+    /// <param name="authInfo">Auth info for the current request.</param>
+    /// <param name="ask">Prompt along with its parameters.</param>
+    /// <returns>Results containing the response from the model.</returns>
+    [Route("processplan")]
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
+    public async Task<IActionResult> ProcessPlanAsync(
+        [FromServices] IKernel kernel,
+        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
+        [FromServices] CopilotChatPlanner planner,
+        [FromServices] AskConverter askConverter,
+        [FromServices] ChatSessionRepository chatSessionRepository,
+        [FromServices] ChatParticipantRepository chatParticipantRepository,
+        [FromServices] IAuthInfo authInfo,
+        [FromBody] ExecutePlanParameters ask)
+    {
+        this._logger.LogDebug("/processplan request received.");
+        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+    }
+
+    #region Private Methods
+
+    /// <summary>
+    /// Invokes given function of ChatSkill.
+    /// </summary>
+    /// <param name="functionName">Name of the ChatSkill function to invoke.</param>
+    /// <param name="kernel">Semantic kernel obtained through dependency injection.</param>
+    /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
+    /// <param name="planner">Planner to use to create function sequences.</param>
+    /// <param name="askConverter">Converter to use for converting Asks.</param>
+    /// <param name="chatSessionRepository">Repository of chat sessions.</param>
+    /// <param name="chatParticipantRepository">Repository of chat participants.</param>
+    /// <param name="authInfo">Auth info for the current request.</param>
+    /// <param name="ask">Prompt along with its parameters.</param>
+    /// <returns>Results containing the response from the model.</returns>
+    private async Task<IActionResult> HandleRequest(
+       string functionName,
+       IKernel kernel,
+       IHubContext<MessageRelayHub> messageRelayHubContext,
+       CopilotChatPlanner planner,
+       AskConverter askConverter,
+       ChatSessionRepository chatSessionRepository,
+       ChatParticipantRepository chatParticipantRepository,
+       IAuthInfo authInfo,
+       Ask ask)
+    {
         // Verify that the chat exists and that the user has access to it.
         const string ChatIdKey = "chatId";
         var chatIdFromContext = ask.Variables.FirstOrDefault(x => x.Key == ChatIdKey);
@@ -127,13 +189,12 @@ public class ChatController : ControllerBase, IDisposable
         ISKFunction? function = null;
         try
         {
-            function = kernel.Skills.GetFunction(ChatSkillName, ChatFunctionName);
+            function = kernel.Skills.GetFunction(ChatSkillName, functionName);
         }
         catch (SKException ex)
         {
-            this._logger.LogError("Failed to find {0}/{1} on server: {2}", ChatSkillName, ChatFunctionName, ex);
-
-            return this.NotFound($"Failed to find {ChatSkillName}/{ChatFunctionName} on server");
+            this._logger.LogError("Failed to find {SkillName}/{FunctionName} on server: {Exception}", ChatSkillName, functionName, ex);
+            return this.NotFound($"Failed to find {ChatSkillName}/{functionName} on server");
         }
 
         // Run the function.
@@ -146,18 +207,18 @@ public class ChatController : ControllerBase, IDisposable
                 : null;
 
             result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
-            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, true);
+            this._telemetryService.TrackSkillFunction(ChatSkillName, functionName, true);
         }
         catch (Exception ex)
         {
             if (ex is OperationCanceledException || ex.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 504 response
-                this._logger.LogError("The chat operation timed out.");
-                return this.StatusCode(StatusCodes.Status504GatewayTimeout, "The chat operation timed out.");
+                this._logger.LogError("The {FunctionName} operation timed out.", functionName);
+                return this.StatusCode(StatusCodes.Status504GatewayTimeout, $"The chat {functionName} timed out.");
             }
 
-            this._telemetryService.TrackSkillFunction(ChatSkillName, ChatFunctionName, false);
+            this._telemetryService.TrackSkillFunction(ChatSkillName, functionName, false);
             throw ex;
         }
 
@@ -343,6 +404,8 @@ public class ChatController : ControllerBase, IDisposable
         GraphServiceClient graphServiceClient = new(graphHttpClient);
         return graphServiceClient;
     }
+
+    #endregion
 
     /// <summary>
     /// Dispose of the object.

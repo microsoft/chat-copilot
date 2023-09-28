@@ -3,7 +3,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Constants } from '../../../Constants';
 import { ServiceOptions } from '../../../libs/models/ServiceOptions';
-import { TokenUsage } from '../../../libs/models/TokenUsage';
+import { TokenUsage, TokenUsageFunctionNameMap } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
 
 export const appSlice = createSlice({
@@ -33,8 +33,8 @@ export const appSlice = createSlice({
             state.activeUserInfo = action.payload;
         },
         updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsage>) => {
-            Object.entries(action.payload).forEach(([key, value]) => {
-                action.payload[key] = getTotalTokenUsage(state.tokenUsage[key], value);
+            Object.keys(TokenUsageFunctionNameMap).forEach((key) => {
+                action.payload[key] = getTotalTokenUsage(state.tokenUsage[key], action.payload[key]);
             });
             state.tokenUsage = action.payload;
         },
