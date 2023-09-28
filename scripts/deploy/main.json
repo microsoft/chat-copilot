@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "2563750106745150621"
+      "templateHash": "13903426485797217847"
     }
   },
   "parameters": {
@@ -1492,6 +1492,12 @@
     "memoryPipelineName": {
       "type": "string",
       "value": "[format('app-{0}-memorypipeline', variables('uniqueName'))]"
+    },
+    "pluginNames": {
+      "type": "array",
+      "value": [
+        "[format('function-{0}-websearcher-plugin', variables('uniqueName'))]"
+      ]
     }
   }
 }

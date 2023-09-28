@@ -1221,3 +1221,6 @@ output webappName string = staticWebApp.name
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name
+output pluginNames array = [
+  functionAppWebSearcherPlugin.name
+]
