@@ -51,9 +51,9 @@ export const useChat = () => {
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
-    const botService = new BotService(process.env.REACT_APP_BACKEND_URI as string);
-    const chatService = new ChatService(process.env.REACT_APP_BACKEND_URI as string);
-    const documentImportService = new DocumentImportService(process.env.REACT_APP_BACKEND_URI as string);
+    const botService = new BotService();
+    const chatService = new ChatService();
+    const documentImportService = new DocumentImportService();
 
     const botProfilePictures: string[] = [botIcon1, botIcon2, botIcon3, botIcon4, botIcon5];
 

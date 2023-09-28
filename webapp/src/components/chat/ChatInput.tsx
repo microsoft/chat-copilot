@@ -18,6 +18,7 @@ import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
 import { editConversationInput, updateBotResponseStatus } from '../../redux/features/conversations/conversationsSlice';
 import { Alerts } from '../shared/Alerts';
+import { getErrorDetails } from '../utils/TextUtils';
 import { SpeechService } from './../../libs/services/SpeechService';
 import { updateUserIsTyping } from './../../redux/features/conversations/conversationsSlice';
 import { ChatStatus } from './ChatStatus';
@@ -97,7 +98,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
     React.useEffect(() => {
         async function initSpeechRecognizer() {
-            const speechService = new SpeechService(process.env.REACT_APP_BACKEND_URI as string);
+            const speechService = new SpeechService();
             const response = await speechService.getSpeechTokenAsync(
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
@@ -108,7 +109,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
         }
 
         initSpeechRecognizer().catch((e) => {
-            const errorDetails = e instanceof Error ? e.message : String(e);
+            const errorDetails = getErrorDetails(e);
             const errorMessage = `Unable to initialize speech recognizer. Details: ${errorDetails}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         });

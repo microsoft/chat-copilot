@@ -11,7 +11,7 @@ interface PluginCardProps {
 }
 
 export const PluginCard: React.FC<PluginCardProps> = ({ plugin }) => {
-    const { name, publisher, enabled, authRequirements, apiProperties, icon, description, inactive } = plugin;
+    const { name, publisher, enabled, authRequirements, apiProperties, icon, description } = plugin;
     const dispatch = useAppDispatch();
 
     const onDisconnectClick = (event: FormEvent) => {
@@ -42,7 +42,6 @@ export const PluginCard: React.FC<PluginCardProps> = ({ plugin }) => {
                         publisher={publisher}
                         authRequirements={authRequirements}
                         apiProperties={apiProperties}
-                        inactive={inactive}
                     />
                 )
             }
