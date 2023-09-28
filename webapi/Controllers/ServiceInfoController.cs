@@ -86,8 +86,8 @@ public class ServiceInfoController : ControllerBase
         {
             AuthType = this._chatAuthenticationOptions.Type.ToString(),
             AadAuthority = authorityUriString,
-            AadClient = this._frontendOptions.AadClientId,
-            AadApiScope = $"api://{this._chatAuthenticationOptions.AzureAd!.ClientId}/{this._chatAuthenticationOptions.AzureAd!.Scopes}"
+            AadClientId = this._frontendOptions.AadClientId,
+            AadApiScope = $"api://{this._chatAuthenticationOptions.AzureAd!.ClientId}/{this._chatAuthenticationOptions.AzureAd!.Scopes}",
         };
 
         return this.Ok(config);

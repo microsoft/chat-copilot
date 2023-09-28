@@ -13,7 +13,7 @@ import { getErrorDetails } from './useChat';
 export const usePlugins = () => {
     const dispatch = useAppDispatch();
     const { instance, inProgress } = useMsal();
-    const chatService = React.useMemo(() => new ChatService(process.env.REACT_APP_BACKEND_URI as string), []);
+    const chatService = React.useMemo(() => new ChatService(), []);
 
     const addCustomPlugin = (manifest: PluginManifest, manifestDomain: string) => {
         const newPlugin: Plugin = {

@@ -109,12 +109,12 @@ const logoutAsync = (instance: IPublicClientApplication) => {
 /**
  * Determines if the app is configured to use Azure AD for authorization
  */
-const IsAuthAAD = process.env.REACT_APP_AUTH_TYPE === AuthType.AAD;
+const isAuthAAD = () => process.env.REACT_APP_AUTH_TYPE === AuthType.AAD;
 
 // SKaaS = Semantic Kernel as a Service
 // Gets token with scopes to authorize SKaaS specifically
 const getSKaaSAccessToken = async (instance: IPublicClientApplication, inProgress: InteractionStatus) => {
-    return IsAuthAAD
+    return isAuthAAD()
         ? await TokenHelper.getAccessTokenUsingMsal(inProgress, instance, Constants.msal.semanticKernelScopes)
         : '';
 };
@@ -126,5 +126,5 @@ export const AuthHelper = {
     ssoSilentRequest,
     loginAsync,
     logoutAsync,
-    IsAuthAAD,
+    isAuthAAD,
 };

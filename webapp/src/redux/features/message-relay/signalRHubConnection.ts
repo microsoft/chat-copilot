@@ -8,6 +8,7 @@ import { AlertType } from '../../../libs/models/AlertType';
 import { AuthorRoles, ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { PlanState } from '../../../libs/models/Plan';
+import { BackendServiceUrl } from '../../../libs/services/BaseService';
 import { StoreMiddlewareAPI } from '../../app/store';
 import { addAlert, setMaintenance } from '../app/appSlice';
 import { ChatState } from '../conversations/ChatState';
@@ -32,7 +33,7 @@ const enum SignalRCallbackMethods {
 
 // Set up a SignalR connection to the messageRelayHub on the server
 const setupSignalRConnectionToChatHub = () => {
-    const connectionHubUrl = new URL('/messageRelayHub', process.env.REACT_APP_BACKEND_URI);
+    const connectionHubUrl = new URL('/messageRelayHub', BackendServiceUrl);
     const signalRConnectionOptions = {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
