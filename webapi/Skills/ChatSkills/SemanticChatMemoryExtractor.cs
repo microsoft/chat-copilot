@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -37,11 +38,16 @@ internal static class SemanticChatMemoryExtractor
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        foreach (var memoryName in options.MemoryMap.Keys)
+        foreach (string memoryType in Enum.GetNames(typeof(SemanticMemoryType)))
         {
             try
             {
-                var semanticMemory = await ExtractCognitiveMemoryAsync(memoryName, logger);
+                if (!options.TryGetMemoryContainerName(memoryType, out var memoryName))
+                {
+                    logger.LogInformation("Unable to extract semantic memory for invalid memory type {0}. Continuing...", memoryType);
+                    continue;
+                }
+                var semanticMemory = await ExtractCognitiveMemoryAsync(memoryType, memoryName, logger);
                 foreach (var item in semanticMemory.Items)
                 {
                     await CreateMemoryAsync(memoryName, item.ToFormattedString());
@@ -51,7 +57,7 @@ internal static class SemanticChatMemoryExtractor
             {
                 // Skip semantic memory extraction for this item if it fails.
                 // We cannot rely on the model to response with perfect Json each time.
-                logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryName, ex.Message);
+                logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryType, ex.Message);
                 continue;
             }
         }
@@ -59,7 +65,7 @@ internal static class SemanticChatMemoryExtractor
         /// <summary>
         /// Extracts the semantic chat memory from the chat session.
         /// </summary>
-        async Task<SemanticChatMemory> ExtractCognitiveMemoryAsync(string memoryName, ILogger logger)
+        async Task<SemanticChatMemory> ExtractCognitiveMemoryAsync(string memoryType, string memoryName, ILogger logger)
         {
             if (!options.MemoryMap.TryGetValue(memoryName, out var memoryPrompt))
             {
@@ -87,7 +93,7 @@ internal static class SemanticChatMemoryExtractor
 
             // Get token usage from ChatCompletion result and add to context
             // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
-            TokenUtilities.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryName}");
+            TokenUtilities.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryType}");
 
             SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
             return memory;
