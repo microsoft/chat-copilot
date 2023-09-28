@@ -25,8 +25,8 @@ public class FrontendAuthConfig
     /// <summary>
     /// Azure Active Directory client ID the frontend is to use.
     /// </summary>
-    [JsonPropertyName("aadClient")]
-    public string AadClient { get; set; } = string.Empty;
+    [JsonPropertyName("aadClientId")]
+    public string AadClientId { get; set; } = string.Empty;
 
     /// <summary>
     /// Azure Active Directory scope the frontend should request.

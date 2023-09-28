@@ -14,7 +14,7 @@ Follow the [instructions](https://github.com/microsoft/chat-copilot#optional-ena
 
 ### Configure the environment
 
--   Follow the [instructions](https://github.com/microsoft/chat-copilot#optional-enable-backend-authentication-via-azure-ad) to configure the /webapp/.env file and the /webapi/appsettings.josn file.
+-   Follow the [instructions](https://github.com/microsoft/chat-copilot#optional-enable-backend-authentication-via-azure-ad) to configure the `/webapi/appsettings.json` file.
 
 -   You need two test accounts to run the multi-user chat. Make sure the two accounts are under the correct tenant. Enter the account credentials in the .env file.
 

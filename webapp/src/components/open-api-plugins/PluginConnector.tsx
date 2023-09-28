@@ -16,9 +16,10 @@ import {
 } from '@fluentui/react-components';
 import { Dismiss20Regular } from '@fluentui/react-icons';
 import { FormEvent, useState } from 'react';
+import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { TokenHelper } from '../../libs/auth/TokenHelper';
 import { useAppDispatch } from '../../redux/app/hooks';
-import { AdditionalApiProperties, Plugin, PluginAuthRequirements } from '../../redux/features/plugins/PluginsState';
+import { AdditionalApiProperties, PluginAuthRequirements } from '../../redux/features/plugins/PluginsState';
 import { connectPlugin } from '../../redux/features/plugins/pluginsSlice';
 import { useDialogClasses } from '../../styles';
 
@@ -28,7 +29,6 @@ interface PluginConnectorProps {
     publisher: string;
     authRequirements: PluginAuthRequirements;
     apiProperties?: AdditionalApiProperties;
-    inactive?: Plugin['inactive'];
 }
 
 export const PluginConnector: React.FC<PluginConnectorProps> = ({
@@ -37,7 +37,6 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
     publisher,
     authRequirements,
     apiProperties,
-    inactive,
 }) => {
     const classes = useDialogClasses();
 
@@ -95,6 +94,9 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
         setOpen(false);
     };
 
+    const inactive = msalRequired && !AuthHelper.isAuthAAD();
+    const inactiveReason = 'Only available when using Azure AD authorization.';
+
     return (
         <Dialog
             open={open}
@@ -109,8 +111,8 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
                     data-testid="openPluginDialogButton"
                     aria-label="Enable plugin"
                     appearance="primary"
-                    disabled={!!inactive}
-                    title={inactive}
+                    disabled={inactive}
+                    title={inactive ? inactiveReason : ''}
                 >
                     Enable
                 </Button>

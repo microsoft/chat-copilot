@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const missingEnvVariables = getMissingEnvVariables();
         const validEnvFile = missingEnvVariables.length === 0;
-        const shouldUseMsal = validEnvFile && AuthHelper.IsAuthAAD;
+        const shouldUseMsal = validEnvFile && AuthHelper.isAuthAAD();
 
         let msalInstance: IPublicClientApplication | null = null;
         if (shouldUseMsal) {
@@ -58,7 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         {/* eslint-enable @typescript-eslint/no-non-null-assertion */}
                     </ReduxProvider>
                 ) : (
-                    <MissingEnvVariablesError missingVariables={missingEnvVariables} />
+                    <FluentProvider className="app-container" theme={semanticKernelLightTheme}>
+                        <MissingEnvVariablesError missingVariables={missingEnvVariables} />
+                    </FluentProvider>
                 )}
             </React.StrictMode>,
         );

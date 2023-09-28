@@ -14,7 +14,7 @@ export const useFile = () => {
     const { instance, inProgress } = useMsal();
 
     const chat = useChat();
-    const documentImportService = new DocumentImportService(process.env.REACT_APP_BACKEND_URI as string);
+    const documentImportService = new DocumentImportService();
 
     async function loadFile<T>(file: File, loadCallBack: (data: T) => Promise<void>): Promise<T> {
         return await new Promise((resolve, reject) => {
