@@ -92,3 +92,10 @@ export function replaceCitationLinksWithIndices(formattedMessageContent: string,
 
     return formattedMessageContent;
 }
+
+/**
+ * Gets message of error
+ */
+export function getErrorDetails(error: unknown) {
+    return error instanceof Error ? error.message : String(error);
+}

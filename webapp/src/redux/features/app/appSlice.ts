@@ -72,7 +72,7 @@ export const appSlice = createSlice({
         setServiceOptions: (state: AppState, action: PayloadAction<ServiceOptions>) => {
             state.serviceOptions = action.payload;
         },
-        setAuthConfig: (state: AppState, action: PayloadAction<AuthConfig>) => {
+        setAuthConfig: (state: AppState, action: PayloadAction<AuthConfig | undefined>) => {
             state.authConfig = action.payload;
         },
     },

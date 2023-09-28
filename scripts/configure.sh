@@ -206,6 +206,9 @@ APPSETTINGS_OVERRIDES="{
       \"EmbeddingGeneratorType\": \"${AI_SERVICE}\"
     },
     \"Services\": ${AISERVICE_OVERRIDES}
+  },
+  \"Frontend\": {
+    \"AadClientId\": \"${FRONTEND_CLIENT_ID}\"
   }
 }"
 APPSETTINGS_OVERRIDES_FILEPATH="${WEBAPI_PROJECT_PATH}/appsettings.${ENV_ASPNETCORE}.json"
@@ -228,16 +231,6 @@ WEBAPP_ENV_FILEPATH="${WEBAPP_PROJECT_PATH}/.env"
 
 echo "Setting up '.env' for webapp..."
 echo "REACT_APP_BACKEND_URI=https://localhost:40443/" >$WEBAPP_ENV_FILEPATH
-
-if [ "$AUTH_TYPE" = "$ENV_AZURE_AD" ]; then
-  echo "Configuring Azure AD authentication..."
-  echo "REACT_APP_AUTH_TYPE=AzureAd" >>$WEBAPP_ENV_FILEPATH
-  # Trim any trailing slash from instance before generating authority
-  INSTANCE=${INSTANCE%/}
-  echo "REACT_APP_AAD_AUTHORITY=$INSTANCE/$TENANT_ID" >>$WEBAPP_ENV_FILEPATH
-  echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >>$WEBAPP_ENV_FILEPATH
-  echo "REACT_APP_AAD_API_SCOPE=api://$BACKEND_CLIENT_ID/access_as_user" >>$WEBAPP_ENV_FILEPATH
-fi
 
 echo "($WEBAPP_ENV_FILEPATH)"
 echo "========"

@@ -10,8 +10,6 @@ import {
 import debug from 'debug';
 import { Constants } from '../../Constants';
 import { store } from '../../redux/app/store';
-import { ActiveUserInfo } from '../../redux/features/app/AppState';
-import { IChatUser } from '../models/ChatUser';
 import { TokenHelper } from './TokenHelper';
 
 const log = debug(Constants.debug.root).extend('authHelper');
@@ -28,26 +26,10 @@ export interface AuthConfig {
     aadApiScope: string;
 }
 
-// This is the default user information when authentication is set to 'None'.
-// It must match what is defined in PassthroughAuthenticationHandler.cs on the backend.
-export const DefaultChatUser: IChatUser = {
-    id: 'c05c61eb-65e4-4223-915a-fe72b0c9ece1',
-    emailAddress: 'user@contoso.com',
-    fullName: 'Default User',
-    online: true,
-    isTyping: false,
-};
-
-export const DefaultActiveUserInfo: ActiveUserInfo = {
-    id: DefaultChatUser.id,
-    email: DefaultChatUser.emailAddress,
-    username: DefaultChatUser.fullName,
-};
-
-const msalConfig: Configuration = {
+const getMsalConfig = (authConfig: AuthConfig): Configuration => ({
     auth: {
-        clientId: process.env.REACT_APP_AAD_CLIENT_ID ?? '',
-        authority: process.env.REACT_APP_AAD_AUTHORITY,
+        clientId: authConfig.aadClientId,
+        authority: authConfig.aadAuthority,
         redirectUri: window.origin,
     },
     cache: Constants.msal.cache,
@@ -79,6 +61,11 @@ const msalConfig: Configuration = {
         iframeHashTimeout: 9000, // Applies just to silent calls - In milliseconds
         loadFrameTimeout: 9000, // Applies to both silent and popup calls - In milliseconds
     },
+});
+
+const getMsalScopes = () => {
+    const aadApiScope = store.getState().app.authConfig?.aadApiScope;
+    return Constants.msal.semanticKernelScopes.concat(aadApiScope ?? []);
 };
 
 const logoutRequest: EndSessionRequest = {
@@ -88,19 +75,19 @@ const logoutRequest: EndSessionRequest = {
 const ssoSilentRequest = async (msalInstance: IPublicClientApplication) => {
     await msalInstance.ssoSilent({
         account: msalInstance.getActiveAccount() ?? undefined,
-        scopes: Constants.msal.semanticKernelScopes,
+        scopes: getMsalScopes(),
     });
 };
 
 const loginAsync = async (instance: IPublicClientApplication) => {
     if (Constants.msal.method === 'redirect') {
         await instance.loginRedirect({
-            scopes: Constants.msal.semanticKernelScopes,
+            scopes: getMsalScopes(),
             extraScopesToConsent: Constants.msal.msGraphAppScopes,
         });
     } else {
         await instance.loginPopup({
-            scopes: Constants.msal.semanticKernelScopes,
+            scopes: getMsalScopes(),
             extraScopesToConsent: Constants.msal.msGraphAppScopes,
         });
     }
@@ -120,14 +107,13 @@ const isAuthAAD = () => store.getState().app.authConfig?.authType === AuthType.A
 // SKaaS = Semantic Kernel as a Service
 // Gets token with scopes to authorize SKaaS specifically
 const getSKaaSAccessToken = async (instance: IPublicClientApplication, inProgress: InteractionStatus) => {
-    return isAuthAAD()
-        ? await TokenHelper.getAccessTokenUsingMsal(inProgress, instance, Constants.msal.semanticKernelScopes)
-        : '';
+    return isAuthAAD() ? await TokenHelper.getAccessTokenUsingMsal(inProgress, instance, getMsalScopes()) : '';
 };
 
 export const AuthHelper = {
     getSKaaSAccessToken,
-    msalConfig,
+    getMsalConfig,
+    getMsalScopes,
     logoutRequest,
     ssoSilentRequest,
     loginAsync,

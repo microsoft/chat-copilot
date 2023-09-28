@@ -6,7 +6,7 @@ import { Provider as ReduxProvider } from 'react-redux';
 import App from './App';
 import { Constants } from './Constants';
 import './index.css';
-import { AuthConfig, AuthHelper, AuthType } from './libs/auth/AuthHelper';
+import { AuthHelper } from './libs/auth/AuthHelper';
 import { store } from './redux/app/store';
 
 import React from 'react';
@@ -29,34 +29,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const root = ReactDOM.createRoot(container);
         const configService = new ConfigService();
 
+        let msalInstance: PublicClientApplication | undefined;
         configService
             .getAuthConfig()
             .then((authConfig) => {
                 store.dispatch(setAuthConfig(authConfig));
 
-                let msalInstance: PublicClientApplication | undefined;
-                const isAuthAAD = authConfig.authType === AuthType.AAD;
-                if (isAuthAAD) {
-                    msalInstance = new PublicClientApplication(AuthHelper.msalConfig);
+                if (AuthHelper.isAuthAAD()) {
+                    msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
                     void msalInstance.handleRedirectPromise().then((response) => {
-                        if (response) {
-                            msalInstance?.setActiveAccount(response.account);
+                        if (response?.account) {
+                            const account = response.account;
+                            msalInstance?.setActiveAccount(account);
                         }
                     });
-
-                    root.render(
-                        <React.StrictMode>
-                            <ReduxProvider store={store}>
-                                <MsalProvider instance={msalInstance}>
-                                    <AppWithTheme />
-                                </MsalProvider>
-                            </ReduxProvider>
-                        </React.StrictMode>,
-                    );
                 }
             })
             .catch(() => {
-                store.dispatch(setAuthConfig({} as AuthConfig));
+                store.dispatch(setAuthConfig(undefined));
+            })
+            .finally(() => {
+                root.render(
+                    <React.StrictMode>
+                        <ReduxProvider store={store}>
+                            {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
+                            <MsalProvider instance={msalInstance!}>
+                                <AppWithTheme />
+                            </MsalProvider>
+                        </ReduxProvider>
+                    </React.StrictMode>,
+                );
             });
 
         root.render(

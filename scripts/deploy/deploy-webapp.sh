@@ -91,21 +91,9 @@ echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
 
-WEB_API_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --output json)
-eval WEB_API_CLIENT_ID=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:ClientId").value')
-eval WEB_API_TENANT_ID=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:TenantId").value')
-eval WEB_API_INSTANCE=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:Instance").value')
-eval WEB_API_SCOPE=$(echo $WEB_API_SETTINGS | jq '.[] | select(.name=="Authentication:AzureAd:Scopes").value')
-
 ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
 echo "REACT_APP_BACKEND_URI=https://$WEB_API_URL/" > $ENV_FILE_PATH
-echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
-# Trim any trailing slash from instance before generating authority
-WEB_API_INSTANCE=${WEB_API_INSTANCE%/}
-echo "REACT_APP_AAD_AUTHORITY=$WEB_API_INSTANCE/$WEB_API_TENANT_ID" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_CLIENT_ID=$FRONTEND_CLIENT_ID" >> $ENV_FILE_PATH
-echo "REACT_APP_AAD_API_SCOPE=api://$WEB_API_CLIENT_ID/$WEB_API_SCOPE" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
 echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
 

@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
 import { ChatView, Error, Loading, Login } from './components/views';
-import { AuthHelper, AuthType, DefaultActiveUserInfo } from './libs/auth/AuthHelper';
+import { AuthHelper } from './libs/auth/AuthHelper';
 import { useChat, useFile } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
@@ -73,17 +73,17 @@ const App = () => {
     const file = useFile();
 
     useEffect(() => {
-        if (authConfig && appState === AppState.LoadingAuthInfo) {
-            if (Object.keys(authConfig).length) {
-                if (authConfig.authType === AuthType.AAD) {
-                    setAppState(AppState.SettingUserInfo);
-                } else {
-                    dispatch(setActiveUserInfo(DefaultActiveUserInfo));
-                    setAppState(AppState.LoadingChats);
-                }
-            } else {
-                setAppState(AppState.ErrorLoadingAuthInfo);
-            }
+        // if the auth info is being loaded, change the state if:
+        //      1. the `authConfig` is undefined, meaning an error occurred during load, or
+        //      2. the `authConfig` has keys, meaning it was loaded successfully.
+        if (appState === AppState.LoadingAuthInfo && (!authConfig || Object.keys(authConfig).length)) {
+            setAppState(
+                authConfig
+                    ? AuthHelper.isAuthAAD()
+                        ? AppState.SettingUserInfo
+                        : AppState.LoadingChats
+                    : AppState.ErrorLoadingAuthInfo,
+            );
         }
     }, [dispatch, appState, authConfig]);
 
@@ -92,9 +92,7 @@ const App = () => {
             setAppState(AppState.SiteMaintenance);
             return;
         }
-    }, [appState, isMaintenance]);
 
-    useEffect(() => {
         if (isAuthenticated && appState === AppState.SettingUserInfo) {
             const account = instance.getActiveAccount();
             if (!account) {
@@ -103,7 +101,7 @@ const App = () => {
                 dispatch(
                     setActiveUserInfo({
                         id: `${account.localAccountId}.${account.tenantId}`,
-                        email: account.username, // Username in an AccountInfo object is the email address
+                        email: account.username, // username is the email address
                         username: account.name ?? account.username,
                     }),
                 );
@@ -148,7 +146,7 @@ const App = () => {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [instance, inProgress, isAuthenticated, appState]);
+    }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
 
     // TODO: [Issue #41] handle error case of missing account information
     return (
