@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
+using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
@@ -50,34 +51,33 @@ public class ChatMemoryController : ControllerBase
     /// </summary>
     /// <param name="semanticTextMemory">The semantic text memory instance.</param>
     /// <param name="chatId">The chat id.</param>
-    /// <param name="memoryName">Name of the memory type.</param>
+    /// <param name="memoryType">Type of memory. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
     [HttpGet]
-    [Route("chatMemory/{chatId:guid}/{memoryName}")]
+    [Route("chatMemory/{chatId:guid}/{memoryType}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
         [FromServices] ISemanticMemoryClient memoryClient,
         [FromRoute] string chatId,
-        [FromRoute] string memoryName)
+        [FromRoute] string memoryType)
     {
         // Sanitize the log input by removing new line characters.
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
         var sanitizedChatId = GetSanitizedParameter(chatId);
-        var sanitizedMemoryName = GetSanitizedParameter(memoryName);
+
+        // Map the requested memoryType to the memory store container name
+        if (!this._promptOptions.TryGetMemoryContainerName(memoryType, out string memoryContainerName))
+        {
+            this._logger.LogWarning("Memory type: {0} is invalid.", memoryType);
+            return this.BadRequest($"Memory type: {memoryType} is invalid.");
+        }
 
         // Make sure the chat session exists.
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId))
         {
             this._logger.LogWarning("Chat session: {0} does not exist.", sanitizedChatId);
             return this.BadRequest($"Chat session: {sanitizedChatId} does not exist.");
-        }
-
-        // Make sure the memory name is valid.
-        if (!this.ValidateMemoryName(sanitizedMemoryName))
-        {
-            this._logger.LogWarning("Memory name: {0} is invalid.", sanitizedMemoryName);
-            return this.BadRequest($"Memory name: {sanitizedMemoryName} is invalid.");
         }
 
         // Gather the requested semantic memory.
@@ -89,7 +89,7 @@ public class ChatMemoryController : ControllerBase
             // Search if there is already a memory item that has a high similarity score with the new item.
             var filter = new MemoryFilter();
             filter.ByTag("chatid", chatId);
-            filter.ByTag("memory", sanitizedMemoryName);
+            filter.ByTag("memory", memoryContainerName);
             filter.MinRelevance = 0;
 
             var searchResult =
@@ -99,7 +99,7 @@ public class ChatMemoryController : ControllerBase
                     relevanceThreshold: 0,
                     resultCount: 1,
                     chatId,
-                    sanitizedMemoryName)
+                    memoryContainerName)
                 .ConfigureAwait(false);
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
@@ -110,7 +110,7 @@ public class ChatMemoryController : ControllerBase
         catch (Exception connectorException) when (!connectorException.IsCriticalException())
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            this._logger.LogError(connectorException, "Cannot search collection {0}", sanitizedMemoryName);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryContainerName);
         }
 
         return this.Ok(memories);
@@ -121,16 +121,6 @@ public class ChatMemoryController : ControllerBase
     private static string GetSanitizedParameter(string parameterValue)
     {
         return parameterValue.Replace(Environment.NewLine, string.Empty, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Validates the memory name.
-    /// </summary>
-    /// <param name="memoryName">Name of the memory requested.</param>
-    /// <returns>True if the memory name is valid.</returns>
-    private bool ValidateMemoryName(string memoryName)
-    {
-        return this._promptOptions.MemoryMap.ContainsKey(memoryName);
     }
 
     # endregion

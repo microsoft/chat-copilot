@@ -199,7 +199,13 @@ export const ChatWindow: React.FC = () => {
             </div>
             {selectedTab === 'chat' && <ChatRoom />}
             {selectedTab === 'documents' && <DocumentsTab />}
-            {selectedTab === 'plans' && <PlansTab />}
+            {selectedTab === 'plans' && (
+                <PlansTab
+                    setChatTab={() => {
+                        setSelectedTab('chat');
+                    }}
+                />
+            )}
             {selectedTab === 'persona' && <PersonaTab />}
             {selectedTab !== 'chat' && (
                 <div className={classes.alerts}>

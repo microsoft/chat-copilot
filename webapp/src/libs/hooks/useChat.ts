@@ -9,6 +9,7 @@ import { ChatState } from '../../redux/features/conversations/ChatState';
 import { Conversations } from '../../redux/features/conversations/ConversationsState';
 import {
     addConversation,
+    addMessageToConversationFromUser,
     deleteConversation,
     setConversations,
     setSelectedConversation,
@@ -18,7 +19,7 @@ import { Plugin } from '../../redux/features/plugins/PluginsState';
 import { AuthHelper } from '../auth/AuthHelper';
 import { AlertType } from '../models/AlertType';
 import { Bot } from '../models/Bot';
-import { AuthorRoles, ChatMessageType } from '../models/ChatMessage';
+import { AuthorRoles, ChatMessageType, IChatMessage } from '../models/ChatMessage';
 import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { TokenUsage } from '../models/TokenUsage';
@@ -34,12 +35,15 @@ import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
 import { getErrorDetails } from '../../components/utils/TextUtils';
 import { FeatureKeys } from '../../redux/features/app/AppState';
+import { PlanState } from '../models/Plan';
+import { ContextVariable } from '../semantic-kernel/model/AskResult';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
     value: string;
     chatId: string;
     contextVariables?: IAskVariables[];
+    processPlan?: boolean;
 }
 
 export const useChat = () => {
@@ -103,7 +107,19 @@ export const useChat = () => {
         }
     };
 
-    const getResponse = async ({ messageType, value, chatId, contextVariables }: GetResponseOptions) => {
+    const getResponse = async ({ messageType, value, chatId, contextVariables, processPlan }: GetResponseOptions) => {
+        const chatInput: IChatMessage = {
+            chatId: chatId,
+            timestamp: new Date().getTime(),
+            userId: activeUserInfo?.id as string,
+            userName: activeUserInfo?.username as string,
+            content: value,
+            type: messageType,
+            authorRole: AuthorRoles.User,
+        };
+
+        dispatch(addMessageToConversationFromUser({ message: chatInput, chatId: chatId }));
+
         const ask = {
             input: value,
             variables: [
@@ -128,6 +144,7 @@ export const useChat = () => {
                     ask,
                     await AuthHelper.getSKaaSAccessToken(instance, inProgress),
                     getEnabledPlugins(),
+                    processPlan,
                 )
                 .catch((e: any) => {
                     throw e;
@@ -138,7 +155,8 @@ export const useChat = () => {
             if (responseTokenUsage) dispatch(updateTokenUsage(JSON.parse(responseTokenUsage) as TokenUsage));
         } catch (e: any) {
             dispatch(updateBotResponseStatus({ chatId, status: undefined }));
-            const errorMessage = `Unable to generate bot response. Details: ${getErrorDetails(e)}`;
+            const action = processPlan ? 'execute plan' : 'generate bot response';
+            const errorMessage = `Unable to ${action}. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };
@@ -382,6 +400,34 @@ export const useChat = () => {
             });
     };
 
+    const processPlan = async (chatId: string, planState: PlanState, serializedPlan: string, planGoal?: string) => {
+        const contextVariables: ContextVariable[] = [
+            {
+                key: 'proposedPlan',
+                value: serializedPlan,
+            },
+        ];
+
+        let message = 'Run plan' + (planGoal ? ` with goal of: ${planGoal}` : '');
+        switch (planState) {
+            case PlanState.Rejected:
+                message = 'No, cancel';
+                break;
+            case PlanState.Approved:
+                message = 'Yes, proceed';
+                break;
+        }
+
+        // Send plan back for processing or execution
+        await getResponse({
+            value: message,
+            contextVariables,
+            messageType: ChatMessageType.Message,
+            chatId: chatId,
+            processPlan: true,
+        });
+    };
+
     return {
         getChatUserById,
         createChat,
@@ -396,6 +442,7 @@ export const useChat = () => {
         editChat,
         getServiceOptions,
         deleteChat,
+        processPlan,
     };
 };
 

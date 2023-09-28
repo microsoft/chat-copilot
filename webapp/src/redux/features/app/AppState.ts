@@ -139,9 +139,9 @@ export const Settings = [
 
 export const initialState: AppState = {
     alerts: [],
-    tokenUsage: {},
     activeUserInfo: DefaultActiveUserInfo,
     authConfig: {} as AuthConfig,
+    tokenUsage: {},
     features: Features,
     settings: Settings,
     serviceOptions: { memoryStore: { types: [], selectedType: '' }, version: '' },

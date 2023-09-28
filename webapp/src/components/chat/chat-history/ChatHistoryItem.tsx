@@ -11,11 +11,12 @@ import {
 } from '@fluentui/react-components';
 import { ChevronDown20Regular, ChevronUp20Regular, ThumbDislikeFilled, ThumbLikeFilled } from '@fluentui/react-icons';
 import React, { useState } from 'react';
-import { GetResponseOptions, useChat } from '../../../libs/hooks/useChat';
+import { DefaultChatUser } from '../../../libs/auth/AuthHelper';
+import { useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { DefaultChatUser, FeatureKeys } from '../../../redux/features/app/AppState';
+import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
@@ -95,14 +96,13 @@ const useClasses = makeStyles({
 
 interface ChatHistoryItemProps {
     message: IChatMessage;
-    getResponse: (options: GetResponseOptions) => Promise<void>;
     messageIndex: number;
 }
 
-export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getResponse, messageIndex }) => {
+export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messageIndex }) => {
     const classes = useClasses();
-
     const chat = useChat();
+
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
     const [showCitationCards, setShowCitationCards] = useState(false);
@@ -123,7 +123,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, getRe
 
     let content: JSX.Element;
     if (isBot && message.type === ChatMessageType.Plan) {
-        content = <PlanViewer message={message} messageIndex={messageIndex} getResponse={getResponse} />;
+        content = <PlanViewer message={message} messageIndex={messageIndex} />;
     } else if (message.type === ChatMessageType.Document) {
         content = <ChatHistoryDocumentContent isMe={isMe} message={message} />;
     } else {

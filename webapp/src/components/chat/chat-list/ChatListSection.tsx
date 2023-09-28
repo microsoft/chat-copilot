@@ -1,7 +1,6 @@
 import { makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
 import { getFriendlyChatName } from '../../../libs/hooks/useChat';
 import { ChatMessageType } from '../../../libs/models/ChatMessage';
-import { isPlan } from '../../../libs/utils/PlanUtils';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { Conversations } from '../../../redux/features/conversations/ConversationsState';
@@ -58,7 +57,7 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                             messages.length > 0
                                 ? lastMessage.type === ChatMessageType.Document
                                     ? 'Sent a file'
-                                    : isPlan(lastMessage.content)
+                                    : lastMessage.type === ChatMessageType.Plan
                                     ? 'Click to view proposed plan'
                                     : lastMessage.content
                                 : 'Click to start the chat'
