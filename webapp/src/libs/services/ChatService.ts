@@ -115,6 +115,7 @@ export class ChatService extends BaseService {
         ask: IAsk,
         accessToken: string,
         enabledPlugins?: Plugin[],
+        processPlan = false,
     ): Promise<IAskResult> => {
         // If skill requires any additional api properties, append to context
         if (enabledPlugins && enabledPlugins.length > 0) {
@@ -168,7 +169,7 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<IAskResult>(
             {
-                commandPath: 'chat',
+                commandPath: processPlan ? 'processplan' : 'chat',
                 method: 'POST',
                 body: ask,
             },

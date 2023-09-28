@@ -1,16 +1,16 @@
 import { Button, Text, makeStyles, mergeClasses, shorthands, tokens } from '@fluentui/react-components';
 import { CheckmarkCircle24Regular, DismissCircle24Regular, Info24Regular } from '@fluentui/react-icons';
 import { useState } from 'react';
-import { GetResponseOptions } from '../../../libs/hooks/useChat';
-import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
-import { IPlanInput, PlanState, PlanType } from '../../../libs/models/Plan';
-import { IAskVariables } from '../../../libs/semantic-kernel/model/Ask';
+import { useChat } from '../../../libs/hooks/useChat';
+import { IChatMessage } from '../../../libs/models/ChatMessage';
+import { PlanState, ProposedPlan } from '../../../libs/models/Plan';
+import { getPlanGoal } from '../../../libs/utils/PlanUtils';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
-import { PlanStepCard } from './PlanStepCard';
+import { PlanBody } from './PlanBody';
 
-const useClasses = makeStyles({
+export const usePlanViewClasses = makeStyles({
     container: {
         ...shorthands.gap(tokens.spacingVerticalM),
         display: 'flex',
@@ -35,55 +35,30 @@ const useClasses = makeStyles({
 interface PlanViewerProps {
     message: IChatMessage;
     messageIndex: number;
-    getResponse: (options: GetResponseOptions) => Promise<void>;
 }
 
-/**
- * See Semantic Kernel's `Plan` object below for full definition.
- * Not explicitly defining the type here to avoid additional overhead of property maintenance.
- * https://github.com/microsoft/semantic-kernel/blob/df07fc6f28853a481dd6f47e60d39a52fc6c9967/dotnet/src/SemanticKernel/Planning/Plan.cs#
- */
-
-/*
-eslint-disable 
-    @typescript-eslint/no-unsafe-assignment,
-    @typescript-eslint/no-unsafe-member-access,
-    @typescript-eslint/no-unsafe-call,
-*/
-export type Plan = any;
-
-export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, getResponse }) => {
-    const classes = useClasses();
+export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex }) => {
+    const classes = usePlanViewClasses();
     const dispatch = useAppDispatch();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const chat = useChat();
 
     // Track original plan from user message
-    const parsedContent: Plan = JSON.parse(message.content);
+    const parsedContent = JSON.parse(message.content) as ProposedPlan;
     const originalPlan = parsedContent.proposedPlan;
-
-    const planState = message.planState ?? parsedContent.state;
-
-    // If plan came from ActionPlanner, use parameters from top-level of plan
-    if (parsedContent.type === PlanType.Action) {
-        originalPlan.steps[0].parameters = originalPlan.parameters;
-    }
-
-    const userIntentPrefix = 'User intent: ';
-    const userIntentIndex = originalPlan.description.indexOf(userIntentPrefix) as number;
-    const description: string =
-        userIntentIndex !== -1
-            ? originalPlan.description.substring(userIntentIndex + userIntentPrefix.length).trim()
-            : '';
-
+    const planState =
+        parsedContent.state === PlanState.Derived ? PlanState.Derived : message.planState ?? parsedContent.state;
     const [plan, setPlan] = useState(originalPlan);
 
-    const onPlanAction = async (planState: PlanState.PlanApproved | PlanState.PlanRejected) => {
+    const onPlanAction = async (planState: PlanState.Approved | PlanState.Rejected) => {
         const updatedPlan = JSON.stringify({
+            ...parsedContent,
             proposedPlan: plan,
-            type: parsedContent.type,
             state: planState,
+            generatedPlanMessageId: message.id,
         });
 
+        // Update bot message with new plan state
         dispatch(
             updateMessageProperty({
                 messageIdOrIndex: messageIndex,
@@ -95,60 +70,18 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
             }),
         );
 
-        const contextVariables: IAskVariables[] = [
-            {
-                key: 'responseMessageId',
-                value: message.id ?? '',
-            },
-            {
-                key: 'proposedPlan',
-                value: updatedPlan,
-            },
-        ];
-
-        contextVariables.push(
-            planState === PlanState.PlanApproved
-                ? {
-                      key: 'planUserIntent',
-                      value: description,
-                  }
-                : {
-                      key: 'userCancelledPlan',
-                      value: 'true',
-                  },
-        );
-
-        // Invoke plan
-        await getResponse({
-            value: planState === PlanState.PlanApproved ? 'Yes, proceed' : 'No, cancel',
-            contextVariables,
-            messageType: ChatMessageType.Message,
-            chatId: selectedId,
-        });
-    };
-
-    const onDeleteStep = (index: number) => {
-        setPlan({
-            ...plan,
-            steps: plan.steps.filter((_step: IPlanInput, i: number) => i !== index),
-        });
+        await chat.processPlan(selectedId, planState, updatedPlan);
     };
 
     return (
         <div className={classes.container}>
             <Text>Based on the request, Copilot Chat will run the following steps:</Text>
-            <Text weight="bold">{`Goal: ${description}`}</Text>
-            {plan.steps.map((step: any, index: number) => {
-                return (
-                    <PlanStepCard
-                        key={`Plan step: ${index}`}
-                        step={{ ...step, index }}
-                        enableEdits={planState === PlanState.PlanApprovalRequired}
-                        enableStepDelete={plan.steps.length > 1}
-                        onDeleteStep={onDeleteStep}
-                    />
-                );
-            })}
+            <PlanBody
+                plan={plan}
+                setPlan={setPlan}
+                planState={planState}
+                description={getPlanGoal(parsedContent.userIntent ?? parsedContent.originalUserInput)}
+            />
             {planState === PlanState.PlanApprovalRequired && (
                 <>
                     Would you like to proceed with the plan?
@@ -157,7 +90,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
                             data-testid="cancelPlanButton"
                             appearance="secondary"
                             onClick={() => {
-                                void onPlanAction(PlanState.PlanRejected);
+                                void onPlanAction(PlanState.Rejected);
                             }}
                         >
                             No, cancel plan
@@ -167,7 +100,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
                             type="submit"
                             appearance="primary"
                             onClick={() => {
-                                void onPlanAction(PlanState.PlanApproved);
+                                void onPlanAction(PlanState.Approved);
                             }}
                         >
                             Yes, proceed
@@ -175,13 +108,13 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex, g
                     </div>
                 </>
             )}
-            {planState === PlanState.PlanApproved && (
+            {(planState === PlanState.Approved || planState === PlanState.Derived) && (
                 <div className={mergeClasses(classes.buttons, classes.status)}>
                     <CheckmarkCircle24Regular />
                     <Text className={classes.text}> Plan Executed</Text>
                 </div>
             )}
-            {planState === PlanState.PlanRejected && (
+            {planState === PlanState.Rejected && (
                 <div className={mergeClasses(classes.buttons, classes.status)}>
                     <DismissCircle24Regular />
                     <Text className={classes.text}> Plan Cancelled</Text>

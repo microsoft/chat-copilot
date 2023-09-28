@@ -167,26 +167,6 @@ internal static class SemanticKernelExtensions
         return kernel;
     }
 
-    /// <summary>
-    /// Invokes an asynchronous callback function and tags any exception that occurs with function name.
-    /// </summary>
-    /// <typeparam name="T">The type of the result returned by the callback function.</typeparam>
-    /// <param name="callback">The asynchronous callback function to invoke.</param>
-    /// <param name="functionName">The name of the function that calls this method, for logging purposes.</param>
-    /// <returns>A task that represents the asynchronous operation and contains the result of the callback function.</returns>
-    public static async Task<T> SafeInvokeAsync<T>(Func<Task<T>> callback, string functionName)
-    {
-        try
-        {
-            // Invoke the callback and await the result
-            return await callback();
-        }
-        catch (Exception ex)
-        {
-            throw new SKException($"{functionName} failed.", ex);
-        }
-    }
-
     private static void InitializeKernelProvider(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton(sp => new SemanticKernelProvider(sp, builder.Configuration));

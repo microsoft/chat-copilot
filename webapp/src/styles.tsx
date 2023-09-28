@@ -48,7 +48,7 @@ export const Breakpoints = {
 };
 
 export const ScrollBarStyles: GriffelStyle = {
-    overflowY: 'scroll',
+    overflowY: 'auto',
     '&:hover': {
         '&::-webkit-scrollbar-thumb': {
             backgroundColor: tokens.colorScrollbarOverlay,
@@ -86,28 +86,26 @@ export const useSharedClasses = makeStyles({
 });
 
 export const useDialogClasses = makeStyles({
-    root: {
-        height: '515px',
+    surface: {
+        paddingRight: tokens.spacingVerticalXS,
     },
     content: {
         display: 'flex',
         flexDirection: 'column',
-        rowGap: '10px',
-    },
-    scopes: {
-        display: 'flex',
-        flexDirection: 'column',
-        rowGap: '5px',
-        paddingLeft: '20px',
-    },
-    error: {
-        color: '#d13438',
-    },
-    section: {
-        display: 'flex',
-        flexDirection: 'column',
+        ...shorthands.overflow('hidden'),
         width: '100%',
-        rowGap: '10px',
+    },
+    paragraphs: {
+        marginTop: tokens.spacingHorizontalS,
+    },
+    innerContent: {
+        height: '100%',
+        ...SharedStyles.scroll,
+        paddingRight: tokens.spacingVerticalL,
+    },
+    text: {
+        whiteSpace: 'pre-wrap',
+        textOverflow: 'wrap',
     },
     footer: {
         display: 'flex',

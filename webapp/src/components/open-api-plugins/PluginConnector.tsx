@@ -13,6 +13,7 @@ import {
     Input,
     Persona,
     Text,
+    makeStyles,
 } from '@fluentui/react-components';
 import { Dismiss20Regular } from '@fluentui/react-icons';
 import { FormEvent, useState } from 'react';
@@ -20,7 +21,32 @@ import { TokenHelper } from '../../libs/auth/TokenHelper';
 import { useAppDispatch } from '../../redux/app/hooks';
 import { AdditionalApiProperties, Plugin, PluginAuthRequirements } from '../../redux/features/plugins/PluginsState';
 import { connectPlugin } from '../../redux/features/plugins/pluginsSlice';
-import { useDialogClasses } from '../../styles';
+
+const useClasses = makeStyles({
+    root: {
+        height: '515px',
+    },
+    content: {
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: '10px',
+    },
+    scopes: {
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: '5px',
+        paddingLeft: '20px',
+    },
+    error: {
+        color: '#d13438',
+    },
+    section: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        rowGap: '10px',
+    },
+});
 
 interface PluginConnectorProps {
     name: string;
@@ -39,7 +65,7 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
     apiProperties,
     inactive,
 }) => {
-    const classes = useDialogClasses();
+    const classes = useClasses();
 
     const usernameRequired = !!authRequirements.username;
     const emailRequired = !!authRequirements.email;

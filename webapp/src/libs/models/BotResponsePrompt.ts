@@ -14,11 +14,11 @@ export interface BotResponsePrompt {
     // Chat memories queried from the chat memory store if any, includes long term and working memory.
     chatMemories: string;
 
-    // Relevant additional knowledge extracted using a planner.
-    externalInformation: string;
-
     // Recent messages from history of the conversation.
     chatHistory: string;
+
+    // Relevant additional knowledge extracted using a planner.
+    externalInformation: string;
 
     // The collection of context messages associated with this chat completions request.
     // Also serves as the rendered prompt template.
@@ -30,8 +30,8 @@ export const PromptSectionsNameMap: Record<string, string> = {
     audience: 'Audience',
     userIntent: 'User Intent',
     chatMemories: 'Chat Memories',
-    externalInformation: 'Planner Results',
     chatHistory: 'Chat History',
+    externalInformation: 'Planner Results',
 };
 
 // Information about semantic dependencies of the prompt.

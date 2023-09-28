@@ -61,6 +61,16 @@ public class PromptsOptions
     [Required, NotEmptyOrWhitespace] public string SystemDescription { get; set; } = string.Empty;
     [Required, NotEmptyOrWhitespace] public string SystemResponse { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Context bot message for meta prompt when using external information acquired from a plan.
+    /// </summary>
+    [Required, NotEmptyOrWhitespace] public string ProposedPlanBotMessage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Supplement to help guide model in using data.
+    /// </summary>
+    [Required, NotEmptyOrWhitespace] public string PlanResultsDescription { get; set; } = string.Empty;
+
     internal string[] SystemAudiencePromptComponents => new string[]
     {
         this.SystemAudience,
