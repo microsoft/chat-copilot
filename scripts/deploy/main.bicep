@@ -18,8 +18,11 @@ param webApiPackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
 
 @description('Location of package to deploy as the memory pipeline')
 #disable-next-line no-hardcoded-env-urls
-// TODO: Update to use the latest version of the memory pipeline package
 param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/memorypipeline/latest'
+
+@description('Location of the websearcher plugin to deploy')
+#disable-next-line no-hardcoded-env-urls
+param webSearcherPackageUri string = 'https://aka.ms/copilotchat/websearcher/latest'
 
 @description('Underlying AI service')
 @allowed([
@@ -76,6 +79,9 @@ param deployWebApiPackage bool = true
 
 @description('Whether to deploy the memory pipeline package')
 param deployMemoryPipelinePackage bool = true
+
+@description('Whether to deploy the websearcher plugin package')
+param deployWebSearcherPackage bool = true
 
 @description('Region for the resources')
 param location string = resourceGroup().location
@@ -653,6 +659,18 @@ resource functionAppWebSearcherPluginConfig 'Microsoft.Web/sites/config@2022-09-
       }
     ]
   }
+}
+
+resource functionAppWebSearcherDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployWebSearcherPackage) {
+  name: 'MSDeploy'
+  kind: 'string'
+  parent: functionAppWebSearcherPlugin
+  properties: {
+    packageUri: webSearcherPackageUri
+  }
+  dependsOn: [
+    functionAppWebSearcherPluginConfig
+  ]
 }
 
 resource appInsightsWeb 'Microsoft.Insights/components@2020-02-02' = {
