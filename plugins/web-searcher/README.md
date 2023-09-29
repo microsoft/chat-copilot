@@ -43,6 +43,6 @@ az functionapp deployment source config-zip -g [your resource group name] -n [yo
 
 ## Usage
 
-You can test the functionality by using the Swagger UI. For example: http://function-app-url/swagger/ui
+You can test the functionality by using the Swagger UI. For example: "{your function url}/swagger/ui"
 
 > Note: The function app does't require any authentication when running locally.

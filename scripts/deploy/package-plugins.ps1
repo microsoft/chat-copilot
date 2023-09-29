@@ -51,7 +51,7 @@ foreach ($pluginProjectFile in $pluginProjectFiles) {
     Write-Host "Packaging $pluginName from $pluginProjectFile"
 
     # Build and publish the plugin
-    # Separating the build and publish steps as a workaround for a known isses with .NET
+    # Separating the build and publish steps as a workaround for a known issue with .NET
     # https://github.com/Azure/azure-functions-dotnet-worker/issues/1834
     dotnet build $pluginProjectFile `
         --configuration $BuildConfiguration `
