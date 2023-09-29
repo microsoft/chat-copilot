@@ -87,6 +87,7 @@ public class PluginController : ControllerBase
 
         var chatIdString = chatId.ToString();
         ChatSession? chat = null;
+#pragma warning disable CA1508 // Avoid dead conditional code. It's giving out false positives on chat == null.
         if (!(await this._sessionRepository.TryFindByIdAsync(chatIdString, callback: v => chat = v)) || chat == null)
         {
             return this.NotFound("Chat not found.");

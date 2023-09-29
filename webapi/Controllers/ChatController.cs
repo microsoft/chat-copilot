@@ -173,6 +173,7 @@ public class ChatController : ControllerBase, IDisposable
         }
 
         ChatSession? chat = null;
+#pragma warning disable CA1508 // Avoid dead conditional code. It's giving out false positives on chat == null.
         if (!(await chatSessionRepository.TryFindByIdAsync(chatId, callback: c => chat = c)) || chat == null)
         {
             return this.NotFound("Failed to find chat session for the chatId specified in variables.");
