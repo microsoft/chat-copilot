@@ -420,14 +420,22 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       }
       {
         name: 'Plugins:0:Name'
-        value: 'WebSearcher'
+        value: 'Klarna Shopping'
       }
       {
         name: 'Plugins:0:Url'
+        value: 'https://www.klarna.com'
+      }
+      {
+        name: 'Plugins:1:Name'
+        value: 'WebSearcher'
+      }
+      {
+        name: 'Plugins:1:Url'
         value: 'https://${functionAppWebSearcherPlugin.properties.defaultHostName}'
       }
       {
-        name: 'Plugins:0:Key'
+        name: 'Plugins:1:Key'
         value: listkeys('${functionAppWebSearcherPlugin.id}/host/default/', '2022-09-01').functionKeys.default
       }
     ]

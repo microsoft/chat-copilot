@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "17016493355690303606"
+      "templateHash": "8121623595763502084"
     }
   },
   "parameters": {
@@ -555,14 +555,22 @@
           },
           {
             "name": "Plugins:0:Name",
-            "value": "WebSearcher"
+            "value": "Klarna Shopping"
           },
           {
             "name": "Plugins:0:Url",
+            "value": "https://www.klarna.com"
+          },
+          {
+            "name": "Plugins:1:Name",
+            "value": "WebSearcher"
+          },
+          {
+            "name": "Plugins:1:Url",
             "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName'))), '2022-09-01').defaultHostName)]"
           },
           {
-            "name": "Plugins:0:Key",
+            "name": "Plugins:1:Key",
             "value": "[listkeys(format('{0}/host/default/', resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))), '2022-09-01').functionKeys.default]"
           }
         ]

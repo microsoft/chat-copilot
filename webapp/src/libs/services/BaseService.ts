@@ -4,7 +4,6 @@ import { URLSearchParams } from 'url';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
 
 interface ServiceRequest {
-    baseUrl?: string;
     commandPath: string;
     method?: string;
     body?: unknown;
@@ -22,7 +21,7 @@ export class BaseService {
         accessToken: string,
         enabledPlugins?: Plugin[],
     ): Promise<T> => {
-        const { baseUrl, commandPath, method, body, query } = request;
+        const { commandPath, method, body, query } = request;
 
         const isFormData = body instanceof FormData;
 
@@ -43,7 +42,7 @@ export class BaseService {
         }
 
         try {
-            const requestUrl = new URL(commandPath, baseUrl ?? this.serviceUrl);
+            const requestUrl = new URL(commandPath, this.serviceUrl);
             if (query) {
                 requestUrl.search = `?${query.toString()}`;
             }

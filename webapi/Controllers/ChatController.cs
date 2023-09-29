@@ -265,34 +265,11 @@ public class ChatController : ControllerBase, IDisposable
     }
 
     /// <summary>
-    /// Fetches a plugin's manifest.
-    /// </summary>
-    /// <param name="manifestDomain">The domain of the manifest.</param>
-    /// <returns>The plugin's manifest JSON.</returns>
-    [HttpGet]
-    [Route("getPluginManifest")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPluginManifest([FromQuery] Uri manifestDomain)
-    {
-        using HttpClient client = new();
-        return this.Ok(await client.GetStringAsync(this.GetPluginManifestUri(manifestDomain.ToString())));
-    }
-
-    /// <summary>
     /// Register skills with the planner's kernel.
     /// </summary>
     private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
     {
         // Register authenticated skills with the planner's kernel only if the request includes an auth header for the skill.
-
-        // Klarna Shopping
-        if (openApiSkillsAuthHeaders.TryGetValue("KLARNA", out string? KlarnaAuthHeader))
-        {
-            this._logger.LogInformation("Registering Klarna plugin");
-
-            // Register the Klarna shopping ChatGPT plugin with the planner's kernel. There is no authentication required for this plugin.
-            await planner.Kernel.ImportAIPluginAsync("KlarnaShoppingPlugin", new Uri("https://www.klarna.com/.well-known/ai-plugin.json"), new OpenApiSkillExecutionParameters());
-        }
 
         // GitHub
         if (openApiSkillsAuthHeaders.TryGetValue("GITHUB", out string? GithubAuthHeader))
@@ -359,7 +336,7 @@ public class ChatController : ControllerBase, IDisposable
 
                         await planner.Kernel.ImportAIPluginAsync(
                             $"{plugin.NameForModel}Plugin",
-                            this.GetPluginManifestUri(plugin.ManifestDomain),
+                            PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenApiSkillExecutionParameters
                             {
                                 HttpClient = httpClient,
@@ -374,15 +351,6 @@ public class ChatController : ControllerBase, IDisposable
                 this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
             }
         }
-    }
-
-    private Uri GetPluginManifestUri(string manifestDomain)
-    {
-        UriBuilder uriBuilder = new(Uri.UnescapeDataString(manifestDomain));
-
-        // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
-        uriBuilder.Path = "/.well-known/ai-plugin.json";
-        return uriBuilder.Uri;
     }
 
     /// <summary>
@@ -413,18 +381,14 @@ public class ChatController : ControllerBase, IDisposable
             {
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
-                // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
-                UriBuilder uriBuilder = new(plugin.Url);
-                uriBuilder.Path = "/.well-known/ai-plugin.json";
-
                 CustomAuthenticationProvider authenticationProvider = new(
                     () => Task.FromResult("X-Functions-Key"),
                     () => Task.FromResult(plugin.Key));
 
                 // Register the ChatGPT plugin with the planner's kernel.
                 await planner.Kernel.ImportAIPluginAsync(
-                    plugin.Name,
-                    uriBuilder.Uri,
+                    PluginUtils.SanitizePluginName(plugin.Name),
+                    PluginUtils.GetPluginManifestUri(plugin.Url),
                     new OpenApiSkillExecutionParameters
                     {
                         HttpClient = new HttpClient(),

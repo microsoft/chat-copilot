@@ -11,9 +11,11 @@ export class PluginService extends BaseService {
     ): Promise<PluginManifest> => {
         return await this.getResponseAsync<PluginManifest>(
             {
-                baseUrl: plugin.url,
-                commandPath: '.well-known/ai-plugin.json',
+                commandPath: 'getPluginManifest',
                 method: 'GET',
+                query: new URLSearchParams({
+                    manifestDomain: plugin.url,
+                }),
             },
             accessToken,
         );

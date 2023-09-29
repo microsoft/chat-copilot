@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -104,28 +105,27 @@ public static class CopilotChatServiceExtensions
                 continue;
             }
 
-            if (Uri.TryCreate(plugin.Url, ".well-known/ai-plugin.json", out var pluginManifestUrl))
+            var pluginManifestUrl = PluginUtils.GetPluginManifestUri(plugin.Url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, pluginManifestUrl);
+            // Need to set the user agent to avoid 403s from some sites.
+            request.Headers.Add("User-Agent", Telemetry.HttpUserAgent);
+            try
             {
-                using (var httpClient = new HttpClient())
+                logger.LogInformation("Adding plugin: {0}.", plugin.Name);
+                using var httpClient = new HttpClient();
+                var response = httpClient.SendAsync(request).Result;
+                if (!response.IsSuccessStatusCode)
                 {
-                    try
-                    {
-                        logger.LogInformation("Adding plugin: {0}.", plugin.Name);
-                        var response = httpClient.GetAsync(pluginManifestUrl).Result;
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            throw new InvalidOperationException($"Plugin '{plugin.Name}' at '{pluginManifestUrl}' returned status code '{response.StatusCode}'.");
-                        }
-                        validatedPlugins.Add(plugin.Name, plugin);
-                        logger.LogInformation("Added plugin: {0}.", plugin.Name);
-                    }
-                    catch (Exception ex) when (ex is InvalidOperationException || ex is AggregateException)
-                    {
-                        logger.LogWarning("Plugin '{0}' at {1} is not responding. Skipping...", plugin.Name, pluginManifestUrl);
-                    }
+                    throw new InvalidOperationException($"Plugin '{plugin.Name}' at '{pluginManifestUrl}' returned status code '{response.StatusCode}'.");
                 }
+                validatedPlugins.Add(plugin.Name, plugin);
+                logger.LogInformation("Added plugin: {0}.", plugin.Name);
             }
-            else
+            catch (Exception ex) when (ex is InvalidOperationException || ex is AggregateException)
+            {
+                logger.LogWarning(ex, "Plugin '{0}' at {1} responded with error. Skipping...", plugin.Name, pluginManifestUrl);
+            }
+            catch (Exception ex) when (ex is UriFormatException)
             {
                 logger.LogWarning("Plugin '{0}' at {1} is not a valid URL. Skipping...", plugin.Name, pluginManifestUrl);
             }
