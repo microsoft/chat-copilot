@@ -53,7 +53,6 @@ enum AppState {
     ErrorLoadingUserInfo,
     ErrorLoadingAuthInfo,
     ErrorLoadingChats,
-    SiteMaintenance,
     LoadingAuthInfo,
     LoadingChats,
     Chat,
@@ -91,8 +90,8 @@ const App = () => {
     }, [dispatch, appState, authConfig]);
 
     useEffect(() => {
-        if (isMaintenance && appState !== AppState.SiteMaintenance) {
-            setAppState(AppState.SiteMaintenance);
+        if (isMaintenance && appState !== AppState.ProbeForBackend) {
+            setAppState(AppState.ProbeForBackend);
             return;
         }
 
@@ -225,7 +224,6 @@ const Chat = ({
             {appState === AppState.ErrorLoadingChats && (
                 <Error text={'Oops, unable to load chats. Please try refreshing the page.'} />
             )}
-            {appState === AppState.SiteMaintenance && <Loading text="Backend is currently under maintenance" />}
             {appState === AppState.LoadingAuthInfo && <Loading text="Loading authentication info..." />}
             {appState === AppState.LoadingChats && <Loading text="Loading chats..." />}
             {appState === AppState.Chat && <ChatView />}
