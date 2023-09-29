@@ -29,14 +29,14 @@ public class MaintenanceMiddleware
     public MaintenanceMiddleware(
         RequestDelegate next,
         IReadOnlyList<IMaintenanceAction> actions,
-        IOptions<ServiceOptions> servicetOptions,
+        IOptions<ServiceOptions> serviceOptions,
         IHubContext<MessageRelayHub> messageRelayHubContext,
         ILogger<MaintenanceMiddleware> logger)
 
     {
         this._next = next;
         this._actions = actions;
-        this._serviceOptions = servicetOptions;
+        this._serviceOptions = serviceOptions;
         this._messageRelayHubContext = messageRelayHubContext;
         this._logger = logger;
     }

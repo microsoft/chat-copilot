@@ -5,21 +5,19 @@ using System.ComponentModel.DataAnnotations;
 namespace CopilotChat.WebApi.Options;
 
 /// <summary>
-/// Configuration options for the bot file schema that is supported by this application.
+/// Information on schema used to serialize chat archives.
 /// </summary>
-public class BotSchemaOptions
+public record ChatArchiveSchemaInfo
 {
-    public const string PropertyName = "BotSchema";
-
     /// <summary>
     /// The name of the schema.
     /// </summary>
     [Required, NotEmptyOrWhitespace]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = "CopilotChat";
 
     /// <summary>
     /// The version of the schema.
     /// </summary>
     [Range(0, int.MaxValue)]
-    public int Version { get; set; }
+    public int Version { get; init; } = 1;
 }

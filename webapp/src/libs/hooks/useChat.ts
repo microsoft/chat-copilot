@@ -163,7 +163,7 @@ export const useChat = () => {
     const loadChats = async () => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            const chatSessions = await chatService.getAllChatsAsync(userId, accessToken);
+            const chatSessions = await chatService.getAllChatsAsync(accessToken);
 
             if (chatSessions.length > 0) {
                 const loadedConversations: Conversations = {};
@@ -324,7 +324,7 @@ export const useChat = () => {
     const joinChat = async (chatId: string) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            await chatService.joinChatAsync(userId, chatId, accessToken).then(async (result: IChatSession) => {
+            await chatService.joinChatAsync(chatId, accessToken).then(async (result: IChatSession) => {
                 // Get chat messages
                 const chatMessages = await chatService.getChatMessagesAsync(result.id, 0, 100, accessToken);
 

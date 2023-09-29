@@ -8,4 +8,5 @@ export interface MemoryStore {
 export interface ServiceOptions {
     memoryStore: MemoryStore;
     version: string;
+    isContentSafetyEnabled: boolean;
 }

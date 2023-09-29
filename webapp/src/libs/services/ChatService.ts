@@ -21,7 +21,7 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<ICreateChatSessionResponse>(
             {
-                commandPath: 'chatSession/create',
+                commandPath: 'chats',
                 method: 'POST',
                 body,
             },
@@ -34,7 +34,7 @@ export class ChatService extends BaseService {
     public getChatAsync = async (chatId: string, accessToken: string): Promise<IChatSession> => {
         const result = await this.getResponseAsync<IChatSession>(
             {
-                commandPath: `chatSession/getChat/${chatId}`,
+                commandPath: `chats/${chatId}`,
                 method: 'GET',
             },
             accessToken,
@@ -43,10 +43,10 @@ export class ChatService extends BaseService {
         return result;
     };
 
-    public getAllChatsAsync = async (userId: string, accessToken: string): Promise<IChatSession[]> => {
+    public getAllChatsAsync = async (accessToken: string): Promise<IChatSession[]> => {
         const result = await this.getResponseAsync<IChatSession[]>(
             {
-                commandPath: `chatSession/getAllChats/${userId}`,
+                commandPath: 'chats',
                 method: 'GET',
             },
             accessToken,
@@ -62,7 +62,7 @@ export class ChatService extends BaseService {
     ): Promise<IChatMessage[]> => {
         const result = await this.getResponseAsync<IChatMessage[]>(
             {
-                commandPath: `chatSession/getChatMessages/${chatId}?startIdx=${startIdx}&count=${count}`,
+                commandPath: `chats/${chatId}/messages/?startIdx=${startIdx}&count=${count}`,
                 method: 'GET',
             },
             accessToken,
@@ -89,8 +89,8 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<IChatSession>(
             {
-                commandPath: `chatSession/edit`,
-                method: 'POST',
+                commandPath: `chats/${chatId}`,
+                method: 'PATCH',
                 body,
             },
             accessToken,
@@ -102,7 +102,7 @@ export class ChatService extends BaseService {
     public deleteChatAsync = async (chatId: string, accessToken: string): Promise<object> => {
         const result = await this.getResponseAsync<object>(
             {
-                commandPath: `chatSession/${chatId}`,
+                commandPath: `chats/${chatId}`,
                 method: 'DELETE',
             },
             accessToken,
@@ -167,9 +167,11 @@ export class ChatService extends BaseService {
             ask.variables = ask.variables ? ask.variables.concat(openApiSkillVariables) : openApiSkillVariables;
         }
 
+        const chatId = ask.variables?.find((variable) => variable.key === 'chatId')?.value as string;
+
         const result = await this.getResponseAsync<IAskResult>(
             {
-                commandPath: processPlan ? 'processplan' : 'chat',
+                commandPath: processPlan ? `chats/${chatId}/processPlan` : `chats/${chatId}/messages`,
                 method: 'POST',
                 body: ask,
             },
@@ -180,17 +182,11 @@ export class ChatService extends BaseService {
         return result;
     };
 
-    public joinChatAsync = async (userId: string, chatId: string, accessToken: string): Promise<IChatSession> => {
-        const body: IChatParticipant = {
-            userId,
-            chatId,
-        };
-
+    public joinChatAsync = async (chatId: string, accessToken: string): Promise<IChatSession> => {
         await this.getResponseAsync<any>(
             {
-                commandPath: `chatParticipant/join`,
+                commandPath: `chats/${chatId}/participants`,
                 method: 'POST',
-                body,
             },
             accessToken,
         );
@@ -201,7 +197,7 @@ export class ChatService extends BaseService {
     public getChatMemorySourcesAsync = async (chatId: string, accessToken: string): Promise<ChatMemorySource[]> => {
         const result = await this.getResponseAsync<ChatMemorySource[]>(
             {
-                commandPath: `chatSession/${chatId}/sources`,
+                commandPath: `chats/${chatId}/documents`,
                 method: 'GET',
             },
             accessToken,
@@ -213,7 +209,7 @@ export class ChatService extends BaseService {
     public getAllChatParticipantsAsync = async (chatId: string, accessToken: string): Promise<IChatUser[]> => {
         const result = await this.getResponseAsync<IChatParticipant[]>(
             {
-                commandPath: `chatParticipant/getAllParticipants/${chatId}`,
+                commandPath: `chats/${chatId}/participants`,
                 method: 'GET',
             },
             accessToken,
@@ -238,7 +234,7 @@ export class ChatService extends BaseService {
     ): Promise<string[]> => {
         const result = await this.getResponseAsync<string[]>(
             {
-                commandPath: `chatMemory/${chatId}/${memoryName}`,
+                commandPath: `chats/${chatId}/?memoryType=${memoryName}`,
                 method: 'GET',
             },
             accessToken,
@@ -250,7 +246,7 @@ export class ChatService extends BaseService {
     public getServiceOptionsAsync = async (accessToken: string): Promise<ServiceOptions> => {
         const result = await this.getResponseAsync<ServiceOptions>(
             {
-                commandPath: `serviceOptions`,
+                commandPath: `options`,
                 method: 'GET',
             },
             accessToken,
@@ -262,7 +258,7 @@ export class ChatService extends BaseService {
     public getPluginManifest = async (manifestDomain: string, accessToken: string): Promise<PluginManifest> => {
         const result = await this.getResponseAsync<PluginManifest>(
             {
-                commandPath: `getPluginManifest`,
+                commandPath: `pluginManifest`,
                 method: 'GET',
                 query: new URLSearchParams({ manifestDomain: encodeURIComponent(manifestDomain) }),
             },

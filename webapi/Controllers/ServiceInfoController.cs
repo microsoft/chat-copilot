@@ -28,25 +28,28 @@ public class ServiceInfoController : ControllerBase
     private readonly SemanticMemoryConfig memoryOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
+    private readonly ContentSafetyOptions _contentSafetyOptions;
 
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
         IConfiguration configuration,
         IOptions<SemanticMemoryConfig> memoryOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
-        IOptions<FrontendOptions> frontendOptions)
+        IOptions<FrontendOptions> frontendOptions,
+        IOptions<ContentSafetyOptions> contentSafetyOptions)
     {
         this._logger = logger;
         this.Configuration = configuration;
         this.memoryOptions = memoryOptions.Value;
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
+        this._contentSafetyOptions = contentSafetyOptions.Value;
     }
 
     /// <summary>
-    /// Return the memory store type that is configured.
+    /// Return information on running service.
     /// </summary>
-    [Route("serviceOptions")]
+    [Route("options")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetServiceOptions()
@@ -58,7 +61,8 @@ public class ServiceInfoController : ControllerBase
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
                 SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
             },
-            Version = GetAssemblyFileVersion()
+            Version = GetAssemblyFileVersion(),
+            IsContentSafetyEnabled = this._contentSafetyOptions.Enabled
         };
 
         return this.Ok(response);

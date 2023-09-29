@@ -47,8 +47,6 @@ public static class CopilotChatServiceExtensions
         // Azure speech token configuration
         AddOptions<AzureSpeechOptions>(AzureSpeechOptions.PropertyName);
 
-        AddOptions<BotSchemaOptions>(BotSchemaOptions.PropertyName);
-
         AddOptions<DocumentMemoryOptions>(DocumentMemoryOptions.PropertyName);
 
         // Chat prompt options

@@ -2,6 +2,7 @@
 
 import { IChatMessage } from '../models/ChatMessage';
 import { BaseService } from './BaseService';
+import { ServiceOptions } from '../models/ServiceOptions';
 
 export class DocumentImportService extends BaseService {
     public importDocumentAsync = async (
@@ -27,12 +28,14 @@ export class DocumentImportService extends BaseService {
     };
 
     public getContentSafetyStatusAsync = async (accessToken: string): Promise<boolean> => {
-        return await this.getResponseAsync<boolean>(
+        const serviceOptions = await this.getResponseAsync<ServiceOptions>(
             {
                 commandPath: 'contentSafety/status',
                 method: 'GET',
             },
             accessToken,
         );
+
+        return serviceOptions.isContentSafetyEnabled;
     };
 }

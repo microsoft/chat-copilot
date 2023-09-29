@@ -6,6 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace CopilotChat.WebApi.Models.Response;
 
+/// <summary>
+/// Information on running service.
+/// </summary>
 public class ServiceOptionsResponse
 {
     /// <summary>
@@ -19,6 +22,12 @@ public class ServiceOptionsResponse
     /// </summary>
     [JsonPropertyName("version")]
     public string Version { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True if content safety if enabled, false otherwise.
+    /// </summary>
+    [JsonPropertyName("contentSafetyStatus")]
+    public bool IsContentSafetyEnabled { get; set; } = false;
 }
 
 /// <summary>

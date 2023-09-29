@@ -74,8 +74,9 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("chat")]
+    [Route("chats/{chatId:guid}/messages")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,10 +91,12 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] Ask ask)
+        [FromBody] Ask ask,
+        [FromRoute] Guid chatId)
     {
         this._logger.LogDebug("/chat request received.");
-        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+
+        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
 
     /// <summary>
@@ -107,8 +110,9 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("processplan")]
+    [Route("chats/{chatId:guid}/processPlan")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -123,10 +127,12 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] ExecutePlanParameters ask)
+        [FromBody] ExecutePlanParameters ask,
+        [FromRoute] Guid chatId)
     {
         this._logger.LogDebug("/processplan request received.");
-        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+
+        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
 
     #region Private Methods
@@ -143,6 +149,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId"Chat ID.</>
     /// <returns>Results containing the response from the model.</returns>
     private async Task<IActionResult> HandleRequest(
        string functionName,
@@ -153,29 +160,20 @@ public class ChatController : ControllerBase, IDisposable
        ChatSessionRepository chatSessionRepository,
        ChatParticipantRepository chatParticipantRepository,
        IAuthInfo authInfo,
-       Ask ask)
+       Ask ask,
+       string chatId)
     {
         // Verify that the chat exists and that the user has access to it.
-        const string ChatIdKey = "chatId";
-        var chatIdFromContext = ask.Variables.FirstOrDefault(x => x.Key == ChatIdKey);
-        if (chatIdFromContext.Key is ChatIdKey)
+        var chat = await chatSessionRepository.FindByIdAsync(chatId);
+        if (chat == null)
         {
-            var chatId = chatIdFromContext.Value;
-            var chat = await chatSessionRepository.FindByIdAsync(chatId);
-            if (chat == null)
-            {
-                return this.NotFound("Failed to find chat session for the chatId specified in variables.");
-            }
-
-            bool isUserInChat = await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId);
-            if (!isUserInChat)
-            {
-                return this.Forbid("User does not have access to the chatId specified in variables.");
-            }
+            return this.NotFound("Failed to find chat session for the specified chatId.");
         }
-        else
+
+        bool isUserInChat = await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId);
+        if (!isUserInChat)
         {
-            return this.BadRequest("ChatId not specified.");
+            return this.Forbid("User does not have access to the specified chatId specified in variables.");
         }
 
         // Put ask's variables in the context we will use.
@@ -225,16 +223,11 @@ public class ChatController : ControllerBase, IDisposable
         AskResult chatSkillAskResult = new()
         {
             Value = result.Result,
-            Variables = result.Variables.Select(
-                v => new KeyValuePair<string, string>(v.Key, v.Value))
+            Variables = result.Variables.Select(v => new KeyValuePair<string, string>(v.Key, v.Value))
         };
 
         // Broadcast AskResult to all users
-        if (ask.Variables.Where(v => v.Key == "chatId").Any())
-        {
-            var chatId = ask.Variables.Where(v => v.Key == "chatId").First().Value;
-            await messageRelayHubContext.Clients.Group(chatId).SendAsync(GeneratingResponseClientCall, chatId, null);
-        }
+        await messageRelayHubContext.Clients.Group(chatId).SendAsync(GeneratingResponseClientCall, chatId, null);
 
         return this.Ok(chatSkillAskResult);
     }
@@ -270,11 +263,12 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="manifestDomain">The domain of the manifest.</param>
     /// <returns>The plugin's manifest JSON.</returns>
     [HttpGet]
-    [Route("getPluginManifest")]
+    [Route("pluginManifest")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPluginManifest([FromQuery] Uri manifestDomain)
     {
         using HttpClient client = new();
+
         return this.Ok(await client.GetStringAsync(this.GetPluginManifestUri(manifestDomain.ToString())));
     }
 
