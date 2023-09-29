@@ -1,4 +1,4 @@
-import { PublicClientApplication } from '@azure/msal-browser';
+import { AccountInfo, PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
 import { FluentProvider } from '@fluentui/react-components';
 import ReactDOM from 'react-dom/client';
@@ -19,6 +19,7 @@ if (!localStorage.getItem('debug')) {
 }
 
 let container: HTMLElement | null = null;
+let msalInstance: PublicClientApplication | undefined;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!container) {
@@ -27,38 +28,42 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Could not find root element');
         }
         const root = ReactDOM.createRoot(container);
-        const configService = new ConfigService();
 
-        let msalInstance: PublicClientApplication | undefined;
-        configService
-            .getAuthConfig()
+        const configService = new ConfigService();
+        const storedAuthConfig = store.getState().app.authConfig;
+
+        // only fetch the auth config if we don't have it already
+        const promise = storedAuthConfig ? Promise.resolve(storedAuthConfig) : configService.getAuthConfig();
+        promise
             .then((authConfig) => {
-                store.dispatch(setAuthConfig(authConfig));
+                if (!storedAuthConfig) {
+                    // if the auth config was fetched, set it in the store
+                    store.dispatch(setAuthConfig(authConfig));
+                }
 
                 if (AuthHelper.isAuthAAD()) {
-                    msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
-                    void msalInstance.handleRedirectPromise().then((response) => {
-                        if (response?.account) {
-                            const account = response.account;
-                            msalInstance?.setActiveAccount(account);
-                        }
-                    });
+                    if (!msalInstance) {
+                        msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
+                        void msalInstance.handleRedirectPromise().then((response) => {
+                            msalInstance?.setActiveAccount(response?.account as AccountInfo | null);
+                        });
+                    }
+
+                    // render with the MsalProvider if AAD is enabled
+                    root.render(
+                        <React.StrictMode>
+                            <ReduxProvider store={store}>
+                                {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
+                                <MsalProvider instance={msalInstance}>
+                                    <AppWithTheme />
+                                </MsalProvider>
+                            </ReduxProvider>
+                        </React.StrictMode>,
+                    );
                 }
             })
             .catch(() => {
                 store.dispatch(setAuthConfig(undefined));
-            })
-            .finally(() => {
-                root.render(
-                    <React.StrictMode>
-                        <ReduxProvider store={store}>
-                            {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
-                            <MsalProvider instance={msalInstance!}>
-                                <AppWithTheme />
-                            </MsalProvider>
-                        </ReduxProvider>
-                    </React.StrictMode>,
-                );
             });
 
         root.render(

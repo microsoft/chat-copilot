@@ -1,5 +1,6 @@
 import { useMsal } from '@azure/msal-react';
 import * as React from 'react';
+import { getErrorDetails } from '../../components/utils/TextUtils';
 import { useAppDispatch } from '../../redux/app/hooks';
 import { addAlert } from '../../redux/features/app/appSlice';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
@@ -8,7 +9,6 @@ import { AuthHelper } from '../auth/AuthHelper';
 import { AlertType } from '../models/AlertType';
 import { PluginManifest, requiresUserLevelAuth } from '../models/PluginManifest';
 import { ChatService } from '../services/ChatService';
-import { getErrorDetails } from './useChat';
 
 export const usePlugins = () => {
     const dispatch = useAppDispatch();
