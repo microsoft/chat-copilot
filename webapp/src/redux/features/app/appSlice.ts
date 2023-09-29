@@ -2,7 +2,6 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Constants } from '../../../Constants';
-import { AuthConfig } from '../../../libs/auth/AuthHelper';
 import { ServiceOptions } from '../../../libs/models/ServiceOptions';
 import { TokenUsage, TokenUsageFunctionNameMap } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
@@ -72,7 +71,7 @@ export const appSlice = createSlice({
         setServiceOptions: (state: AppState, action: PayloadAction<ServiceOptions>) => {
             state.serviceOptions = action.payload;
         },
-        setAuthConfig: (state: AppState, action: PayloadAction<AuthConfig | undefined>) => {
+        setAuthConfig: (state: AppState, action: PayloadAction<AppState['authConfig']>) => {
             state.authConfig = action.payload;
         },
     },

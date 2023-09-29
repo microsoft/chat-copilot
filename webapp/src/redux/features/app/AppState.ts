@@ -53,7 +53,7 @@ export interface Setting {
 export interface AppState {
     alerts: Alert[];
     activeUserInfo?: ActiveUserInfo;
-    authConfig?: AuthConfig;
+    authConfig?: AuthConfig | null;
     tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];

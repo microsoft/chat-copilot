@@ -1,18 +1,16 @@
 import { AccountInfo, PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
-import { FluentProvider } from '@fluentui/react-components';
 import ReactDOM from 'react-dom/client';
 import { Provider as ReduxProvider } from 'react-redux';
 import App from './App';
 import { Constants } from './Constants';
 import './index.css';
-import { AuthHelper } from './libs/auth/AuthHelper';
+import { AuthConfig, AuthHelper } from './libs/auth/AuthHelper';
 import { store } from './redux/app/store';
 
 import React from 'react';
-import { ConfigService } from './libs/services/ConfigService';
+import { BackendServiceUrl } from './libs/services/BaseService';
 import { setAuthConfig } from './redux/features/app/appSlice';
-import { semanticKernelLightTheme } from './styles';
 
 if (!localStorage.getItem('debug')) {
     localStorage.setItem('debug', `${Constants.debug.root}:*`);
@@ -29,17 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const root = ReactDOM.createRoot(container);
 
-        const configService = new ConfigService();
         const storedAuthConfig = store.getState().app.authConfig;
 
         // only fetch the auth config if we don't have it already
-        const promise = storedAuthConfig ? Promise.resolve(storedAuthConfig) : configService.getAuthConfig();
+        const promise =
+            storedAuthConfig && Object.keys(storedAuthConfig).length
+                ? Promise.resolve(storedAuthConfig)
+                : fetch(new URL('authConfig', BackendServiceUrl)).then((response) =>
+                      response.ok ? (response.json() as Promise<AuthConfig>) : Promise.reject(),
+                  );
+
         promise
             .then((authConfig) => {
-                if (!storedAuthConfig) {
-                    // if the auth config was fetched, set it in the store
-                    store.dispatch(setAuthConfig(authConfig));
-                }
+                store.dispatch(setAuthConfig(authConfig));
 
                 if (AuthHelper.isAuthAAD()) {
                     if (!msalInstance) {
@@ -53,33 +53,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     root.render(
                         <React.StrictMode>
                             <ReduxProvider store={store}>
-                                {/* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */}
                                 <MsalProvider instance={msalInstance}>
-                                    <AppWithTheme />
+                                    <App />
                                 </MsalProvider>
                             </ReduxProvider>
                         </React.StrictMode>,
                     );
                 }
             })
-            .catch(() => {
-                store.dispatch(setAuthConfig(undefined));
+            .catch((e: unknown) => {
+                if (e instanceof TypeError) {
+                    // fetch() will reject with a TypeError when a network error is encountered.
+                    store.dispatch(setAuthConfig(null));
+                } else {
+                    store.dispatch(setAuthConfig(undefined));
+                }
             });
 
         root.render(
             <React.StrictMode>
                 <ReduxProvider store={store}>
-                    <AppWithTheme />
+                    <App />
                 </ReduxProvider>
             </React.StrictMode>,
         );
     }
 });
-
-const AppWithTheme = () => {
-    return (
-        <FluentProvider className="app-container" theme={semanticKernelLightTheme}>
-            <App />
-        </FluentProvider>
-    );
-};

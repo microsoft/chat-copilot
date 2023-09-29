@@ -7,7 +7,7 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
-import { ChatView, Error, Loading, Login } from './components/views';
+import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
 import { useChat, useFile } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
@@ -48,6 +48,7 @@ export const useClasses = makeStyles({
 });
 
 enum AppState {
+    ProbeForBackend,
     SettingUserInfo,
     ErrorLoadingUserInfo,
     ErrorLoadingAuthInfo,
@@ -82,6 +83,8 @@ const App = () => {
                     ? AuthHelper.isAuthAAD()
                         ? AppState.SettingUserInfo
                         : AppState.LoadingChats
+                    : authConfig === null
+                    ? AppState.ProbeForBackend
                     : AppState.ErrorLoadingAuthInfo,
             );
         }
@@ -189,7 +192,7 @@ const Chat = ({
         <div className={classes.container}>
             <div className={classes.header}>
                 <Subtitle1 as="h1">Chat Copilot</Subtitle1>
-                {appState > AppState.SettingUserInfo && (
+                {appState > AppState.LoadingAuthInfo && (
                     <div className={classes.cornerItems}>
                         <div className={classes.cornerItems}>
                             <PluginGallery />
@@ -202,6 +205,13 @@ const Chat = ({
                     </div>
                 )}
             </div>
+            {appState === AppState.ProbeForBackend && (
+                <BackendProbe
+                    onBackendFound={() => {
+                        setAppState(AuthHelper.isAuthAAD() ? AppState.SettingUserInfo : AppState.LoadingChats);
+                    }}
+                />
+            )}
             {appState === AppState.SettingUserInfo && (
                 <Loading text={'Hang tight while we fetch your information...'} />
             )}

@@ -2,13 +2,13 @@
 
 import { Body1, Spinner, Title3 } from '@fluentui/react-components';
 import { FC, useEffect, useState } from 'react';
+import { BackendServiceUrl } from '../../libs/services/BaseService';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { setMaintenance } from '../../redux/features/app/appSlice';
 import { useSharedClasses } from '../../styles';
 
 interface IData {
-    uri: string;
     onBackendFound: () => void;
 }
 
@@ -18,12 +18,12 @@ interface IMaintenance {
     note: string | null | undefined;
 }
 
-export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
+export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
     const classes = useSharedClasses();
     const dispatch = useAppDispatch();
     const { isMaintenance } = useAppSelector((state: RootState) => state.app);
-    const healthUrl = new URL('healthz', uri);
-    const migrationUrl = new URL('maintenancestatus', uri);
+    const healthUrl = new URL('healthz', BackendServiceUrl);
+    const migrationUrl = new URL('maintenancestatus', BackendServiceUrl);
 
     const [model, setModel] = useState<IMaintenance | null>(null);
 
@@ -96,7 +96,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
                     <Spinner />
                     <Body1>
                         This sample expects to find a Semantic Kernel service from <strong>webapi/</strong> running at{' '}
-                        <strong>{uri}</strong>
+                        <strong>{BackendServiceUrl}</strong>
                     </Body1>
                     <Body1>
                         Run your Semantic Kernel service locally using Visual Studio, Visual Studio Code or by typing
