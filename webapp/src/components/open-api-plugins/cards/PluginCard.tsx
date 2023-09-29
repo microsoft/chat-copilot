@@ -16,7 +16,7 @@ interface PluginCardProps {
 }
 
 export const PluginCard: React.FC<PluginCardProps> = ({ plugin, isHosted }) => {
-    const { name, publisher, enabled, authRequirements, apiProperties, icon, description, inactive } = plugin;
+    const { name, publisher, enabled, authRequirements, apiProperties, icon, description } = plugin;
     const dispatch = useAppDispatch();
 
     const { setPluginStateAsync } = usePlugins();
@@ -60,7 +60,6 @@ export const PluginCard: React.FC<PluginCardProps> = ({ plugin, isHosted }) => {
                         publisher={publisher}
                         authRequirements={authRequirements}
                         apiProperties={apiProperties}
-                        inactive={inactive}
                         isHosted={isHosted}
                     />
                 )

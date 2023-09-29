@@ -15,8 +15,8 @@ import { getErrorDetails } from './useChat';
 export const usePlugins = () => {
     const { instance, inProgress } = useMsal();
     const dispatch = useAppDispatch();
-    const chatService = React.useMemo(() => new ChatService(process.env.REACT_APP_BACKEND_URI as string), []);
-    const pluginService = new PluginService(process.env.REACT_APP_BACKEND_URI as string);
+    const chatService = React.useMemo(() => new ChatService(), []);
+    const pluginService = new PluginService();
 
     const addCustomPlugin = (manifest: PluginManifest, manifestDomain: string) => {
         const newPlugin: Plugin = {

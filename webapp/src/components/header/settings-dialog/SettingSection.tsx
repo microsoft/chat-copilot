@@ -1,5 +1,6 @@
 import { Divider, Switch, Text, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import { useCallback } from 'react';
+import { AuthHelper } from '../../../libs/auth/AuthHelper';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { FeatureKeys, Setting } from '../../../redux/features/app/AppState';
@@ -56,7 +57,9 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
                             <Switch
                                 label={feature.label}
                                 checked={feature.enabled}
-                                disabled={feature.inactive}
+                                disabled={
+                                    !!feature.inactive || (key === FeatureKeys.MultiUserChat && !AuthHelper.isAuthAAD())
+                                }
                                 onChange={() => {
                                     onFeatureChange(key);
                                 }}

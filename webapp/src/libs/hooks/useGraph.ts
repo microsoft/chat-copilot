@@ -18,7 +18,7 @@ export const useGraph = () => {
     const graphService = new GraphService();
 
     const loadUsers = async (userIds: string[]) => {
-        if (!AuthHelper.IsAuthAAD) {
+        if (!AuthHelper.isAuthAAD()) {
             return;
         }
 

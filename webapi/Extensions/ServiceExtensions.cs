@@ -137,7 +137,7 @@ public static class CopilotChatServiceExtensions
         return services;
     }
 
-    internal static IServiceCollection AddMainetnanceServices(this IServiceCollection services)
+    internal static IServiceCollection AddMaintenanceServices(this IServiceCollection services)
     {
         // Inject migration services
         services.AddSingleton<IChatMigrationMonitor, ChatMigrationMonitor>();

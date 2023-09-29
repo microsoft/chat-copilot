@@ -4,7 +4,6 @@ import { Constants } from '../../../Constants';
 import GithubIcon from '../../../assets/plugin-icons/github.png';
 import JiraIcon from '../../../assets/plugin-icons/jira.png';
 import GraphIcon from '../../../assets/plugin-icons/ms-graph.png';
-import { AuthHelper } from '../../../libs/auth/AuthHelper';
 
 /*
  * For each OpenAPI Spec you're supporting in the Kernel,
@@ -58,7 +57,6 @@ export interface Plugin {
     authData?: string; // token or encoded auth header value
     apiProperties?: AdditionalApiProperties;
     manifestDomain?: string; // Website domain hosting the OpenAI Plugin Manifest file for custom plugins
-    inactive?: string; // If truthy, disables the plugin and gives the reason why
 }
 
 export interface PluginsState {
@@ -74,7 +72,6 @@ export const initialState: PluginsState = {
             publisher: 'Microsoft',
             description: 'Use your Microsoft Account to access your personal Graph information and Microsoft services.',
             enabled: false,
-            inactive: AuthHelper.IsAuthAAD ? undefined : 'Only available when using Azure AD authorization',
             authRequirements: {
                 Msal: true,
                 scopes: Constants.plugins.msGraphScopes,

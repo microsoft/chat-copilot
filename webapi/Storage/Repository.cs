@@ -29,7 +29,7 @@ public class Repository<T> : IRepository<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity ID cannot be null or empty.");
         }
 
         return this.StorageContext.CreateAsync(entity);
@@ -52,7 +52,10 @@ public class Repository<T> : IRepository<T> where T : IStorageEntity
     {
         try
         {
-            callback?.Invoke(await this.FindByIdAsync(id, partition ?? id));
+            T? found = await this.FindByIdAsync(id, partition ?? id);
+
+            callback?.Invoke(found);
+
             return true;
         }
         catch (Exception ex) when (ex is ArgumentOutOfRangeException || ex is KeyNotFoundException)
