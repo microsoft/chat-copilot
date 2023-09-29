@@ -100,7 +100,17 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
                     </Body1>
                     <Body1>
                         Run your Semantic Kernel service locally using Visual Studio, Visual Studio Code or by typing
-                        the following command: <strong>dotnet run</strong>
+                        the following command:{' '}
+                        <code>
+                            <strong>dotnet run</strong>
+                        </code>
+                    </Body1>
+                    <Body1>
+                        If running locally, ensure that you have the{' '}
+                        <code>
+                            <b>REACT_APP_BACKEND_URI</b>
+                        </code>{' '}
+                        variable set in your <b>webapp/.env</b> file
                     </Body1>
                 </div>
             )}

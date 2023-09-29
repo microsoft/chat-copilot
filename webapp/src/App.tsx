@@ -208,7 +208,8 @@ const Chat = ({
             {appState === AppState.ProbeForBackend && (
                 <BackendProbe
                     onBackendFound={() => {
-                        setAppState(AuthHelper.isAuthAAD() ? AppState.SettingUserInfo : AppState.LoadingChats);
+                        // reload the page to fetch the auth config
+                        window.location.reload();
                     }}
                 />
             )}
