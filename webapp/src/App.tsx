@@ -82,7 +82,7 @@ const App = () => {
                     ? AuthHelper.isAuthAAD()
                         ? // if AAD is enabled, we need to set the active account in the next useEffect()
                           AppState.SettingUserInfo
-                        : // otherwise, we can load chats immediately.
+                        : // otherwise, we can load chats immediately
                           AppState.LoadingChats
                     : authConfig === null
                     ? // authConfig is null when a TypeError is thrown by fetch() in index.tsx
@@ -219,13 +219,13 @@ const Chat = ({
                 <Loading text={'Hang tight while we fetch your information...'} />
             )}
             {appState === AppState.ErrorLoadingUserInfo && (
-                <Error text={'Oops, something went wrong. Please try signing out and signing back in.'} />
+                <Error text={'Unable to load user info. Please try signing out and signing back in.'} />
             )}
             {appState === AppState.ErrorLoadingAuthInfo && (
-                <Error text={'Oops, unable to authentication info. Please try refreshing the page.'} />
+                <Error text={'Unable to load authentication info. Please try refreshing the page.'} />
             )}
             {appState === AppState.ErrorLoadingChats && (
-                <Error text={'Oops, unable to load chats. Please try refreshing the page.'} />
+                <Error text={'Unable to load chats. Please try refreshing the page.'} />
             )}
             {appState === AppState.LoadingAuthInfo && <Loading text="Loading authentication info..." />}
             {appState === AppState.LoadingChats && <Loading text="Loading chats..." />}

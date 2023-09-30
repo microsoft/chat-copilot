@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch((e: unknown) => {
                 if (e instanceof TypeError) {
-                    // fetch() will reject with a TypeError when a network error is encountered.
+                    // fetch() will reject with a TypeError when a network error is encountered
+                    // we return null to indicate that the backend is not available to trigger polling
                     store.dispatch(setAuthConfig(null));
                 } else {
                     store.dispatch(setAuthConfig(undefined));
