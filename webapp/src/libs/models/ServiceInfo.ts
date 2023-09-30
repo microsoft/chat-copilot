@@ -5,7 +5,7 @@ export interface MemoryStore {
     selectedType: string;
 }
 
-export interface ServiceOptions {
+export interface ServiceInfo {
     memoryStore: MemoryStore;
     version: string;
     isContentSafetyEnabled: boolean;

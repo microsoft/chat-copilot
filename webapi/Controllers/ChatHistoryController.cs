@@ -9,6 +9,7 @@ using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
+using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Skills.Utils;
@@ -33,6 +34,7 @@ public class ChatHistoryController : ControllerBase
 {
     private const string ChatEditedClientCall = "ChatEdited";
     private const string ChatDeletedClientCall = "ChatDeleted";
+    private const string GetChatRoute = "GetChatRoute";
 
     private readonly ILogger<ChatHistoryController> _logger;
     private readonly ISemanticMemoryClient _memoryClient;
@@ -109,7 +111,7 @@ public class ChatHistoryController : ControllerBase
 
         this._logger.LogDebug("Created chat session with id {0}.", newChat.Id);
 
-        return this.CreatedAtAction(nameof(GetChatSessionByIdAsync), newChat.Id, chatMessage);
+        return this.CreatedAtRoute(GetChatRoute, new { chatId = newChat.Id }, new CreateChatResponse(newChat, chatMessage));
     }
 
     /// <summary>
@@ -117,7 +119,7 @@ public class ChatHistoryController : ControllerBase
     /// </summary>
     /// <param name="chatId">The chat id.</param>
     [HttpGet]
-    [Route("chats/{chatId:guid}")]
+    [Route("chats/{chatId:guid}", Name = GetChatRoute)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

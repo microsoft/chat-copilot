@@ -7,7 +7,7 @@ import { IChatParticipant } from '../models/ChatParticipant';
 import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { PluginManifest } from '../models/PluginManifest';
-import { ServiceOptions } from '../models/ServiceOptions';
+import { ServiceInfo } from '../models/ServiceInfo';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
 import { IAskResult } from '../semantic-kernel/model/AskResult';
 import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
@@ -62,7 +62,7 @@ export class ChatService extends BaseService {
     ): Promise<IChatMessage[]> => {
         const result = await this.getResponseAsync<IChatMessage[]>(
             {
-                commandPath: `chats/${chatId}/messages/?startIdx=${startIdx}&count=${count}`,
+                commandPath: `chats/${chatId}/messages?startIdx=${startIdx}&count=${count}`,
                 method: 'GET',
             },
             accessToken,
@@ -234,7 +234,7 @@ export class ChatService extends BaseService {
     ): Promise<string[]> => {
         const result = await this.getResponseAsync<string[]>(
             {
-                commandPath: `chats/${chatId}/?memoryType=${memoryName}`,
+                commandPath: `chats/${chatId}/memories?type=${memoryName}`,
                 method: 'GET',
             },
             accessToken,
@@ -243,10 +243,10 @@ export class ChatService extends BaseService {
         return result;
     };
 
-    public getServiceOptionsAsync = async (accessToken: string): Promise<ServiceOptions> => {
-        const result = await this.getResponseAsync<ServiceOptions>(
+    public getServiceInfoAsync = async (accessToken: string): Promise<ServiceInfo> => {
+        const result = await this.getResponseAsync<ServiceInfo>(
             {
-                commandPath: `options`,
+                commandPath: `info`,
                 method: 'GET',
             },
             accessToken,

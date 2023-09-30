@@ -49,14 +49,14 @@ public class ServiceInfoController : ControllerBase
     /// <summary>
     /// Return information on running service.
     /// </summary>
-    [Route("options")]
+    [Route("info")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetServiceOptions()
     {
-        var response = new ServiceOptionsResponse()
+        var response = new ServiceInfoResponse()
         {
-            MemoryStore = new MemoryStoreOptionResponse()
+            MemoryStore = new MemoryStoreInfoResponse()
             {
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
                 SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),

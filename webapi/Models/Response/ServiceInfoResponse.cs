@@ -9,13 +9,13 @@ namespace CopilotChat.WebApi.Models.Response;
 /// <summary>
 /// Information on running service.
 /// </summary>
-public class ServiceOptionsResponse
+public class ServiceInfoResponse
 {
     /// <summary>
     /// Configured memory store.
     /// </summary>
     [JsonPropertyName("memoryStore")]
-    public MemoryStoreOptionResponse MemoryStore { get; set; } = new MemoryStoreOptionResponse();
+    public MemoryStoreInfoResponse MemoryStore { get; set; } = new MemoryStoreInfoResponse();
 
     /// <summary>
     /// Version of this application.
@@ -33,7 +33,7 @@ public class ServiceOptionsResponse
 /// <summary>
 /// Response to memoryStoreType request.
 /// </summary>
-public class MemoryStoreOptionResponse
+public class MemoryStoreInfoResponse
 {
     /// <summary>
     /// All the available memory store types.

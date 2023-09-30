@@ -6,7 +6,7 @@ using CopilotChat.WebApi.Services;
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// Response definition to the /contentsafety/image:analyze
+/// Response definition to image content safety analysis requests.
 /// endpoint made by the AzureContentSafety.
 /// </summary>
 public class ImageAnalysisResponse

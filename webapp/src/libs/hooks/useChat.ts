@@ -371,9 +371,9 @@ export const useChat = () => {
         }
     };
 
-    const getServiceOptions = async () => {
+    const getServiceInfo = async () => {
         try {
-            return await chatService.getServiceOptionsAsync(await AuthHelper.getSKaaSAccessToken(instance, inProgress));
+            return await chatService.getServiceInfoAsync(await AuthHelper.getSKaaSAccessToken(instance, inProgress));
         } catch (e: any) {
             const errorMessage = `Error getting service options. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
@@ -448,7 +448,7 @@ export const useChat = () => {
         importDocument,
         joinChat,
         editChat,
-        getServiceOptions,
+        getServiceInfo,
         deleteChat,
         processPlan,
     };
