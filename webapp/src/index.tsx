@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const root = ReactDOM.createRoot(container);
 
         // only fetch the auth config if we don't have it already
-        const storedAuthConfig = store.getState().app.authConfig;
+        const storedAuthConfig = AuthHelper.getAuthConfig();
         const promise =
             storedAuthConfig && Object.keys(storedAuthConfig).length
                 ? Promise.resolve(storedAuthConfig)

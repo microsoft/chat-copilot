@@ -4,7 +4,7 @@ import {
     InteractionStatus,
     PopupRequest,
 } from '@azure/msal-browser';
-import { store } from '../../redux/app/store';
+import { AuthHelper } from './AuthHelper';
 
 enum TokenErrors {
     InteractionInProgress = 'interaction_in_progress',
@@ -22,7 +22,7 @@ export const getAccessTokenUsingMsal = async (
 ) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const account = msalInstance.getActiveAccount()!;
-    const authority = store.getState().app.authConfig?.aadAuthority;
+    const authority = AuthHelper.getAuthConfig()?.aadAuthority;
     const accessTokenRequest: PopupRequest = {
         authority,
         scopes,

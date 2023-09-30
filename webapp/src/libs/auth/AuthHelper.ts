@@ -64,7 +64,7 @@ const getMsalConfig = (authConfig: AuthConfig): Configuration => ({
 });
 
 const getMsalScopes = () => {
-    const aadApiScope = store.getState().app.authConfig?.aadApiScope;
+    const aadApiScope = getAuthConfig()?.aadApiScope;
     return Constants.msal.semanticKernelScopes.concat(aadApiScope ?? []);
 };
 
@@ -102,7 +102,8 @@ const logoutAsync = (instance: IPublicClientApplication) => {
     }
 };
 
-const isAuthAAD = () => store.getState().app.authConfig?.authType === AuthType.AAD;
+const getAuthConfig = () => store.getState().app.authConfig;
+const isAuthAAD = () => getAuthConfig()?.authType === AuthType.AAD;
 
 // SKaaS = Semantic Kernel as a Service
 // Gets token with scopes to authorize SKaaS specifically
@@ -119,4 +120,5 @@ export const AuthHelper = {
     loginAsync,
     logoutAsync,
     isAuthAAD,
+    getAuthConfig,
 };
