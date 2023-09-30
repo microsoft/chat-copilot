@@ -50,10 +50,10 @@ export const useClasses = makeStyles({
 enum AppState {
     ProbeForBackend,
     SettingUserInfo,
-    ErrorLoadingUserInfo,
     ErrorLoadingAuthInfo,
-    ErrorLoadingChats,
     LoadingAuthInfo,
+    ErrorLoadingChats,
+    ErrorLoadingUserInfo,
     LoadingChats,
     Chat,
     SigningOut,
