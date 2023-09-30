@@ -74,17 +74,22 @@ const App = () => {
 
     useEffect(() => {
         // if the auth info is being loaded, change the state if:
-        //      1. the `authConfig` is undefined, meaning an error occurred during load, or
+        //      1. the `authConfig` is falsy, meaning an error occurred during load, or
         //      2. the `authConfig` has keys, meaning it was loaded successfully.
         if (appState === AppState.LoadingAuthInfo && (!authConfig || Object.keys(authConfig).length)) {
             setAppState(
                 authConfig
                     ? AuthHelper.isAuthAAD()
-                        ? AppState.SettingUserInfo
-                        : AppState.LoadingChats
+                        ? // if AAD is enabled, we need to set the active account in the next useEffect()
+                          AppState.SettingUserInfo
+                        : // otherwise, we can load chats immediately.
+                          AppState.LoadingChats
                     : authConfig === null
-                    ? AppState.ProbeForBackend
-                    : AppState.ErrorLoadingAuthInfo,
+                    ? // authConfig is null when a TypeError is thrown by fetch() in index.tsx
+                      // this indicates that the backend is not available and we need to probe until it is
+                      AppState.ProbeForBackend
+                    : // authConfig is undefined when the fetch() in index.tsx fails for some other reason
+                      AppState.ErrorLoadingAuthInfo,
             );
         }
     }, [dispatch, appState, authConfig]);
@@ -150,7 +155,7 @@ const App = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
 
-    // TODO: [Issue #41] handle error case of missing account information
+    const content = <Chat classes={classes} appState={appState} setAppState={setAppState} />;
     return (
         <FluentProvider
             className="app-container"
@@ -167,12 +172,10 @@ const App = () => {
                             {appState !== AppState.SigningOut && <Login />}
                         </div>
                     </UnauthenticatedTemplate>
-                    <AuthenticatedTemplate>
-                        <Chat classes={classes} appState={appState} setAppState={setAppState} />
-                    </AuthenticatedTemplate>
+                    <AuthenticatedTemplate>{content}</AuthenticatedTemplate>
                 </>
             ) : (
-                <Chat classes={classes} appState={appState} setAppState={setAppState} />
+                content
             )}
         </FluentProvider>
     );
