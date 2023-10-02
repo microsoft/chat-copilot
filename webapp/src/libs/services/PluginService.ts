@@ -25,7 +25,7 @@ export class PluginService extends BaseService {
     ): Promise<void> => {
         await this.getResponseAsync(
             {
-                commandPath: `chatSession/pluginState/${chatId}/${pluginName}/${enabled}`,
+                commandPath: `chats/${chatId}/plugins/${pluginName}/${enabled}`,
                 method: 'PUT',
             },
             accessToken,

@@ -68,8 +68,7 @@ public class PluginController : ControllerBase
     /// Enable or disable a plugin for a chat session.
     /// </summary>
     [HttpPut]
-    [ActionName("SetPluginStateAsync")]
-    [Route("chatSession/pluginState/{chatId:guid}/{pluginName}/{enabled:bool}")]
+    [Route("chats/{chatId:guid}/plugins/{pluginName}/{enabled:bool}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
