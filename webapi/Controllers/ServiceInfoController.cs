@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
@@ -28,19 +30,22 @@ public class ServiceInfoController : ControllerBase
     private readonly SemanticMemoryConfig memoryOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
+    private readonly IEnumerable<Plugin> availablePlugins;
 
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
         IConfiguration configuration,
         IOptions<SemanticMemoryConfig> memoryOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
-        IOptions<FrontendOptions> frontendOptions)
+        IOptions<FrontendOptions> frontendOptions,
+        IDictionary<string, Plugin> availablePlugins)
     {
         this._logger = logger;
         this.Configuration = configuration;
         this.memoryOptions = memoryOptions.Value;
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
+        this.availablePlugins = this.SanitizePlugins(availablePlugins);
     }
 
     /// <summary>
@@ -58,6 +63,7 @@ public class ServiceInfoController : ControllerBase
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
                 SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
             },
+            AvailablePlugins = this.availablePlugins,
             Version = GetAssemblyFileVersion()
         };
 
@@ -99,5 +105,19 @@ public class ServiceInfoController : ControllerBase
         FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(assembly.Location);
 
         return fileVersion.FileVersion ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Sanitize the plugins to only return the name and url.
+    /// </summary>
+    /// <param name="plugins">The plugins to sanitize.</param>
+    /// <returns></returns>
+    private IEnumerable<Plugin> SanitizePlugins(IDictionary<string, Plugin> plugins)
+    {
+        return plugins.Select(p => new Plugin()
+        {
+            Name = p.Value.Name,
+            ManifestDomain = p.Value.ManifestDomain,
+        });
     }
 }

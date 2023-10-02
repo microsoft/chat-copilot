@@ -20,13 +20,17 @@ jobs:
   build-memorypipeline:
     uses: ./.github/workflows/copilot-build-memorypipeline.yml
 
+  build-plugins:
+    uses: ./.github/workflows/copilot-build-plugins.yml
+
   int:
-    needs: [build-webapi, build-memorypipeline]
+    needs: [build-webapi, build-memorypipeline, build-plugins]
     uses: ./.github/workflows/copilot-deploy-environment.yml
     with:
       ENVIRONMENT: int
       WEBAPI_ARTIFACT_NAME: ${{needs.build-webapi.outputs.artifact}}
       MEMORYPIPELINE_ARTIFACT_NAME: ${{needs.build-memorypipeline.outputs.artifact}}
+      PLUGINS_ARTIFACT_NAME: ${{needs.build-plugins.outputs.artifact}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
@@ -47,6 +51,7 @@ jobs:
       ENVIRONMENT: stable
       WEBAPI_ARTIFACT_NAME: ${{needs.build-webapi.outputs.artifact}}
       MEMORYPIPELINE_ARTIFACT_NAME: ${{needs.build-memorypipeline.outputs.artifact}}
+      PLUGINS_ARTIFACT_NAME: ${{needs.build-plugins.outputs.artifact}}
     secrets:
       AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
