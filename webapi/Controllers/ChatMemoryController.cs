@@ -65,12 +65,13 @@ public class ChatMemoryController : ControllerBase
         // Sanitize the log input by removing new line characters.
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
         var sanitizedChatId = GetSanitizedParameter(chatId);
+        var sanitizedMemoryType = GetSanitizedParameter(type);
 
         // Map the requested memoryType to the memory store container name
         if (!this._promptOptions.TryGetMemoryContainerName(type, out string memoryContainerName))
         {
-            this._logger.LogWarning("Memory type: {0} is invalid.", type);
-            return this.BadRequest($"Memory type: {type} is invalid.");
+            this._logger.LogWarning("Memory type: {0} is invalid.", sanitizedMemoryType);
+            return this.BadRequest($"Memory type: {sanitizedMemoryType} is invalid.");
         }
 
         // Make sure the chat session exists.

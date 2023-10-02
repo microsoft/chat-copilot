@@ -80,7 +80,7 @@ export interface ProposedPlan {
     state: PlanState;
 
     // User input that prompted the plan
-    originalUserInput: string;
+    originalUserInput?: string;
 
     // User intent to serves as goal of plan.
     userIntent?: string;
