@@ -13,10 +13,6 @@ param(
     $DotNetFramework = "net6.0",
     
     [string]
-    # Target runtime to publish.
-    $TargetRuntime = "win-x64",
-    
-    [string]
     # Output directory for published assets.
     $OutputDirectory = "$PSScriptRoot",
 
@@ -50,25 +46,13 @@ foreach ($pluginProjectFile in $pluginProjectFiles) {
 
     Write-Host "Packaging $pluginName from $pluginProjectFile"
 
-    # Build and publish the plugin
-    # Separating the build and publish steps as a workaround for a known issue with .NET
-    # https://github.com/Azure/azure-functions-dotnet-worker/issues/1834
-    dotnet build $pluginProjectFile `
+    dotnet publish $pluginProjectFile `
         --configuration $BuildConfiguration `
         --framework $DotNetFramework `
-        --runtime $TargetRuntime `
-        --self-contained `
+        --output "$publishOutputDirectory" `
         /p:AssemblyVersion=$Version `
         /p:FileVersion=$Version `
-        /p:InformationalVersion=$InformationalVersion `
-     
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE
-    }
-
-    dotnet publish $pluginProjectFile `
-        --output "$publishOutputDirectory" `
-        --no-build
+        /p:InformationalVersion=$InformationalVersion
 
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE

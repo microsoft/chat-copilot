@@ -13,7 +13,6 @@ usage() {
     echo "Arguments:"
     echo "  -c, --configuration CONFIGURATION      Build configuration (default: Release)"
     echo "  -d, --dotnet DOTNET_FRAMEWORK_VERSION  Target dotnet framework (default: net6.0)"
-    echo "  -r, --runtime TARGET_RUNTIME           Runtime identifier (default: linux-x64)"
     echo "  -o, --output OUTPUT_DIRECTORY          Output directory (default: $SCRIPT_ROOT)"
     echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
     echo "  -i  --info INFO                        Additional info to put in version details"
@@ -31,11 +30,6 @@ while [[ $# -gt 0 ]]; do
         ;;
     -d | --dotnet)
         DOTNET="$2"
-        shift
-        shift
-        ;;
-    -r | --runtime)
-        RUNTIME="$2"
         shift
         shift
         ;;
@@ -69,7 +63,6 @@ done
 # Set defaults
 : "${CONFIGURATION:="Release"}"
 : "${DOTNET:="net6.0"}"
-: "${RUNTIME:="linux-x64"}"
 : "${VERSION:="1.0.0"}"
 : "${INFO:=""}"
 : "${OUTPUT_DIRECTORY:="$SCRIPT_ROOT"}"
@@ -101,8 +94,6 @@ for PLUGIN_PROJECT_FILE in $PLUGIN_PROJECT_FILES; do
     dotnet publish "$PLUGIN_PROJECT_FILE" \
         --configuration $CONFIGURATION \
         --framework $DOTNET \
-        --runtime $RUNTIME \
-        --self-contained \
         --output "$PUBLISH_OUTPUT_DIRECTORY" \
         //p:AssemblyVersion=$VERSION \
         //p:FileVersion=$VERSION \
