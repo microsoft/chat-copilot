@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace WebSearcher.Models;
+namespace Plugins.WebSearcher.Models;
 
 /// <summary>
 /// The plugin configuration.

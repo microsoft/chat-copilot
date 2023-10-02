@@ -15,10 +15,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using PluginShared;
-using WebSearcher.Models;
+using Plugins.PluginShared;
+using Plugins.WebSearcher.Models;
 
-namespace WebSearcher;
+namespace Plugins.WebSearcher;
 
 /// <summary>
 /// Plugin endpoints

@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace PluginShared;
+namespace Plugins.PluginShared;
 
 /// <summary>
 /// This class represents the OpenAI plugin manifest.

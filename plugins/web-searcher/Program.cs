@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using WebSearcher.Models;
+using Plugins.WebSearcher.Models;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()

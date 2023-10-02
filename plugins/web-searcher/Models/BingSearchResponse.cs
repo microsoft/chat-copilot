@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace WebSearcher.Models;
+namespace Plugins.WebSearcher.Models;
 
 /// <summary>
 /// Defines a webpage that is relevant to the query.

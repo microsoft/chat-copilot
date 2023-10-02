@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <RootNamespace>PluginShared</RootNamespace>
+    <RootNamespace>Plugins.PluginShared</RootNamespace>
   </PropertyGroup>
 
 </Project>

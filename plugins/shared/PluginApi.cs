@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace PluginShared;
+namespace Plugins.PluginShared;
 
 /// <summary>
 /// This class represents the plugin API specification.

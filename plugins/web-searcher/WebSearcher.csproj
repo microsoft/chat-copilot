@@ -4,7 +4,7 @@
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
-    <RootNamespace>WebSearcher</RootNamespace>
+    <RootNamespace>Plugins.WebSearcher</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
