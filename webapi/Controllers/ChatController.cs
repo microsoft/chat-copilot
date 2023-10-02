@@ -389,7 +389,7 @@ public class ChatController : ControllerBase, IDisposable
                 // Register the ChatGPT plugin with the planner's kernel.
                 await planner.Kernel.ImportAIPluginAsync(
                     PluginUtils.SanitizePluginName(plugin.Name),
-                    PluginUtils.GetPluginManifestUri(plugin.Url),
+                    PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                     new OpenApiSkillExecutionParameters
                     {
                         HttpClient = new HttpClient(),

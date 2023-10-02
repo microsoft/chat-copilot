@@ -117,7 +117,7 @@ public class ServiceInfoController : ControllerBase
         return plugins.Select(p => new Plugin()
         {
             Name = p.Value.Name,
-            Url = p.Value.Url,
+            ManifestDomain = p.Value.ManifestDomain,
         });
     }
 }

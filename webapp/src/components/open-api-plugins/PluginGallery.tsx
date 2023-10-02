@@ -76,12 +76,8 @@ export const PluginGallery: React.FC = () => {
         function updateHostedPlugin() {
             setHostedPlugins([]);
             serviceOptions.availablePlugins.forEach((availablePlugin) => {
-                getPluginManifest(availablePlugin.url)
+                getPluginManifest(availablePlugin.manifestDomain)
                     .then((manifest) => {
-                        if (manifest === undefined) {
-                            throw new Error('Manifest is undefined');
-                        }
-
                         const newHostedPlugin = {
                             name: manifest.name_for_human,
                             publisher: 'N/A',
@@ -93,7 +89,12 @@ export const PluginGallery: React.FC = () => {
                         setHostedPlugins((hostedPlugins) => [...hostedPlugins, newHostedPlugin]);
                     })
                     .catch((error: Error) => {
-                        dispatch(addAlert({ message: error.message, type: AlertType.Error }));
+                        dispatch(
+                            addAlert({
+                                message: `Failed fetch hosted plugins: ${error.message}`,
+                                type: AlertType.Error,
+                            }),
+                        );
                     });
             });
         }

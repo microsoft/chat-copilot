@@ -7,7 +7,7 @@ export interface MemoryStore {
 
 export interface HostedPlugin {
     name: string;
-    url: string;
+    manifestDomain: string;
 }
 
 export interface ServiceOptions {

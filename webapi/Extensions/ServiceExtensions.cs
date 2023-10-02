@@ -105,7 +105,7 @@ public static class CopilotChatServiceExtensions
                 continue;
             }
 
-            var pluginManifestUrl = PluginUtils.GetPluginManifestUri(plugin.Url);
+            var pluginManifestUrl = PluginUtils.GetPluginManifestUri(plugin.ManifestDomain);
             using var request = new HttpRequestMessage(HttpMethod.Get, pluginManifestUrl);
             // Need to set the user agent to avoid 403s from some sites.
             request.Headers.Add("User-Agent", Telemetry.HttpUserAgent);

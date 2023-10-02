@@ -17,7 +17,7 @@ public class Plugin
     /// <summary>
     /// The url of the plugin.
     /// </summary>
-    public Uri Url { get; set; } = new Uri("http://localhost");
+    public Uri ManifestDomain { get; set; } = new Uri("http://localhost");
 
     /// <summary>
     /// The key of the plugin.
