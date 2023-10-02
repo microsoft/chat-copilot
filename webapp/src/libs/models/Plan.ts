@@ -11,7 +11,6 @@ export enum PlanState {
     Derived,
     PlanApprovalRequired,
     Disabled,
-    Error,
 }
 
 export enum PlanType {
