@@ -144,7 +144,7 @@ function useTable(planMessages: IChatMessage[], setChatTab: () => void) {
     const items = planMessages
         .map((message, index) => {
             const parsedPlan = JSON.parse(message.content) as ProposedPlan;
-            const plangoal = (parsedPlan.userIntent ?? parsedPlan.originalUserInput) ?? parsedPlan.proposedPlan.description;
+            const plangoal = parsedPlan.userIntent ?? parsedPlan.originalUserInput ?? parsedPlan.proposedPlan.description;
 
             return {
                 index: index,

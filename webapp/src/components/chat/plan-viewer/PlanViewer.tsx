@@ -80,7 +80,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex })
                 plan={plan}
                 setPlan={setPlan}
                 planState={planState}
-                description={getPlanGoal((parsedContent.userIntent ?? parsedContent.originalUserInput) ?? parsedContent.proposedPlan.description)}
+                description={getPlanGoal(parsedContent.userIntent ?? parsedContent.originalUserInput ?? parsedContent.proposedPlan.description)}
             />
             {planState === PlanState.PlanApprovalRequired && (
                 <>
