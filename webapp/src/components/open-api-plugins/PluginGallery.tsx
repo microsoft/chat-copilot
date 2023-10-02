@@ -91,7 +91,7 @@ export const PluginGallery: React.FC = () => {
                     .catch((error: Error) => {
                         dispatch(
                             addAlert({
-                                message: `Failed fetch hosted plugins: ${error.message}`,
+                                message: `Failed to fetch hosted plugin ${availablePlugin.name}: ${error.message}`,
                                 type: AlertType.Error,
                             }),
                         );
