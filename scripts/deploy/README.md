@@ -124,7 +124,7 @@ You can also deploy the infrastructure directly from the Azure Portal by clickin
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://aka.ms/sk-deploy-existing-azureopenai-portal)
 
-> This will automatically deploy the most recent release of Chat Copilot binaries ([link](https://github.com/microsoft/chat-copilot/releases)).
+> This will automatically deploy the [0.5 release](https://github.com/microsoft/chat-copilot/releases/tag/0.5) of the CopilotChat infrastructures and backend binaries.
 
 > To find the deployment name when using `Deploy to Azure`, look for a deployment in your resource group that starts with `Microsoft.Template`.
 
