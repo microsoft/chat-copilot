@@ -18,8 +18,11 @@ param webApiPackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
 
 @description('Location of package to deploy as the memory pipeline')
 #disable-next-line no-hardcoded-env-urls
-// TODO: Update to use the latest version of the memory pipeline package
 param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/memorypipeline/latest'
+
+@description('Location of the websearcher plugin to deploy')
+#disable-next-line no-hardcoded-env-urls
+param webSearcherPackageUri string = 'https://aka.ms/copilotchat/websearcher/latest'
 
 @description('Underlying AI service')
 @allowed([
@@ -76,6 +79,9 @@ param deployWebApiPackage bool = true
 
 @description('Whether to deploy the memory pipeline package')
 param deployMemoryPipelinePackage bool = true
+
+@description('Whether to deploy the websearcher plugin package')
+param deployWebSearcherPackage bool = true
 
 @description('Region for the resources')
 param location string = resourceGroup().location
@@ -412,6 +418,26 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         name: 'SemanticMemory:Services:AzureOpenAIEmbedding:Deployment'
         value: embeddingModel
       }
+      {
+        name: 'Plugins:0:Name'
+        value: 'Klarna Shopping'
+      }
+      {
+        name: 'Plugins:0:Url'
+        value: 'https://www.klarna.com'
+      }
+      {
+        name: 'Plugins:1:Name'
+        value: 'WebSearcher'
+      }
+      {
+        name: 'Plugins:1:Url'
+        value: 'https://${functionAppWebSearcherPlugin.properties.defaultHostName}'
+      }
+      {
+        name: 'Plugins:1:Key'
+        value: listkeys('${functionAppWebSearcherPlugin.id}/host/default/', '2022-09-01').functionKeys.default
+      }
     ]
   }
 }
@@ -597,6 +623,64 @@ resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-
   ]
 }
 
+resource functionAppWebSearcherPlugin 'Microsoft.Web/sites@2022-09-01' = {
+  name: 'function-${uniqueName}-websearcher-plugin'
+  location: location
+  kind: 'functionapp'
+  tags: {
+    skweb: '1'
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+    siteConfig: {
+      alwaysOn: true
+    }
+  }
+}
+
+resource functionAppWebSearcherPluginConfig 'Microsoft.Web/sites/config@2022-09-01' = {
+  parent: functionAppWebSearcherPlugin
+  name: 'web'
+  properties: {
+    minTlsVersion: '1.2'
+    appSettings: [
+      {
+        name: 'FUNCTIONS_EXTENSION_VERSION'
+        value: '~4'
+      }
+      {
+        name: 'FUNCTIONS_WORKER_RUNTIME'
+        value: 'dotnet-isolated'
+      }
+      {
+        name: 'AzureWebJobsStorage'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+        value: appInsightsWebSearcherPlugin.properties.InstrumentationKey
+      }
+      {
+        name: 'PluginConfig:BingApiKey'
+        value: bingSearchService.listKeys().key1
+      }
+    ]
+  }
+}
+
+resource functionAppWebSearcherDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployWebSearcherPackage) {
+  name: 'MSDeploy'
+  kind: 'string'
+  parent: functionAppWebSearcherPlugin
+  properties: {
+    packageUri: webSearcherPackageUri
+  }
+  dependsOn: [
+    functionAppWebSearcherPluginConfig
+  ]
+}
+
 resource appInsightsWeb 'Microsoft.Insights/components@2020-02-02' = {
   name: 'appins-${uniqueName}-webapi'
   location: location
@@ -632,7 +716,21 @@ resource appInsightsMemoryPipeline 'Microsoft.Insights/components@2020-02-02' = 
 resource appInsightExtensionMemoryPipeline 'Microsoft.Web/sites/siteextensions@2022-09-01' = {
   parent: appServiceMemoryPipeline
   name: 'Microsoft.ApplicationInsights.AzureWebSites'
-  dependsOn: [ appServiceWebConfig ]
+  dependsOn: [ appServiceMemoryPipelineConfig ]
+}
+
+resource appInsightsWebSearcherPlugin 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appins-${uniqueName}-websearcher-plugin'
+  location: location
+  kind: 'web'
+  tags: {
+    displayName: 'AppInsightWebSearcherPlugin'
+  }
+  properties: {
+    Application_Type: 'web'
+    Request_Source: 'IbizaWebAppExtensionCreate'
+    WorkspaceResourceId: logAnalyticsWorkspace.id
+  }
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
@@ -1123,6 +1221,15 @@ resource ocrAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
   }
 }
 
+resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = {
+  name: 'bing-search-${uniqueName}'
+  location: 'global'
+  sku: {
+    name: 'S1'
+  }
+  kind: 'Bing.Search.v7'
+}
+
 resource staticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
   name: 'swa-${uniqueName}'
   location: webappLocation
@@ -1140,3 +1247,6 @@ output webappName string = staticWebApp.name
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name
+output pluginNames array = [
+  functionAppWebSearcherPlugin.name
+]

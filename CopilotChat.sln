@@ -11,6 +11,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatCopilotIntegrationTests", "integration-tests\ChatCopilotIntegrationTests.csproj", "{0CD2CD95-536B-455F-B74A-772A455FA607}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotChatShared", "shared\CopilotChatShared.csproj", "{94F12185-FAF9-43E3-B153-28A1708AC918}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSearcher", "plugins\web-searcher\WebSearcher.csproj", "{F83C857D-3080-4DEA-B3D1-978E2BC64BFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginShared", "plugins\shared\PluginShared.csproj", "{9D03913A-21FF-4D0A-9883-95C4B3D6F65A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +41,14 @@ Global
 		{94F12185-FAF9-43E3-B153-28A1708AC918}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94F12185-FAF9-43E3-B153-28A1708AC918}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94F12185-FAF9-43E3-B153-28A1708AC918}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F83C857D-3080-4DEA-B3D1-978E2BC64BFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F83C857D-3080-4DEA-B3D1-978E2BC64BFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F83C857D-3080-4DEA-B3D1-978E2BC64BFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F83C857D-3080-4DEA-B3D1-978E2BC64BFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D03913A-21FF-4D0A-9883-95C4B3D6F65A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D03913A-21FF-4D0A-9883-95C4B3D6F65A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D03913A-21FF-4D0A-9883-95C4B3D6F65A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D03913A-21FF-4D0A-9883-95C4B3D6F65A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

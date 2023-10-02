@@ -12,6 +12,7 @@ import { BackendServiceUrl } from '../../../libs/services/BaseService';
 import { StoreMiddlewareAPI } from '../../app/store';
 import { addAlert, setMaintenance } from '../app/appSlice';
 import { ChatState } from '../conversations/ChatState';
+import { UpdatePluginStatePayload } from '../conversations/ConversationsState';
 
 /*
  * This is a module that encapsulates the SignalR connection
@@ -29,6 +30,7 @@ const enum SignalRCallbackMethods {
     ChatEdited = 'ChatEdited',
     ChatDeleted = 'ChatDeleted',
     GlobalSiteMaintenance = 'GlobalSiteMaintenance',
+    PluginStateChanged = 'PluginStateChanged',
 }
 
 // Set up a SignalR connection to the messageRelayHub on the server
@@ -221,6 +223,16 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
     hubConnection.on(SignalRCallbackMethods.GlobalSiteMaintenance, () => {
         store.dispatch(setMaintenance(true));
     });
+
+    hubConnection.on(
+        SignalRCallbackMethods.PluginStateChanged,
+        (chatId: string, pluginName: string, pluginState: boolean) => {
+            store.dispatch({
+                type: 'conversations/updatePluginState',
+                payload: { id: chatId, pluginName: pluginName, newState: pluginState } as UpdatePluginStatePayload,
+            });
+        },
+    );
 };
 
 // This is a singleton instance of the SignalR connection

@@ -6,7 +6,6 @@ import { IChatMessage } from '../models/ChatMessage';
 import { IChatParticipant } from '../models/ChatParticipant';
 import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
-import { PluginManifest } from '../models/PluginManifest';
 import { ServiceOptions } from '../models/ServiceOptions';
 import { IAsk, IAskVariables } from '../semantic-kernel/model/Ask';
 import { IAskResult } from '../semantic-kernel/model/AskResult';
@@ -85,6 +84,7 @@ export class ChatService extends BaseService {
             title,
             systemDescription,
             memoryBalance,
+            enabledPlugins: [], // edit will not modify the enabled plugins
         };
 
         const result = await this.getResponseAsync<IChatSession>(
@@ -252,19 +252,6 @@ export class ChatService extends BaseService {
             {
                 commandPath: `serviceOptions`,
                 method: 'GET',
-            },
-            accessToken,
-        );
-
-        return result;
-    };
-
-    public getPluginManifest = async (manifestDomain: string, accessToken: string): Promise<PluginManifest> => {
-        const result = await this.getResponseAsync<PluginManifest>(
-            {
-                commandPath: `getPluginManifest`,
-                method: 'GET',
-                query: new URLSearchParams({ manifestDomain: encodeURIComponent(manifestDomain) }),
             },
             accessToken,
         );

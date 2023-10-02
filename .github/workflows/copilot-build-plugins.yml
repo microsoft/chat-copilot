@@ -1,0 +1,74 @@
+name: copilot-build-plugins
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "plugins/**"
+  workflow_call:
+    outputs:
+      artifact:
+        description: "The name of the uploaded plugin artifacts."
+        value: ${{jobs.plugins.outputs.artifact}}
+
+permissions:
+  contents: read
+
+jobs:
+  plugins:
+    runs-on: windows-latest
+
+    env:
+      NUGET_CERT_REVOCATION_MODE: offline
+
+    outputs:
+      artifact: ${{steps.artifactoutput.outputs.artifactname}}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: "5.x"
+
+      - name: Determine version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0
+
+      - name: Set version tag
+        id: versiontag
+        run: |
+          $VERSION_TAG = "${{ steps.gitversion.outputs.Major }}."
+          $VERSION_TAG += "${{ steps.gitversion.outputs.Minor }}."
+          $VERSION_TAG += "${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
+          echo $VERSION_TAG
+          Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
+
+      - name: Set .Net Core version
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Package Copilot Chat Plugins
+        run: |
+          scripts\deploy\package-plugins.ps1 `
+            -BuildConfiguration Release `
+            -DotNetFramework net6.0 `
+            -OutputDirectory ${{ github.workspace }}\scripts\deploy `
+            -Version ${{ steps.versiontag.outputs.versiontag }} `
+            -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
+
+      - name: Upload packages to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: copilotchat-plugins-${{ steps.versiontag.outputs.versiontag }}
+          path: ${{ github.workspace }}\scripts\deploy\out\plugins
+
+      - name: "Set outputs"
+        id: artifactoutput
+        run: Write-Output "artifactname=copilotchat-plugins-${{ steps.versiontag.outputs.versiontag }}" >> $env:GITHUB_OUTPUT

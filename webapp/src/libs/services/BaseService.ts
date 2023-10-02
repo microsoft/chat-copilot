@@ -23,6 +23,7 @@ export class BaseService {
         enabledPlugins?: Plugin[],
     ): Promise<T> => {
         const { commandPath, method, body, query } = request;
+
         const isFormData = body instanceof FormData;
 
         const headers = new Headers(

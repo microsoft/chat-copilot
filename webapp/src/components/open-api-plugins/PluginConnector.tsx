@@ -19,7 +19,11 @@ import { Dismiss20Regular } from '@fluentui/react-icons';
 import { FormEvent, useState } from 'react';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { TokenHelper } from '../../libs/auth/TokenHelper';
-import { useAppDispatch } from '../../redux/app/hooks';
+import { usePlugins } from '../../libs/hooks/usePlugins';
+import { AlertType } from '../../libs/models/AlertType';
+import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
+import { RootState } from '../../redux/app/store';
+import { addAlert } from '../../redux/features/app/appSlice';
 import { AdditionalApiProperties, PluginAuthRequirements } from '../../redux/features/plugins/PluginsState';
 import { connectPlugin } from '../../redux/features/plugins/pluginsSlice';
 
@@ -55,6 +59,7 @@ interface PluginConnectorProps {
     publisher: string;
     authRequirements: PluginAuthRequirements;
     apiProperties?: AdditionalApiProperties;
+    isHosted: boolean;
 }
 
 export const PluginConnector: React.FC<PluginConnectorProps> = ({
@@ -63,8 +68,13 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
     publisher,
     authRequirements,
     apiProperties,
+    isHosted,
 }) => {
     const classes = useClasses();
+    const dispatch = useAppDispatch();
+    const { instance, inProgress } = useMsal();
+    const { setPluginStateAsync } = usePlugins();
+    const { selectedId } = useAppSelector((state: RootState) => state.conversations);
 
     const usernameRequired = !!authRequirements.username;
     const emailRequired = !!authRequirements.email;
@@ -81,9 +91,6 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
 
     const [open, setOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
-
-    const dispatch = useAppDispatch();
-    const { instance, inProgress } = useMsal();
 
     const handleSubmit = (event: FormEvent) => {
         event.preventDefault();
@@ -103,6 +110,14 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
                 });
         } else if (oauthRequired) {
             // TODO: [Issue #44] implement OAuth Flow
+        } else if (isHosted) {
+            setPluginStateAsync(selectedId, name, true)
+                .then(() => {
+                    dispatch(addAlert({ message: `${name} enabled!`, type: AlertType.Success }));
+                })
+                .catch((error: Error) => {
+                    dispatch(addAlert({ message: error.message, type: AlertType.Error }));
+                });
         } else {
             // Basic Auth or PAT
             dispatch(
