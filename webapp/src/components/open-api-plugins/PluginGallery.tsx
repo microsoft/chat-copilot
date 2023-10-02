@@ -70,14 +70,18 @@ export const PluginGallery: React.FC = () => {
     const [open, setOpen] = useState(false);
 
     const [hostedPlugins, setHostedPlugins] = useState([] as Plugin[]);
-    const { getHostedPluginManifestAsync } = usePlugins();
+    const { getPluginManifest } = usePlugins();
 
     useEffect(() => {
         function updateHostedPlugin() {
             setHostedPlugins([]);
             serviceOptions.availablePlugins.forEach((availablePlugin) => {
-                getHostedPluginManifestAsync(availablePlugin)
+                getPluginManifest(availablePlugin.url)
                     .then((manifest) => {
+                        if (manifest === undefined) {
+                            throw new Error('Manifest is undefined');
+                        }
+
                         const newHostedPlugin = {
                             name: manifest.name_for_human,
                             publisher: 'N/A',

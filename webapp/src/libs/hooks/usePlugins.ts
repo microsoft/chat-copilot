@@ -1,22 +1,16 @@
 import { useMsal } from '@azure/msal-react';
 import * as React from 'react';
 import { useAppDispatch } from '../../redux/app/hooks';
-import { addAlert } from '../../redux/features/app/appSlice';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
 import { addPlugin } from '../../redux/features/plugins/pluginsSlice';
 import { AuthHelper } from '../auth/AuthHelper';
-import { AlertType } from '../models/AlertType';
 import { PluginManifest, requiresUserLevelAuth } from '../models/PluginManifest';
-import { HostedPlugin } from '../models/ServiceOptions';
-import { ChatService } from '../services/ChatService';
 import { PluginService } from '../services/PluginService';
-import { getErrorDetails } from './useChat';
 
 export const usePlugins = () => {
     const { instance, inProgress } = useMsal();
     const dispatch = useAppDispatch();
-    const chatService = React.useMemo(() => new ChatService(), []);
-    const pluginService = new PluginService();
+    const pluginService = React.useMemo(() => new PluginService(), []);
 
     const addCustomPlugin = (manifest: PluginManifest, manifestDomain: string) => {
         const newPlugin: Plugin = {
@@ -37,21 +31,12 @@ export const usePlugins = () => {
     };
 
     const getPluginManifest = React.useCallback(
-        (manifestDomain: string) =>
-            AuthHelper.getSKaaSAccessToken(instance, inProgress)
-                .then((accessToken) => chatService.getPluginManifest(manifestDomain, accessToken))
-                .catch((e: unknown) => {
-                    const errorMessage = `Error getting plugin manifest. Details: ${getErrorDetails(e)}`;
-                    dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
-                    return undefined;
-                }),
-        [chatService, dispatch, inProgress, instance],
+        async (manifestDomain: string) => {
+            const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+            return await pluginService.getPluginManifestAsync(manifestDomain, accessToken);
+        },
+        [pluginService, inProgress, instance],
     );
-
-    const getHostedPluginManifestAsync = async (plugin: HostedPlugin): Promise<PluginManifest> => {
-        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-        return await pluginService.getHostedPluginManifestAsync(plugin, accessToken);
-    };
 
     const setPluginStateAsync = async (chatId: string, pluginName: string, enabled: boolean): Promise<void> => {
         const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
@@ -61,7 +46,6 @@ export const usePlugins = () => {
     return {
         addCustomPlugin,
         getPluginManifest,
-        getHostedPluginManifestAsync,
         setPluginStateAsync,
     };
 };

@@ -1,20 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { PluginManifest } from '../models/PluginManifest';
-import { HostedPlugin } from '../models/ServiceOptions';
 import { BaseService } from './BaseService';
 
 export class PluginService extends BaseService {
-    public getHostedPluginManifestAsync = async (
-        plugin: HostedPlugin,
-        accessToken: string,
-    ): Promise<PluginManifest> => {
+    public getPluginManifestAsync = async (manifestDomain: string, accessToken: string): Promise<PluginManifest> => {
         return await this.getResponseAsync<PluginManifest>(
             {
-                commandPath: 'getPluginManifest',
+                commandPath: 'pluginManifests',
                 method: 'GET',
                 query: new URLSearchParams({
-                    manifestDomain: plugin.url,
+                    manifestDomain: manifestDomain,
                 }),
             },
             accessToken,
