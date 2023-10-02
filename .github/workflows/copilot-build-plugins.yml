@@ -1,4 +1,4 @@
-name: copilot-build-memorypipeline
+name: copilot-build-plugins
 
 on:
   workflow_dispatch:
@@ -56,12 +56,12 @@ jobs:
 
       - name: Package Copilot Chat Plugins
         run: |
-          scripts\deploy\package-plugins.ps1 \
-            -BuildConfiguration Release \
-            -DotnetFramework net6.0 \
-            -TargetRuntime win-x64 \
-            -OutputDirectory ${{ github.workspace }}\scripts\deploy \
-            -Version ${{ steps.versiontag.outputs.versiontag }} \
+          scripts\deploy\package-plugins.ps1 `
+            -BuildConfiguration Release `
+            -DotNetFramework net6.0 `
+            -TargetRuntime win-x64 `
+            -OutputDirectory ${{ github.workspace }}\scripts\deploy `
+            -Version ${{ steps.versiontag.outputs.versiontag }} `
             -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
 
       - name: Upload packages to artifacts
