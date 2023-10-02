@@ -35,7 +35,7 @@ export interface ConversationSystemDescriptionChange {
     newSystemDescription: string;
 }
 
-export interface PluginStateChangedPayload {
+export interface UpdatePluginStatePayload {
     id: string;
     pluginName: string;
     newState: boolean;

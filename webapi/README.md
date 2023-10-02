@@ -73,11 +73,11 @@ Running the memory creation pipeline steps in different processes. This means th
 
 6. For more information and other options, please refer to the [memorypipeline](../memorypipeline/README.md).
 
-## Adding Plugins to the WebApi
+## Adding OpenAI Plugins to the WebApi
 
-You can also add plugins that will be managed by the webapi (as opposed to manged by the webapp). Soon, all plugins will be managed by the webapi.
+You can also add OpenAI plugins that will be managed by the webapi (as opposed to being managed by the webapp). Soon, all OpenAI plugins will be managed by the webapi.
 
-> By default, a third party plugin called [Klarna Shopping](https://www.klarna.com/international/press/klarna-brings-smoooth-shopping-to-chatgpt/) is already added.
+> By default, a third party OpenAI plugin called [Klarna Shopping](https://www.klarna.com/international/press/klarna-brings-smoooth-shopping-to-chatgpt/) is already added.
 
 Please refer to [here](../plugins/README.md) for more details.
 

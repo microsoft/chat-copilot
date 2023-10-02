@@ -43,8 +43,8 @@ public class PluginEndpoint
     /// </summary>
     /// <param name="req">The http request data.</param>
     /// <returns>The manifest in Json</returns>
-    [Function("WellKnownAIPlugin")]
-    public async Task<HttpResponseData> WellKnownAIPlugin(
+    [Function("WellKnownAIPluginManifest")]
+    public async Task<HttpResponseData> WellKnownAIPluginManifest(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/ai-plugin.json")] HttpRequestData req)
     {
         var pluginManifest = new PluginManifest()

@@ -11,7 +11,7 @@ import {
     ConversationSystemDescriptionChange,
     ConversationTitleChange,
     initialState,
-    PluginStateChangedPayload,
+    UpdatePluginStatePayload,
 } from './ConversationsState';
 
 export const conversationsSlice = createSlice({
@@ -185,7 +185,7 @@ export const conversationsSlice = createSlice({
             frontLoadChat(state, id);
             return;
         },
-        changePluginState: (state: ConversationsState, action: PayloadAction<PluginStateChangedPayload>) => {
+        updatePluginState: (state: ConversationsState, action: PayloadAction<UpdatePluginStatePayload>) => {
             const { id, pluginName, newState } = action.payload;
             const isPluginEnabled = state.conversations[id].enabledHostedPlugins.find((p) => p === pluginName);
             if (newState) {
@@ -247,7 +247,7 @@ export const {
     setUsersLoaded,
     deleteConversation,
     disableConversation,
-    changePluginState,
+    updatePluginState,
 } = conversationsSlice.actions;
 
 export default conversationsSlice.reducer;

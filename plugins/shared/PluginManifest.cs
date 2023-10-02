@@ -5,7 +5,8 @@ using System.Text.Json.Serialization;
 namespace Plugins.PluginShared;
 
 /// <summary>
-/// This class represents the OpenAI plugin manifest.
+/// This class represents the OpenAI plugin manifest:
+/// https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
 /// </summary>
 public class PluginManifest
 {
@@ -32,6 +33,7 @@ public class PluginManifest
     /// </summary>
     [JsonPropertyName("description_for_model")]
     public string DescriptionForModel { get; set; } = string.Empty;
+
     /// <summary>
     /// Human-readable description of the plugin
     /// </summary>

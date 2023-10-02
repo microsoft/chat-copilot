@@ -22,7 +22,7 @@ public class PluginAuth
 
     /// <summary>
     /// The authentication schema
-    /// Supported values: none, service_http
+    /// Supported values: none, service_http, user_http
     /// </summary>
     public string Type { get; set; } = "none";
 
