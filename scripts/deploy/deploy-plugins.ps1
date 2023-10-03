@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-Deploy CopilotChat's MemoryPipeline to Azure
+Deploy CopilotChat's Plugins to Azure
 #>
 
 param(
