@@ -22,7 +22,7 @@ export class BotService extends BaseService {
         const result = await this.getResponseAsync<IChatSession>(
             {
                 commandPath: 'chats/archives',
-                method: 'Post',
+                method: 'POST',
                 body: bot,
             },
             accessToken,
