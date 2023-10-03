@@ -155,6 +155,13 @@ export const useChat = () => {
             if (responseTokenUsage) dispatch(updateTokenUsage(JSON.parse(responseTokenUsage) as TokenUsage));
         } catch (e: any) {
             dispatch(updateBotResponseStatus({ chatId, status: undefined }));
+
+            const errorDetails = getErrorDetails(e);
+            if (errorDetails.includes('Failed to process plan')) {
+                // Error should already be reflected in bot response message. Skip alert.
+                return;
+            }
+
             const action = processPlan ? 'execute plan' : 'generate bot response';
             const errorMessage = `Unable to ${action}. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
