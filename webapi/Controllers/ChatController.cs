@@ -94,7 +94,7 @@ public class ChatController : ControllerBase, IDisposable
         [FromBody] Ask ask,
         [FromRoute] Guid chatId)
     {
-        this._logger.LogDebug("/chat request received.");
+        this._logger.LogDebug("Chat message received.");
 
         return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
@@ -112,7 +112,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="ask">Prompt along with its parameters.</param>
     /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("chats/{chatId:guid}/processPlan")]
+    [Route("chats/{chatId:guid}/plan")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -130,7 +130,7 @@ public class ChatController : ControllerBase, IDisposable
         [FromBody] ExecutePlanParameters ask,
         [FromRoute] Guid chatId)
     {
-        this._logger.LogDebug("/processplan request received.");
+        this._logger.LogDebug("plan request received.");
 
         return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
@@ -263,7 +263,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="manifestDomain">The domain of the manifest.</param>
     /// <returns>The plugin's manifest JSON.</returns>
     [HttpGet]
-    [Route("pluginManifest")]
+    [Route("plugins")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPluginManifest([FromQuery] Uri manifestDomain)
     {

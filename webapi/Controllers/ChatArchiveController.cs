@@ -65,7 +65,7 @@ public class ChatArchiveController : ControllerBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The serialized chat archive object of the chat id.</returns>
     [HttpGet]
-    [Route("chats/archives/{chatId:guid}")]
+    [Route("chats/{chatId:guid}/archive")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,9 +74,9 @@ public class ChatArchiveController : ControllerBase
     {
         this._logger.LogDebug("Received call to download a chat archive");
 
-        var memory = await this.CreateChatArchiveAsync(chatId, cancellationToken);
+        var chatArchive = await this.CreateChatArchiveAsync(chatId, cancellationToken);
 
-        return this.Ok(memory);
+        return this.Ok(chatArchive);
     }
 
     /// <summary>

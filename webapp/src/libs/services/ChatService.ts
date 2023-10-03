@@ -171,7 +171,7 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<IAskResult>(
             {
-                commandPath: processPlan ? `chats/${chatId}/processPlan` : `chats/${chatId}/messages`,
+                commandPath: processPlan ? `chats/${chatId}/plan` : `chats/${chatId}/messages`,
                 method: 'POST',
                 body: ask,
             },
@@ -258,7 +258,7 @@ export class ChatService extends BaseService {
     public getPluginManifest = async (manifestDomain: string, accessToken: string): Promise<PluginManifest> => {
         const result = await this.getResponseAsync<PluginManifest>(
             {
-                commandPath: `pluginManifest`,
+                commandPath: `plugins`,
                 method: 'GET',
                 query: new URLSearchParams({ manifestDomain: encodeURIComponent(manifestDomain) }),
             },

@@ -52,7 +52,7 @@ public class ServiceInfoController : ControllerBase
     [Route("info")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetServiceOptions()
+    public IActionResult GetServiceInfo()
     {
         var response = new ServiceInfoResponse()
         {
