@@ -3,7 +3,6 @@
 import { Constants } from '../../../Constants';
 import GithubIcon from '../../../assets/plugin-icons/github.png';
 import JiraIcon from '../../../assets/plugin-icons/jira.png';
-import KlarnaIcon from '../../../assets/plugin-icons/klarna.png';
 import GraphIcon from '../../../assets/plugin-icons/ms-graph.png';
 
 /*
@@ -14,14 +13,12 @@ export const enum BuiltInPlugins {
     MsGraph = 'Microsoft Graph',
     Jira = 'Jira',
     GitHub = 'GitHub',
-    Klarna = 'Klarna Shopping',
 }
 
 export const enum AuthHeaderTags {
     MsGraph = 'graph',
     Jira = 'jira',
     GitHub = 'github',
-    Klarna = 'klarna',
 }
 
 export interface PluginAuthRequirements {
@@ -129,15 +126,6 @@ export const initialState: PluginsState = {
                     helpLink: 'https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests',
                 },
             },
-        },
-        [BuiltInPlugins.Klarna]: {
-            name: BuiltInPlugins.Klarna,
-            publisher: 'Klarna',
-            description: 'Search and compare prices from thousands of online shops.',
-            enabled: false,
-            authRequirements: {},
-            icon: KlarnaIcon,
-            headerTag: AuthHeaderTags.Klarna,
         },
     },
 };

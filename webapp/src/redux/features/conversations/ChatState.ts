@@ -10,6 +10,7 @@ export interface ChatState {
     memoryBalance: number;
     users: IChatUser[];
     messages: IChatMessage[];
+    enabledHostedPlugins: string[];
     botProfilePicture: string;
     lastUpdatedTimestamp?: number;
     input: string;

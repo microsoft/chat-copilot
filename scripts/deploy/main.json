@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "10236995422520585325"
+      "templateHash": "8121623595763502084"
     }
   },
   "parameters": {
@@ -45,6 +45,13 @@
       "defaultValue": "https://aka.ms/copilotchat/memorypipeline/latest",
       "metadata": {
         "description": "Location of package to deploy as the memory pipeline"
+      }
+    },
+    "webSearcherPackageUri": {
+      "type": "string",
+      "defaultValue": "https://aka.ms/copilotchat/websearcher/latest",
+      "metadata": {
+        "description": "Location of the websearcher plugin to deploy"
       }
     },
     "aiService": {
@@ -160,6 +167,13 @@
       "defaultValue": true,
       "metadata": {
         "description": "Whether to deploy the memory pipeline package"
+      }
+    },
+    "deployWebSearcherPackage": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Whether to deploy the websearcher plugin package"
       }
     },
     "location": {
@@ -538,6 +552,26 @@
           {
             "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Deployment",
             "value": "[parameters('embeddingModel')]"
+          },
+          {
+            "name": "Plugins:0:Name",
+            "value": "Klarna Shopping"
+          },
+          {
+            "name": "Plugins:0:Url",
+            "value": "https://www.klarna.com"
+          },
+          {
+            "name": "Plugins:1:Name",
+            "value": "WebSearcher"
+          },
+          {
+            "name": "Plugins:1:Url",
+            "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName'))), '2022-09-01').defaultHostName)]"
+          },
+          {
+            "name": "Plugins:1:Key",
+            "value": "[listkeys(format('{0}/host/default/', resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))), '2022-09-01').functionKeys.default]"
           }
         ]
       },
@@ -547,6 +581,7 @@
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
+        "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName')))]",
@@ -751,6 +786,76 @@
       ]
     },
     {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-09-01",
+      "name": "[format('function-{0}-websearcher-plugin', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "kind": "functionapp",
+      "tags": {
+        "skweb": "1"
+      },
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'web')]",
+      "properties": {
+        "minTlsVersion": "1.2",
+        "appSettings": [
+          {
+            "name": "FUNCTIONS_EXTENSION_VERSION",
+            "value": "~4"
+          },
+          {
+            "name": "FUNCTIONS_WORKER_RUNTIME",
+            "value": "dotnet-isolated"
+          },
+          {
+            "name": "AzureWebJobsStorage",
+            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
+          },
+          {
+            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-websearcher-plugin', variables('uniqueName'))), '2020-02-02').InstrumentationKey]"
+          },
+          {
+            "name": "PluginConfig:BingApiKey",
+            "value": "[listKeys(resourceId('Microsoft.Bing/accounts', format('bing-search-{0}', variables('uniqueName'))), '2020-06-10').key1]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', format('appins-{0}-websearcher-plugin', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Bing/accounts', format('bing-search-{0}', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
+      ]
+    },
+    {
+      "condition": "[parameters('deployWebSearcherPackage')]",
+      "type": "Microsoft.Web/sites/extensions",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'MSDeploy')]",
+      "kind": "string",
+      "properties": {
+        "packageUri": "[parameters('webSearcherPackageUri')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'web')]"
+      ]
+    },
+    {
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02",
       "name": "[format('appins-{0}-webapi', variables('uniqueName'))]",
@@ -799,7 +904,25 @@
       "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-memorypipeline', variables('uniqueName')), 'web')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[format('appins-{0}-websearcher-plugin', variables('uniqueName'))]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "tags": {
+        "displayName": "AppInsightWebSearcherPlugin"
+      },
+      "properties": {
+        "Application_Type": "web",
+        "Request_Source": "IbizaWebAppExtensionCreate",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
       ]
     },
     {
@@ -1362,6 +1485,16 @@
       }
     },
     {
+      "type": "Microsoft.Bing/accounts",
+      "apiVersion": "2020-06-10",
+      "name": "[format('bing-search-{0}', variables('uniqueName'))]",
+      "location": "global",
+      "sku": {
+        "name": "S1"
+      },
+      "kind": "Bing.Search.v7"
+    },
+    {
       "type": "Microsoft.Web/staticSites",
       "apiVersion": "2022-09-01",
       "name": "[format('swa-{0}', variables('uniqueName'))]",
@@ -1395,6 +1528,12 @@
     "memoryPipelineName": {
       "type": "string",
       "value": "[format('app-{0}-memorypipeline', variables('uniqueName'))]"
+    },
+    "pluginNames": {
+      "type": "array",
+      "value": [
+        "[format('function-{0}-websearcher-plugin', variables('uniqueName'))]"
+      ]
     }
   }
 }

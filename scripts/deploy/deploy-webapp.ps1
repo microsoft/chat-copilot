@@ -52,10 +52,14 @@ $webappUrl = $deployment.properties.outputs.webappUrl.value
 $webappName = $deployment.properties.outputs.webappName.value
 $webapiUrl = $deployment.properties.outputs.webapiUrl.value
 $webapiName = $deployment.properties.outputs.webapiName.value
+$pluginNames = $deployment.properties.outputs.pluginNames.value
 Write-Host "webappUrl: $webappUrl"
 Write-Host "webappName: $webappName"
 Write-Host "webapiName: $webapiName"
 Write-Host "webapiUrl: $webapiUrl"
+foreach ($pluginName in $pluginNames) {
+    Write-Host "pluginName: $pluginName"
+}
 
 $webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
 $webapiClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
@@ -111,6 +115,13 @@ $origin = "https://$webappUrl"
 Write-Host "Ensuring '$origin' is included in CORS origins for webapi '$webapiName'..."
 if (-not ((az webapp cors show --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription | ConvertFrom-Json).allowedOrigins -contains $origin)) {
     az webapp cors add --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins $origin
+}
+
+foreach ($pluginName in $pluginNames) {
+    Write-Host "Ensuring '$origin' is included in CORS origins for plugin '$pluginName'..."
+    if (-not ((az webapp cors show --name $pluginName --resource-group $ResourceGroupName --subscription $Subscription | ConvertFrom-Json).allowedOrigins -contains $origin)) {
+        az webapp cors add --name $pluginName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins $origin
+    }
 }
 
 Write-Host "Ensuring '$origin' is included in AAD app registration's redirect URIs..."
