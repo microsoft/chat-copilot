@@ -164,7 +164,7 @@ public static class Program
 
             string uriPath =
                 chatId.HasValue ?
-                $"chat/{chatId}/documents" :
+                $"chats/{chatId}/documents" :
                 "documents";
 
             try

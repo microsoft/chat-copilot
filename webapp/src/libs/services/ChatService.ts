@@ -171,7 +171,7 @@ export class ChatService extends BaseService {
 
         const result = await this.getResponseAsync<IAskResult>(
             {
-                commandPath: `chats/${chatId}/${processPlan ? 'processPlan' : 'chat'}`,
+                commandPath: `chats/${chatId}/${processPlan ? 'processPlan' : 'messages'}`,
                 method: 'POST',
                 body: ask,
             },
