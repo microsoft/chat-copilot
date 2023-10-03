@@ -64,7 +64,7 @@ if ($LASTEXITCODE -ne 0) {
 if ($DeploymentSlot) {
 
     Write-Host "Checking if slot $DeploymentSlot exists for '$webappName'..."
-    $availableSlots = az webapp deployment slot list --resource-group utverse-devl --name app-utverse-devl-webapi | ConvertFrom-JSON | Select-Object -Property Name
+    $availableSlots = az webapp deployment slot list --resource-group $ResourceGroupName --name $webappName | ConvertFrom-JSON | Select-Object -Property Name
     $slotExists = false
 
     foreach ($slot in $availableSlots) { 
@@ -77,7 +77,7 @@ if ($DeploymentSlot) {
     # Web App DeploymentSlot does not exist, create it
     if (!$slotExists) {
         Write-Host "DeploymentSlot $DeploymentSlot does not exist, creating..."
-        az webapp deployment slot create --slot $DeploymentSlot --resource-group utverse-devl --name app-utverse-devl-webapi | Out-Null
+        az webapp deployment slot create --slot $DeploymentSlot --resource-group $ResourceGroupName --name $webappName | Out-Null
     }
 }
 
