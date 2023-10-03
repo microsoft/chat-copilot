@@ -7,13 +7,16 @@ using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Models.Response;
 
-public class ServiceOptionsResponse
+/// <summary>
+/// Information on running service.
+/// </summary>
+public class ServiceInfoResponse
 {
     /// <summary>
     /// Configured memory store.
     /// </summary>
     [JsonPropertyName("memoryStore")]
-    public MemoryStoreOptionResponse MemoryStore { get; set; } = new MemoryStoreOptionResponse();
+    public MemoryStoreInfoResponse MemoryStore { get; set; } = new MemoryStoreInfoResponse();
 
     /// <summary>
     /// All the available plugins.
@@ -26,12 +29,18 @@ public class ServiceOptionsResponse
     /// </summary>
     [JsonPropertyName("version")]
     public string Version { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True if content safety if enabled, false otherwise.
+    /// </summary>
+    [JsonPropertyName("isContentSafetyEnabled")]
+    public bool IsContentSafetyEnabled { get; set; } = false;
 }
 
 /// <summary>
 /// Response to memoryStoreType request.
 /// </summary>
-public class MemoryStoreOptionResponse
+public class MemoryStoreInfoResponse
 {
     /// <summary>
     /// All the available memory store types.

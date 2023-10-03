@@ -56,7 +56,7 @@ interface ISettingsDialogProps {
 export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDialog }) => {
     const classes = useClasses();
     const dialogClasses = useDialogClasses();
-    const { serviceOptions, settings, tokenUsage } = useAppSelector((state: RootState) => state.app);
+    const { serviceInfo, settings, tokenUsage } = useAppSelector((state: RootState) => state.app);
 
     return (
         <Dialog
@@ -100,7 +100,7 @@ export const SettingsDialog: React.FC<ISettingsDialogProps> = ({ open, closeDial
                                 </AccordionHeader>
                                 <AccordionPanel>
                                     <Body1 color={tokens.colorNeutralForeground3}>
-                                        Backend version: {serviceOptions.version}
+                                        Backend version: {serviceInfo.version}
                                         <br />
                                         Frontend version: {process.env.REACT_APP_SK_VERSION ?? '-'}
                                         <br />

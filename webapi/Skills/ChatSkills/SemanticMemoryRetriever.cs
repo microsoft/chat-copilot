@@ -77,7 +77,7 @@ public class SemanticMemoryRetriever
         List<(Citation Citation, Citation.Partition Memory)> relevantMemories = new();
         foreach (var memoryName in this._memoryNames)
         {
-            await SearchMemoryAsync(memoryName).ConfigureAwait(false);
+            await SearchMemoryAsync(memoryName);
         }
 
         var builderMemory = new StringBuilder();
@@ -147,8 +147,7 @@ public class SemanticMemoryRetriever
                     query,
                     this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
                     chatId,
-                    memoryName)
-                .ConfigureAwait(false);
+                    memoryName);
 
             foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))
             {

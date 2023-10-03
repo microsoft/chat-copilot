@@ -2,7 +2,7 @@
 
 import { IChatMessage } from './ChatMessage';
 
-export interface Bot {
+export interface ChatArchive {
     Schema: { Name: string; Version: number };
     Configurations: { EmbeddingAIService: string; EmbeddingDeploymentOrModelId: string };
     ChatTitle: string;

@@ -23,7 +23,7 @@ export const BackendProbe: FC<IData> = ({ uri, onBackendFound }) => {
     const dispatch = useAppDispatch();
     const { isMaintenance } = useAppSelector((state: RootState) => state.app);
     const healthUrl = new URL('healthz', uri);
-    const migrationUrl = new URL('maintenancestatus', uri);
+    const migrationUrl = new URL('maintenanceStatus', uri);
 
     const [model, setModel] = useState<IMaintenance | null>(null);
 

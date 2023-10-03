@@ -65,7 +65,7 @@ export const PluginGallery: React.FC = () => {
     const dispatch = useDispatch();
 
     const { plugins } = useAppSelector((state: RootState) => state.plugins);
-    const { serviceOptions } = useAppSelector((state: RootState) => state.app);
+    const { serviceInfo } = useAppSelector((state: RootState) => state.app);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const [open, setOpen] = useState(false);
 
@@ -75,7 +75,7 @@ export const PluginGallery: React.FC = () => {
     useEffect(() => {
         function updateHostedPlugin() {
             setHostedPlugins([]);
-            serviceOptions.availablePlugins.forEach((availablePlugin) => {
+            serviceInfo.availablePlugins.forEach((availablePlugin) => {
                 getPluginManifest(availablePlugin.manifestDomain)
                     .then((manifest) => {
                         const newHostedPlugin = {
@@ -103,7 +103,7 @@ export const PluginGallery: React.FC = () => {
             updateHostedPlugin();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [conversations[selectedId], open, serviceOptions.availablePlugins]);
+    }, [conversations[selectedId], open, serviceInfo.availablePlugins]);
 
     return (
         <Dialog

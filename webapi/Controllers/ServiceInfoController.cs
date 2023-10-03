@@ -31,6 +31,7 @@ public class ServiceInfoController : ControllerBase
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
     private readonly IEnumerable<Plugin> availablePlugins;
+    private readonly ContentSafetyOptions _contentSafetyOptions;
 
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
@@ -38,7 +39,8 @@ public class ServiceInfoController : ControllerBase
         IOptions<SemanticMemoryConfig> memoryOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
         IOptions<FrontendOptions> frontendOptions,
-        IDictionary<string, Plugin> availablePlugins)
+        IDictionary<string, Plugin> availablePlugins,
+        IOptions<ContentSafetyOptions> contentSafetyOptions)
     {
         this._logger = logger;
         this.Configuration = configuration;
@@ -46,25 +48,27 @@ public class ServiceInfoController : ControllerBase
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
         this.availablePlugins = this.SanitizePlugins(availablePlugins);
+        this._contentSafetyOptions = contentSafetyOptions.Value;
     }
 
     /// <summary>
-    /// Return the memory store type that is configured.
+    /// Return information on running service.
     /// </summary>
-    [Route("serviceOptions")]
+    [Route("info")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetServiceOptions()
+    public IActionResult GetServiceInfo()
     {
-        var response = new ServiceOptionsResponse()
+        var response = new ServiceInfoResponse()
         {
-            MemoryStore = new MemoryStoreOptionResponse()
+            MemoryStore = new MemoryStoreInfoResponse()
             {
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
                 SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
             },
             AvailablePlugins = this.availablePlugins,
-            Version = GetAssemblyFileVersion()
+            Version = GetAssemblyFileVersion(),
+            IsContentSafetyEnabled = this._contentSafetyOptions.Enabled
         };
 
         return this.Ok(response);
