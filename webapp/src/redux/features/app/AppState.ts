@@ -142,7 +142,7 @@ export const initialState: AppState = {
     tokenUsage: {},
     features: Features,
     settings: Settings,
-    serviceOptions: {
+    serviceInfo: {
         memoryStore: { types: [], selectedType: '' },
         availablePlugins: [],
         version: '',
