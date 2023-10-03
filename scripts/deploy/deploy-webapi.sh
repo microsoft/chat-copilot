@@ -12,7 +12,7 @@ usage() {
     echo "  -s, --subscription SUBSCRIPTION         Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP    Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -p, --package PACKAGE_FILE_PATH         Path to the WebAPI package file from a 'package-webapi.sh' run (default: \"./out/webapi.zip\")"
-    echo "  -o, --slot DEPLOYMENT_SLOT                      Name of the target web app deployment slot"
+    echo "  -o, --slot DEPLOYMENT_SLOT              Name of the target web app deployment slot"
 }
 
 # Parse arguments
@@ -112,7 +112,7 @@ if [ -n "$DEPLOYMENT_SLOT" ]; then
     # If slot does not exist, create it
     if [ "$SLOT_EXISTS" == "false" ]; then
         echo "Slot $DEPLOYMENT_SLOT does not exist, creating..."
-        az webapp deployment slot create --slot $DEPLOYMENT_SLOT --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME > /dev/null 2>&1
+        az webapp deployment slot create --slot $DEPLOYMENT_SLOT --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME > /dev/null
     fi
 fi
 

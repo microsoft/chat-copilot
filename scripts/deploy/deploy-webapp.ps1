@@ -115,9 +115,10 @@ if ($LASTEXITCODE -ne 0) {
 
 Pop-Location
 
-foreach ($env in (az staticwebapp environment list --name 'swa-utverse-devl' | ConvertFrom-JSON)) { 
+foreach ($env in (az staticwebapp environment list --name $webappName | ConvertFrom-JSON)) { 
     $hostname = $env.hostname
     $origin = "https://$hostname"
+    
     Write-Host "Ensuring '$origin' is included in CORS origins for webapi '$webapiName'..."
     if (-not ((az webapp cors show --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription | ConvertFrom-Json).allowedOrigins -contains $origin)) {
         az webapp cors add --name $webapiName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins $origin

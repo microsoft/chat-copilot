@@ -155,14 +155,12 @@ fi
 
 popd
 
-APPNAME="swa-utverse-devl"
-ENVIRONMENTS=$(az staticwebapp environment list --name "$APPNAME")
+ENVIRONMENTS=$(az staticwebapp environment list --name "$WEB_APP_NAME")
 
 for env in $(echo "${ENVIRONMENTS}" | jq -r '.[] | @base64'); do
     HOSTNAME=$(echo "$env" | base64 --decode | jq -r '.hostname')
-
-
     ORIGIN="https://$HOSTNAME"
+    
     echo "Ensuring origin '$ORIGIN' is included in CORS origins for webapi '$WEB_API_NAME'..."
     CORS_RESULT=$(az webapp cors show --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
     if [[ "$CORS_RESULT" == "null" ]]; then
