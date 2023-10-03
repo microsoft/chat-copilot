@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Package CiopilotChat's MemoryPipeline for deployment to Azure
-
-set -e
-
-SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT_DIRECTORY="$SCRIPT_ROOT"
-#!/bin/bash
-
-# Deploy CopilotChat's MemoryPipeline to Azure.
+# Deploy CopilotChat's Plugins to Azure.
 
 set -e
 
