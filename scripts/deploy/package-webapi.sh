@@ -25,41 +25,41 @@ usage() {
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
-        -c|--configuration)
+    -c | --configuration)
         CONFIGURATION="$2"
         shift
         shift
         ;;
-        -d|--dotnet)
+    -d | --dotnet)
         DOTNET="$2"
         shift
         shift
         ;;
-        -r|--runtime)
+    -r | --runtime)
         RUNTIME="$2"
         shift
         shift
         ;;
-        -o|--output)
+    -o | --output)
         OUTPUT_DIRECTORY="$2"
         shift
         shift
         ;;
-        -v|--version)
+    -v | --version)
         VERSION="$2"
         shift
         shift
         ;;
-        -i|--info)
+    -i | --info)
         INFO="$2"
         shift
         shift
         ;;
-        -nz|--no-zip)
+    -nz | --no-zip)
         NO_ZIP=true
         shift
         ;;
-        -nf|--no-frontend)
+    -nf|--no-frontend)
         NO_FRONTEND=true
         shift
         ;;
@@ -93,7 +93,16 @@ if [[ ! -d "$PUBLISH_ZIP_DIRECTORY" ]]; then
 fi
 
 echo "Build configuration: $CONFIGURATION"
-dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" --configuration $CONFIGURATION --framework $DOTNET --runtime $RUNTIME --self-contained --output "$PUBLISH_OUTPUT_DIRECTORY" /p:AssemblyVersion=$VERSION /p:FileVersion=$VERSION /p:InformationalVersion=$INFO
+dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" \
+    --configuration $CONFIGURATION \
+    --framework $DOTNET \
+    --runtime $RUNTIME \
+    --self-contained \
+    --output "$PUBLISH_OUTPUT_DIRECTORY" \
+    //p:AssemblyVersion=$VERSION \
+    //p:FileVersion=$VERSION \
+    //p:InformationalVersion=$INFO
+
 if [ $? -ne 0 ]; then
     exit 1
 fi

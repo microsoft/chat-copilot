@@ -118,7 +118,7 @@ Option 2: Using [mkcert](https://github.com/FiloSottile/mkcert#installation)
 ## Authentication
 
 This sample uses the Microsoft Authentication Library (MSAL) for React to authenticate users.
-Learn more about it here: https://learn.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-react.
+Learn more about it here: https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-single-page-app-react-sign-in.
 
 ## Debug the web app
 

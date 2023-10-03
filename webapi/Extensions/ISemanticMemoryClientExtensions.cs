@@ -20,6 +20,8 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class ISemanticMemoryClientExtensions
 {
+    private static readonly List<string> pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_embeddings" };
+
     /// <summary>
     /// Inject <see cref="ISemanticMemoryClient"/>.
     /// </summary>
@@ -45,8 +47,6 @@ internal static class ISemanticMemoryClientExtensions
         }
         else
         {
-            memoryBuilder.WithoutSummarizeHandlers();
-
             if (hasOcr)
             {
                 memoryBuilder.WithCustomOcr(appBuilder.Configuration);
@@ -120,6 +120,7 @@ internal static class ISemanticMemoryClientExtensions
                 DocumentId = documentId,
                 Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile(fileName, fileContent) },
                 Index = indexName,
+                Steps = pipelineSteps,
             };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
@@ -164,6 +165,7 @@ internal static class ISemanticMemoryClientExtensions
                     // Document file name not relevant, but required.
                     new DocumentUploadRequest.UploadedFile("memory.txt", stream)
                 },
+            Steps = pipelineSteps,
         };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);

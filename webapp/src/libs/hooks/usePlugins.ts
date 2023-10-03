@@ -1,10 +1,16 @@
+import { useMsal } from '@azure/msal-react';
+import * as React from 'react';
 import { useAppDispatch } from '../../redux/app/hooks';
-import { addPlugin } from '../../redux/features/plugins/pluginsSlice';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
+import { addPlugin } from '../../redux/features/plugins/pluginsSlice';
+import { AuthHelper } from '../auth/AuthHelper';
 import { PluginManifest, requiresUserLevelAuth } from '../models/PluginManifest';
+import { PluginService } from '../services/PluginService';
 
 export const usePlugins = () => {
+    const { instance, inProgress } = useMsal();
     const dispatch = useAppDispatch();
+    const pluginService = React.useMemo(() => new PluginService(), []);
 
     const addCustomPlugin = (manifest: PluginManifest, manifestDomain: string) => {
         const newPlugin: Plugin = {
@@ -24,7 +30,22 @@ export const usePlugins = () => {
         dispatch(addPlugin(newPlugin));
     };
 
+    const getPluginManifest = React.useCallback(
+        async (manifestDomain: string) => {
+            const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+            return await pluginService.getPluginManifestAsync(manifestDomain, accessToken);
+        },
+        [pluginService, inProgress, instance],
+    );
+
+    const setPluginStateAsync = async (chatId: string, pluginName: string, enabled: boolean): Promise<void> => {
+        const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+        await pluginService.setPluginStateAsync(chatId, pluginName, accessToken, enabled);
+    };
+
     return {
         addCustomPlugin,
+        getPluginManifest,
+        setPluginStateAsync,
     };
 };

@@ -35,6 +35,7 @@ You will need the following items to run the sample:
 ## Windows
 
 1. Open PowerShell as an administrator.
+   > NOTE: Ensure that you have [PowerShell Core 6+](https://github.com/PowerShell/PowerShell) installed. This is different from the default PowerShell installed on Windows.
 2. Setup your environment.
 
    ```powershell

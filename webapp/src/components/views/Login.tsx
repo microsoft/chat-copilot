@@ -5,6 +5,7 @@ import { Body1, Button, Image, Title3 } from '@fluentui/react-components';
 import React from 'react';
 import signInLogo from '../../ms-symbollockup_signin_light.svg';
 import { useSharedClasses } from '../../styles';
+import { getErrorDetails } from '../utils/TextUtils';
 
 export const Login: React.FC = () => {
     const { instance } = useMsal();
@@ -24,7 +25,9 @@ export const Login: React.FC = () => {
                 style={{ padding: 0 }}
                 appearance="transparent"
                 onClick={() => {
-                    instance.loginRedirect().catch(() => {});
+                    instance.loginRedirect().catch((e: unknown) => {
+                        alert(`Error signing in: ${getErrorDetails(e)}`);
+                    });
                 }}
                 data-testid="signinButton"
             >

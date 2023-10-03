@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Skills.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -166,7 +167,7 @@ public class SemanticMemoryRetriever
 
             foreach (var result in relevantMemories.OrderByDescending(m => m.Memory.Relevance))
             {
-                var tokenCount = TokenUtilities.TokenCount(result.Memory.Text);
+                var tokenCount = TokenUtils.TokenCount(result.Memory.Text);
                 if (remainingToken - tokenCount > 0)
                 {
                     if (result.Citation.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)

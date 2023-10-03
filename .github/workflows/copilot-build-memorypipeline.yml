@@ -1,6 +1,7 @@
-﻿name: copilot-build-memorypipeline
+name: copilot-build-memorypipeline
 
 on:
+  workflow_dispatch:  
   pull_request:
     branches: ["main"]
     paths:
@@ -25,7 +26,7 @@ jobs:
       artifact: ${{steps.artifactoutput.outputs.artifactname}}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           clean: true
           fetch-depth: 0
@@ -49,7 +50,7 @@ jobs:
           Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
 
       - name: Set .Net Core version
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
 

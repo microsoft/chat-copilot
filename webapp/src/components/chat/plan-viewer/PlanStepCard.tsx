@@ -19,9 +19,8 @@ import {
 import { Dismiss12Regular } from '@fluentui/react-icons';
 import { useState } from 'react';
 import { Constants } from '../../../Constants';
-import { IPlanInput } from '../../../libs/models/Plan';
+import { IPlanInput, Plan } from '../../../libs/models/Plan';
 import { PlanStepInput } from './PlanStepInput';
-import { Plan } from './PlanViewer';
 
 const useClasses = makeStyles({
     card: {
@@ -61,7 +60,7 @@ const useClasses = makeStyles({
         display: '-webkit-box',
         WebkitLineClamp: 1,
         WebkitBoxOrient: 'vertical',
-        width: '650px',
+        width: '100%',
         fontSize: tokens.fontSizeBase200,
     },
     dialog: {
@@ -108,8 +107,7 @@ export const PlanStepCard: React.FC<PlanStepCardProps> = ({ step, enableEdits, e
                     <CardHeader
                         header={
                             <Body1>
-                                <b className={classes.header}>Step {(step.index as number) + 1} •</b> {step.skill_name}.
-                                {step.name}
+                                <b className={classes.header}>Step {step.index + 1} •</b> {step.skill_name}.{step.name}
                                 <br />
                             </Body1>
                         }
@@ -149,7 +147,7 @@ export const PlanStepCard: React.FC<PlanStepCardProps> = ({ step, enableEdits, e
                                                     appearance="primary"
                                                     onClick={() => {
                                                         setOpenDialog(false);
-                                                        onDeleteStep(step.index as number);
+                                                        onDeleteStep(step.index);
                                                     }}
                                                 >
                                                     Yes, Delete Step

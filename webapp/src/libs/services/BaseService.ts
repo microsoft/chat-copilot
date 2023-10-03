@@ -1,30 +1,38 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { URLSearchParams } from 'url';
 import { Plugin } from '../../redux/features/plugins/PluginsState';
 
 interface ServiceRequest {
     commandPath: string;
     method?: string;
     body?: unknown;
+    query?: URLSearchParams;
 }
 
 const noResponseBodyStatusCodes = [202, 204];
 
+export const BackendServiceUrl = process.env.REACT_APP_BACKEND_URI ?? window.origin;
+
 export class BaseService {
-    // eslint-disable-next-line @typescript-eslint/space-before-function-paren
-    constructor(protected readonly serviceUrl: string) {}
+    constructor(protected readonly serviceUrl: string = BackendServiceUrl) {}
 
     protected readonly getResponseAsync = async <T>(
         request: ServiceRequest,
-        accessToken: string,
+        accessToken?: string,
         enabledPlugins?: Plugin[],
     ): Promise<T> => {
-        const { commandPath, method, body } = request;
+        const { commandPath, method, body, query } = request;
+
         const isFormData = body instanceof FormData;
 
-        const headers = new Headers({
-            Authorization: `Bearer ${accessToken}`,
-        });
+        const headers = new Headers(
+            accessToken
+                ? {
+                      Authorization: `Bearer ${accessToken}`,
+                  }
+                : undefined,
+        );
 
         if (!isFormData) {
             headers.append('Content-Type', 'application/json');
@@ -40,6 +48,10 @@ export class BaseService {
 
         try {
             const requestUrl = new URL(commandPath, this.serviceUrl);
+            if (query) {
+                requestUrl.search = `?${query.toString()}`;
+            }
+
             const response = await fetch(requestUrl, {
                 method: method ?? 'GET',
                 body: isFormData ? body : JSON.stringify(body),

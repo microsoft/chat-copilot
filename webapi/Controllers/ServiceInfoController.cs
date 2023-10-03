@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
@@ -28,19 +30,22 @@ public class ServiceInfoController : ControllerBase
     private readonly SemanticMemoryConfig memoryOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
+    private readonly IEnumerable<Plugin> availablePlugins;
 
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
         IConfiguration configuration,
         IOptions<SemanticMemoryConfig> memoryOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
-        IOptions<FrontendOptions> frontendOptions)
+        IOptions<FrontendOptions> frontendOptions,
+        IDictionary<string, Plugin> availablePlugins)
     {
         this._logger = logger;
         this.Configuration = configuration;
         this.memoryOptions = memoryOptions.Value;
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
+        this.availablePlugins = this.SanitizePlugins(availablePlugins);
     }
 
     /// <summary>
@@ -58,6 +63,7 @@ public class ServiceInfoController : ControllerBase
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
                 SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
             },
+            AvailablePlugins = this.availablePlugins,
             Version = GetAssemblyFileVersion()
         };
 
@@ -65,13 +71,13 @@ public class ServiceInfoController : ControllerBase
     }
 
     /// <summary>
-    /// Return the settings to be used by the frontend client to this service.
+    /// Return the auth config to be used by the frontend client to access this service.
     /// </summary>
-    [Route("frontendConfig")]
+    [Route("authConfig")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [AllowAnonymous]
-    public IActionResult GetFrontendConfig()
+    public IActionResult GetAuthConfig()
     {
         string authorityUriString = string.Empty;
         if (!string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.Instance) &&
@@ -82,13 +88,12 @@ public class ServiceInfoController : ControllerBase
             authorityUriString = authorityUri.ToString();
         }
 
-        var config = new FrontendConfig
+        var config = new FrontendAuthConfig
         {
             AuthType = this._chatAuthenticationOptions.Type.ToString(),
             AadAuthority = authorityUriString,
-            AadClient = this._frontendOptions.AadClientId,
+            AadClientId = this._frontendOptions.AadClientId,
             AadApiScope = $"api://{this._chatAuthenticationOptions.AzureAd!.ClientId}/{this._chatAuthenticationOptions.AzureAd!.Scopes}",
-            BackendUri = this._frontendOptions.BackendUri
         };
 
         return this.Ok(config);
@@ -100,5 +105,19 @@ public class ServiceInfoController : ControllerBase
         FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(assembly.Location);
 
         return fileVersion.FileVersion ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Sanitize the plugins to only return the name and url.
+    /// </summary>
+    /// <param name="plugins">The plugins to sanitize.</param>
+    /// <returns></returns>
+    private IEnumerable<Plugin> SanitizePlugins(IDictionary<string, Plugin> plugins)
+    {
+        return plugins.Select(p => new Plugin()
+        {
+            Name = p.Value.Name,
+            ManifestDomain = p.Value.ManifestDomain,
+        });
     }
 }

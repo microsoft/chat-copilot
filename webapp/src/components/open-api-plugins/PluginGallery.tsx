@@ -15,9 +15,14 @@ import {
     shorthands,
     tokens,
 } from '@fluentui/react-components';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { usePlugins } from '../../libs/hooks';
+import { AlertType } from '../../libs/models/AlertType';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
+import { addAlert } from '../../redux/features/app/appSlice';
+import { Plugin, PluginAuthRequirements } from '../../redux/features/plugins/PluginsState';
 import { AppsAddIn24, Dismiss24 } from '../shared/BundledIcons';
 import { AddPluginCard } from './cards/AddPluginCard';
 import { PluginCard } from './cards/PluginCard';
@@ -25,7 +30,7 @@ import { PluginCard } from './cards/PluginCard';
 const useClasses = makeStyles({
     root: {
         maxWidth: '1052px',
-        height: '632px',
+        height: '852px',
         width: 'fit-content',
         display: 'flex',
     },
@@ -57,9 +62,48 @@ const useClasses = makeStyles({
 
 export const PluginGallery: React.FC = () => {
     const classes = useClasses();
+    const dispatch = useDispatch();
 
     const { plugins } = useAppSelector((state: RootState) => state.plugins);
+    const { serviceOptions } = useAppSelector((state: RootState) => state.app);
+    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const [open, setOpen] = useState(false);
+
+    const [hostedPlugins, setHostedPlugins] = useState([] as Plugin[]);
+    const { getPluginManifest } = usePlugins();
+
+    useEffect(() => {
+        function updateHostedPlugin() {
+            setHostedPlugins([]);
+            serviceOptions.availablePlugins.forEach((availablePlugin) => {
+                getPluginManifest(availablePlugin.manifestDomain)
+                    .then((manifest) => {
+                        const newHostedPlugin = {
+                            name: manifest.name_for_human,
+                            publisher: 'N/A',
+                            description: manifest.description_for_human,
+                            enabled: conversations[selectedId].enabledHostedPlugins.includes(availablePlugin.name),
+                            authRequirements: {} as PluginAuthRequirements,
+                            icon: manifest.logo_url,
+                        } as Plugin;
+                        setHostedPlugins((hostedPlugins) => [...hostedPlugins, newHostedPlugin]);
+                    })
+                    .catch((error: Error) => {
+                        dispatch(
+                            addAlert({
+                                message: `Failed to fetch hosted plugin ${availablePlugin.name}: ${error.message}`,
+                                type: AlertType.Error,
+                            }),
+                        );
+                    });
+            });
+        }
+
+        if (open) {
+            updateHostedPlugin();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversations[selectedId], open, serviceOptions.availablePlugins]);
 
     return (
         <Dialog
@@ -109,7 +153,16 @@ export const PluginGallery: React.FC = () => {
                         <div className={classes.content}>
                             {Object.entries(plugins).map((entry) => {
                                 const plugin = entry[1];
-                                return <PluginCard key={plugin.name} plugin={plugin} />;
+                                return <PluginCard key={plugin.name} plugin={plugin} isHosted={false} />;
+                            })}
+                        </div>
+                        <Subtitle2 block className={classes.title}>
+                            Hosted Plugins
+                        </Subtitle2>
+                        <div className={classes.content}>
+                            {Object.entries(hostedPlugins).map((entry) => {
+                                const plugin = entry[1];
+                                return <PluginCard key={plugin.name} plugin={plugin} isHosted={true} />;
                             })}
                         </div>
                         <Label size="small" color="brand">

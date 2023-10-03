@@ -3,9 +3,7 @@
 import { Constants } from '../../../Constants';
 import GithubIcon from '../../../assets/plugin-icons/github.png';
 import JiraIcon from '../../../assets/plugin-icons/jira.png';
-import KlarnaIcon from '../../../assets/plugin-icons/klarna.png';
 import GraphIcon from '../../../assets/plugin-icons/ms-graph.png';
-import { AuthHelper } from '../../../libs/auth/AuthHelper';
 
 /*
  * For each OpenAPI Spec you're supporting in the Kernel,
@@ -15,14 +13,12 @@ export const enum BuiltInPlugins {
     MsGraph = 'Microsoft Graph',
     Jira = 'Jira',
     GitHub = 'GitHub',
-    Klarna = 'Klarna Shopping',
 }
 
 export const enum AuthHeaderTags {
     MsGraph = 'graph',
     Jira = 'jira',
     GitHub = 'github',
-    Klarna = 'klarna',
 }
 
 export interface PluginAuthRequirements {
@@ -61,7 +57,6 @@ export interface Plugin {
     authData?: string; // token or encoded auth header value
     apiProperties?: AdditionalApiProperties;
     manifestDomain?: string; // Website domain hosting the OpenAI Plugin Manifest file for custom plugins
-    inactive?: string; // If truthy, disables the plugin and gives the reason why
 }
 
 export interface PluginsState {
@@ -77,7 +72,6 @@ export const initialState: PluginsState = {
             publisher: 'Microsoft',
             description: 'Use your Microsoft Account to access your personal Graph information and Microsoft services.',
             enabled: false,
-            inactive: AuthHelper.IsAuthAAD ? undefined : 'Only available when using Azure AD authorization',
             authRequirements: {
                 Msal: true,
                 scopes: Constants.plugins.msGraphScopes,
@@ -132,15 +126,6 @@ export const initialState: PluginsState = {
                     helpLink: 'https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests',
                 },
             },
-        },
-        [BuiltInPlugins.Klarna]: {
-            name: BuiltInPlugins.Klarna,
-            publisher: 'Klarna',
-            description: 'Search and compare prices from thousands of online shops.',
-            enabled: false,
-            authRequirements: {},
-            icon: KlarnaIcon,
-            headerTag: AuthHeaderTags.Klarna,
         },
     },
 };

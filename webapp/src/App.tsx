@@ -109,7 +109,7 @@ const App: FC = () => {
             }
         }
 
-        if ((isAuthenticated || !AuthHelper.IsAuthAAD) && appState === AppState.LoadingChats) {
+        if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
             void Promise.all([
                 // Load all chats from memory
                 chat.loadChats().then((succeeded) => {
@@ -139,7 +139,7 @@ const App: FC = () => {
             className="app-container"
             theme={features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme}
         >
-            {AuthHelper.IsAuthAAD ? (
+            {AuthHelper.isAuthAAD() ? (
                 <>
                     <UnauthenticatedTemplate>
                         <div className={classes.container}>
@@ -191,7 +191,7 @@ const Chat = ({
                 <BackendProbe
                     uri={process.env.REACT_APP_BACKEND_URI as string}
                     onBackendFound={() => {
-                        if (AuthHelper.IsAuthAAD) {
+                        if (AuthHelper.isAuthAAD()) {
                             setAppState(AppState.SettingUserInfo);
                         } else {
                             setAppState(AppState.LoadingChats);

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
+using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -13,6 +14,12 @@ public class ServiceOptionsResponse
     /// </summary>
     [JsonPropertyName("memoryStore")]
     public MemoryStoreOptionResponse MemoryStore { get; set; } = new MemoryStoreOptionResponse();
+
+    /// <summary>
+    /// All the available plugins.
+    /// </summary>
+    [JsonPropertyName("availablePlugins")]
+    public IEnumerable<Plugin> AvailablePlugins { get; set; } = Enumerable.Empty<Plugin>();
 
     /// <summary>
     /// Version of this application.

@@ -10,12 +10,12 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
 using Microsoft.SemanticKernel.Orchestration;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
-namespace CopilotChat.WebApi.Skills;
+namespace CopilotChat.WebApi.Skills.Utils;
 
 /// <summary>
 /// Utility methods for token management.
 /// </summary>
-public static class TokenUtilities
+public static class TokenUtils
 {
     /// <summary>
     /// Semantic dependencies of ChatSkill.
@@ -51,7 +51,7 @@ public static class TokenUtilities
     {
         if (functionName == null || !semanticFunctions.TryGetValue(functionName, out string? key))
         {
-            logger.LogError("Unknown token dependency {0}. Please define function as semanticFunctions entry in TokenUtilities.cs", functionName);
+            logger.LogError("Unknown token dependency {0}. Please define function as semanticFunctions entry in TokenUtils.cs", functionName);
             return null;
         };
 

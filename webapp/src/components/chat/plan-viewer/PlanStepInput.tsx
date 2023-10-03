@@ -137,6 +137,7 @@ export const PlanStepInput: React.FC<PlanStepInputProps> = ({
                                     onSubmitEdit();
                                 }
                             }}
+                            autoFocus
                         />
                     ) : (
                         formValue

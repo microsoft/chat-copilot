@@ -1,0 +1,22 @@
+{
+    "version": "2.0",
+    "functionTimeout": "00:05:00",
+    "logging": {
+        "fileLoggingMode": "DebugOnly",
+        "logLevel": {
+            "default": "Information",
+            "WebSearcher.PluginEndpoint": "Information"
+        },
+        "applicationInsights": {
+            "samplingSettings": {
+                "isEnabled": true,
+                "excludedTypes": "Request"
+            }
+        }
+    },
+    "extensions": {
+        "http": {
+            "routePrefix": ""
+        }
+    }
+}

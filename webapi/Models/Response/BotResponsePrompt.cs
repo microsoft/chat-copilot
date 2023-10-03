@@ -35,16 +35,16 @@ public class BotResponsePrompt
     public string PastMemories { get; set; } = string.Empty;
 
     /// <summary>
-    /// Relevant additional knowledge extracted using a planner.
-    /// </summary>
-    [JsonPropertyName("externalInformation")]
-    public SemanticDependency<StepwiseThoughtProcess> ExternalInformation { get; set; }
-
-    /// <summary>
     /// Most recent messages from chat history.
     /// </summary>
     [JsonPropertyName("chatHistory")]
     public string ChatHistory { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Relevant additional knowledge extracted using a planner.
+    /// </summary>
+    [JsonPropertyName("externalInformation")]
+    public ISemanticDependency ExternalInformation { get; set; }
 
     /// <summary>
     /// The collection of context messages associated with this chat completions request.
@@ -58,7 +58,7 @@ public class BotResponsePrompt
         string audience,
         string userIntent,
         string chatMemories,
-        SemanticDependency<StepwiseThoughtProcess> externalInformation,
+        ISemanticDependency externalInformation,
         string chatHistory,
         ChatCompletionContextMessages metaPromptTemplate
     )
@@ -67,8 +67,8 @@ public class BotResponsePrompt
         this.Audience = audience;
         this.UserIntent = userIntent;
         this.PastMemories = chatMemories;
-        this.ExternalInformation = externalInformation;
         this.ChatHistory = chatHistory;
+        this.ExternalInformation = externalInformation;
         this.MetaPromptTemplate = metaPromptTemplate;
     }
 }
