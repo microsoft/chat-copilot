@@ -20,6 +20,10 @@ param webApiPackageUri string = 'https://aka.ms/copilotchat/webapi/latest'
 #disable-next-line no-hardcoded-env-urls
 param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/memorypipeline/latest'
 
+@description('Location of the websearcher plugin to deploy')
+#disable-next-line no-hardcoded-env-urls
+param webSearcherPackageUri string = 'https://aka.ms/copilotchat/websearcher/latest'
+
 @description('Underlying AI service')
 @allowed([
   'AzureOpenAI'
@@ -281,10 +285,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'Frontend:AadClientId'
         value: frontendClientId
-      }
-      {
-        name: 'Frontend:BackendUri'
-        value: 'https://${appServiceWeb.name}.azurewebsites.net/'
       }
       {
         name: 'Logging:LogLevel:Default'

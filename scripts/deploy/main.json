@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "8528359207932683544"
+      "templateHash": "17993361975515196635"
     }
   },
   "parameters": {
@@ -420,10 +420,6 @@
           {
             "name": "Frontend:AadClientId",
             "value": "[parameters('frontendClientId')]"
-          },
-          {
-            "name": "Frontend:BackendUri",
-            "value": "[format('https://{0}.azurewebsites.net/', format('app-{0}-webapi', variables('uniqueName')))]"
           },
           {
             "name": "Logging:LogLevel:Default",
@@ -1483,6 +1479,16 @@
         },
         "publicNetworkAccess": "Enabled"
       }
+    },
+    {
+      "type": "Microsoft.Bing/accounts",
+      "apiVersion": "2020-06-10",
+      "name": "[format('bing-search-{0}', variables('uniqueName'))]",
+      "location": "global",
+      "sku": {
+        "name": "S1"
+      },
+      "kind": "Bing.Search.v7"
     }
   ],
   "outputs": {

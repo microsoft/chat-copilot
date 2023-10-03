@@ -175,16 +175,6 @@ chmod +x ./deploy-plugins.sh
 ./deploy-webapi.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME}
 ```
 
-# Deploy Frontend (WebApp)
-
-## Prerequisites
-
-### Install Azure's Static Web Apps CLI
-
-```bash
-npm install -g @azure/static-web-apps-cli
-```
-
 # (Optional) Deploy Memory Pipeline
 
 > **_NOTE:_** This step can be skipped if the WebApi is not configured to run asynchronously for document processing. By default, the WebApi is configured to run asynchronously for document processing in deployment.
