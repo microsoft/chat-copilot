@@ -26,7 +26,7 @@ public class ServiceInfoResponse
     /// <summary>
     /// True if content safety if enabled, false otherwise.
     /// </summary>
-    [JsonPropertyName("contentSafetyStatus")]
+    [JsonPropertyName("isContentSafetyEnabled")]
     public bool IsContentSafetyEnabled { get; set; } = false;
 }
 

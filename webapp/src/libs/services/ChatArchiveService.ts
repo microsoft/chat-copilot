@@ -22,7 +22,7 @@ export class ChatArchiveService extends BaseService {
         const result = await this.getResponseAsync<IChatSession>(
             {
                 commandPath: 'chats/archives',
-                method: 'Post',
+                method: 'POST',
                 body: chatArchive,
             },
             accessToken,
