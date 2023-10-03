@@ -40,6 +40,11 @@ jobs:
         with:
           clean: true
 
+      - name: Install Azure CLI
+        run: |
+          sudo apt update && sudo apt-get install curl -y
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
       - uses: actions/download-artifact@v3
         with:
           name: ${{inputs.ARTIFACT_NAME}}
