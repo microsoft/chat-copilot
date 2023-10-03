@@ -1,4 +1,4 @@
-name: copilot-deploy-memorypipeline
+name: copilot-deploy-plugins
 
 on:
   workflow_call:
