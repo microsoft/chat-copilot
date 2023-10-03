@@ -21,36 +21,33 @@ using Microsoft.SemanticMemory;
 namespace CopilotChat.WebApi.Controllers;
 
 [ApiController]
-public class BotController : ControllerBase
+public class ChatArchiveController : ControllerBase
 {
-    private readonly ILogger<BotController> _logger;
+    private readonly ILogger<ChatArchiveController> _logger;
     private readonly ISemanticMemoryClient _memoryClient;
     private readonly ChatSessionRepository _chatRepository;
     private readonly ChatMessageRepository _chatMessageRepository;
     private readonly ChatParticipantRepository _chatParticipantRepository;
-    private readonly BotEmbeddingConfig _embeddingConfig;
-    private readonly BotSchemaOptions _botSchemaOptions;
+    private readonly ChatArchiveEmbeddingConfig _embeddingConfig;
     private readonly PromptsOptions _promptOptions;
 
     /// <summary>
-    /// The constructor of BotController.
+    /// Constructor.
     /// </summary>
     /// <param name="memoryClient">Memory client.</param>
     /// <param name="chatRepository">The chat session repository.</param>
     /// <param name="chatMessageRepository">The chat message repository.</param>
     /// <param name="chatParticipantRepository">The chat participant repository.</param>
-    /// <param name="botSchemaOptions">The bot schema options.</param>
     /// <param name="promptOptions">The document memory options.</param>
     /// <param name="logger">The logger.</param>
-    public BotController(
+    public ChatArchiveController(
         ISemanticMemoryClient memoryClient,
         ChatSessionRepository chatRepository,
         ChatMessageRepository chatMessageRepository,
         ChatParticipantRepository chatParticipantRepository,
-        BotEmbeddingConfig embeddingConfig,
-        IOptions<BotSchemaOptions> botSchemaOptions,
+        ChatArchiveEmbeddingConfig embeddingConfig,
         IOptions<PromptsOptions> promptOptions,
-        ILogger<BotController> logger)
+        ILogger<ChatArchiveController> logger)
     {
         this._memoryClient = memoryClient;
         this._logger = logger;
@@ -58,69 +55,64 @@ public class BotController : ControllerBase
         this._chatMessageRepository = chatMessageRepository;
         this._chatParticipantRepository = chatParticipantRepository;
         this._embeddingConfig = embeddingConfig;
-        this._botSchemaOptions = botSchemaOptions.Value;
         this._promptOptions = promptOptions.Value;
     }
 
     /// <summary>
-    /// Download a bot.
+    /// Download a chat archive.
     /// </summary>
-    /// <param name="kernel">The Semantic Kernel instance.</param>
-    /// <param name="chatId">The chat id to be downloaded.</param>
-    /// <returns>The serialized Bot object of the chat id.</returns>
+    /// <param name="chatId">The ID of chat to be downloaded.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The serialized chat archive object of the chat id.</returns>
     [HttpGet]
-    [ActionName("DownloadAsync")]
-    [Route("bot/download/{chatId:guid}")]
+    [Route("chats/{chatId:guid}/archive")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
-    public async Task<ActionResult<Bot?>> DownloadAsync(Guid chatId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ChatArchive?>> DownloadAsync(Guid chatId, CancellationToken cancellationToken = default)
     {
-        this._logger.LogDebug("Received call to download a bot");
+        this._logger.LogDebug("Received call to download a chat archive");
 
-        var memory = await this.CreateBotAsync(chatId, cancellationToken);
+        var chatArchive = await this.CreateChatArchiveAsync(chatId, cancellationToken);
 
-        return this.Ok(memory);
+        return this.Ok(chatArchive);
     }
 
     /// <summary>
-    /// Prepare the bot information of a given chat.
+    /// Prepare a chat archive.
     /// </summary>
-    /// <param name="kernel">The semantic kernel object.</param>
-    /// <param name="chatId">The chat id of the bot</param>
-    /// <returns>A Bot object that represents the chat session.</returns>
-    private async Task<Bot> CreateBotAsync(Guid chatId, CancellationToken cancellationToken)
+    /// <param name="chatId">The chat id of the chat archive</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A ChatArchive object that represents the chat session.</returns>
+    private async Task<ChatArchive> CreateChatArchiveAsync(Guid chatId, CancellationToken cancellationToken)
     {
         var chatIdString = chatId.ToString();
-        var bot = new Bot
+        var chatArchive = new ChatArchive
         {
-            // get the bot schema version
-            Schema = this._botSchemaOptions,
-
-            // get the embedding configuration
+            // Get embedding configuration
             EmbeddingConfigurations = this._embeddingConfig,
         };
 
         // get the chat title
         ChatSession chat = await this._chatRepository.FindByIdAsync(chatIdString);
-        bot.ChatTitle = chat.Title;
+        chatArchive.ChatTitle = chat.Title;
 
         // get the system description
-        bot.SystemDescription = chat.SystemDescription;
+        chatArchive.SystemDescription = chat.SystemDescription;
 
         // get the chat history
-        bot.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);
+        chatArchive.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);
 
         foreach (var memory in this._promptOptions.MemoryMap.Keys)
         {
-            bot.Embeddings.Add(
+            chatArchive.Embeddings.Add(
                 memory,
                 await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(chatIdString, memory, cancellationToken));
         }
 
         // get the document memory collection names (global scope)
-        bot.DocumentEmbeddings.Add(
+        chatArchive.DocumentEmbeddings.Add(
             "GlobalDocuments",
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
                 Guid.Empty.ToString(),
@@ -128,14 +120,14 @@ public class BotController : ControllerBase
                 cancellationToken));
 
         // get the document memory collection names (user scope)
-        bot.DocumentEmbeddings.Add(
+        chatArchive.DocumentEmbeddings.Add(
             "ChatDocuments",
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
                 chatIdString,
                 this._promptOptions.DocumentMemoryName,
                 cancellationToken));
 
-        return bot;
+        return chatArchive;
     }
 
     /// <summary>

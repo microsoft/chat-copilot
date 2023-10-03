@@ -39,13 +39,14 @@ public class DocumentController : ControllerBase
     private readonly ILogger<DocumentController> _logger;
     private readonly PromptsOptions _promptOptions;
     private readonly DocumentMemoryOptions _options;
+    private readonly ContentSafetyOptions _contentSafetyOptions;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
     private readonly DocumentTypeProvider _documentTypeProvider;
     private readonly IAuthInfo _authInfo;
-    private readonly IContentSafetyService? _contentSafetyService;
+    private readonly IContentSafetyService _contentSafetyService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentImportController"/> class.
@@ -55,35 +56,25 @@ public class DocumentController : ControllerBase
         IAuthInfo authInfo,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
         IOptions<PromptsOptions> promptOptions,
+        IOptions<ContentSafetyOptions> contentSafetyOptions,
         ChatSessionRepository sessionRepository,
         ChatMemorySourceRepository sourceRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         DocumentTypeProvider documentTypeProvider,
-        IContentSafetyService? contentSafety = null)
+        IContentSafetyService contentSafetyService)
     {
         this._logger = logger;
         this._options = documentMemoryOptions.Value;
         this._promptOptions = promptOptions.Value;
+        this._contentSafetyOptions = contentSafetyOptions.Value;
         this._sessionRepository = sessionRepository;
         this._sourceRepository = sourceRepository;
         this._messageRepository = messageRepository;
         this._participantRepository = participantRepository;
         this._documentTypeProvider = documentTypeProvider;
         this._authInfo = authInfo;
-        this._contentSafetyService = contentSafety;
-    }
-
-    /// <summary>
-    /// Gets the status of content safety.
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet]
-    [Route("contentSafety/status")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public bool ContentSafetyStatus()
-    {
-        return this._contentSafetyService?.ContentSafetyStatus(this._logger) ?? false;
+        this._contentSafetyService = contentSafetyService;
     }
 
     /// <summary>
@@ -195,23 +186,23 @@ public class DocumentController : ControllerBase
 
             // Create memory source
             MemorySource memorySource =
-                    new(
-                        chatId.ToString(),
+                    new(chatId.ToString(),
                         formFile.FileName,
                         this._authInfo.UserId,
                         MemorySourceType.File,
                         formFile.Length,
                         hyperlink: null);
 
-            if (!(await this.TryUpsertMemorySourceAsync(memorySource).ConfigureAwait(false)))
+            if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
             {
                 this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
+
                 return ImportResult.Fail;
             }
 
-            if (!(await TryStoreMemoryAsync().ConfigureAwait(false)))
+            if (!(await TryStoreMemoryAsync()))
             {
-                await this.TryRemoveMemoryAsync(memorySource).ConfigureAwait(false);
+                await this.TryRemoveMemoryAsync(memorySource);
             }
 
             return new ImportResult(memorySource.Id);
@@ -319,7 +310,7 @@ public class DocumentController : ControllerBase
 
             if (isSafetyTarget && documentImportForm.UseContentSafety)
             {
-                if (this._contentSafetyService == null || !this._contentSafetyService.ContentSafetyStatus(this._logger))
+                if (!this._contentSafetyOptions.Enabled)
                 {
                     throw new ArgumentException("Unable to analyze image. Content Safety is currently disabled in the backend.");
                 }
@@ -329,7 +320,7 @@ public class DocumentController : ControllerBase
                 {
                     // Call the content safety controller to analyze the image
                     var imageAnalysisResponse = await this._contentSafetyService.ImageAnalysisAsync(formFile, default);
-                    violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyService.Options.ViolationThreshold);
+                    violations = this._contentSafetyService.ParseViolatedCategories(imageAnalysisResponse, this._contentSafetyOptions.ViolationThreshold);
                 }
                 catch (Exception ex) when (!ex.IsCriticalException())
                 {

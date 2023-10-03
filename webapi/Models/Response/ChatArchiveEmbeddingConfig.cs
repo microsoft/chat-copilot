@@ -6,9 +6,9 @@ using System.Text.Json.Serialization;
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// The embedding configuration of a bot. Used in the Bot object for portability.
+/// Chat archive embedding configuration.
 /// </summary>
-public class BotEmbeddingConfig
+public class ChatArchiveEmbeddingConfig
 {
     /// <summary>
     /// Supported types of AI services.

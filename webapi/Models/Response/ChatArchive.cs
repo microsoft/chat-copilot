@@ -8,22 +8,22 @@ using Microsoft.SemanticMemory;
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// The data model of a bot for portability.
+/// The data model of a chat archive.
 /// </summary>
-public class Bot
+public class ChatArchive
 {
     /// <summary>
-    /// The schema information of the bot data model.
+    /// Schema information for the chat archive.
     /// </summary>
-    public BotSchemaOptions Schema { get; set; } = new BotSchemaOptions();
+    public ChatArchiveSchemaInfo Schema { get; set; } = new ChatArchiveSchemaInfo();
 
     /// <summary>
     /// The embedding configurations.
     /// </summary>
-    public BotEmbeddingConfig EmbeddingConfigurations { get; set; } = new BotEmbeddingConfig();
+    public ChatArchiveEmbeddingConfig EmbeddingConfigurations { get; set; } = new ChatArchiveEmbeddingConfig();
 
     /// <summary>
-    /// The title of the chat with the bot.
+    /// Chat title.
     /// </summary>
     public string ChatTitle { get; set; } = string.Empty;
 
@@ -38,7 +38,7 @@ public class Bot
     public List<ChatMessage> ChatHistory { get; set; } = new List<ChatMessage>();
 
     /// <summary>
-    /// The embeddings of the bot.
+    /// Chat archive's embeddings.
     /// </summary>
     public Dictionary<string, List<Citation>> Embeddings { get; set; } = new Dictionary<string, List<Citation>>();
 

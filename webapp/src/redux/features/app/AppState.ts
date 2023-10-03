@@ -3,7 +3,7 @@
 import { AuthHelper } from '../../../libs/auth/AuthHelper';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
-import { ServiceOptions } from '../../../libs/models/ServiceOptions';
+import { ServiceInfo } from '../../../libs/models/ServiceInfo';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
 
 // This is the default user information when authentication is set to 'None'.
@@ -56,7 +56,7 @@ export interface AppState {
     tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
-    serviceOptions: ServiceOptions;
+    serviceInfo: ServiceInfo;
     isMaintenance: boolean;
 }
 
@@ -142,10 +142,11 @@ export const initialState: AppState = {
     tokenUsage: {},
     features: Features,
     settings: Settings,
-    serviceOptions: {
+    serviceInfo: {
         memoryStore: { types: [], selectedType: '' },
         availablePlugins: [],
         version: '',
+        isContentSafetyEnabled: false,
     },
     isMaintenance: false,
 };

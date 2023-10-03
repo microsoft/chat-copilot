@@ -82,8 +82,9 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("chat")]
+    [Route("chats/{chatId:guid}/messages")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -98,10 +99,12 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] Ask ask)
+        [FromBody] Ask ask,
+        [FromRoute] Guid chatId)
     {
-        this._logger.LogDebug("/chat request received.");
-        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+        this._logger.LogDebug("Chat message received.");
+
+        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
 
     /// <summary>
@@ -115,8 +118,9 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("processplan")]
+    [Route("chats/{chatId:guid}/plan")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -131,10 +135,12 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] ExecutePlanParameters ask)
+        [FromBody] ExecutePlanParameters ask,
+        [FromRoute] Guid chatId)
     {
-        this._logger.LogDebug("/processplan request received.");
-        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+        this._logger.LogDebug("plan request received.");
+
+        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
 
     #region Private Methods
@@ -151,6 +157,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId"Chat ID.</>
     /// <returns>Results containing the response from the model.</returns>
     private async Task<IActionResult> HandleRequest(
        string functionName,
@@ -161,17 +168,13 @@ public class ChatController : ControllerBase, IDisposable
        ChatSessionRepository chatSessionRepository,
        ChatParticipantRepository chatParticipantRepository,
        IAuthInfo authInfo,
-       Ask ask)
+       Ask ask,
+       string chatId)
     {
         // Put ask's variables in the context we will use.
         var contextVariables = askConverter.GetContextVariables(ask);
 
         // Verify that the chat exists and that the user has access to it.
-        if (!contextVariables.TryGetValue("chatId", out string? chatId))
-        {
-            return this.BadRequest("ChatId not specified.");
-        }
-
         ChatSession? chat = null;
 #pragma warning disable CA1508 // Avoid dead conditional code. It's giving out false positives on chat == null.
         if (!(await chatSessionRepository.TryFindByIdAsync(chatId, callback: c => chat = c)) || chat == null)

@@ -10,8 +10,9 @@ export interface HostedPlugin {
     manifestDomain: string;
 }
 
-export interface ServiceOptions {
+export interface ServiceInfo {
     memoryStore: MemoryStore;
     availablePlugins: HostedPlugin[];
     version: string;
+    isContentSafetyEnabled: boolean;
 }

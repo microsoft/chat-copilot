@@ -6,7 +6,7 @@ using CopilotChat.WebApi.Models.Storage;
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// Response object definition to the 'chatSession/create' request.
+/// Response object definition to the 'chats' POST request.
 /// This groups the initial bot message with the chat session
 /// to avoid making two requests.
 /// </summary>
