@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 jobs:
-  memorypipeline:
+  plugins:
     environment: ${{inputs.ENVIRONMENT}}
     permissions:
       id-token: write
@@ -64,7 +64,7 @@ jobs:
 
       - name: "Deploy"
         run: |
-          scripts/deploy/deploy-plugins.sh \
+          sudo scripts/deploy/deploy-plugins.sh \
             --deployment-name ${{inputs.DEPLOYMENT_NAME}} \
             --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} \
             --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} \
