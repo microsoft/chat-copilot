@@ -12,6 +12,7 @@ usage() {
     echo "  -s, --subscription SUBSCRIPTION         Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP    Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -p, --package PACKAGE_FILE_PATH         Path to the WebAPI package file from a 'package-webapi.sh' run (default: \"./out/webapi.zip\")"
+    echo "  -o, --slot DEPLOYMENT_SLOT              Name of the target web app deployment slot"
 }
 
 # Parse arguments
@@ -35,6 +36,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         -p|--package)
         PACKAGE_FILE_PATH="$2"
+        shift
+        shift
+        ;;
+        -o|--slot)
+        DEPLOYMENT_SLOT="$2"
         shift
         shift
         ;;
@@ -80,14 +86,48 @@ fi
 echo "Azure WebApp name: $WEB_APP_NAME"
 
 echo "Configuring Azure WebApp to run from package..."
-az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1"
+az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1" > /dev/null
 if [ $? -ne 0 ]; then
     echo "Could not configure Azure WebApp to run from package."
     exit 1
 fi
 
+if [ -n "$DEPLOYMENT_SLOT" ]; then
+
+    echo "Checking if slot $DEPLOYMENT_SLOT exists for $WEB_APP_NAME..."
+
+    # Getting the list of slots
+    AVAILABLE_SLOTS=$(az webapp deployment slot list --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME | jq -r '.[].name')
+
+    SLOT_EXISTS=false
+
+    # Checking if the slot exists
+    for SLOT in $AVAILABLE_SLOTS; do
+        if [ "$SLOT" == "$DEPLOYMENT_SLOT" ]; then
+            SLOT_EXISTS=true
+            break
+        fi
+    done
+
+    # If slot does not exist, create it
+    if [ "$SLOT_EXISTS" == "false" ]; then
+        echo "Slot $DEPLOYMENT_SLOT does not exist, creating..."
+        az webapp deployment slot create --slot $DEPLOYMENT_SLOT --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME > /dev/null
+    fi
+fi
+
+
 echo "Deploying '$PACKAGE_FILE_PATH' to Azure WebApp '$WEB_APP_NAME'..."
-az webapp deployment source config-zip --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src $PACKAGE_FILE_PATH --debug
+
+azWebAppCommand="az webapp deployment source config-zip --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME --src $PACKAGE_FILE_PATH"
+
+if [ ! -z "$DEPLOYMENT_SLOT" ]; then
+    azWebAppCommand+=" --slot $DEPLOYMENT_SLOT"
+fi
+
+eval $azWebAppCommand
+
+
 if [ $? -ne 0 ]; then
     echo "Could not deploy '$PACKAGE_FILE_PATH' to Azure WebApp '$WEB_APP_NAME'."
     exit 1

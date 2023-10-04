@@ -20,6 +20,10 @@ param(
     $DeploymentName,
 
     [string]
+    # Name of the web app deployment slot
+    $DeploymentSlot,
+
+    [string]
     # CopilotChat WebApi package to deploy
     $PackageFilePath = "$PSScriptRoot/out/webapi.zip"
 )
@@ -38,11 +42,11 @@ if ($LASTEXITCODE -ne 0) {
 
 az account set -s $Subscription
 if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
+    exit $LASTEXITCODE
 }
 
 Write-Host "Getting Azure WebApp resource name..."
-$webappName=$(az deployment group show --name $DeploymentName --resource-group $ResourceGroupName --output json | ConvertFrom-Json).properties.outputs.webapiName.value
+$webappName = $(az deployment group show --name $DeploymentName --resource-group $ResourceGroupName --output json | ConvertFrom-Json).properties.outputs.webapiName.value
 if ($null -eq $webAppName) {
     Write-Error "Could not get Azure WebApp resource name from deployment output."
     exit 1
@@ -56,8 +60,39 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+# Check if DeploymentSlot parameter was passed
+if ($DeploymentSlot) {
+
+    Write-Host "Checking if slot $DeploymentSlot exists for '$webappName'..."
+    $availableSlots = az webapp deployment slot list --resource-group $ResourceGroupName --name $webappName | ConvertFrom-JSON | Select-Object -Property Name
+    $slotExists = false
+
+    foreach ($slot in $availableSlots) { 
+        if ($slot.name -eq $DeploymentSlot) { 
+            # Deployment slot was found we dont need to create it
+            $slotExists = true
+        } 
+    }
+
+    # Web App DeploymentSlot does not exist, create it
+    if (!$slotExists) {
+        Write-Host "DeploymentSlot $DeploymentSlot does not exist, creating..."
+        az webapp deployment slot create --slot $DeploymentSlot --resource-group $ResourceGroupName --name $webappName | Out-Null
+    }
+}
+
 Write-Host "Deploying '$PackageFilePath' to Azure WebApp '$webappName'..."
-az webapp deployment source config-zip --resource-group $ResourceGroupName --name $webappName --src $PackageFilePath
+# Setup the command as a string
+$azWebAppCommand = "az webapp deployment source config-zip --resource-group $ResourceGroupName --name $webappName --src $PackageFilePath"
+
+# Check if DeploymentSlot parameter was passed and append the argument to azwebappcommand
+if ($DeploymentSlot) {
+    $azWebAppCommand += " --slot $DeploymentSlot"
+}
+
+# Invoke the command string
+Invoke-Expression $azWebAppCommand
+
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
