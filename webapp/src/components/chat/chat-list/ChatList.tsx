@@ -13,7 +13,7 @@ import {
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useChat, useFile } from '../../../libs/hooks';
 import { AlertType } from '../../../libs/models/AlertType';
-import { Bot } from '../../../libs/models/Bot';
+import { ChatArchive } from '../../../libs/models/ChatArchive';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { addAlert } from '../../../redux/features/app/appSlice';
@@ -161,7 +161,7 @@ export const ChatList: FC = () => {
     const fileUploaderRef = useRef<HTMLInputElement>(null);
     const onUpload = useCallback(
         (file: File) => {
-            fileHandler.loadFile<Bot>(file, chat.uploadBot).catch((error) =>
+            fileHandler.loadFile<ChatArchive>(file, chat.uploadBot).catch((error) =>
                 dispatch(
                     addAlert({
                         message: `Failed to parse uploaded file. ${error instanceof Error ? error.message : ''}`,

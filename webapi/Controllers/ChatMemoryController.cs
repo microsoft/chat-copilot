@@ -51,26 +51,27 @@ public class ChatMemoryController : ControllerBase
     /// </summary>
     /// <param name="semanticTextMemory">The semantic text memory instance.</param>
     /// <param name="chatId">The chat id.</param>
-    /// <param name="memoryType">Type of memory. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
+    /// <param name="type">Type of memory. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
     [HttpGet]
-    [Route("chatMemory/{chatId:guid}/{memoryType}")]
+    [Route("chats/{chatId:guid}/memories")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
         [FromServices] ISemanticMemoryClient memoryClient,
         [FromRoute] string chatId,
-        [FromRoute] string memoryType)
+        [FromQuery] string type)
     {
         // Sanitize the log input by removing new line characters.
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
         var sanitizedChatId = GetSanitizedParameter(chatId);
+        var sanitizedMemoryType = GetSanitizedParameter(type);
 
         // Map the requested memoryType to the memory store container name
-        if (!this._promptOptions.TryGetMemoryContainerName(memoryType, out string memoryContainerName))
+        if (!this._promptOptions.TryGetMemoryContainerName(type, out string memoryContainerName))
         {
-            this._logger.LogWarning("Memory type: {0} is invalid.", memoryType);
-            return this.BadRequest($"Memory type: {memoryType} is invalid.");
+            this._logger.LogWarning("Memory type: {0} is invalid.", sanitizedMemoryType);
+            return this.BadRequest($"Memory type: {sanitizedMemoryType} is invalid.");
         }
 
         // Make sure the chat session exists.
@@ -99,8 +100,7 @@ public class ChatMemoryController : ControllerBase
                     relevanceThreshold: 0,
                     resultCount: 1,
                     chatId,
-                    memoryContainerName)
-                .ConfigureAwait(false);
+                    memoryContainerName);
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
             {

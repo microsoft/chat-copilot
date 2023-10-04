@@ -153,6 +153,31 @@ chmod +x ./deploy-webapi.sh
 ./deploy-webapi.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME}
 ```
 
+# Deploy Hosted Plugins
+
+> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The `deployWebSearcherPackage = true` setting in main.bicep ensures that the WebSearcher is deployed.
+> **_NOTE:_** More hosted plugins will be available.
+
+To deploy the plugins, build the packages first and deploy then to the Azure resources created above.
+
+## PowerShell
+
+```powershell
+./package-plugins.ps1
+
+./deploy-plugins.ps1 -Subscription {YOUR_SUBSCRIPTION_ID} -ResourceGroupName rg-{YOUR_DEPLOYMENT_NAME} -DeploymentName {YOUR_DEPLOYMENT_NAME}
+```
+
+## Bash
+
+```bash
+chmod +x ./package-plugins.sh
+./package-webapi.sh
+
+chmod +x ./deploy-plugins.sh
+./deploy-webapi.sh --subscription {YOUR_SUBSCRIPTION_ID} --resource-group rg-{YOUR_DEPLOYMENT_NAME} --deployment-name {YOUR_DEPLOYMENT_NAME}
+```
+
 # Deploy Frontend (WebApp)
 
 ## Prerequisites

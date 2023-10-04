@@ -10,9 +10,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
-using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Diagnostics;
 
 namespace CopilotChat.WebApi.Services;
@@ -35,29 +33,19 @@ public sealed class AzureContentSafety : IContentSafetyService
 {
     private const string HttpUserAgent = "Copilot Chat";
 
-    private readonly Uri _endpoint;
+    private readonly string _endpoint;
     private readonly HttpClient _httpClient;
     private readonly HttpClientHandler? _httpClientHandler;
-
-    /// <summary>
-    /// Options for the content safety.
-    /// </summary>
-    private readonly ContentSafetyOptions _contentSafetyOptions;
-
-    /// <inheritdoc/>
-    public ContentSafetyOptions Options => this._contentSafetyOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureContentSafety"/> class.
     /// </summary>
     /// <param name="endpoint">Endpoint for service API call.</param>
     /// <param name="apiKey">The API key.</param>
-    /// <param name="contentSafetyOptions">Content safety options from appsettings.</param>
     /// <param name="httpClientHandler">Instance of <see cref="HttpClientHandler"/> to setup specific scenarios.</param>
-    public AzureContentSafety(Uri endpoint, string apiKey, ContentSafetyOptions contentSafetyOptions, HttpClientHandler httpClientHandler)
+    public AzureContentSafety(string endpoint, string apiKey, HttpClientHandler httpClientHandler)
     {
         this._endpoint = endpoint;
-        this._contentSafetyOptions = contentSafetyOptions;
         this._httpClient = new(httpClientHandler);
 
         this._httpClient.DefaultRequestHeaders.Add("User-Agent", HttpUserAgent);
@@ -71,11 +59,9 @@ public sealed class AzureContentSafety : IContentSafetyService
     /// </summary>
     /// <param name="endpoint">Endpoint for service API call.</param>
     /// <param name="apiKey">The API key.</param>
-    /// <param name="contentSafetyOptions">Content safety options from appsettings.</param>
-    public AzureContentSafety(Uri endpoint, string apiKey, ContentSafetyOptions contentSafetyOptions)
+    public AzureContentSafety(string endpoint, string apiKey)
     {
         this._endpoint = endpoint;
-        this._contentSafetyOptions = contentSafetyOptions;
 
         this._httpClientHandler = new() { CheckCertificateRevocationList = true };
         this._httpClient = new(this._httpClientHandler);
@@ -87,21 +73,8 @@ public sealed class AzureContentSafety : IContentSafetyService
     }
 
     /// <inheritdoc/>
-    public bool ContentSafetyStatus(ILogger logger)
+    public List<string> ParseViolatedCategories(ImageAnalysisResponse imageAnalysisResponse, short threshold)
     {
-        if (this._endpoint is null)
-        {
-            logger.LogWarning("Content Safety is missing a valid endpoint. Please check the configuration.");
-            return false;
-        }
-
-        return this._contentSafetyOptions.Enabled;
-    }
-
-    /// <inheritdoc/>
-    public List<string> ParseViolatedCategories(ImageAnalysisResponse imageAnalysisResponse, short? threshold)
-    {
-        threshold = threshold != null ? threshold : this._contentSafetyOptions.ViolationThreshold;
         var violatedCategories = new List<string>();
 
         foreach (var property in typeof(ImageAnalysisResponse).GetProperties())
@@ -132,8 +105,8 @@ public sealed class AzureContentSafety : IContentSafetyService
             Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"),
         };
 
-        var response = await this._httpClient.SendAsync(httpRequestMessage, cancellationToken).ConfigureAwait(false);
-        var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        var response = await this._httpClient.SendAsync(httpRequestMessage, cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode || body is null)
         {
             throw new SKException($"[Content Safety] Failed to analyze image. {response.StatusCode}");

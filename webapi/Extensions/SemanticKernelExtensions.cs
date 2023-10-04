@@ -253,18 +253,14 @@ internal static class SemanticKernelExtensions
     internal static void AddContentSafety(this IServiceCollection services)
     {
         IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>();
-
-        if (options?.Enabled ?? false)
-        {
-            services.AddSingleton<IContentSafetyService, AzureContentSafety>(sp => new AzureContentSafety(new Uri(options.Endpoint), options.Key, options));
-        }
+        var options = configuration.GetSection(ContentSafetyOptions.PropertyName).Get<ContentSafetyOptions>() ?? new ContentSafetyOptions { Enabled = false };
+        services.AddSingleton<IContentSafetyService>(sp => new AzureContentSafety(options.Endpoint, options.Key));
     }
 
     /// <summary>
     /// Get the embedding model from the configuration.
     /// </summary>
-    private static BotEmbeddingConfig WithBotConfig(this IServiceProvider provider, IConfiguration configuration)
+    private static ChatArchiveEmbeddingConfig WithBotConfig(this IServiceProvider provider, IConfiguration configuration)
     {
         var memoryOptions = provider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
 
@@ -274,18 +270,18 @@ internal static class SemanticKernelExtensions
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
                 return
-                    new BotEmbeddingConfig
+                    new ChatArchiveEmbeddingConfig
                     {
-                        AIService = BotEmbeddingConfig.AIServiceType.AzureOpenAIEmbedding,
+                        AIService = ChatArchiveEmbeddingConfig.AIServiceType.AzureOpenAIEmbedding,
                         DeploymentOrModelId = azureAIOptions.Deployment,
                     };
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
                 return
-                    new BotEmbeddingConfig
+                    new ChatArchiveEmbeddingConfig
                     {
-                        AIService = BotEmbeddingConfig.AIServiceType.OpenAI,
+                        AIService = ChatArchiveEmbeddingConfig.AIServiceType.OpenAI,
                         DeploymentOrModelId = openAIOptions.EmbeddingModel,
                     };
 

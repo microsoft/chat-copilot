@@ -14,6 +14,7 @@ using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.ChatSkills;
@@ -48,19 +49,26 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
     private readonly PlannerOptions _plannerOptions;
+    private readonly IDictionary<string, Plugin> _plugins;
 
     private const string ChatSkillName = "ChatSkill";
     private const string ChatFunctionName = "Chat";
     private const string ProcessPlanFunctionName = "ProcessPlan";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
-    public ChatController(ILogger<ChatController> logger, ITelemetryService telemetryService, IOptions<ServiceOptions> serviceOptions, IOptions<PlannerOptions> plannerOptions)
+    public ChatController(
+        ILogger<ChatController> logger,
+        ITelemetryService telemetryService,
+        IOptions<ServiceOptions> serviceOptions,
+        IOptions<PlannerOptions> plannerOptions,
+        IDictionary<string, Plugin> plugins)
     {
         this._logger = logger;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
         this._plannerOptions = plannerOptions.Value;
+        this._plugins = plugins;
     }
 
     /// <summary>
@@ -74,8 +82,9 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("chat")]
+    [Route("chats/{chatId:guid}/messages")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,10 +99,12 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] Ask ask)
+        [FromBody] Ask ask,
+        [FromRoute] Guid chatId)
     {
-        this._logger.LogDebug("/chat request received.");
-        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+        this._logger.LogDebug("Chat message received.");
+
+        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
 
     /// <summary>
@@ -107,8 +118,9 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId">Chat ID.</param>
     /// <returns>Results containing the response from the model.</returns>
-    [Route("processplan")]
+    [Route("chats/{chatId:guid}/plan")]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -123,10 +135,12 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatSessionRepository chatSessionRepository,
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] ExecutePlanParameters ask)
+        [FromBody] ExecutePlanParameters ask,
+        [FromRoute] Guid chatId)
     {
-        this._logger.LogDebug("/processplan request received.");
-        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask);
+        this._logger.LogDebug("plan request received.");
+
+        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, planner, askConverter, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
     }
 
     #region Private Methods
@@ -143,6 +157,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
     /// <param name="ask">Prompt along with its parameters.</param>
+    /// <param name="chatId"Chat ID.</>
     /// <returns>Results containing the response from the model.</returns>
     private async Task<IActionResult> HandleRequest(
        string functionName,
@@ -153,37 +168,31 @@ public class ChatController : ControllerBase, IDisposable
        ChatSessionRepository chatSessionRepository,
        ChatParticipantRepository chatParticipantRepository,
        IAuthInfo authInfo,
-       Ask ask)
+       Ask ask,
+       string chatId)
     {
-        // Verify that the chat exists and that the user has access to it.
-        const string ChatIdKey = "chatId";
-        var chatIdFromContext = ask.Variables.FirstOrDefault(x => x.Key == ChatIdKey);
-        if (chatIdFromContext.Key is ChatIdKey)
-        {
-            var chatId = chatIdFromContext.Value;
-            var chat = await chatSessionRepository.FindByIdAsync(chatId);
-            if (chat == null)
-            {
-                return this.NotFound("Failed to find chat session for the chatId specified in variables.");
-            }
-
-            bool isUserInChat = await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId);
-            if (!isUserInChat)
-            {
-                return this.Forbid("User does not have access to the chatId specified in variables.");
-            }
-        }
-        else
-        {
-            return this.BadRequest("ChatId not specified.");
-        }
-
         // Put ask's variables in the context we will use.
         var contextVariables = askConverter.GetContextVariables(ask);
+
+        // Verify that the chat exists and that the user has access to it.
+        ChatSession? chat = null;
+#pragma warning disable CA1508 // Avoid dead conditional code. It's giving out false positives on chat == null.
+        if (!(await chatSessionRepository.TryFindByIdAsync(chatId, callback: c => chat = c)) || chat == null)
+        {
+            return this.NotFound("Failed to find chat session for the chatId specified in variables.");
+        }
+
+        if (!(await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId)))
+        {
+            return this.Forbid("User does not have access to the chatId specified in variables.");
+        }
 
         // Register plugins that have been enabled
         var openApiSkillsAuthHeaders = this.GetPluginAuthHeaders(this.HttpContext.Request.Headers);
         await this.RegisterPlannerSkillsAsync(planner, openApiSkillsAuthHeaders, contextVariables);
+
+        // Register hosted plugins that have been enabled
+        await this.RegisterPlannerHostedSkillsAsync(planner, chat.EnabledPlugins);
 
         // Get the function to invoke
         ISKFunction? function = null;
@@ -225,16 +234,11 @@ public class ChatController : ControllerBase, IDisposable
         AskResult chatSkillAskResult = new()
         {
             Value = result.Result,
-            Variables = result.Variables.Select(
-                v => new KeyValuePair<string, string>(v.Key, v.Value))
+            Variables = result.Variables.Select(v => new KeyValuePair<string, string>(v.Key, v.Value))
         };
 
         // Broadcast AskResult to all users
-        if (ask.Variables.Where(v => v.Key == "chatId").Any())
-        {
-            var chatId = ask.Variables.Where(v => v.Key == "chatId").First().Value;
-            await messageRelayHubContext.Clients.Group(chatId).SendAsync(GeneratingResponseClientCall, chatId, null);
-        }
+        await messageRelayHubContext.Clients.Group(chatId).SendAsync(GeneratingResponseClientCall, chatId, null);
 
         return this.Ok(chatSkillAskResult);
     }
@@ -265,34 +269,11 @@ public class ChatController : ControllerBase, IDisposable
     }
 
     /// <summary>
-    /// Fetches a plugin's manifest.
-    /// </summary>
-    /// <param name="manifestDomain">The domain of the manifest.</param>
-    /// <returns>The plugin's manifest JSON.</returns>
-    [HttpGet]
-    [Route("getPluginManifest")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPluginManifest([FromQuery] Uri manifestDomain)
-    {
-        using HttpClient client = new();
-        return this.Ok(await client.GetStringAsync(this.GetPluginManifestUri(manifestDomain.ToString())));
-    }
-
-    /// <summary>
     /// Register skills with the planner's kernel.
     /// </summary>
     private async Task RegisterPlannerSkillsAsync(CopilotChatPlanner planner, Dictionary<string, string> openApiSkillsAuthHeaders, ContextVariables variables)
     {
         // Register authenticated skills with the planner's kernel only if the request includes an auth header for the skill.
-
-        // Klarna Shopping
-        if (openApiSkillsAuthHeaders.TryGetValue("KLARNA", out string? KlarnaAuthHeader))
-        {
-            this._logger.LogInformation("Registering Klarna plugin");
-
-            // Register the Klarna shopping ChatGPT plugin with the planner's kernel. There is no authentication required for this plugin.
-            await planner.Kernel.ImportAIPluginAsync("KlarnaShoppingPlugin", new Uri("https://www.klarna.com/.well-known/ai-plugin.json"), new OpenApiSkillExecutionParameters());
-        }
 
         // GitHub
         if (openApiSkillsAuthHeaders.TryGetValue("GITHUB", out string? GithubAuthHeader))
@@ -359,7 +340,7 @@ public class ChatController : ControllerBase, IDisposable
 
                         await planner.Kernel.ImportAIPluginAsync(
                             $"{plugin.NameForModel}Plugin",
-                            this.GetPluginManifestUri(plugin.ManifestDomain),
+                            PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenApiSkillExecutionParameters
                             {
                                 HttpClient = httpClient,
@@ -374,15 +355,6 @@ public class ChatController : ControllerBase, IDisposable
                 this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
             }
         }
-    }
-
-    private Uri GetPluginManifestUri(string manifestDomain)
-    {
-        UriBuilder uriBuilder = new(Uri.UnescapeDataString(manifestDomain));
-
-        // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
-        uriBuilder.Path = "/.well-known/ai-plugin.json";
-        return uriBuilder.Uri;
     }
 
     /// <summary>
@@ -403,6 +375,37 @@ public class ChatController : ControllerBase, IDisposable
 
         GraphServiceClient graphServiceClient = new(graphHttpClient);
         return graphServiceClient;
+    }
+
+    private async Task RegisterPlannerHostedSkillsAsync(CopilotChatPlanner planner, HashSet<string> enabledPlugins)
+    {
+        foreach (string enabledPlugin in enabledPlugins)
+        {
+            if (this._plugins.TryGetValue(enabledPlugin, out Plugin? plugin))
+            {
+                this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
+
+                CustomAuthenticationProvider authenticationProvider = new(
+                    () => Task.FromResult("X-Functions-Key"),
+                    () => Task.FromResult(plugin.Key));
+
+                // Register the ChatGPT plugin with the planner's kernel.
+                await planner.Kernel.ImportAIPluginAsync(
+                    PluginUtils.SanitizePluginName(plugin.Name),
+                    PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
+                    new OpenApiSkillExecutionParameters
+                    {
+                        HttpClient = new HttpClient(),
+                        IgnoreNonCompliantErrors = true,
+                        AuthCallback = authenticationProvider.AuthenticateRequestAsync
+                    });
+            }
+            else
+            {
+                this._logger.LogWarning("Failed to find plugin {0}.", enabledPlugin);
+            }
+        }
+        return;
     }
 
     #endregion

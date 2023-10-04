@@ -123,6 +123,7 @@ $jsonConfig = "
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
     `\`"deployWebApiPackage`\`": { `\`"value`\`": $(If (!($NoDeployPackage)) {"true"} Else {"false"}) },
     `\`"deployMemoryPipelinePackage`\`": { `\`"value`\`": $(If (!($NoDeployPackage)) {"true"} Else {"false"}) },
+    `\`"deployWebSearcherPackage`\`": { `\`"value`\`": $(If (!($NoDeployPackage)) {"true"} Else {"false"}) },
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
     `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
     `\`"webApiClientId`\`": { `\`"value`\`": `\`"$BackendClientId`\`"},

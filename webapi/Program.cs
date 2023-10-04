@@ -43,6 +43,7 @@ public sealed class Program
             .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Program>>()) // some services require an un-templated ILogger
             .AddOptions(builder.Configuration)
             .AddPersistentChatStore()
+            .AddPlugins(builder.Configuration)
             .AddUtilities()
             .AddCopilotChatAuthentication(builder.Configuration)
             .AddCopilotChatAuthorization();
@@ -92,7 +93,7 @@ public sealed class Program
             .RequireAuthorization();
         app.MapHealthChecks("/healthz");
 
-        // Add CopilotChat hub for real time communication
+        // Add Chat Copilot hub for real time communication
         app.MapHub<MessageRelayHub>("/messageRelayHub");
 
         // Enable Swagger for development environments.

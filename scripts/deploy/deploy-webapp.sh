@@ -23,41 +23,41 @@ usage() {
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
-        -d|--deployment-name)
+    -d | --deployment-name)
         DEPLOYMENT_NAME="$2"
         shift
         shift
         ;;
-        -s|--subscription)
+    -s | --subscription)
         SUBSCRIPTION="$2"
         shift
         shift
         ;;
-        -rg|--resource-group)
+    -rg | --resource-group)
         RESOURCE_GROUP="$2"
         shift
         shift
         ;;
-        -c|--client-id)
+    -c | --client-id)
         FRONTEND_CLIENT_ID="$2"
         shift
         shift
         ;;
-        -v|--version)
+    -v | --version)
         VERSION="$2"
         shift
         shift
         ;;
-        -i|--version-info)
+    -i | --version-info)
         VERSION_INFO="$2"
         shift
         shift
         ;;
-        -nr|--no-redirect)
+    -nr | --no-redirect)
         NO_REDIRECT=true
         shift
         ;;
-        *)
+    *)
         echo "Unknown option $1"
         usage
         exit 1
@@ -90,6 +90,8 @@ eval WEB_API_URL=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiUrl.
 echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
+eval PLUGIN_NAMES=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.pluginNames.value[]')
+echo "PLUGIN_NAMES: $PLUGIN_NAMES"
 
 ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
 echo "Writing environment variables to '$ENV_FILE_PATH'..."
@@ -100,12 +102,12 @@ echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
 echo "Writing swa-cli.config.json..."
 SWA_CONFIG_FILE_PATH="$SCRIPT_ROOT/../../webapp/swa-cli.config.json"
 SWA_CONFIG_TEMPLATE_FILE_PATH="$SCRIPT_ROOT/../../webapp/template.swa-cli.config.json"
-swaConfig=`cat $SWA_CONFIG_TEMPLATE_FILE_PATH`
+swaConfig=$(cat $SWA_CONFIG_TEMPLATE_FILE_PATH)
 swaConfig=$(echo $swaConfig | sed "s/{{appDevserverUrl}}/https:\/\/${WEB_APP_URL}/")
 swaConfig=$(echo $swaConfig | sed "s/{{appName}}/$WEB_API_NAME/")
 swaConfig=$(echo $swaConfig | sed "s/{{resourceGroup}}/$RESOURCE_GROUP/")
 swaConfig=$(echo $swaConfig | sed "s/{{subscription-id}}/$SUBSCRIPTION/")
-echo $swaConfig > $SWA_CONFIG_FILE_PATH
+echo $swaConfig >$SWA_CONFIG_FILE_PATH
 
 pushd "$SCRIPT_ROOT/../../webapp"
 
@@ -140,6 +142,15 @@ if [[ "$CORS_RESULT" == "null" ]]; then
     az webapp cors add --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
 fi
 
+for PLUGIN_NAME in $PLUGIN_NAMES; do
+    echo "Ensuring origin '$ORIGIN' is included in CORS origins for plugin '$PLUGIN_NAME'..."
+    CORS_RESULT=$(az webapp cors show --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
+    if [[ "$CORS_RESULT" == "null" ]]; then
+        echo "Adding CORS origin '$ORIGIN' to plugin '$PLUGIN_NAME'..."
+        az webapp cors add --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
+    fi
+done
+
 echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
 eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
 
@@ -151,10 +162,10 @@ if [ "$NO_REDIRECT" != true ]; then
         BODY+="','$ORIGIN']}}"
 
         az rest \
-        --method PATCH \
-        --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
-        --headers 'Content-Type=application/json' \
-        --body $BODY
+            --method PATCH \
+            --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
+            --headers 'Content-Type=application/json' \
+            --body $BODY
     fi
     if [ $? -ne 0 ]; then
         echo "Failed to update app registration"

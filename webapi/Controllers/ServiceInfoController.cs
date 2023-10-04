@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
@@ -28,37 +30,45 @@ public class ServiceInfoController : ControllerBase
     private readonly SemanticMemoryConfig memoryOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
+    private readonly IEnumerable<Plugin> availablePlugins;
+    private readonly ContentSafetyOptions _contentSafetyOptions;
 
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
         IConfiguration configuration,
         IOptions<SemanticMemoryConfig> memoryOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
-        IOptions<FrontendOptions> frontendOptions)
+        IOptions<FrontendOptions> frontendOptions,
+        IDictionary<string, Plugin> availablePlugins,
+        IOptions<ContentSafetyOptions> contentSafetyOptions)
     {
         this._logger = logger;
         this.Configuration = configuration;
         this.memoryOptions = memoryOptions.Value;
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
+        this.availablePlugins = this.SanitizePlugins(availablePlugins);
+        this._contentSafetyOptions = contentSafetyOptions.Value;
     }
 
     /// <summary>
-    /// Return the memory store type that is configured.
+    /// Return information on running service.
     /// </summary>
-    [Route("serviceOptions")]
+    [Route("info")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetServiceOptions()
+    public IActionResult GetServiceInfo()
     {
-        var response = new ServiceOptionsResponse()
+        var response = new ServiceInfoResponse()
         {
-            MemoryStore = new MemoryStoreOptionResponse()
+            MemoryStore = new MemoryStoreInfoResponse()
             {
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
                 SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
             },
-            Version = GetAssemblyFileVersion()
+            AvailablePlugins = this.availablePlugins,
+            Version = GetAssemblyFileVersion(),
+            IsContentSafetyEnabled = this._contentSafetyOptions.Enabled
         };
 
         return this.Ok(response);
@@ -99,5 +109,19 @@ public class ServiceInfoController : ControllerBase
         FileVersionInfo fileVersion = FileVersionInfo.GetVersionInfo(assembly.Location);
 
         return fileVersion.FileVersion ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Sanitize the plugins to only return the name and url.
+    /// </summary>
+    /// <param name="plugins">The plugins to sanitize.</param>
+    /// <returns></returns>
+    private IEnumerable<Plugin> SanitizePlugins(IDictionary<string, Plugin> plugins)
+    {
+        return plugins.Select(p => new Plugin()
+        {
+            Name = p.Value.Name,
+            ManifestDomain = p.Value.ManifestDomain,
+        });
     }
 }
