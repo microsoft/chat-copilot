@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import {
+    Body1,
     Button,
     Dialog,
     DialogActions,
@@ -146,7 +147,11 @@ export const PlanDialogView: React.FC<IPlanDialogViewProps> = ({ goal, plan, set
             <Dialog open={openConfirmationDialog}>
                 <DialogSurface className={classes.confirmationDialog}>
                     <DialogBody>
-                        <DialogTitle>Are you sure you want to run this plan?</DialogTitle>
+                        <DialogTitle>
+                            Are you sure you want to run this plan?
+                            <br />
+                            <Body1>Please ensure all required plugins are enabled before proceeding.</Body1>
+                        </DialogTitle>
                         <DialogContent className={dialogClasses.content}>
                             <div className={classes.planView}>
                                 <PlanBody

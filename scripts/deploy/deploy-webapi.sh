@@ -12,6 +12,7 @@ usage() {
     echo "  -s, --subscription SUBSCRIPTION         Subscription to which to make the deployment (mandatory)"
     echo "  -rg, --resource-group RESOURCE_GROUP    Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -p, --package PACKAGE_FILE_PATH         Path to the package file from a 'package-webapi.sh' run (default: \"./out/webapi.zip\")"
+    echo "  -o, --slot DEPLOYMENT_SLOT              Name of the target web app deployment slot"
     echo "  -r, --register-app                      Switch to add our URI in app registration's redirect URIs if missing"
 }
 
@@ -41,6 +42,11 @@ while [[ $# -gt 0 ]]; do
         ;;
         -r|--package)
         REGISTER_APP=true
+        shift
+        shift
+        ;;
+        -o|--slot)
+        DEPLOYMENT_SLOT="$2"
         shift
         shift
         ;;
@@ -95,6 +101,23 @@ if [ $? -ne 0 ]; then
     echo "Could not configure Azure WebApp to run from package."
     exit 1
 fi
+
+if [ -n "$DEPLOYMENT_SLOT" ]; then
+
+    echo "Checking if slot $DEPLOYMENT_SLOT exists for $WEB_APP_NAME..."
+
+    # Getting the list of slots
+    AVAILABLE_SLOTS=$(az webapp deployment slot list --resource-group $RESOURCE_GROUP --name $WEB_APP_NAME | jq -r '.[].name')
+
+    SLOT_EXISTS=false
+
+    # Checking if the slot exists
+    for SLOT in $AVAILABLE_SLOTS; do
+        if [ "$SLOT" == "$DEPLOYMENT_SLOT" ]; then
+            SLOT_EXISTS=true
+            break
+        fi
+    done
 
 echo "Deploying '$PACKAGE_FILE_PATH' to Azure WebApp '$WEB_API_NAME'..."
 az webapp deployment source config-zip --resource-group $RESOURCE_GROUP --name $WEB_API_NAME --src $PACKAGE_FILE_PATH --debug

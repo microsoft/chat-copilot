@@ -18,13 +18,13 @@ import {
 import { Plugin } from '../../redux/features/plugins/PluginsState';
 import { AuthHelper } from '../auth/AuthHelper';
 import { AlertType } from '../models/AlertType';
-import { Bot } from '../models/Bot';
+import { ChatArchive } from '../models/ChatArchive';
 import { AuthorRoles, ChatMessageType, IChatMessage } from '../models/ChatMessage';
 import { IChatSession, ICreateChatSessionResponse } from '../models/ChatSession';
 import { IChatUser } from '../models/ChatUser';
 import { TokenUsage } from '../models/TokenUsage';
 import { IAskVariables } from '../semantic-kernel/model/Ask';
-import { BotService } from '../services/BotService';
+import { ChatArchiveService } from '../services/ChatArchiveService';
 import { ChatService } from '../services/ChatService';
 import { DocumentImportService } from '../services/DocumentImportService';
 
@@ -51,7 +51,7 @@ export const useChat = () => {
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
 
-    const botService = new BotService();
+    const botService = new ChatArchiveService();
     const chatService = new ChatService();
     const documentImportService = new DocumentImportService();
 
@@ -155,6 +155,13 @@ export const useChat = () => {
             if (responseTokenUsage) dispatch(updateTokenUsage(JSON.parse(responseTokenUsage) as TokenUsage));
         } catch (e: any) {
             dispatch(updateBotResponseStatus({ chatId, status: undefined }));
+
+            const errorDetails = getErrorDetails(e);
+            if (errorDetails.includes('Failed to process plan')) {
+                // Error should already be reflected in bot response message. Skip alert.
+                return;
+            }
+
             const action = processPlan ? 'execute plan' : 'generate bot response';
             const errorMessage = `Unable to ${action}. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
@@ -164,7 +171,7 @@ export const useChat = () => {
     const loadChats = async () => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            const chatSessions = await chatService.getAllChatsAsync(userId, accessToken);
+            const chatSessions = await chatService.getAllChatsAsync(accessToken);
 
             if (chatSessions.length > 0) {
                 const loadedConversations: Conversations = {};
@@ -223,7 +230,7 @@ export const useChat = () => {
         return undefined;
     };
 
-    const uploadBot = async (bot: Bot) => {
+    const uploadBot = async (bot: ChatArchive) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
             await botService.uploadAsync(bot, accessToken).then(async (chatSession: IChatSession) => {
@@ -327,7 +334,7 @@ export const useChat = () => {
     const joinChat = async (chatId: string) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            await chatService.joinChatAsync(userId, chatId, accessToken).then(async (result: IChatSession) => {
+            await chatService.joinChatAsync(chatId, accessToken).then(async (result: IChatSession) => {
                 // Get chat messages
                 const chatMessages = await chatService.getChatMessagesAsync(result.id, 0, 100, accessToken);
 
@@ -375,9 +382,9 @@ export const useChat = () => {
         }
     };
 
-    const getServiceOptions = async () => {
+    const getServiceInfo = async () => {
         try {
-            return await chatService.getServiceOptionsAsync(await AuthHelper.getSKaaSAccessToken(instance, inProgress));
+            return await chatService.getServiceInfoAsync(await AuthHelper.getSKaaSAccessToken(instance, inProgress));
         } catch (e: any) {
             const errorMessage = `Error getting service options. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
@@ -452,7 +459,7 @@ export const useChat = () => {
         importDocument,
         joinChat,
         editChat,
-        getServiceOptions,
+        getServiceInfo,
         deleteChat,
         processPlan,
     };

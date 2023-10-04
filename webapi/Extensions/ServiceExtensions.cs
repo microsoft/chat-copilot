@@ -50,8 +50,6 @@ public static class CopilotChatServiceExtensions
         // Azure speech token configuration
         AddOptions<AzureSpeechOptions>(AzureSpeechOptions.PropertyName);
 
-        AddOptions<BotSchemaOptions>(BotSchemaOptions.PropertyName);
-
         AddOptions<DocumentMemoryOptions>(DocumentMemoryOptions.PropertyName);
 
         // Chat prompt options
@@ -170,7 +168,7 @@ public static class CopilotChatServiceExtensions
                     policy =>
                     {
                         policy.WithOrigins(allowedOrigins)
-                            .WithMethods("POST", "GET", "PUT", "DELETE")
+                            .WithMethods("POST", "GET", "PUT", "DELETE", "PATCH")
                             .AllowAnyHeader();
                     });
             });

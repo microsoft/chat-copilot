@@ -3,13 +3,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
-using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services.MemoryMigration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -43,13 +41,12 @@ public class MaintenanceController : ControllerBase
     /// <summary>
     /// Route for reporting the status of site maintenance.
     /// </summary>
-    [Route("maintenancestatus/")]
+    [Route("maintenanceStatus")]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MaintenanceResult?>> GetMaintenanceStatusAsync(
         [FromServices] IChatMigrationMonitor migrationMonitor,
-        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         CancellationToken cancellationToken = default)
     {
         MaintenanceResult? result = null;

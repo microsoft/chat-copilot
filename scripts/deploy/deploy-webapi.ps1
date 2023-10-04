@@ -20,7 +20,10 @@ param(
     $DeploymentName,
 
     [string]
-    # Copilot Chat application package to deploy
+    # Name of the web app deployment slot
+    $DeploymentSlot,
+
+    [string]
     $PackageFilePath = "$PSScriptRoot/out/webapi.zip",
 
     [switch]
@@ -42,7 +45,7 @@ if ($LASTEXITCODE -ne 0) {
 
 az account set -s $Subscription
 if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
+    exit $LASTEXITCODE
 }
 
 Write-Host "Getting Azure WebApp resource name..."

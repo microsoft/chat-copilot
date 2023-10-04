@@ -419,7 +419,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'Klarna Shopping'
       }
       {
-        name: 'Plugins:0:Url'
+        name: 'Plugins:0:ManifestDomain'
         value: 'https://www.klarna.com'
       }
       {
@@ -427,7 +427,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'WebSearcher'
       }
       {
-        name: 'Plugins:1:Url'
+        name: 'Plugins:1:ManifestDomain'
         value: 'https://${functionAppWebSearcherPlugin.properties.defaultHostName}'
       }
       {

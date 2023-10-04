@@ -8,11 +8,6 @@ namespace CopilotChat.WebApi.Models.Request;
 public class EditChatParameters
 {
     /// <summary>
-    /// Chat ID that is persistent and unique.
-    /// </summary>
-    public string? Id { get; set; }
-
-    /// <summary>
     /// Title of the chat.
     /// </summary>
     public string? Title { get; set; }
