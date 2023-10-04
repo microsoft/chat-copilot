@@ -17,7 +17,11 @@ usage() {
     echo "  -v  --version VERSION                  Version to display in UI (default: 1.0.0)"
     echo "  -i  --version-info INFO                Additional info to put in version details"
     echo "  -nr, --no-redirect                     Do not attempt to register redirect URIs with the client application"
+    echo "  -env --environment                     Specify a SWA environment"
 }
+
+# Default the environment variable to Production
+ENVIRONMENT="Production"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -55,6 +59,11 @@ while [[ $# -gt 0 ]]; do
         ;;
     -nr | --no-redirect)
         NO_REDIRECT=true
+        shift
+        ;;
+        -env|--environment)
+        ENVIRONMENT="$2"                # Overwrite the default value if the option is provided
+        shift
         shift
         ;;
     *)
@@ -138,7 +147,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Deploying webapp..."
-swa deploy --subscription-id $SUBSCRIPTION --app-name $WEB_APP_NAME --env production
+swa deploy --subscription-id $SUBSCRIPTION --app-name $WEB_APP_NAME --env $ENVIRONMENT
 if [ $? -ne 0 ]; then
     echo "Failed to deploy webapp"
     exit 1
@@ -146,43 +155,49 @@ fi
 
 popd
 
-ORIGIN="https://$WEB_APP_URL"
-echo "Ensuring origin '$ORIGIN' is included in CORS origins for webapi '$WEB_API_NAME'..."
-CORS_RESULT=$(az webapp cors show --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
-if [[ "$CORS_RESULT" == "null" ]]; then
-    echo "Adding CORS origin '$ORIGIN' to webapi '$WEB_API_NAME'..."
-    az webapp cors add --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
-fi
+ENVIRONMENTS=$(az staticwebapp environment list --name "$WEB_APP_NAME")
 
-for PLUGIN_NAME in $PLUGIN_NAMES; do
-    echo "Ensuring origin '$ORIGIN' is included in CORS origins for plugin '$PLUGIN_NAME'..."
-    CORS_RESULT=$(az webapp cors show --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
+for env in $(echo "${ENVIRONMENTS}" | jq -r '.[] | @base64'); do
+    HOSTNAME=$(echo "$env" | base64 --decode | jq -r '.hostname')
+    ORIGIN="https://$HOSTNAME"
+    
+    echo "Ensuring origin '$ORIGIN' is included in CORS origins for webapi '$WEB_API_NAME'..."
+    CORS_RESULT=$(az webapp cors show --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
     if [[ "$CORS_RESULT" == "null" ]]; then
-        echo "Adding CORS origin '$ORIGIN' to plugin '$PLUGIN_NAME'..."
-        az webapp cors add --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
+        echo "Adding CORS origin '$ORIGIN' to webapi '$WEB_API_NAME'..."
+        az webapp cors add --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
     fi
-done
 
-echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
-eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
+    for PLUGIN_NAME in $PLUGIN_NAMES; do
+        echo "Ensuring origin '$ORIGIN' is included in CORS origins for plugin '$PLUGIN_NAME'..."
+        CORS_RESULT=$(az webapp cors show --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq '.allowedOrigins | index("$ORIGIN")')
+        if [[ "$CORS_RESULT" == "null" ]]; then
+            echo "Adding CORS origin '$ORIGIN' to plugin '$PLUGIN_NAME'..."
+            az webapp cors add --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins $ORIGIN
+        fi
+    done
 
-if [ "$NO_REDIRECT" != true ]; then
-    REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
-    if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
-        BODY="{spa:{redirectUris:['"
-        eval BODY+=$(echo $REDIRECT_URIS | jq $'join("\',\'")')
-        BODY+="','$ORIGIN']}}"
+    echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
+    eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
 
-        az rest \
+    if [ "$NO_REDIRECT" != true ]; then
+        REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
+        if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
+            BODY="{spa:{redirectUris:['"
+            eval BODY+=$(echo $REDIRECT_URIS | jq $'join("\',\'")')
+            BODY+="','$ORIGIN']}}"
+
+            az rest \
             --method PATCH \
             --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" \
             --headers 'Content-Type=application/json' \
             --body $BODY
+        fi
+        if [ $? -ne 0 ]; then
+            echo "Failed to update app registration"
+            exit 1
+        fi
     fi
-    if [ $? -ne 0 ]; then
-        echo "Failed to update app registration"
-        exit 1
-    fi
-fi
 
-echo "To verify your deployment, go to 'https://$WEB_APP_URL' in your browser."
+    echo "To verify your deployment, go to 'https://$WEB_APP_URL' in your browser."
+done
