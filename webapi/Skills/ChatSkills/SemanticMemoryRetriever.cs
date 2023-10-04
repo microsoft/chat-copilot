@@ -150,7 +150,6 @@ public class SemanticMemoryRetriever
         /// </summary>
         async Task SearchMemoryAsync(string memoryName, bool isGlobalMemory = false)
         {
-            Console.WriteLine($"Searching memory {memoryName} for query {query} and rel {this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance)}.");
             var searchResult =
                 await this._memoryClient.SearchMemoryAsync(
                     this._promptOptions.MemoryIndexName,
