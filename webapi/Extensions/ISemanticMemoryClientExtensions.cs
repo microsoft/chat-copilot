@@ -71,14 +71,14 @@ internal static class ISemanticMemoryClientExtensions
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
-    this ISemanticMemoryClient memoryClient,
-    string indexName,
-    string query,
-    float relevanceThreshold,
-    int resultCount,
-    string chatId,
-    string? memoryName = null,
-    CancellationToken cancellationToken = default)
+        this ISemanticMemoryClient memoryClient,
+        string indexName,
+        string query,
+        float relevanceThreshold,
+        int resultCount,
+        string chatId,
+        string? memoryName = null,
+        CancellationToken cancellationToken = default)
     {
         var filter =
             new MemoryFilter
