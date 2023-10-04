@@ -614,7 +614,7 @@ public class ChatSkill
 
         // Stream the response to the client
         var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, plannerDetails, chatHistory, promptTemplate);
-        ChatMessage chatMessage = await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken);
+        ChatMessage chatMessage = await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken, citationMap.Values.AsEnumerable());
 
         return chatMessage;
     }
@@ -644,12 +644,18 @@ public class ChatSkill
     /// <param name="chatContext">Chat context.</param>
     /// <param name="promptView">The prompt view.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<ChatMessage> HandleBotResponseAsync(string chatId, string userId, SKContext chatContext, BotResponsePrompt promptView, CancellationToken cancellationToken)
+    private async Task<ChatMessage> HandleBotResponseAsync(
+        string chatId,
+        string userId,
+        SKContext chatContext,
+        BotResponsePrompt promptView,
+        CancellationToken cancellationToken,
+        IEnumerable<CitationSource>? citations = null)
     {
         // Get bot response and stream to client
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
         ChatMessage chatMessage = await AsyncUtils.SafeInvokeAsync(
-            () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken), nameof(StreamResponseToClientAsync));
+            () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
 
         // Save the message into chat history
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
