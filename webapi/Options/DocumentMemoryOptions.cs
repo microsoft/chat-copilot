@@ -12,7 +12,9 @@ public class DocumentMemoryOptions
 {
     public const string PropertyName = "DocumentMemory";
 
+    /// <summary>
     /// Global documents will be tagged by an empty Guid as chat-id ("00000000-0000-0000-0000-000000000000").
+    /// </summary>
     internal readonly Guid GlobalDocumentChatId = Guid.Empty;
 
     /// <summary>
