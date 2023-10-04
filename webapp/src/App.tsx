@@ -51,7 +51,6 @@ enum AppState {
     ProbeForBackend,
     SettingUserInfo,
     ErrorLoadingAuthInfo,
-    LoadingAuthInfo,
     ErrorLoadingChats,
     ErrorLoadingUserInfo,
     LoadingChats,
@@ -62,7 +61,7 @@ enum AppState {
 const App = () => {
     const classes = useClasses();
 
-    const [appState, setAppState] = React.useState(AppState.LoadingAuthInfo);
+    const [appState, setAppState] = React.useState(AppState.ProbeForBackend);
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
@@ -73,28 +72,11 @@ const App = () => {
     const file = useFile();
 
     useEffect(() => {
-        // if the auth info is being loaded, change the state if:
-        //      1. the `authConfig` is falsy, meaning an error occurred during load, or
-        //      2. the `authConfig` has keys, meaning it was loaded successfully.
-        if (appState === AppState.LoadingAuthInfo && (!authConfig || Object.keys(authConfig).length)) {
-            setAppState(
-                authConfig
-                    ? AuthHelper.isAuthAAD()
-                        ? // if AAD is enabled, we need to set the active account in the next useEffect()
-                          AppState.SettingUserInfo
-                        : // otherwise, we can load chats immediately
-                          AppState.LoadingChats
-                    : authConfig === null
-                    ? // authConfig is null when a TypeError is thrown by fetch() in index.tsx
-                      // this indicates that the backend is not available and we need to probe until it is
-                      AppState.ProbeForBackend
-                    : // authConfig is undefined when the fetch() in index.tsx fails for some other reason
-                      AppState.ErrorLoadingAuthInfo,
-            );
+        if (!authConfig && appState !== AppState.ProbeForBackend) {
+            setAppState(AppState.ErrorLoadingAuthInfo);
+            return;
         }
-    }, [dispatch, appState, authConfig]);
 
-    useEffect(() => {
         if (isMaintenance && appState !== AppState.ProbeForBackend) {
             setAppState(AppState.ProbeForBackend);
             return;
@@ -194,7 +176,7 @@ const Chat = ({
         <div className={classes.container}>
             <div className={classes.header}>
                 <Subtitle1 as="h1">Chat Copilot</Subtitle1>
-                {appState > AppState.LoadingAuthInfo && (
+                {appState > AppState.ErrorLoadingAuthInfo && (
                     <div className={classes.cornerItems}>
                         <div className={classes.cornerItems}>
                             <PluginGallery />
@@ -210,8 +192,13 @@ const Chat = ({
             {appState === AppState.ProbeForBackend && (
                 <BackendProbe
                     onBackendFound={() => {
-                        // reload the page to fetch the auth config
-                        window.location.reload();
+                        setAppState(
+                            AuthHelper.isAuthAAD()
+                                ? // if AAD is enabled, we need to set the active account before loading chats
+                                  AppState.SettingUserInfo
+                                : // otherwise, we can load chats immediately
+                                  AppState.LoadingChats,
+                        );
                     }}
                 />
             )}
@@ -221,13 +208,10 @@ const Chat = ({
             {appState === AppState.ErrorLoadingUserInfo && (
                 <Error text={'Unable to load user info. Please try signing out and signing back in.'} />
             )}
-            {appState === AppState.ErrorLoadingAuthInfo && (
-                <Error text={'Unable to load authentication info. Please try refreshing the page.'} />
-            )}
             {appState === AppState.ErrorLoadingChats && (
                 <Error text={'Unable to load chats. Please try refreshing the page.'} />
             )}
-            {appState === AppState.LoadingAuthInfo && <Loading text="Loading authentication info..." />}
+            {appState === AppState.ErrorLoadingAuthInfo && <Loading text="Loading authentication info..." />}
             {appState === AppState.LoadingChats && <Loading text="Loading chats..." />}
             {appState === AppState.Chat && <ChatView />}
         </div>

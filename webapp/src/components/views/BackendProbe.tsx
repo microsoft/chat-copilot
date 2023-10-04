@@ -2,6 +2,8 @@
 
 import { Body1, Spinner, Title3 } from '@fluentui/react-components';
 import { FC, useEffect, useState } from 'react';
+import { renderApp } from '../../index';
+import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { BackendServiceUrl } from '../../libs/services/BaseService';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
@@ -29,44 +31,50 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
 
     useEffect(() => {
         const timer = setInterval(() => {
-            const fetchHealthAsync = async () => {
-                const result = await fetch(healthUrl);
-
-                if (result.ok) {
+            const onBackendFoundWithAuthCheck = () => {
+                if (!AuthHelper.getAuthConfig()) {
+                    // if we don't have the auth config, re-render the app:
+                    renderApp();
+                } else {
+                    // otherwise, we can load as normal
                     onBackendFound();
                 }
             };
 
-            const fetchMaintenanceAsync = async () => {
-                const result = await fetch(migrationUrl);
+            const fetchHealthAsync = async () => {
+                const result = await fetch(healthUrl);
 
-                if (!result.ok) {
-                    return;
+                if (result.ok) {
+                    onBackendFoundWithAuthCheck();
                 }
-
-                // Parse json from body
-                result
-                    .json()
-                    .then((data) => {
-                        // Body has payload.  This means the app is in maintenance
-                        setModel(data as IMaintenance);
-                    })
-                    .catch(() => {
-                        // JSON Exception since response has no body.  This means app is not in maintenance.
-                        dispatch(setMaintenance(false));
-                        onBackendFound();
-                    });
             };
 
-            if (!isMaintenance) {
-                fetchHealthAsync().catch(() => {
+            const fetchMaintenanceAsync = () =>
+                fetch(migrationUrl)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // Body has payload. This means the app is in maintenance
+                        setModel(data as IMaintenance);
+                        return true;
+                    })
+                    .catch((e: any) => {
+                        if (e instanceof TypeError) {
+                            // fetch() will reject with a TypeError when a network error is encountered
+                            // this means the backend is not found and we need to probe.
+                            return true;
+                        }
+
+                        // JSON Exception since response has no body. This means app is not in maintenance.
+                        dispatch(setMaintenance(false));
+                        onBackendFoundWithAuthCheck();
+                        return false;
+                    });
+
+            fetchMaintenanceAsync()
+                .then((shouldProbe) => (shouldProbe ? fetchHealthAsync() : Promise.resolve()))
+                .catch(() => {
                     // Ignore - this page is just a probe, so we don't need to show any errors if backend is not found
                 });
-            }
-
-            fetchMaintenanceAsync().catch(() => {
-                // Ignore - this page is just a probe, so we don't need to show any errors if backend is not found
-            });
         }, 3000);
 
         return () => {

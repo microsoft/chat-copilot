@@ -17,6 +17,7 @@ if (!localStorage.getItem('debug')) {
 }
 
 let container: HTMLElement | null = null;
+let root: ReactDOM.Root | undefined = undefined;
 let msalInstance: PublicClientApplication | undefined;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,57 +26,49 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) {
             throw new Error('Could not find root element');
         }
-        const root = ReactDOM.createRoot(container);
+        root = ReactDOM.createRoot(container);
 
-        // only fetch the auth config if we don't have it already
-        const storedAuthConfig = AuthHelper.getAuthConfig();
-        const promise =
-            storedAuthConfig && Object.keys(storedAuthConfig).length
-                ? Promise.resolve(storedAuthConfig)
-                : fetch(new URL('authConfig', BackendServiceUrl)).then((response) =>
-                      response.ok ? (response.json() as Promise<AuthConfig>) : Promise.reject(),
-                  );
-
-        promise
-            .then((authConfig) => {
-                store.dispatch(setAuthConfig(authConfig));
-
-                if (AuthHelper.isAuthAAD()) {
-                    if (!msalInstance) {
-                        msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
-                        void msalInstance.handleRedirectPromise().then((response) => {
-                            msalInstance?.setActiveAccount(response?.account as AccountInfo | null);
-                        });
-                    }
-
-                    // render with the MsalProvider if AAD is enabled
-                    root.render(
-                        <React.StrictMode>
-                            <ReduxProvider store={store}>
-                                <MsalProvider instance={msalInstance}>
-                                    <App />
-                                </MsalProvider>
-                            </ReduxProvider>
-                        </React.StrictMode>,
-                    );
-                }
-            })
-            .catch((e: unknown) => {
-                if (e instanceof TypeError) {
-                    // fetch() will reject with a TypeError when a network error is encountered
-                    // we return null to indicate that the backend is not available to trigger polling
-                    store.dispatch(setAuthConfig(null));
-                } else {
-                    store.dispatch(setAuthConfig(undefined));
-                }
-            });
-
-        root.render(
-            <React.StrictMode>
-                <ReduxProvider store={store}>
-                    <App />
-                </ReduxProvider>
-            </React.StrictMode>,
-        );
+        renderApp();
     }
 });
+
+export function renderApp() {
+    fetch(new URL('authConfig', BackendServiceUrl))
+        .then((response) => (response.ok ? (response.json() as Promise<AuthConfig>) : Promise.reject()))
+        .then((authConfig) => {
+            store.dispatch(setAuthConfig(authConfig));
+
+            if (AuthHelper.isAuthAAD()) {
+                if (!msalInstance) {
+                    msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
+                    void msalInstance.handleRedirectPromise().then((response) => {
+                        msalInstance?.setActiveAccount(response?.account as AccountInfo | null);
+                    });
+                }
+
+                // render with the MsalProvider if AAD is enabled
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                root!.render(
+                    <React.StrictMode>
+                        <ReduxProvider store={store}>
+                            <MsalProvider instance={msalInstance}>
+                                <App />
+                            </MsalProvider>
+                        </ReduxProvider>
+                    </React.StrictMode>,
+                );
+            }
+        })
+        .catch(() => {
+            store.dispatch(setAuthConfig(undefined));
+        });
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    root!.render(
+        <React.StrictMode>
+            <ReduxProvider store={store}>
+                <App />
+            </ReduxProvider>
+        </React.StrictMode>,
+    );
+}
