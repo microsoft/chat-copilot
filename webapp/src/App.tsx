@@ -50,7 +50,6 @@ export const useClasses = makeStyles({
 enum AppState {
     ProbeForBackend,
     SettingUserInfo,
-    ErrorLoadingAuthInfo,
     ErrorLoadingChats,
     ErrorLoadingUserInfo,
     LoadingChats,
@@ -65,18 +64,13 @@ const App = () => {
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { authConfig, features, isMaintenance } = useAppSelector((state: RootState) => state.app);
+    const { features, isMaintenance } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
     const file = useFile();
 
     useEffect(() => {
-        if (!authConfig && appState !== AppState.ProbeForBackend) {
-            setAppState(AppState.ErrorLoadingAuthInfo);
-            return;
-        }
-
         if (isMaintenance && appState !== AppState.ProbeForBackend) {
             setAppState(AppState.ProbeForBackend);
             return;
@@ -176,7 +170,7 @@ const Chat = ({
         <div className={classes.container}>
             <div className={classes.header}>
                 <Subtitle1 as="h1">Chat Copilot</Subtitle1>
-                {appState > AppState.ErrorLoadingAuthInfo && (
+                {appState > AppState.SettingUserInfo && (
                     <div className={classes.cornerItems}>
                         <div className={classes.cornerItems}>
                             <PluginGallery />
@@ -211,7 +205,6 @@ const Chat = ({
             {appState === AppState.ErrorLoadingChats && (
                 <Error text={'Unable to load chats. Please try refreshing the page.'} />
             )}
-            {appState === AppState.ErrorLoadingAuthInfo && <Loading text="Loading authentication info..." />}
             {appState === AppState.LoadingChats && <Loading text="Loading chats..." />}
             {appState === AppState.Chat && <ChatView />}
         </div>
