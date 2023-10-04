@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CopilotChat.WebApi.Options;
@@ -10,6 +11,11 @@ namespace CopilotChat.WebApi.Options;
 public class DocumentMemoryOptions
 {
     public const string PropertyName = "DocumentMemory";
+
+    /// <summary>
+    /// Global documents will be tagged by an empty Guid as chat-id ("00000000-0000-0000-0000-000000000000").
+    /// </summary>
+    internal static readonly Guid GlobalDocumentChatId = Guid.Empty;
 
     /// <summary>
     /// Gets or sets the name of the global document collection.
