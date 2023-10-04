@@ -24,8 +24,6 @@ public class SemanticMemoryRetriever
 {
     private readonly PromptsOptions _promptOptions;
 
-    private readonly DocumentMemoryOptions _documentMemoryOptions;
-
     private readonly ChatSessionRepository _chatSessionRepository;
 
     private readonly ISemanticMemoryClient _memoryClient;
@@ -42,13 +40,11 @@ public class SemanticMemoryRetriever
     /// </summary>
     public SemanticMemoryRetriever(
         IOptions<PromptsOptions> promptOptions,
-        IOptions<DocumentMemoryOptions> documentMemoryOptions,
         ChatSessionRepository chatSessionRepository,
         ISemanticMemoryClient memoryClient,
         ILogger logger)
     {
         this._promptOptions = promptOptions.Value;
-        this._documentMemoryOptions = documentMemoryOptions.Value;
         this._chatSessionRepository = chatSessionRepository;
         this._memoryClient = memoryClient;
         this._logger = logger;
@@ -155,7 +151,7 @@ public class SemanticMemoryRetriever
                     this._promptOptions.MemoryIndexName,
                     query,
                     this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
-                    isGlobalMemory ? this._documentMemoryOptions.GlobalDocumentChatId.ToString() : chatId,
+                    isGlobalMemory ? DocumentMemoryOptions.GlobalDocumentChatId.ToString() : chatId,
                     memoryName);
 
             foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))

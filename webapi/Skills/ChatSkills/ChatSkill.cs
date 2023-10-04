@@ -116,7 +116,6 @@ public class ChatSkill
 
         this._semanticMemoryRetriever = new SemanticMemoryRetriever(
             promptOptions,
-            documentImportOptions,
             chatSessionRepository,
             memoryClient,
             logger);

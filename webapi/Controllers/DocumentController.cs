@@ -94,7 +94,7 @@ public class DocumentController : ControllerBase
             memoryClient,
             messageRelayHubContext,
             DocumentScopes.Global,
-            this._options.GlobalDocumentChatId,
+            DocumentMemoryOptions.GlobalDocumentChatId,
             documentImportForm
         );
     }
