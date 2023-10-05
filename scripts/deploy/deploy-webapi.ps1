@@ -91,7 +91,7 @@ if ($DeploymentSlot) {
         } 
     }
 
-    # Web App Deployment slot does not exist, create it
+    # Web App deployment slot does not exist, create it
     if (!$slotExists) {
         Write-Host "Deployment slot $DeploymentSlot does not exist, creating..."
         az webapp deployment slot create --slot $DeploymentSlot --resource-group $ResourceGroupName --name $webApiName --output none
@@ -99,7 +99,7 @@ if ($DeploymentSlot) {
     }
 }
 
-Write-Host "Deploying '$PackageFilePath' to Azure WebApp '$webappName'..."
+Write-Host "Deploying '$PackageFilePath' to Azure WebApp '$webApiName'..."
 
 # Invoke the command string
 Invoke-Expression $azWebAppCommand
@@ -148,7 +148,7 @@ if ($RegisterPluginCors) {
         foreach ($address in $origins) {
             $origin = "https://$address"
             Write-Host "Ensuring '$origin' is included in CORS origins for plugin '$pluginName'..."
-            if (-not $allowedOrigins -contains $origin)) {
+            if (-not $allowedOrigins -contains $origin) {
                 az webapp cors add --name $pluginName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins $origin
             }
         }

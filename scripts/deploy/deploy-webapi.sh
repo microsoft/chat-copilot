@@ -21,42 +21,40 @@ usage() {
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
-        -d|--deployment-name)
+    -d|--deployment-name)
         DEPLOYMENT_NAME="$2"
         shift
         shift
         ;;
-        -s|--subscription)
+    -s|--subscription)
         SUBSCRIPTION="$2"
         shift
         shift
         ;;
-        -rg|--resource-group)
+    -rg|--resource-group)
         RESOURCE_GROUP="$2"
         shift
         shift
         ;;
-        -p|--package)
+    -p|--package)
         PACKAGE_FILE_PATH="$2"
-        shiftregister-app
+        shift
         shift
         ;;
-        -r|--package)
+    -r|--register-app)
         REGISTER_APP=true
         shift
-        shift
         ;;
-        -o|--slot)
+    -o|--slot)
         DEPLOYMENT_SLOT="$2"
         shift
         shift
         ;;
-        -c|--register-cors)
+    -c|--register-cors)
         REGISTER_CORS=true
         shift
-        shift
         ;;
-        *)
+    *)
         echo "Unknown option $1"
         usage
         exit 1
@@ -93,14 +91,12 @@ eval WEB_API_URL=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiUrl.
 echo "WEB_API_URL: $WEB_API_URL"
 eval WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
-PLUGIN_NAMES=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.pluginNames.value')
+eval PLUGIN_NAMES=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.pluginNames.value')
 # Ensure $WEB_API_NAME is set
 if [[ -z "$WEB_API_NAME" ]]; then
     echo "Could not get Azure WebApp resource name from deployment output."
     exit 1
 fi
-
-echo "Azure WebApp name: $WEB_API_NAME"
 
 echo "Configuring Azure WebApp to run from package..."
 az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $WEB_API_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1" --output none
@@ -112,7 +108,7 @@ fi
 # Set up deployment command as a string
 AZ_WEB_APP_CMD="az webapp deployment source config-zip --resource-group $RESOURCE_GROUP --name $WEB_API_NAME --src $PACKAGE_FILE_PATH"
 
-ORIGINS="$webApiUrl"
+ORIGINS="$WEB_API_URL"
 if [ -n "$DEPLOYMENT_SLOT" ]; then
     AZ_WEB_APP_CMD+=" --slot ${DEPLOYMENT_SLOT}"
     echo "Checking whether slot $DEPLOYMENT_SLOT exists for $WEB_APP_NAME..."
@@ -133,9 +129,9 @@ if [ -n "$DEPLOYMENT_SLOT" ]; then
     if [[ "$SLOT_EXISTS" = false ]]; then 
         echo "Deployment slot ${DEPLOYMENT_SLOT} does not exist, creating..."
         
-        $(az webapp deployment slot create --slot=$DEPLOYMENT_SLOT --resource-group=$RESOURCE_GROUP --name $WEB_API_NAME | jq '.[].defaultHostName')
+        az webapp deployment slot create --slot=$DEPLOYMENT_SLOT --resource-group=$RESOURCE_GROUP --name $WEB_API_NAME
 
-        ORIGINS=$(az webapp deployment slot list --resource-group=$RESOURCE_GROUP --name $WEB_API_NAME | jq '.[].defaultHostName')
+        eval ORIGINS=$(az webapp deployment slot list --resource-group=$RESOURCE_GROUP --name $WEB_API_NAME | jq '.[].defaultHostName')
     fi
 fi
 
@@ -148,28 +144,25 @@ fi
 
 if [[ -n $REGISTER_APP ]]; then
     WEBAPI_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --output json)
-    FRONTEND_CLIENT_ID=$(echo $WEBAPI_SETTINGS | jq -r '.[] | select(.name == "Frontend:AadClientId") | .value')
+    eval FRONTEND_CLIENT_ID=$(echo $WEBAPI_SETTINGS | jq -r '.[] | select(.name == "Frontend:AadClientId") | .value')
     eval OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
-    REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
+    eval REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris')
     NEED_TO_UPDATE_REG=false
 
-    for ADDRESS in $(echo "${ORIGINS}" | tr '\n' ' '); do
+    for ADDRESS in $(echo "$ORIGINS"); do
         ORIGIN="https://$ADDRESS"
         echo "Ensuring '$ORIGIN' is included in AAD app registration's redirect URIs..."
 
         if [[ ! "$REDIRECT_URIS" =~ "$ORIGIN" ]]; then
-            REDIRECT_URIS+=",\"$origin\""
+            REDIRECT_URIS=$(echo "$REDIRECT_URIS,$ORIGIN")
             NEED_TO_UPDATE_REG=true
         fi 
     done 
 
     if [ $NEED_TO_UPDATE_REG = true ]; then
-        BODY="{spa:{redirectUris:["
-        for URI in $(echo "${REDIRECT_URIS}" | tr '\n' ' '); do
-            BODY+="\"$URI\","
-        done
-        body="${body::-1}"
-        body+="]}}"
+        BODY="{spa:{redirectUris:['$(echo "$REDIRECT_URIS")']}}"
+        BODY="${BODY//\,/\'\',\'}"
+
 
         az rest \
             --method PATCH \
@@ -186,8 +179,8 @@ fi
 
 if [[ -n $REGISTER_CORS ]]; then
     for PLUGIN_NAME in $PLUGIN_NAMES; do
-        ALLOWED_ORIGINS=$(az webapp cors show --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq -r '.allowedOrigins[]' )
-        for ADDRESS in $(echo "${origins}" | tr '\n' ' '); do
+        eval ALLOWED_ORIGINS=$(az webapp cors show --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq -r '.allowedOrigins[]')
+        for ADDRESS in $(echo "$ORIGINS"); do
             ORIGIN="https://$ADDRESS"
             echo "Ensuring '$ORIGIN' is included in CORS origins for plugin '$PLUGIN_NAME'..."
             if [[ ! "$ALLOWED_ORIGINS" =~ "$ORIGIN" ]]; then
@@ -197,4 +190,4 @@ if [[ -n $REGISTER_CORS ]]; then
     done 
 fi
 
-echo "To verify your deployment, go to 'https://$WEB_APP_URL/' in your browser."
+echo "To verify your deployment, go to 'https://$WEB_API_URL/' in your browser."

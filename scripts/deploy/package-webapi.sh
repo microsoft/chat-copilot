@@ -110,16 +110,6 @@ fi
 if [[ -z "$NO_FRONTEND" ]]; then
     echo "Building static frontend files..."
 
-    ENV_FILE_PATH="$SCRIPT_ROOT/../../webapp/.env"
-    echo "Writing environment variables to '$ENV_FILE_PATH'..."
-    echo "REACT_APP_BACKEND_URI=<-=TOKEN=->Frontend:BackendUri</-=TOKEN=->" > $ENV_FILE_PATH
-    echo "REACT_APP_AUTH_TYPE=AzureAd" >> $ENV_FILE_PATH
-    echo "REACT_APP_AAD_AUTHORITY=<-=TOKEN=->Authentication:AzureAd:Instance</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:TenantId</-=TOKEN=->" >> $ENV_FILE_PATH
-    echo "REACT_APP_AAD_CLIENT_ID=<-=TOKEN=->Frontend:AadClientId</-=TOKEN=->" >> $ENV_FILE_PATH
-    echo "REACT_APP_AAD_API_SCOPE=api://<-=TOKEN=->Authentication:AzureAd:ClientId</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:Scopes</-=TOKEN=->" >> $ENV_FILE_PATH
-    echo "REACT_APP_SK_VERSION=$VERSION" >> $ENV_FILE_PATH
-    echo "REACT_APP_SK_BUILD_INFO=$VERSION_INFO" >> $ENV_FILE_PATH
-
     pushd "$SCRIPT_ROOT/../../webapp"
 
     echo "Installing yarn dependencies..."

@@ -59,20 +59,6 @@ if ($LASTEXITCODE -ne 0) {
 if ($BuildFrontendFiles) {
     Write-Host "Building static frontend files..."
 
-    # Set ASCII as default encoding for Out-File
-    $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
-
-    $envFilePath = "$PSScriptRoot/../../webapp/.env"
-
-    Write-Host "Writing environment variables to '$envFilePath'..."
-    "REACT_APP_BACKEND_URI=<-=TOKEN=->Frontend:BackendUri</-=TOKEN=->" | Out-File -FilePath $envFilePath
-    "REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
-    "REACT_APP_AAD_AUTHORITY=<-=TOKEN=->Authentication:AzureAd:Instance</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:TenantId</-=TOKEN=->" | Out-File -FilePath $envFilePath -Append
-    "REACT_APP_AAD_CLIENT_ID=<-=TOKEN=->Frontend:AadClientId</-=TOKEN=->" | Out-File -FilePath $envFilePath -Append
-    "REACT_APP_AAD_API_SCOPE=api://<-=TOKEN=->Authentication:AzureAd:ClientId</-=TOKEN=->/<-=TOKEN=->Authentication:AzureAd:Scopes</-=TOKEN=->" | Out-File -FilePath $envFilePath -Append
-    "REACT_APP_SK_VERSION=$Version" | Out-File -FilePath $envFilePath -Append
-    "REACT_APP_SK_BUILD_INFO=$VersionInfo" | Out-File -FilePath $envFilePath -Append
-
     Push-Location -Path "$PSScriptRoot/../../webapp"
 
     Write-Host "Installing yarn dependencies..."
