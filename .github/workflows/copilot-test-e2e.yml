@@ -71,11 +71,6 @@ jobs:
         env:
           REACT_APP_BACKEND_URI: https://localhost:40443/
 
-          REACT_APP_AUTH_TYPE: AzureAd
-          REACT_APP_AAD_AUTHORITY: https://login.microsoftonline.com/${{ secrets.COPILOT_CHAT_TEST_TENANT_ID }}
-          REACT_APP_AAD_CLIENT_ID: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID }}
-          REACT_APP_AAD_API_SCOPE: api://${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}/access_as_user
-
           REACT_APP_TEST_USER_ACCOUNT1: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1 }}
           REACT_APP_TEST_USER_ACCOUNT1_INITIALS: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1_INITIALS }}
           REACT_APP_TEST_USER_ACCOUNT2: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT2 }}

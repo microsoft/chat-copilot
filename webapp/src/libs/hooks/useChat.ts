@@ -33,6 +33,7 @@ import botIcon2 from '../../assets/bot-icons/bot-icon-2.png';
 import botIcon3 from '../../assets/bot-icons/bot-icon-3.png';
 import botIcon4 from '../../assets/bot-icons/bot-icon-4.png';
 import botIcon5 from '../../assets/bot-icons/bot-icon-5.png';
+import { getErrorDetails } from '../../components/utils/TextUtils';
 import { FeatureKeys } from '../../redux/features/app/AppState';
 import { PlanState } from '../models/Plan';
 import { ContextVariable } from '../semantic-kernel/model/AskResult';
@@ -464,9 +465,6 @@ export const useChat = () => {
         processPlan,
     };
 };
-export function getErrorDetails(e: any) {
-    return e instanceof Error ? e.message : String(e);
-}
 
 export function getFriendlyChatName(convo: ChatState): string {
     const messages = convo.messages;

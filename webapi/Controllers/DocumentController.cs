@@ -79,6 +79,7 @@ public class DocumentController : ControllerBase
 
     /// <summary>
     /// Service API for importing a document.
+    /// Documents imported through this route will be considered as global documents.
     /// </summary>
     [Route("documents")]
     [HttpPost]
@@ -89,7 +90,13 @@ public class DocumentController : ControllerBase
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromForm] DocumentImportForm documentImportForm)
     {
-        return this.DocumentImportAsync(memoryClient, messageRelayHubContext, DocumentScopes.Global, Guid.Empty, documentImportForm);
+        return this.DocumentImportAsync(
+            memoryClient,
+            messageRelayHubContext,
+            DocumentScopes.Global,
+            DocumentMemoryOptions.GlobalDocumentChatId,
+            documentImportForm
+        );
     }
 
     /// <summary>
@@ -185,13 +192,14 @@ public class DocumentController : ControllerBase
             this._logger.LogInformation("Importing document {0}", formFile.FileName);
 
             // Create memory source
-            MemorySource memorySource =
-                    new(chatId.ToString(),
-                        formFile.FileName,
-                        this._authInfo.UserId,
-                        MemorySourceType.File,
-                        formFile.Length,
-                        hyperlink: null);
+            MemorySource memorySource = new(
+                chatId.ToString(),
+                formFile.FileName,
+                this._authInfo.UserId,
+                MemorySourceType.File,
+                formFile.Length,
+                hyperlink: null
+            );
 
             if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
             {

@@ -11,12 +11,11 @@ import {
 } from '@fluentui/react-components';
 import { ChevronDown20Regular, ChevronUp20Regular, ThumbDislikeFilled, ThumbLikeFilled } from '@fluentui/react-icons';
 import React, { useState } from 'react';
-import { DefaultChatUser } from '../../../libs/auth/AuthHelper';
 import { useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { FeatureKeys } from '../../../redux/features/app/AppState';
+import { DefaultChatUser, FeatureKeys } from '../../../redux/features/app/AppState';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
