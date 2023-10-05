@@ -166,6 +166,15 @@ const Chat = ({
     appState: AppState;
     setAppState: (state: AppState) => void;
 }) => {
+    const onBackendFound = React.useCallback(() => {
+        setAppState(
+            AuthHelper.isAuthAAD()
+                ? // if AAD is enabled, we need to set the active account before loading chats
+                  AppState.SettingUserInfo
+                : // otherwise, we can load chats immediately
+                  AppState.LoadingChats,
+        );
+    }, [setAppState]);
     return (
         <div className={classes.container}>
             <div className={classes.header}>
@@ -183,19 +192,7 @@ const Chat = ({
                     </div>
                 )}
             </div>
-            {appState === AppState.ProbeForBackend && (
-                <BackendProbe
-                    onBackendFound={() => {
-                        setAppState(
-                            AuthHelper.isAuthAAD()
-                                ? // if AAD is enabled, we need to set the active account before loading chats
-                                  AppState.SettingUserInfo
-                                : // otherwise, we can load chats immediately
-                                  AppState.LoadingChats,
-                        );
-                    }}
-                />
-            )}
+            {appState === AppState.ProbeForBackend && <BackendProbe onBackendFound={onBackendFound} />}
             {appState === AppState.SettingUserInfo && (
                 <Loading text={'Hang tight while we fetch your information...'} />
             )}

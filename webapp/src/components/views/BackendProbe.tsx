@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { Body1, Spinner, Title3 } from '@fluentui/react-components';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { renderApp } from '../../index';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { BackendServiceUrl } from '../../libs/services/BaseService';
@@ -24,8 +24,8 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
     const classes = useSharedClasses();
     const dispatch = useAppDispatch();
     const { isMaintenance } = useAppSelector((state: RootState) => state.app);
-    const healthUrl = new URL('healthz', BackendServiceUrl);
-    const migrationUrl = new URL('maintenanceStatus', BackendServiceUrl);
+    const healthUrl = useMemo(() => new URL('healthz', BackendServiceUrl), []);
+    const migrationUrl = useMemo(() => new URL('maintenanceStatus', BackendServiceUrl), []);
 
     const [model, setModel] = useState<IMaintenance | null>(null);
 
@@ -55,6 +55,7 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
                     .then((data) => {
                         // Body has payload. This means the app is in maintenance
                         setModel(data as IMaintenance);
+                        clearInterval(timer);
                         return false;
                     })
                     .catch((e: any) => {
@@ -80,7 +81,7 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
         return () => {
             clearInterval(timer);
         };
-    });
+    }, [dispatch, healthUrl, migrationUrl, onBackendFound]);
 
     return (
         <>
