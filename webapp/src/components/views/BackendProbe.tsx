@@ -55,7 +55,7 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
                     .then((data) => {
                         // Body has payload. This means the app is in maintenance
                         setModel(data as IMaintenance);
-                        return true;
+                        return false;
                     })
                     .catch((e: any) => {
                         if (e instanceof TypeError) {

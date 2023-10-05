@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services.MemoryMigration;
@@ -23,19 +22,16 @@ public class MaintenanceController : ControllerBase
 
     private readonly ILogger<MaintenanceController> _logger;
     private readonly IOptions<ServiceOptions> _serviceOptions;
-    private readonly IAuthInfo _authInfo;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MaintenanceController"/> class.
     /// </summary>
     public MaintenanceController(
         ILogger<MaintenanceController> logger,
-        IOptions<ServiceOptions> serviceOptions,
-        IAuthInfo authInfo)
+        IOptions<ServiceOptions> serviceOptions)
     {
         this._logger = logger;
         this._serviceOptions = serviceOptions;
-        this._authInfo = authInfo;
     }
 
     /// <summary>
