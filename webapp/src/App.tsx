@@ -4,7 +4,7 @@ import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, use
 import { FluentProvider, Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 import * as React from 'react';
-import { FC, useEffect } from 'react';
+import { useEffect } from 'react';
 import { UserSettingsMenu } from './components/header/UserSettingsMenu';
 import { PluginGallery } from './components/open-api-plugins/PluginGallery';
 import { BackendProbe, ChatView, Error, Loading, Login } from './components/views';
@@ -50,20 +50,21 @@ export const useClasses = makeStyles({
 enum AppState {
     ProbeForBackend,
     SettingUserInfo,
+    ErrorLoadingChats,
     ErrorLoadingUserInfo,
     LoadingChats,
     Chat,
     SigningOut,
 }
 
-const App: FC = () => {
+const App = () => {
     const classes = useClasses();
 
     const [appState, setAppState] = React.useState(AppState.ProbeForBackend);
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { activeUserInfo, features, isMaintenance } = useAppSelector((state: RootState) => state.app);
+    const { features, isMaintenance } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
@@ -75,48 +76,45 @@ const App: FC = () => {
             return;
         }
 
-        if (isAuthenticated) {
-            if (appState === AppState.SettingUserInfo) {
-                if (activeUserInfo === undefined) {
-                    const account = instance.getActiveAccount();
-                    if (!account) {
-                        setAppState(AppState.ErrorLoadingUserInfo);
-                    } else {
-                        dispatch(
-                            setActiveUserInfo({
-                                id: `${account.localAccountId}.${account.tenantId}`,
-                                email: account.username, // Username in an AccountInfo object is the email address
-                                username: account.name ?? account.username,
-                            }),
-                        );
+        if (isAuthenticated && appState === AppState.SettingUserInfo) {
+            const account = instance.getActiveAccount();
+            if (!account) {
+                setAppState(AppState.ErrorLoadingUserInfo);
+            } else {
+                dispatch(
+                    setActiveUserInfo({
+                        id: `${account.localAccountId}.${account.tenantId}`,
+                        email: account.username, // username is the email address
+                        username: account.name ?? account.username,
+                    }),
+                );
 
-                        // Privacy disclaimer for internal Microsoft users
-                        if (account.username.split('@')[1] === 'microsoft.com') {
-                            dispatch(
-                                addAlert({
-                                    message:
-                                        'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
-                                    type: AlertType.Info,
-                                }),
-                            );
-                        }
-
-                        setAppState(AppState.LoadingChats);
-                    }
-                } else {
-                    setAppState(AppState.LoadingChats);
+                // Privacy disclaimer for internal Microsoft users
+                if (account.username.split('@')[1] === 'microsoft.com') {
+                    dispatch(
+                        addAlert({
+                            message:
+                                'By using Chat Copilot, you agree to protect sensitive data, not store it in chat, and allow chat history collection for service improvements. This tool is for internal use only.',
+                            type: AlertType.Info,
+                        }),
+                    );
                 }
+
+                setAppState(AppState.LoadingChats);
             }
         }
 
         if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
             void Promise.all([
                 // Load all chats from memory
-                chat.loadChats().then((succeeded) => {
-                    if (succeeded) {
+                chat
+                    .loadChats()
+                    .then(() => {
                         setAppState(AppState.Chat);
-                    }
-                }),
+                    })
+                    .catch(() => {
+                        setAppState(AppState.ErrorLoadingChats);
+                    }),
 
                 // Check if content safety is enabled
                 file.getContentSafetyStatus(),
@@ -133,7 +131,7 @@ const App: FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
 
-    // TODO: [Issue #41] handle error case of missing account information
+    const content = <Chat classes={classes} appState={appState} setAppState={setAppState} />;
     return (
         <FluentProvider
             className="app-container"
@@ -150,12 +148,10 @@ const App: FC = () => {
                             {appState !== AppState.SigningOut && <Login />}
                         </div>
                     </UnauthenticatedTemplate>
-                    <AuthenticatedTemplate>
-                        <Chat classes={classes} appState={appState} setAppState={setAppState} />
-                    </AuthenticatedTemplate>
+                    <AuthenticatedTemplate>{content}</AuthenticatedTemplate>
                 </>
             ) : (
-                <Chat classes={classes} appState={appState} setAppState={setAppState} />
+                content
             )}
         </FluentProvider>
     );
@@ -189,13 +185,14 @@ const Chat = ({
             </div>
             {appState === AppState.ProbeForBackend && (
                 <BackendProbe
-                    uri={process.env.REACT_APP_BACKEND_URI as string}
                     onBackendFound={() => {
-                        if (AuthHelper.isAuthAAD()) {
-                            setAppState(AppState.SettingUserInfo);
-                        } else {
-                            setAppState(AppState.LoadingChats);
-                        }
+                        setAppState(
+                            AuthHelper.isAuthAAD()
+                                ? // if AAD is enabled, we need to set the active account before loading chats
+                                  AppState.SettingUserInfo
+                                : // otherwise, we can load chats immediately
+                                  AppState.LoadingChats,
+                        );
                     }}
                 />
             )}
@@ -203,9 +200,12 @@ const Chat = ({
                 <Loading text={'Hang tight while we fetch your information...'} />
             )}
             {appState === AppState.ErrorLoadingUserInfo && (
-                <Error text={'Oops, something went wrong. Please try signing out and signing back in.'} />
+                <Error text={'Unable to load user info. Please try signing out and signing back in.'} />
             )}
-            {appState === AppState.LoadingChats && <Loading text="Loading Chats..." />}
+            {appState === AppState.ErrorLoadingChats && (
+                <Error text={'Unable to load chats. Please try refreshing the page.'} />
+            )}
+            {appState === AppState.LoadingChats && <Loading text="Loading chats..." />}
             {appState === AppState.Chat && <ChatView />}
         </div>
     );
