@@ -11,7 +11,7 @@ This document details how to deploy Chat Copilot's required resources to your Az
 
 - `F1` and `D1` SKUs for the App Service Plans are not currently supported for this deployment in order to support private networking.
 
-- Chat Copilot deployments use Azure Active Directory for authentication. All endpoints (except `/healthz`) require authentication to access.
+- Chat Copilot deployments use Azure Active Directory for authentication. All endpoints (except `/healthz` and `/authInfo`) require authentication to access.
 
 # Configure your environment
 

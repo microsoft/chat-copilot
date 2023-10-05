@@ -4,6 +4,7 @@ import {
     InteractionStatus,
     PopupRequest,
 } from '@azure/msal-browser';
+import { AuthHelper } from './AuthHelper';
 
 enum TokenErrors {
     InteractionInProgress = 'interaction_in_progress',
@@ -21,8 +22,9 @@ export const getAccessTokenUsingMsal = async (
 ) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const account = msalInstance.getActiveAccount()!;
+    const authority = AuthHelper.getAuthConfig()?.aadAuthority;
     const accessTokenRequest: PopupRequest = {
-        authority: process.env.REACT_APP_AAD_AUTHORITY,
+        authority,
         scopes,
         extraScopesToConsent,
         account,

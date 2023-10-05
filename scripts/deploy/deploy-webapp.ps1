@@ -65,22 +65,12 @@ foreach ($pluginName in $pluginNames) {
     Write-Host "pluginName: $pluginName"
 }
 
-$webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
-$webapiClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:ClientId).value
-$webapiTenantId = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:TenantId).value
-$webapiInstance = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:Instance).value
-$webapiScope = ($webapiSettings | Where-Object -Property name -EQ -Value Authentication:AzureAd:Scopes).value
-
 # Set ASCII as default encoding for Out-File
 $PSDefaultParameterValues['Out-File:Encoding'] = 'ascii'
 
 $envFilePath = "$PSScriptRoot/../../webapp/.env"
 Write-Host "Writing environment variables to '$envFilePath'..."
 "REACT_APP_BACKEND_URI=https://$webapiUrl/" | Out-File -FilePath $envFilePath
-"REACT_APP_AUTH_TYPE=AzureAd" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_AUTHORITY=$($webapiInstance.Trim("/"))/$webapiTenantId" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_CLIENT_ID=$FrontendClientId" | Out-File -FilePath $envFilePath -Append
-"REACT_APP_AAD_API_SCOPE=api://$webapiClientId/$webapiScope" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_VERSION=$Version" | Out-File -FilePath $envFilePath -Append
 "REACT_APP_SK_BUILD_INFO=$VersionInfo" | Out-File -FilePath $envFilePath -Append
 

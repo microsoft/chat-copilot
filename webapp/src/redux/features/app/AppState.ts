@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { AuthHelper } from '../../../libs/auth/AuthHelper';
+import { AuthConfig } from '../../../libs/auth/AuthHelper';
 import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { ServiceInfo } from '../../../libs/models/ServiceInfo';
@@ -53,6 +53,7 @@ export interface Setting {
 export interface AppState {
     alerts: Alert[];
     activeUserInfo?: ActiveUserInfo;
+    authConfig?: AuthConfig | null;
     tokenUsage: TokenUsage;
     features: Record<FeatureKeys, Feature>;
     settings: Setting[];
@@ -138,7 +139,8 @@ export const Settings = [
 
 export const initialState: AppState = {
     alerts: [],
-    activeUserInfo: AuthHelper.isAuthAAD() ? undefined : DefaultActiveUserInfo,
+    activeUserInfo: DefaultActiveUserInfo,
+    authConfig: {} as AuthConfig,
     tokenUsage: {},
     features: Features,
     settings: Settings,

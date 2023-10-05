@@ -1,24 +1,24 @@
-import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { AccountInfo, PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
-import { FluentProvider } from '@fluentui/react-components';
 import ReactDOM from 'react-dom/client';
 import { Provider as ReduxProvider } from 'react-redux';
 import App from './App';
 import { Constants } from './Constants';
-import MissingEnvVariablesError from './components/views/MissingEnvVariablesError';
 import './index.css';
-import { AuthHelper } from './libs/auth/AuthHelper';
+import { AuthConfig, AuthHelper } from './libs/auth/AuthHelper';
 import { store } from './redux/app/store';
 
 import React from 'react';
-import { getMissingEnvVariables } from './checkEnv';
-import { semanticKernelLightTheme } from './styles';
+import { BackendServiceUrl } from './libs/services/BaseService';
+import { setAuthConfig } from './redux/features/app/appSlice';
 
 if (!localStorage.getItem('debug')) {
     localStorage.setItem('debug', `${Constants.debug.root}:*`);
 }
 
 let container: HTMLElement | null = null;
+let root: ReactDOM.Root | undefined = undefined;
+let msalInstance: PublicClientApplication | undefined;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!container) {
@@ -26,51 +26,49 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) {
             throw new Error('Could not find root element');
         }
-        const root = ReactDOM.createRoot(container);
+        root = ReactDOM.createRoot(container);
 
-        const missingEnvVariables = getMissingEnvVariables();
-        const validEnvFile = missingEnvVariables.length === 0;
-        const shouldUseMsal = validEnvFile && AuthHelper.isAuthAAD();
-
-        let msalInstance: IPublicClientApplication | null = null;
-        if (shouldUseMsal) {
-            msalInstance = new PublicClientApplication(AuthHelper.msalConfig);
-
-            void msalInstance.handleRedirectPromise().then((response) => {
-                if (response) {
-                    msalInstance?.setActiveAccount(response.account);
-                }
-            });
-        }
-
-        root.render(
-            <React.StrictMode>
-                {validEnvFile ? (
-                    <ReduxProvider store={store}>
-                        {/* eslint-disable @typescript-eslint/no-non-null-assertion */}
-                        {shouldUseMsal ? (
-                            <MsalProvider instance={msalInstance!}>
-                                <AppWithTheme />
-                            </MsalProvider>
-                        ) : (
-                            <AppWithTheme />
-                        )}
-                        {/* eslint-enable @typescript-eslint/no-non-null-assertion */}
-                    </ReduxProvider>
-                ) : (
-                    <FluentProvider className="app-container" theme={semanticKernelLightTheme}>
-                        <MissingEnvVariablesError missingVariables={missingEnvVariables} />
-                    </FluentProvider>
-                )}
-            </React.StrictMode>,
-        );
+        renderApp();
     }
 });
 
-const AppWithTheme = () => {
-    return (
-        <FluentProvider className="app-container" theme={semanticKernelLightTheme}>
-            <App />
-        </FluentProvider>
+export function renderApp() {
+    fetch(new URL('authConfig', BackendServiceUrl))
+        .then((response) => (response.ok ? (response.json() as Promise<AuthConfig>) : Promise.reject()))
+        .then((authConfig) => {
+            store.dispatch(setAuthConfig(authConfig));
+
+            if (AuthHelper.isAuthAAD()) {
+                if (!msalInstance) {
+                    msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
+                    void msalInstance.handleRedirectPromise().then((response) => {
+                        msalInstance?.setActiveAccount(response?.account as AccountInfo | null);
+                    });
+                }
+
+                // render with the MsalProvider if AAD is enabled
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                root!.render(
+                    <React.StrictMode>
+                        <ReduxProvider store={store}>
+                            <MsalProvider instance={msalInstance}>
+                                <App />
+                            </MsalProvider>
+                        </ReduxProvider>
+                    </React.StrictMode>,
+                );
+            }
+        })
+        .catch(() => {
+            store.dispatch(setAuthConfig(undefined));
+        });
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    root!.render(
+        <React.StrictMode>
+            <ReduxProvider store={store}>
+                <App />
+            </ReduxProvider>
+        </React.StrictMode>,
     );
-};
+}

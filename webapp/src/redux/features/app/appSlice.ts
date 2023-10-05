@@ -71,6 +71,9 @@ export const appSlice = createSlice({
         setServiceInfo: (state: AppState, action: PayloadAction<ServiceInfo>) => {
             state.serviceInfo = action.payload;
         },
+        setAuthConfig: (state: AppState, action: PayloadAction<AppState['authConfig']>) => {
+            state.authConfig = action.payload;
+        },
     },
 });
 
@@ -84,6 +87,7 @@ export const {
     updateTokenUsage,
     setServiceInfo,
     setMaintenance,
+    setAuthConfig,
 } = appSlice.actions;
 
 export default appSlice.reducer;
