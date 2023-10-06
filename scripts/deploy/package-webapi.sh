@@ -18,7 +18,7 @@ usage() {
     echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
     echo "  -i  --info INFO                        Additional info to put in version details"
     echo "  -nz, --no-zip                          Do not zip package (default: false)"
-    echo "  -nf, --no-frontend                     Do not build frontend files"
+    echo "  -s, --skip-frontend                    Do not build frontend files"
 }
 
 # Parse arguments
@@ -59,8 +59,8 @@ while [[ $# -gt 0 ]]; do
         NO_ZIP=true
         shift
         ;;
-    -nf|--no-frontend)
-        NO_FRONTEND=true
+    -s|--skip-frontend)
+        SKIP_FRONTEND=true
         shift
         ;;
         *)
@@ -107,7 +107,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [[ -z "$NO_FRONTEND" ]]; then
+if [[ -z "$SKIP_FRONTEND" ]]; then
     echo "Building static frontend files..."
 
     pushd "$SCRIPT_ROOT/../../webapp"

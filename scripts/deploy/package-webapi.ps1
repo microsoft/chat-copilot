@@ -29,8 +29,8 @@ param(
     $InformationalVersion = "",
     
     [bool]
-    # Whether to build frontend files (true by default)
-    $BuildFrontendFiles = $true
+    # Whether to skip building frontend files (false by default)
+    $SkipFrontendFiles = $false
 )
 
 Write-Host "Building backend executables..."
@@ -56,7 +56,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-if ($BuildFrontendFiles) {
+if (-Not $SkipFrontendFiles) {
     Write-Host "Building static frontend files..."
 
     Push-Location -Path "$PSScriptRoot/../../webapp"
