@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.21.1.54444",
-      "templateHash": "11704216743072254394"
+      "templateHash": "4239752954578942550"
     }
   },
   "parameters": {
@@ -107,6 +107,13 @@
         "description": "Azure AD client ID for the backend web API"
       }
     },
+    "frontendClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Azure AD client ID for the frontend"
+      }
+    },
     "azureAdTenantId": {
       "type": "string",
       "defaultValue": "",
@@ -181,13 +188,6 @@
       "defaultValue": "[resourceGroup().location]",
       "metadata": {
         "description": "Region for the resources"
-      }
-    },
-    "webappLocation": {
-      "type": "string",
-      "defaultValue": "westus2",
-      "metadata": {
-        "description": "Region for the webapp frontend"
       }
     },
     "sqlAdminPassword": {
@@ -390,10 +390,6 @@
             "value": "443"
           },
           {
-            "name": "MemoryStore:AzureCognitiveSearch:UseVectorSearch",
-            "value": "true"
-          },
-          {
             "name": "MemoryStore:AzureCognitiveSearch:Endpoint",
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
           },
@@ -422,6 +418,10 @@
             "value": "https://localhost:443"
           },
           {
+            "name": "Frontend:AadClientId",
+            "value": "[parameters('frontendClientId')]"
+          },
+          {
             "name": "Logging:LogLevel:Default",
             "value": "Warning"
           },
@@ -444,10 +444,6 @@
           {
             "name": "Logging:ApplicationInsights:LogLevel:Default",
             "value": "Warning"
-          },
-          {
-            "name": "ApplicationInsights:ConnectionString",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-webapi', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           },
           {
             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
@@ -1382,7 +1378,7 @@
     {
       "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
       "type": "Microsoft.Network/privateEndpoints",
-      "apiVersion": "2023-04-01",
+      "apiVersion": "2023-05-01",
       "name": "[format('pg-{0}-pe', variables('uniqueName'))]",
       "location": "[parameters('location')]",
       "properties": {
@@ -1493,30 +1489,9 @@
         "name": "S1"
       },
       "kind": "Bing.Search.v7"
-    },
-    {
-      "type": "Microsoft.Web/staticSites",
-      "apiVersion": "2022-09-01",
-      "name": "[format('swa-{0}', variables('uniqueName'))]",
-      "location": "[parameters('webappLocation')]",
-      "properties": {
-        "provider": "None"
-      },
-      "sku": {
-        "name": "Free",
-        "tier": "Free"
-      }
     }
   ],
   "outputs": {
-    "webappUrl": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.Web/staticSites', format('swa-{0}', variables('uniqueName'))), '2022-09-01').defaultHostname]"
-    },
-    "webappName": {
-      "type": "string",
-      "value": "[format('swa-{0}', variables('uniqueName'))]"
-    },
     "webapiUrl": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName'))), '2022-09-01').defaultHostName]"

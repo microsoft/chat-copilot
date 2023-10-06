@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Package CopilotChat's WebAPI for deployment to Azure
+Package Chat Copilot application for deployment to Azure
 #>
 
 param(
@@ -22,12 +22,18 @@ param(
 
     [string]
     # Version to give to assemblies and files.
-    $Version = "1.0.0",
+    $Version = "0.0.0",
 
     [string]
     # Additional information given in version info.
-    $InformationalVersion = ""
+    $InformationalVersion = "",
+    
+    [bool]
+    # Whether to skip building frontend files (false by default)
+    $SkipFrontendFiles = $false
 )
+
+Write-Host "Building backend executables..."
 
 Write-Host "BuildConfiguration: $BuildConfiguration"
 Write-Host "DotNetFramework: $DotNetFramework"
@@ -50,7 +56,30 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Host "Compressing to $publishedZipFilePath"
+if (-Not $SkipFrontendFiles) {
+    Write-Host "Building static frontend files..."
+
+    Push-Location -Path "$PSScriptRoot/../../webapp"
+
+    Write-Host "Installing yarn dependencies..."
+    yarn install
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Building webapp..."
+    yarn build
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+
+    Pop-Location
+
+    Write-Host "Copying frontend files to package"
+    Copy-Item -Path "$PSScriptRoot/../../webapp/build" -Destination "$publishOutputDirectory\wwwroot" -Recurse -Force
+}
+
+Write-Host "Compressing package to $publishedZipFilePath"
 Compress-Archive -Path $publishOutputDirectory\* -DestinationPath $publishedZipFilePath -Force
 
-Write-Host "Published webapi package to '$publishedZipFilePath'"
+Write-Host "Published package to '$publishedZipFilePath'"

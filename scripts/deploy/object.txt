@@ -1,0 +1,94 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#applications/$entity",
+  "addIns": [],
+  "api": {
+    "acceptMappedClaims": null,
+    "knownClientApplications": [],
+    "oauth2PermissionScopes": [],
+    "preAuthorizedApplications": [],
+    "requestedAccessTokenVersion": null
+  },
+  "appId": "2e7a7e36-d840-41e2-9cd2-4a7c1c6e2d6d",
+  "appRoles": [],
+  "applicationTemplateId": null,
+  "certification": null,
+  "createdDateTime": "2023-07-21T17:08:33Z",
+  "defaultRedirectUri": null,
+  "deletedDateTime": null,
+  "description": null,
+  "disabledByMicrosoftStatus": null,
+  "displayName": "SemanticKernel-Copilot-Staging",
+  "groupMembershipClaims": null,
+  "id": "04a67174-c17f-4f3a-996c-b22517454c71",
+  "identifierUris": [],
+  "info": {
+    "logoUrl": null,
+    "marketingUrl": null,
+    "privacyStatementUrl": null,
+    "supportUrl": null,
+    "termsOfServiceUrl": null
+  },
+  "isDeviceOnlyAuthSupported": null,
+  "isFallbackPublicClient": null,
+  "keyCredentials": [],
+  "notes": null,
+  "optionalClaims": null,
+  "parentalControlSettings": {
+    "countriesBlockedForMinors": [],
+    "legalAgeGroupRule": "Allow"
+  },
+  "passwordCredentials": [],
+  "publicClient": {
+    "redirectUris": []
+  },
+  "publisherDomain": "microsoft.onmicrosoft.com",
+  "requestSignatureVerification": null,
+  "requiredResourceAccess": [
+    {
+      "resourceAccess": [
+        {
+          "id": "c71f7111-8e3e-4eb7-b56a-0ce6c2fdfd30",
+          "type": "Scope"
+        }
+      ],
+      "resourceAppId": "82ee9347-fcb3-49d0-9823-90c173e19952"
+    },
+    {
+      "resourceAccess": [
+        {
+          "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+          "type": "Scope"
+        }
+      ],
+      "resourceAppId": "00000003-0000-0000-c000-000000000000"
+    }
+  ],
+  "samlMetadataUrl": null,
+  "serviceManagementReference": "05b809ac-318a-4d52-85ff-281458cb5348",
+  "servicePrincipalLockConfiguration": null,
+  "signInAudience": "AzureADMyOrg",
+  "spa": {
+    "redirectUris": [
+      "https://app-copichat-rlvquxqizayf2-webapi.azurewebsites.net",
+      "https://localhost:40443",
+      "https://nice-smoke-05abf441e.3.azurestaticapps.net"
+    ]
+  },
+  "tags": [],
+  "tokenEncryptionKeyId": null,
+  "verifiedPublisher": {
+    "addedDateTime": null,
+    "displayName": null,
+    "verifiedPublisherId": null
+  },
+  "web": {
+    "homePageUrl": null,
+    "implicitGrantSettings": {
+      "enableAccessTokenIssuance": true,
+      "enableIdTokenIssuance": true
+    },
+    "logoutUrl": null,
+    "redirectUriSettings": [],
+    "redirectUris": []
+  }
+}

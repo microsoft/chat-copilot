@@ -50,6 +50,9 @@ param aiApiKey string = ''
 @description('Azure AD client ID for the backend web API')
 param webApiClientId string = ''
 
+@description('Azure AD client ID for the frontend')
+param frontendClientId string = ''
+
 @description('Azure AD tenant ID for authenticating users')
 param azureAdTenantId string = ''
 
@@ -85,9 +88,6 @@ param deployWebSearcherPackage bool = true
 
 @description('Region for the resources')
 param location string = resourceGroup().location
-
-@description('Region for the webapp frontend')
-param webappLocation string = 'westus2'
 
 @description('Hash of the resource group ID')
 var rgIdHash = uniqueString(resourceGroup().id)
@@ -255,10 +255,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: '443'
       }
       {
-        name: 'MemoryStore:AzureCognitiveSearch:UseVectorSearch'
-        value: 'true'
-      }
-      {
         name: 'MemoryStore:AzureCognitiveSearch:Endpoint'
         value: memoryStore == 'AzureCognitiveSearch' ? 'https://${azureCognitiveSearch.name}.search.windows.net' : ''
       }
@@ -287,6 +283,10 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
         value: 'https://localhost:443'
       }
       {
+        name: 'Frontend:AadClientId'
+        value: frontendClientId
+      }
+      {
         name: 'Logging:LogLevel:Default'
         value: 'Warning'
       }
@@ -309,10 +309,6 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
       {
         name: 'Logging:ApplicationInsights:LogLevel:Default'
         value: 'Warning'
-      }
-      {
-        name: 'ApplicationInsights:ConnectionString'
-        value: appInsightsWeb.properties.ConnectionString
       }
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -1135,7 +1131,7 @@ resource postgresDNSZone 'Microsoft.Network/privateDnsZones@2020-06-01' = if (me
   location: 'global'
 }
 
-resource postgresPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-01' = if (memoryStore == 'Postgres') {
+resource postgresPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-05-01' = if (memoryStore == 'Postgres') {
   name: 'pg-${uniqueName}-pe'
   location: location
   properties: {
@@ -1230,20 +1226,6 @@ resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = {
   kind: 'Bing.Search.v7'
 }
 
-resource staticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
-  name: 'swa-${uniqueName}'
-  location: webappLocation
-  properties: {
-    provider: 'None'
-  }
-  sku: {
-    name: 'Free'
-    tier: 'Free'
-  }
-}
-
-output webappUrl string = staticWebApp.properties.defaultHostname
-output webappName string = staticWebApp.name
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name

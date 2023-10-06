@@ -57,7 +57,7 @@ jobs:
 
       - name: Package Copilot Chat WebAPI
         run: |
-          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
+          scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")" -SkipFrontendFiles=${{ github.event_name == 'pull_request' }}
 
       - name: Upload package to artifacts
         uses: actions/upload-artifact@v3

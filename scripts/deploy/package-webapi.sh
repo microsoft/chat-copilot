@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Package CiopilotChat's WebAPI for deployment to Azure
+# Package Chat Copilot application for deployment to Azure
 
 set -e
 
@@ -18,6 +18,7 @@ usage() {
     echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
     echo "  -i  --info INFO                        Additional info to put in version details"
     echo "  -nz, --no-zip                          Do not zip package (default: false)"
+    echo "  -s, --skip-frontend                    Do not build frontend files"
 }
 
 # Parse arguments
@@ -58,7 +59,11 @@ while [[ $# -gt 0 ]]; do
         NO_ZIP=true
         shift
         ;;
-    *)
+    -s|--skip-frontend)
+        SKIP_FRONTEND=true
+        shift
+        ;;
+        *)
         echo "Unknown option $1"
         usage
         exit 1
@@ -66,11 +71,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+echo  "Building backend executables..."
+
 # Set defaults
 : "${CONFIGURATION:="Release"}"
 : "${DOTNET:="net6.0"}"
 : "${RUNTIME:="linux-x64"}"
-: "${VERSION:="1.0.0"}"
+: "${VERSION:="0.0.0"}"
 : "${INFO:=""}"
 : "${OUTPUT_DIRECTORY:="$SCRIPT_ROOT"}"
 
@@ -98,6 +105,31 @@ dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" \
 
 if [ $? -ne 0 ]; then
     exit 1
+fi
+
+if [[ -z "$SKIP_FRONTEND" ]]; then
+    echo "Building static frontend files..."
+
+    pushd "$SCRIPT_ROOT/../../webapp"
+
+    echo "Installing yarn dependencies..."
+    yarn install
+    if [ $? -ne 0 ]; then
+        echo "Failed to install yarn dependencies"
+        exit 1
+    fi
+
+    echo "Building webapp..."
+    yarn build
+    if [ $? -ne 0 ]; then
+        echo "Failed to build webapp"
+        exit 1
+    fi
+
+    popd
+
+    echo "Copying frontend files to package"
+    cp -R "$SCRIPT_ROOT/../../webapp/build" "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
 fi
 
 # if not NO_ZIP then zip the package

@@ -80,7 +80,7 @@ fi
 echo "Azure WebApp name: $MEMORY_PIPELINE_NAME"
 
 echo "Configuring Azure WebApp to run from package..."
-az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $MEMORY_PIPELINE_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1"
+az webapp config appsettings set --resource-group $RESOURCE_GROUP --name $MEMORY_PIPELINE_NAME --settings WEBSITE_RUN_FROM_PACKAGE="1" --output none
 if [ $? -ne 0 ]; then
     echo "Could not configure Azure WebApp to run from package."
     exit 1
