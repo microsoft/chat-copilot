@@ -51,7 +51,7 @@ if ($null -eq $memoryPipelineName) {
 Write-Host "Azure WebApp name: $memoryPipelineName"
 
 Write-Host "Configuring Azure WebApp to run from package..."
-az webapp config appsettings set --resource-group $ResourceGroupName --name $memoryPipelineName --settings WEBSITE_RUN_FROM_PACKAGE="1" | out-null
+az webapp config appsettings set --resource-group $ResourceGroupName --name $memoryPipelineName --settings WEBSITE_RUN_FROM_PACKAGE="1" --output none
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
