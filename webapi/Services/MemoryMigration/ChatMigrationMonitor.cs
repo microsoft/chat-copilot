@@ -114,15 +114,11 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
             try
             {
                 var result =
-                    await this._memory.SearchAsync(
+                    await this._memory.GetAsync(
                         this._indexNameGlobalDocs,
                         MigrationKey,
-                        limit: 1,
-                        minRelevanceScore: -1,
-                        withEmbeddings: false,
-                        cancellationToken)
-                    .SingleOrDefaultAsync(cancellationToken)
-                    ;
+                        withEmbedding: false,
+                        cancellationToken);
 
                 if (result == null)
                 {
