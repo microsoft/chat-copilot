@@ -2,6 +2,7 @@
 
 using System;
 using System.Net.Http;
+using System.Threading;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,8 @@ namespace CopilotChat.WebApi.Services;
 /// </summary>
 public sealed class SemanticKernelProvider
 {
+    private static IMemoryStore? _volatileMemoryStore;
+
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _configuration;
 
@@ -159,7 +162,9 @@ public sealed class SemanticKernelProvider
             switch (memoryOptions.Retrieval.VectorDbType)
             {
                 case string x when x.Equals("SimpleVectorDb", StringComparison.OrdinalIgnoreCase):
-                    return new VolatileMemoryStore();
+                    // Maintain single instance of volatile memory.
+                    Interlocked.CompareExchange(ref _volatileMemoryStore, new VolatileMemoryStore(), null);
+                    return _volatileMemoryStore;
 
                 case string x when x.Equals("Qdrant", StringComparison.OrdinalIgnoreCase):
                     var qdrantConfig = memoryOptions.GetServiceConfig<QdrantConfig>(this._configuration, "Qdrant");
