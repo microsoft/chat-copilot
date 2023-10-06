@@ -162,7 +162,7 @@ public sealed class SemanticKernelProvider
             switch (memoryOptions.Retrieval.VectorDbType)
             {
                 case string x when x.Equals("SimpleVectorDb", StringComparison.OrdinalIgnoreCase):
-                    // Maintain single instance of volitile memory.
+                    // Maintain single instance of volatile memory.
                     Interlocked.CompareExchange(ref _memoryStore, new VolatileMemoryStore(), null);
                     return _memoryStore;
 
