@@ -89,7 +89,7 @@ WEB_API_URL=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiUrl.value
 echo "WEB_API_URL: $WEB_API_URL"
 WEB_API_NAME=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.webapiName.value')
 echo "WEB_API_NAME: $WEB_API_NAME"
-PLUGIN_NAMES=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.pluginNames.value.[]')
+PLUGIN_NAMES=$(echo $DEPLOYMENT_JSON | jq -r '.properties.outputs.pluginNames.value[]')
 # Remove double quotes
 PLUGIN_NAMES=${PLUGIN_NAMES//\"/}
 echo "PLUGIN_NAMES: $PLUGIN_NAMES"
@@ -147,7 +147,7 @@ if [[ -n $REGISTER_APP ]]; then
     WEBAPI_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --output json)
     FRONTEND_CLIENT_ID=$(echo $WEBAPI_SETTINGS | jq -r '.[] | select(.name == "Frontend:AadClientId") | .value')
     OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
-    REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris.[]')
+    REDIRECT_URIS=$(az rest --method GET --uri "https://graph.microsoft.com/v1.0/applications/$OBJECT_ID" --headers 'Content-Type=application/json' | jq -r '.spa.redirectUris[]')
     NEED_TO_UPDATE_REG=false
 
     for ADDRESS in $(echo "$ORIGINS"); do
