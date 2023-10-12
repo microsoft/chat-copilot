@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { useMsal } from '@azure/msal-react';
 import { Body1, Spinner, Title3 } from '@fluentui/react-components';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { renderApp } from '../../index';
 import { AuthHelper } from '../../libs/auth/AuthHelper';
 import { BackendServiceUrl } from '../../libs/services/BaseService';
+import { MaintenanceService, MaintenanceStatus } from '../../libs/services/MaintenanceService';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { setMaintenance } from '../../redux/features/app/appSlice';
@@ -14,20 +16,15 @@ interface IData {
     onBackendFound: () => void;
 }
 
-interface IMaintenance {
-    title: string | null;
-    message: string | null;
-    note: string | null | undefined;
-}
-
 export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
     const classes = useSharedClasses();
     const dispatch = useAppDispatch();
     const { isMaintenance } = useAppSelector((state: RootState) => state.app);
     const healthUrl = useMemo(() => new URL('healthz', BackendServiceUrl), []);
-    const migrationUrl = useMemo(() => new URL('maintenanceStatus', BackendServiceUrl), []);
+    const maintenanceService = useMemo(() => new MaintenanceService(), []);
+    const { instance, inProgress } = useMsal();
 
-    const [model, setModel] = useState<IMaintenance | null>(null);
+    const [model, setModel] = useState<MaintenanceStatus | null>(null);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -49,12 +46,12 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
                 }
             };
 
-            const fetchMaintenanceAsync = () =>
-                fetch(migrationUrl)
-                    .then((response) => response.json())
+            const fetchMaintenanceAsync = async () =>
+                maintenanceService
+                    .getMaintenanceStatus(await AuthHelper.getSKaaSAccessToken(instance, inProgress))
                     .then((data) => {
                         // Body has payload. This means the app is in maintenance
-                        setModel(data as IMaintenance);
+                        setModel(data);
                         return true;
                     })
                     .catch((e: any) => {
@@ -80,7 +77,7 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
         return () => {
             clearInterval(timer);
         };
-    }, [dispatch, healthUrl, migrationUrl, onBackendFound]);
+    }, [dispatch, healthUrl, maintenanceService, onBackendFound, instance, inProgress]);
 
     return (
         <>
