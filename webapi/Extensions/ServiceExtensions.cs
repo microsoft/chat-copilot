@@ -239,6 +239,35 @@ public static class CopilotChatServiceExtensions
                 break;
             }
 
+            case ChatStoreOptions.ChatStoreType.MySql:
+            {
+                if (chatStoreConfig.MySql == null)
+                {
+                    throw new InvalidOperationException("ChatStore:MySql is required when ChatStore:Type is 'MySql'");
+                }
+
+                services.AddDbContext<MySqlDbContext>(
+                    options =>
+                        options.UseMySql(
+                            chatStoreConfig.MySql.ConnectionString,
+                            ServerVersion.AutoDetect(chatStoreConfig.MySql.ConnectionString)
+                        // ,mySqlOptions => mySqlOptions.CharSetBehavior(CharSetBehavior.NeverAppend)
+                        ),
+                    ServiceLifetime.Transient
+                );
+
+                chatSessionStorageContext = new MySqlStorageContext<ChatSession>(services.BuildServiceProvider().GetRequiredService<MySqlDbContext>());
+                chatMessageStorageContext = new MySqlStorageContext<ChatMessage>(services.BuildServiceProvider().GetRequiredService<MySqlDbContext>());
+                chatMemorySourceStorageContext = new MySqlStorageContext<MemorySource>(services.BuildServiceProvider().GetRequiredService<MySqlDbContext>());
+                chatParticipantStorageContext = new MySqlStorageContext<ChatParticipant>(services.BuildServiceProvider().GetRequiredService<MySqlDbContext>());
+
+                services.AddScoped<IStorageContext<ChatSession>, MySqlStorageContext<ChatSession>>();
+                services.AddScoped<IStorageContext<ChatMessage>, MySqlStorageContext<ChatMessage>>();
+                services.AddScoped<IStorageContext<MemorySource>, MySqlStorageContext<MemorySource>>();
+                services.AddScoped<IStorageContext<ChatParticipant>, MySqlStorageContext<ChatParticipant>>();
+                break;
+            }
+
             default:
             {
                 throw new InvalidOperationException(

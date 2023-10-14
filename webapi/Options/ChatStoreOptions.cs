@@ -27,7 +27,12 @@ public class ChatStoreOptions
         /// <summary>
         /// Azure CosmosDB based persistent chat store.
         /// </summary>
-        Cosmos
+        Cosmos,
+
+        /// <summary>
+        /// MySql based persistent chat store.
+        /// </summary>
+        MySql
     }
 
     /// <summary>
@@ -46,4 +51,10 @@ public class ChatStoreOptions
     /// </summary>
     [RequiredOnPropertyValue(nameof(Type), ChatStoreType.Cosmos)]
     public CosmosOptions? Cosmos { get; set; }
+
+    /// <summary>
+    /// Gets or sets the configuration for the MySql chat store.
+    /// </summary>
+    [RequiredOnPropertyValue(nameof(Type), ChatStoreType.MySql)]
+    public MySqlOptions? MySql { get; set; }
 }
