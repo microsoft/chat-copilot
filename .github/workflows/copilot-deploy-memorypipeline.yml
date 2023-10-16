@@ -70,7 +70,7 @@ jobs:
             az webapp config appsettings set --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --name ${{ env.AZURE_WEBAPP_NAME }} --settings WEBSITE_RUN_FROM_PACKAGE="1" -o none
 
       - name: "Deploy"
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}/memorypipeline.zip"
