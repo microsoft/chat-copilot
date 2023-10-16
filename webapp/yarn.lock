@@ -2673,10 +2673,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.4.4.tgz#11d5db19bd178936ec89cd84519c4de439574398"
   integrity sha512-1oO6+dN5kdIA3sKPZhRGJTfGVP4SWV6KqlMOwry4J3HfyD68sl/3KmG7DeYUzvN+RbhXDnv/D8vNNB8168tAMg==
 
-"@reduxjs/toolkit@^1.9.6":
-  version "1.9.6"
-  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-1.9.6.tgz#fc968b45fe5b17ff90932c4556960d9c1078365a"
-  integrity sha512-Gc4ikl90ORF4viIdAkY06JNUnODjKfGxZRwATM30EdHq8hLSVoSrwXne5dd739yenP5bJxAX7tLuOWK5RPGtrw==
+"@reduxjs/toolkit@^1.9.7":
+  version "1.9.7"
+  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-1.9.7.tgz#7fc07c0b0ebec52043f8cb43510cf346405f78a6"
+  integrity sha512-t7v8ZPxhhKgOKtU+uyJT13lu4vL7az5aFi4IdoDs/eS548edn2M8Ik9h8fxgvMjGoAUVFSt6ZC1P5cWmQ014QQ==
   dependencies:
     immer "^9.0.21"
     redux "^4.2.1"
