@@ -239,8 +239,12 @@
     {
       "condition": "[parameters('deployNewAzureOpenAI')]",
       "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2022-12-01",
+      "apiVersion": "2023-05-01",
       "name": "[format('{0}/{1}', format('ai-{0}', variables('uniqueName')), parameters('completionModel'))]",
+      "sku": {
+          "name": "Standard",
+          "capacity": 20
+      },
       "properties": {
         "model": {
           "format": "OpenAI",
@@ -257,8 +261,12 @@
     {
       "condition": "[parameters('deployNewAzureOpenAI')]",
       "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2022-12-01",
+      "apiVersion": "2023-05-01",
       "name": "[format('{0}/{1}', format('ai-{0}', variables('uniqueName')), parameters('embeddingModel'))]",
+      "sku": {
+          "name": "Standard",
+          "capacity": 20
+      },
       "properties": {
         "model": {
           "format": "OpenAI",
