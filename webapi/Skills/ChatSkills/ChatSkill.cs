@@ -586,15 +586,11 @@ public class ChatSkill
             );
         }
 
-        // If plan result is to be used as bot response,  save a new response to the chat history with the result from Stepwise Planner and return.
-        if (!string.IsNullOrWhiteSpace(planResult)
-            && this._externalInformationSkill.PlannerOptions?.Type == PlanType.Stepwise
-            && this._externalInformationSkill.PlannerOptions.UseStepwiseResultAsBotResponse
-            && this._externalInformationSkill.StepwiseThoughtProcess != null
-        )
+        // If plan result is to be used as bot response, save the Stepwise result as a new response to the chat history and return.
+        if (this._externalInformationSkill.UseStepwiseResultAsBotResponse(planResult))
         {
             var promptDetails = new BotResponsePrompt("", "", userIntent, "", plannerDetails, "", new ChatHistory());
-            return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptDetails, cancellationToken, null, this._externalInformationSkill.StepwiseThoughtProcess.RawResult);
+            return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptDetails, cancellationToken, null, this._externalInformationSkill.StepwiseThoughtProcess!.RawResult);
         }
 
         // Query relevant semantic and document memories
