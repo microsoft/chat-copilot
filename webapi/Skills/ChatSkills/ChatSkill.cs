@@ -18,7 +18,6 @@ using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
