@@ -37,6 +37,11 @@ jobs:
             image: ${{ github.repository }}-web-searcher
             build-args: |
               AZURE_FUNCTION_MASTER_KEY=${{ inputs.AZURE_FUNCTION_MASTER_KEY }}
+
+          - file: ./docker/memorypipeline/Dockerfile
+            image: ${{ github.repository }}-memorypipeline
+            build-args: |
+
     permissions:
       contents: read
       packages: write
