@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "9519863138806302085"
+      "templateHash": "3283711803726471142"
     }
   },
   "parameters": {
@@ -160,6 +160,13 @@
         "description": "Whether to deploy Azure Speech Services to enable input by voice"
       }
     },
+    "deployWebSearcher": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether to the web searcher plugin, which requires a Bing resource"
+      }
+    },
     "deployPackages": {
       "type": "bool",
       "defaultValue": true,
@@ -301,232 +308,7 @@
         "use32BitWorkerProcess": false,
         "vnetRouteAllEnabled": true,
         "webSocketsEnabled": true,
-        "appSettings": [
-          {
-            "name": "Authentication:Type",
-            "value": "AzureAd"
-          },
-          {
-            "name": "Authentication:AzureAd:Instance",
-            "value": "[parameters('azureAdInstance')]"
-          },
-          {
-            "name": "Authentication:AzureAd:TenantId",
-            "value": "[parameters('azureAdTenantId')]"
-          },
-          {
-            "name": "Authentication:AzureAd:ClientId",
-            "value": "[parameters('webApiClientId')]"
-          },
-          {
-            "name": "Authentication:AzureAd:Scopes",
-            "value": "access_as_user"
-          },
-          {
-            "name": "Planner:Model",
-            "value": "[parameters('plannerModel')]"
-          },
-          {
-            "name": "ChatStore:Type",
-            "value": "[if(parameters('deployCosmosDB'), 'cosmos', 'volatile')]"
-          },
-          {
-            "name": "ChatStore:Cosmos:Database",
-            "value": "CopilotChat"
-          },
-          {
-            "name": "ChatStore:Cosmos:ChatSessionsContainer",
-            "value": "chatsessions"
-          },
-          {
-            "name": "ChatStore:Cosmos:ChatMessagesContainer",
-            "value": "chatmessages"
-          },
-          {
-            "name": "ChatStore:Cosmos:ChatMemorySourcesContainer",
-            "value": "chatmemorysources"
-          },
-          {
-            "name": "ChatStore:Cosmos:ChatParticipantsContainer",
-            "value": "chatparticipants"
-          },
-          {
-            "name": "ChatStore:Cosmos:ConnectionString",
-            "value": "[if(parameters('deployCosmosDB'), listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName')))), '2023-04-15').connectionStrings[0].connectionString, '')]"
-          },
-          {
-            "name": "AzureSpeech:Region",
-            "value": "[parameters('location')]"
-          },
-          {
-            "name": "AzureSpeech:Key",
-            "value": "[if(parameters('deploySpeechServices'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName'))), '2022-12-01').key1, '')]"
-          },
-          {
-            "name": "AllowedOrigins",
-            "value": "[[*]"
-          },
-          {
-            "name": "Kestrel:Endpoints:Https:Url",
-            "value": "https://localhost:443"
-          },
-          {
-            "name": "Frontend:AadClientId",
-            "value": "[parameters('frontendClientId')]"
-          },
-          {
-            "name": "Logging:LogLevel:Default",
-            "value": "Warning"
-          },
-          {
-            "name": "Logging:LogLevel:CopilotChat.WebApi",
-            "value": "Warning"
-          },
-          {
-            "name": "Logging:LogLevel:Microsoft.SemanticKernel",
-            "value": "Warning"
-          },
-          {
-            "name": "Logging:LogLevel:Microsoft.AspNetCore.Hosting",
-            "value": "Warning"
-          },
-          {
-            "name": "Logging:LogLevel:Microsoft.Hosting.Lifetimel",
-            "value": "Warning"
-          },
-          {
-            "name": "Logging:ApplicationInsights:LogLevel:Default",
-            "value": "Warning"
-          },
-          {
-            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
-          },
-          {
-            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
-            "value": "~2"
-          },
-          {
-            "name": "SemanticMemory:ContentStorageType",
-            "value": "AzureBlobs"
-          },
-          {
-            "name": "SemanticMemory:TextGeneratorType",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:OrchestrationType",
-            "value": "Distributed"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:DistributedOrchestration:QueueType",
-            "value": "AzureQueue"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "SemanticMemory:DataIngestion:VectorDbTypes:0",
-            "value": "[parameters('memoryStore')]"
-          },
-          {
-            "name": "SemanticMemory:Retrieval:VectorDbType",
-            "value": "[parameters('memoryStore')]"
-          },
-          {
-            "name": "SemanticMemory:Retrieval:EmbeddingGeneratorType",
-            "value": "[parameters('aiService')]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureBlobs:Auth",
-            "value": "ConnectionString"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureBlobs:ConnectionString",
-            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureBlobs:Container",
-            "value": "chatmemory"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureQueue:Auth",
-            "value": "ConnectionString"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureQueue:ConnectionString",
-            "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureCognitiveSearch:Auth",
-            "value": "ApiKey"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureCognitiveSearch:Endpoint",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureCognitiveSearch:APIKey",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
-          },
-          {
-            "name": "SemanticMemory:Services:Qdrant:Endpoint",
-            "value": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIText:Auth",
-            "value": "ApiKey"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIText:Endpoint",
-            "value": "[if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIText:APIKey",
-            "value": "[if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIText:Deployment",
-            "value": "[parameters('completionModel')]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Auth",
-            "value": "ApiKey"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint",
-            "value": "[if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:APIKey",
-            "value": "[if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))]"
-          },
-          {
-            "name": "SemanticMemory:Services:AzureOpenAIEmbedding:Deployment",
-            "value": "[parameters('embeddingModel')]"
-          },
-          {
-            "name": "Plugins:0:Name",
-            "value": "Klarna Shopping"
-          },
-          {
-            "name": "Plugins:0:ManifestDomain",
-            "value": "https://www.klarna.com"
-          },
-          {
-            "name": "Plugins:1:Name",
-            "value": "WebSearcher"
-          },
-          {
-            "name": "Plugins:1:ManifestDomain",
-            "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName'))), '2022-09-01').defaultHostName)]"
-          },
-          {
-            "name": "Plugins:1:Key",
-            "value": "[listkeys(format('{0}/host/default/', resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))), '2022-09-01').functionKeys.default]"
-          }
-        ]
+        "appSettings": "[concat(createArray(createObject('name', 'Authentication:Type', 'value', 'AzureAd'), createObject('name', 'Authentication:AzureAd:Instance', 'value', parameters('azureAdInstance')), createObject('name', 'Authentication:AzureAd:TenantId', 'value', parameters('azureAdTenantId')), createObject('name', 'Authentication:AzureAd:ClientId', 'value', parameters('webApiClientId')), createObject('name', 'Authentication:AzureAd:Scopes', 'value', 'access_as_user'), createObject('name', 'Planner:Model', 'value', parameters('plannerModel')), createObject('name', 'ChatStore:Type', 'value', if(parameters('deployCosmosDB'), 'cosmos', 'volatile')), createObject('name', 'ChatStore:Cosmos:Database', 'value', 'CopilotChat'), createObject('name', 'ChatStore:Cosmos:ChatSessionsContainer', 'value', 'chatsessions'), createObject('name', 'ChatStore:Cosmos:ChatMessagesContainer', 'value', 'chatmessages'), createObject('name', 'ChatStore:Cosmos:ChatMemorySourcesContainer', 'value', 'chatmemorysources'), createObject('name', 'ChatStore:Cosmos:ChatParticipantsContainer', 'value', 'chatparticipants'), createObject('name', 'ChatStore:Cosmos:ConnectionString', 'value', if(parameters('deployCosmosDB'), listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName')))), '2023-04-15').connectionStrings[0].connectionString, '')), createObject('name', 'AzureSpeech:Region', 'value', parameters('location')), createObject('name', 'AzureSpeech:Key', 'value', if(parameters('deploySpeechServices'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName'))), '2022-12-01').key1, '')), createObject('name', 'AllowedOrigins', 'value', '[*]'), createObject('name', 'Kestrel:Endpoints:Https:Url', 'value', 'https://localhost:443'), createObject('name', 'Frontend:AadClientId', 'value', parameters('frontendClientId')), createObject('name', 'Logging:LogLevel:Default', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:CopilotChat.WebApi', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.SemanticKernel', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.AspNetCore.Hosting', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.Hosting.Lifetimel', 'value', 'Warning'), createObject('name', 'Logging:ApplicationInsights:LogLevel:Default', 'value', 'Warning'), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString), createObject('name', 'ApplicationInsightsAgent_EXTENSION_VERSION', 'value', '~2'), createObject('name', 'SemanticMemory:ContentStorageType', 'value', 'AzureBlobs'), createObject('name', 'SemanticMemory:TextGeneratorType', 'value', parameters('aiService')), createObject('name', 'SemanticMemory:DataIngestion:OrchestrationType', 'value', 'Distributed'), createObject('name', 'SemanticMemory:DataIngestion:DistributedOrchestration:QueueType', 'value', 'AzureQueue'), createObject('name', 'SemanticMemory:DataIngestion:EmbeddingGeneratorTypes:0', 'value', parameters('aiService')), createObject('name', 'SemanticMemory:DataIngestion:VectorDbTypes:0', 'value', parameters('memoryStore')), createObject('name', 'SemanticMemory:Retrieval:VectorDbType', 'value', parameters('memoryStore')), createObject('name', 'SemanticMemory:Retrieval:EmbeddingGeneratorType', 'value', parameters('aiService')), createObject('name', 'SemanticMemory:Services:AzureBlobs:Auth', 'value', 'ConnectionString'), createObject('name', 'SemanticMemory:Services:AzureBlobs:ConnectionString', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)), createObject('name', 'SemanticMemory:Services:AzureBlobs:Container', 'value', 'chatmemory'), createObject('name', 'SemanticMemory:Services:AzureQueue:Auth', 'value', 'ConnectionString'), createObject('name', 'SemanticMemory:Services:AzureQueue:ConnectionString', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)), createObject('name', 'SemanticMemory:Services:AzureCognitiveSearch:Auth', 'value', 'ApiKey'), createObject('name', 'SemanticMemory:Services:AzureCognitiveSearch:Endpoint', 'value', if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')), createObject('name', 'SemanticMemory:Services:AzureCognitiveSearch:APIKey', 'value', if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')), createObject('name', 'SemanticMemory:Services:Qdrant:Endpoint', 'value', if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')), createObject('name', 'SemanticMemory:Services:AzureOpenAIText:Auth', 'value', 'ApiKey'), createObject('name', 'SemanticMemory:Services:AzureOpenAIText:Endpoint', 'value', if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))), createObject('name', 'SemanticMemory:Services:AzureOpenAIText:APIKey', 'value', if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))), createObject('name', 'SemanticMemory:Services:AzureOpenAIText:Deployment', 'value', parameters('completionModel')), createObject('name', 'SemanticMemory:Services:AzureOpenAIEmbedding:Auth', 'value', 'ApiKey'), createObject('name', 'SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint', 'value', if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').endpoint, parameters('aiEndpoint'))), createObject('name', 'SemanticMemory:Services:AzureOpenAIEmbedding:APIKey', 'value', if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2022-12-01').key1, parameters('aiApiKey'))), createObject('name', 'SemanticMemory:Services:AzureOpenAIEmbedding:Deployment', 'value', parameters('embeddingModel')), createObject('name', 'Plugins:0:Name', 'value', 'Klarna Shopping'), createObject('name', 'Plugins:0:ManifestDomain', 'value', 'https://www.klarna.com')), if(parameters('deployWebSearcher'), createArray(createObject('name', 'Plugins:1:Name', 'value', 'WebSearcher'), createObject('name', 'Plugins:1:ManifestDomain', 'value', format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName'))), '2022-09-01').defaultHostName)), createObject('name', 'Plugins:1:Key', 'value', listkeys(format('{0}/host/default/', resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))), '2022-09-01').functionKeys.default)), createArray()))]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
@@ -748,6 +530,7 @@
       ]
     },
     {
+      "condition": "[parameters('deployWebSearcher')]",
       "type": "Microsoft.Web/sites",
       "apiVersion": "2022-09-01",
       "name": "[format('function-{0}-websearcher-plugin', variables('uniqueName'))]",
@@ -768,6 +551,7 @@
       ]
     },
     {
+      "condition": "[parameters('deployWebSearcher')]",
       "type": "Microsoft.Web/sites/config",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'web')]",
@@ -792,7 +576,7 @@
           },
           {
             "name": "PluginConfig:BingApiKey",
-            "value": "[listKeys(resourceId('Microsoft.Bing/accounts', format('bing-search-{0}', variables('uniqueName'))), '2020-06-10').key1]"
+            "value": "[if(parameters('deployWebSearcher'), listKeys(resourceId('Microsoft.Bing/accounts', format('bing-search-{0}', variables('uniqueName'))), '2020-06-10').key1, '')]"
           }
         ]
       },
@@ -804,7 +588,7 @@
       ]
     },
     {
-      "condition": "[parameters('deployPackages')]",
+      "condition": "[and(parameters('deployPackages'), parameters('deployWebSearcher'))]",
       "type": "Microsoft.Web/sites/extensions",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'MSDeploy')]",
@@ -853,6 +637,7 @@
       ]
     },
     {
+      "condition": "[parameters('deployWebSearcher')]",
       "type": "Microsoft.Web/sites/siteextensions",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
@@ -1331,6 +1116,7 @@
       }
     },
     {
+      "condition": "[parameters('deployWebSearcher')]",
       "type": "Microsoft.Bing/accounts",
       "apiVersion": "2020-06-10",
       "name": "[format('bing-search-{0}', variables('uniqueName'))]",
@@ -1356,9 +1142,7 @@
     },
     "pluginNames": {
       "type": "array",
-      "value": [
-        "[format('function-{0}-websearcher-plugin', variables('uniqueName'))]"
-      ]
+      "value": "[concat(createArray(), if(parameters('deployWebSearcher'), createArray(format('function-{0}-websearcher-plugin', variables('uniqueName'))), createArray()))]"
     }
   }
 }
