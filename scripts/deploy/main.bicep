@@ -78,7 +78,7 @@ param deploySpeechServices bool = true
 @description('Whether to deploy the web searcher plugin, which requires a Bing resource')
 param deployWebSearcherPlugin bool = false
 
-@description('Whether to deploy binary packages to the cloud')
+@description('Whether to deploy pre-built binary packages to the cloud')
 param deployPackages bool = true
 
 @description('Region for the resources')
@@ -386,6 +386,18 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
           value: embeddingModel
         }
         {
+          name: 'SemanticMemory:Services:OpenAI:TextModel'
+          value: completionModel
+        }
+        {
+          name: 'SemanticMemory:Services:OpenAI:EmbeddingModel'
+          value: embeddingModel
+        }
+        {
+          name: 'SemanticMemory:Services:OpenAI:APIKey'
+          value: aiApiKey
+        }
+        {
           name: 'Plugins:0:Name'
           value: 'Klarna Shopping'
         }
@@ -567,6 +579,18 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
       {
         name: 'SemanticMemory:Services:AzureFormRecognizer:APIKey'
         value: ocrAccount.listKeys().key1
+      }
+      {
+        name: 'SemanticMemory:Services:OpenAI:TextModel'
+        value: completionModel
+      }
+      {
+        name: 'SemanticMemory:Services:OpenAI:EmbeddingModel'
+        value: embeddingModel
+      }
+      {
+        name: 'SemanticMemory:Services:OpenAI:APIKey'
+        value: aiApiKey
       }
       {
         name: 'Logging:LogLevel:Default'
