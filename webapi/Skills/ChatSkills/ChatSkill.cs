@@ -18,8 +18,10 @@ using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Skills.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
@@ -476,7 +478,7 @@ public class ChatSkill
                 chatContext.Variables.Set(TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtils.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.CurrentCulture));
 
                 // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
-                var plannerDetails = new SemanticDependency<object>(planResult, null, deserializedPlan.Type.ToString());
+                var plannerDetails = new SemanticDependency<PlanExecutionMetadata>(planResult, null, deserializedPlan.Type.ToString());
 
                 // Get bot response and stream to client
                 var promptView = new BotResponsePrompt(systemInstructions, "", deserializedPlan.UserIntent, "", plannerDetails, chatHistoryString, promptTemplate);
@@ -564,8 +566,8 @@ public class ChatSkill
             () => this.AcquireExternalInformationAsync(chatContext, userIntent, externalInformationTokenLimit, cancellationToken: cancellationToken), nameof(AcquireExternalInformationAsync));
 
         // Extract additional details about stepwise planner execution in chat context
-        var plannerDetails = new SemanticDependency<StepwiseThoughtProcess>(
-                planResult,
+        var plannerDetails = new SemanticDependency<PlanExecutionMetadata>(
+                this._externalInformationSkill.StepwiseThoughtProcess?.RawResult ?? planResult,
                 this._externalInformationSkill.StepwiseThoughtProcess
             );
 
@@ -583,6 +585,17 @@ public class ChatSkill
                 // TODO: [Issue #2106] Accommodate plan token usage differently
                 this.GetTokenUsages(chatContext)
             );
+        }
+
+        // If plan result is to be used as bot response,  save a new response to the chat history with the result from Stepwise Planner and return.
+        if (!string.IsNullOrWhiteSpace(planResult)
+            && this._externalInformationSkill.PlannerOptions?.Type == PlanType.Stepwise
+            && this._externalInformationSkill.PlannerOptions.UseStepwiseResultAsBotResponse
+            && this._externalInformationSkill.StepwiseThoughtProcess != null
+        )
+        {
+            var promptDetails = new BotResponsePrompt("", "", userIntent, "", plannerDetails, "", new ChatHistory());
+            return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptDetails, cancellationToken, null, this._externalInformationSkill.StepwiseThoughtProcess.RawResult);
         }
 
         // Query relevant semantic and document memories
@@ -614,9 +627,7 @@ public class ChatSkill
 
         // Stream the response to the client
         var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, plannerDetails, chatHistory, promptTemplate);
-        ChatMessage chatMessage = await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken, citationMap.Values.AsEnumerable());
-
-        return chatMessage;
+        return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken, citationMap.Values.AsEnumerable());
     }
 
     /// <summary>
@@ -650,16 +661,32 @@ public class ChatSkill
         SKContext chatContext,
         BotResponsePrompt promptView,
         CancellationToken cancellationToken,
-        IEnumerable<CitationSource>? citations = null)
+        IEnumerable<CitationSource>? citations = null,
+        string? responseContent = null)
     {
-        // Get bot response and stream to client
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
-        ChatMessage chatMessage = await AsyncUtils.SafeInvokeAsync(
-            () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
+        ChatMessage chatMessage;
+        if (responseContent.IsNullOrEmpty())
+        {
+            // Get bot response and stream to client
+            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
+            chatMessage = await AsyncUtils.SafeInvokeAsync(
+                () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
+        }
+        else
+        {
+            chatMessage = await this.CreateBotMessageOnClient(
+                chatId,
+                userId,
+                JsonSerializer.Serialize(promptView),
+                responseContent!,
+                cancellationToken,
+                citations
+            );
+        }
 
         // Save the message into chat history
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
-        await this._chatMessageRepository.UpsertAsync(chatMessage);
+        await this._chatMessageRepository.UpsertAsync(chatMessage!);
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
@@ -675,7 +702,7 @@ public class ChatSkill
 
         // Calculate total token usage for dependency functions and prompt template
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
-        chatMessage.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
+        chatMessage!.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
 
         // Update the message on client and in chat history with final completion token usage
         await this.UpdateMessageOnClient(chatMessage, cancellationToken);
