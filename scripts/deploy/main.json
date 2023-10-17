@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.21.1.54444",
-      "templateHash": "4239752954578942550"
+      "version": "0.22.6.54827",
+      "templateHash": "9519863138806302085"
     }
   },
   "parameters": {
@@ -144,12 +144,10 @@
     },
     "memoryStore": {
       "type": "string",
-      "defaultValue": "Volatile",
+      "defaultValue": "AzureCognitiveSearch",
       "allowedValues": [
-        "Volatile",
         "AzureCognitiveSearch",
-        "Qdrant",
-        "Postgres"
+        "Qdrant"
       ],
       "metadata": {
         "description": "What method to use to persist embeddings"
@@ -162,25 +160,11 @@
         "description": "Whether to deploy Azure Speech Services to enable input by voice"
       }
     },
-    "deployWebApiPackage": {
+    "deployPackages": {
       "type": "bool",
       "defaultValue": true,
       "metadata": {
-        "description": "Whether to deploy the backend Web API package"
-      }
-    },
-    "deployMemoryPipelinePackage": {
-      "type": "bool",
-      "defaultValue": true,
-      "metadata": {
-        "description": "Whether to deploy the memory pipeline package"
-      }
-    },
-    "deployWebSearcherPackage": {
-      "type": "bool",
-      "defaultValue": true,
-      "metadata": {
-        "description": "Whether to deploy the websearcher plugin package"
+        "description": "Whether to deploy binary packages to the cloud"
       }
     },
     "location": {
@@ -188,13 +172,6 @@
       "defaultValue": "[resourceGroup().location]",
       "metadata": {
         "description": "Region for the resources"
-      }
-    },
-    "sqlAdminPassword": {
-      "type": "securestring",
-      "defaultValue": "[newGuid()]",
-      "metadata": {
-        "description": "PostgreSQL admin password"
       }
     }
   },
@@ -378,30 +355,6 @@
             "value": "[if(parameters('deployCosmosDB'), listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName')))), '2023-04-15').connectionStrings[0].connectionString, '')]"
           },
           {
-            "name": "MemoryStore:Type",
-            "value": "[parameters('memoryStore')]"
-          },
-          {
-            "name": "MemoryStore:Qdrant:Host",
-            "value": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
-          },
-          {
-            "name": "MemoryStore:Qdrant:Port",
-            "value": "443"
-          },
-          {
-            "name": "MemoryStore:AzureCognitiveSearch:Endpoint",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
-          },
-          {
-            "name": "MemoryStore:AzureCognitiveSearch:Key",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
-          },
-          {
-            "name": "MemoryStore:Postgres:ConnectionString",
-            "value": "[if(equals(parameters('memoryStore'), 'Postgres'), format('Host={0}:5432;Username=citus;Password={1};Database=citus', reference(resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName'))), '2022-11-08').serverNames[0].fullyQualifiedDomainName, parameters('sqlAdminPassword')), '')]"
-          },
-          {
             "name": "AzureSpeech:Region",
             "value": "[parameters('location')]"
           },
@@ -447,7 +400,7 @@
           },
           {
             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-webapi', variables('uniqueName'))), '2020-02-02').ConnectionString]"
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           },
           {
             "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
@@ -518,6 +471,10 @@
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
+            "name": "SemanticMemory:Services:Qdrant:Endpoint",
+            "value": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
+          },
+          {
             "name": "SemanticMemory:Services:AzureOpenAIText:Auth",
             "value": "ApiKey"
           },
@@ -572,20 +529,19 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Insights/components', format('appins-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName'))))]",
         "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
       ]
     },
     {
-      "condition": "[parameters('deployWebApiPackage')]",
+      "condition": "[parameters('deployPackages')]",
       "type": "Microsoft.Web/sites/extensions",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'MSDeploy')]",
@@ -609,12 +565,14 @@
       },
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "virtualNetworkSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
         "siteConfig": {
           "alwaysOn": true
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]"
+        "[resourceId('Microsoft.Web/serverfarms', format('asp-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
     },
     {
@@ -627,6 +585,8 @@
         "minTlsVersion": "1.2",
         "netFrameworkVersion": "v6.0",
         "use32BitWorkerProcess": false,
+        "vnetName": "webSubnetConnection",
+        "vnetRouteAllEnabled": true,
         "appSettings": [
           {
             "name": "SemanticMemory:ContentStorageType",
@@ -697,6 +657,10 @@
             "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
+            "name": "SemanticMemory:Services:Qdrant:Endpoint",
+            "value": "[if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')]"
+          },
+          {
             "name": "SemanticMemory:Services:AzureOpenAIText:Auth",
             "value": "ApiKey"
           },
@@ -754,21 +718,23 @@
           },
           {
             "name": "ApplicationInsights:ConnectionString",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-memorypipeline', variables('uniqueName'))), '2020-02-02').ConnectionString]"
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString]"
           }
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Insights/components', format('appins-{0}-memorypipeline', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName')))]",
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]",
+        "[resourceId('Microsoft.Web/sites/virtualNetworkConnections', format('app-{0}-webapi', variables('uniqueName')), 'webSubnetConnection')]"
       ]
     },
     {
-      "condition": "[parameters('deployMemoryPipelinePackage')]",
+      "condition": "[parameters('deployPackages')]",
       "type": "Microsoft.Web/sites/extensions",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'MSDeploy')]",
@@ -822,7 +788,7 @@
           },
           {
             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}-websearcher-plugin', variables('uniqueName'))), '2020-02-02').InstrumentationKey]"
+            "value": "[reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').InstrumentationKey]"
           },
           {
             "name": "PluginConfig:BingApiKey",
@@ -831,14 +797,14 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Insights/components', format('appins-{0}-websearcher-plugin', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Bing/accounts', format('bing-search-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
       ]
     },
     {
-      "condition": "[parameters('deployWebSearcherPackage')]",
+      "condition": "[parameters('deployPackages')]",
       "type": "Microsoft.Web/sites/extensions",
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'MSDeploy')]",
@@ -854,11 +820,11 @@
     {
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02",
-      "name": "[format('appins-{0}-webapi', variables('uniqueName'))]",
+      "name": "[format('appins-{0}', variables('uniqueName'))]",
       "location": "[parameters('location')]",
       "kind": "string",
       "tags": {
-        "displayName": "AppInsightWeb"
+        "displayName": "AppInsight"
       },
       "properties": {
         "Application_Type": "web",
@@ -874,24 +840,7 @@
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
-      ]
-    },
-    {
-      "type": "Microsoft.Insights/components",
-      "apiVersion": "2020-02-02",
-      "name": "[format('appins-{0}-memorypipeline', variables('uniqueName'))]",
-      "location": "[parameters('location')]",
-      "kind": "string",
-      "tags": {
-        "displayName": "AppInsightMemoryPipeline"
-      },
-      "properties": {
-        "Application_Type": "web",
-        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
+        "[resourceId('Microsoft.Web/sites/extensions', format('app-{0}-webapi', variables('uniqueName')), 'MSDeploy')]"
       ]
     },
     {
@@ -900,25 +849,16 @@
       "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-memorypipeline', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/extensions', format('app-{0}-memorypipeline', variables('uniqueName')), 'MSDeploy')]"
       ]
     },
     {
-      "type": "Microsoft.Insights/components",
-      "apiVersion": "2020-02-02",
-      "name": "[format('appins-{0}-websearcher-plugin', variables('uniqueName'))]",
-      "location": "[parameters('location')]",
-      "kind": "web",
-      "tags": {
-        "displayName": "AppInsightWebSearcherPlugin"
-      },
-      "properties": {
-        "Application_Type": "web",
-        "Request_Source": "IbizaWebAppExtensionCreate",
-        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
-      },
+      "type": "Microsoft.Web/sites/siteextensions",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
-        "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', variables('uniqueName')))]"
+        "[resourceId('Microsoft.Web/sites/extensions', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'MSDeploy')]",
+        "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]"
       ]
     },
     {
@@ -1347,96 +1287,6 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', toLower(format('cosmos-{0}', variables('uniqueName'))), 'CopilotChat')]"
-      ]
-    },
-    {
-      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
-      "type": "Microsoft.DBforPostgreSQL/serverGroupsv2",
-      "apiVersion": "2022-11-08",
-      "name": "[format('pg-{0}', variables('uniqueName'))]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "postgresqlVersion": "15",
-        "administratorLoginPassword": "[parameters('sqlAdminPassword')]",
-        "enableHa": false,
-        "coordinatorVCores": 1,
-        "coordinatorServerEdition": "BurstableMemoryOptimized",
-        "coordinatorStorageQuotaInMb": 32768,
-        "nodeVCores": 4,
-        "nodeCount": 0,
-        "nodeStorageQuotaInMb": 524288,
-        "nodeEnablePublicIpAccess": false
-      }
-    },
-    {
-      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
-      "type": "Microsoft.Network/privateDnsZones",
-      "apiVersion": "2020-06-01",
-      "name": "privatelink.postgres.cosmos.azure.com",
-      "location": "global"
-    },
-    {
-      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
-      "type": "Microsoft.Network/privateEndpoints",
-      "apiVersion": "2023-05-01",
-      "name": "[format('pg-{0}-pe', variables('uniqueName'))]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "subnet": {
-          "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[2].id]"
-        },
-        "privateLinkServiceConnections": [
-          {
-            "name": "postgres",
-            "properties": {
-              "privateLinkServiceId": "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
-              "groupIds": [
-                "coordinator"
-              ]
-            }
-          }
-        ]
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.DBforPostgreSQL/serverGroupsv2', format('pg-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
-      ]
-    },
-    {
-      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
-      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-      "apiVersion": "2020-06-01",
-      "name": "[format('{0}/{1}', 'privatelink.postgres.cosmos.azure.com', format('pg-{0}-vnl', variables('uniqueName')))]",
-      "location": "global",
-      "properties": {
-        "virtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
-        },
-        "registrationEnabled": true
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.cosmos.azure.com')]",
-        "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
-      ]
-    },
-    {
-      "condition": "[equals(parameters('memoryStore'), 'Postgres')]",
-      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
-      "apiVersion": "2023-04-01",
-      "name": "[format('{0}/default', format('pg-{0}-pe', variables('uniqueName')))]",
-      "properties": {
-        "privateDnsZoneConfigs": [
-          {
-            "name": "postgres",
-            "properties": {
-              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.cosmos.azure.com')]"
-            }
-          }
-        ]
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.cosmos.azure.com')]",
-        "[resourceId('Microsoft.Network/privateEndpoints', format('pg-{0}-pe', variables('uniqueName')))]"
       ]
     },
     {
