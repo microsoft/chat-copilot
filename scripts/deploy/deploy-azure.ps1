@@ -77,7 +77,7 @@ param(
 
     [switch]
     # Skip deployment of binary packages
-    $DontDeployPackages
+    $NoDeployPackage
 )
 
 # if AIService is AzureOpenAI
@@ -110,7 +110,7 @@ $jsonConfig = "
     `\`"aiService`\`": { `\`"value`\`": `\`"$AIService`\`" },
     `\`"aiApiKey`\`": { `\`"value`\`": `\`"$AIApiKey`\`" },
     `\`"aiEndpoint`\`": { `\`"value`\`": `\`"$AIEndpoint`\`" },
-    `\`"deployPackages`\`": { `\`"value`\`": $(If ($DontDeployPackages) {"false"} Else {"true"}) },
+    `\`"deployPackages`\`": { `\`"value`\`": $(If ($NoDeployPackage) {"false"} Else {"true"}) },
     `\`"azureAdInstance`\`": { `\`"value`\`": `\`"$AzureAdInstance`\`" },
     `\`"azureAdTenantId`\`": { `\`"value`\`": `\`"$TenantId`\`" },
     `\`"webApiClientId`\`": { `\`"value`\`": `\`"$BackendClientId`\`"},
