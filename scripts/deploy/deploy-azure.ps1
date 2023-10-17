@@ -123,7 +123,7 @@ $jsonConfig = "
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },
     `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) },
-    `\`"deployWebSearcher`\`": { `\`"value`\`": $(If ($DeployWebSearcherPlugin) {"true"} Else {"false"}) }
+    `\`"deployWebSearcherPlugin`\`": { `\`"value`\`": $(If ($DeployWebSearcherPlugin) {"true"} Else {"false"}) }
 }
 "
 

@@ -75,12 +75,8 @@ param memoryStore string = 'AzureCognitiveSearch'
 @description('Whether to deploy Azure Speech Services to enable input by voice')
 param deploySpeechServices bool = true
 
-/*
-The web searcher plugin requires a Bing resource.
-A Bing resource may require an elevated permission, which will block the deployment.
-*/
-@description('Whether to the web searcher plugin, which requires a Bing resource')
-param deployWebSearcher bool = false
+@description('Whether to deploy the web searcher plugin, which requires a Bing resource')
+param deployWebSearcherPlugin bool = false
 
 @description('Whether to deploy binary packages to the cloud')
 param deployPackages bool = true
@@ -398,7 +394,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
           value: 'https://www.klarna.com'
         }
       ],
-      (deployWebSearcher) ? [
+      (deployWebSearcherPlugin) ? [
         {
           name: 'Plugins:1:Name'
           value: 'WebSearcher'
@@ -604,7 +600,7 @@ resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-
   ]
 }
 
-resource functionAppWebSearcherPlugin 'Microsoft.Web/sites@2022-09-01' = if (deployWebSearcher) {
+resource functionAppWebSearcherPlugin 'Microsoft.Web/sites@2022-09-01' = if (deployWebSearcherPlugin) {
   name: 'function-${uniqueName}-websearcher-plugin'
   location: location
   kind: 'functionapp'
@@ -620,7 +616,7 @@ resource functionAppWebSearcherPlugin 'Microsoft.Web/sites@2022-09-01' = if (dep
   }
 }
 
-resource functionAppWebSearcherPluginConfig 'Microsoft.Web/sites/config@2022-09-01' = if (deployWebSearcher) {
+resource functionAppWebSearcherPluginConfig 'Microsoft.Web/sites/config@2022-09-01' = if (deployWebSearcherPlugin) {
   parent: functionAppWebSearcherPlugin
   name: 'web'
   properties: {
@@ -644,13 +640,13 @@ resource functionAppWebSearcherPluginConfig 'Microsoft.Web/sites/config@2022-09-
       }
       {
         name: 'PluginConfig:BingApiKey'
-        value: (deployWebSearcher) ? bingSearchService.listKeys().key1 : ''
+        value: (deployWebSearcherPlugin) ? bingSearchService.listKeys().key1 : ''
       }
     ]
   }
 }
 
-resource functionAppWebSearcherDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployPackages && deployWebSearcher) {
+resource functionAppWebSearcherDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployPackages && deployWebSearcherPlugin) {
   name: 'MSDeploy'
   kind: 'string'
   parent: functionAppWebSearcherPlugin
@@ -687,7 +683,7 @@ resource appInsightExtensionMemory 'Microsoft.Web/sites/siteextensions@2022-09-0
   dependsOn: [ appServiceMemoryPipelineDeploy ]
 }
 
-resource appInsightExtensionWebSearchPlugin 'Microsoft.Web/sites/siteextensions@2022-09-01' = if (deployWebSearcher) {
+resource appInsightExtensionWebSearchPlugin 'Microsoft.Web/sites/siteextensions@2022-09-01' = if (deployWebSearcherPlugin) {
   parent: functionAppWebSearcherPlugin
   name: 'Microsoft.ApplicationInsights.AzureWebSites'
   dependsOn: [ functionAppWebSearcherDeploy ]
@@ -1111,7 +1107,7 @@ resource ocrAccount 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
   }
 }
 
-resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = if (deployWebSearcher) {
+resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = if (deployWebSearcherPlugin) {
   name: 'bing-search-${uniqueName}'
   location: 'global'
   sku: {
@@ -1125,5 +1121,5 @@ output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name
 output pluginNames array = concat(
   [],
-  (deployWebSearcher) ? [ functionAppWebSearcherPlugin.name ] : []
+  (deployWebSearcherPlugin) ? [ functionAppWebSearcherPlugin.name ] : []
 )
