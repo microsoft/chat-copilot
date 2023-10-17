@@ -91,7 +91,7 @@ if ($AIService -eq "AzureOpenAI") {
     # If both $AIEndpoint and $AIApiKey are not set, set $DeployAzureOpenAI to true and inform the user. Otherwise set $DeployAzureOpenAI to false and inform the user.
     if (!$AIEndpoint -and !$AIApiKey) {
         $DeployAzureOpenAI = $true
-        Write-Host "When AIService is AzureOpenAI and both AIEndpoint and AIApiKey are not set then a new Azure OpenAI resource will be created."
+        Write-Host "When AIService is AzureOpenAI and both AIEndpoint and AIApiKey are not set, then a new Azure OpenAI resource will be created."
     }
     else {
         $DeployAzureOpenAI = $false

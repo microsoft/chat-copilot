@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "17839996250743989620"
+      "templateHash": "9519863138806302085"
     }
   },
   "parameters": {
@@ -840,7 +840,7 @@
       "name": "[format('{0}/{1}', format('app-{0}-webapi', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/extensions', format('app-{0}-webapi', variables('uniqueName')), 'MSDeploy')]"
       ]
     },
     {
@@ -849,7 +849,7 @@
       "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-memorypipeline', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/extensions', format('app-{0}-memorypipeline', variables('uniqueName')), 'MSDeploy')]"
       ]
     },
     {
@@ -857,8 +857,8 @@
       "apiVersion": "2022-09-01",
       "name": "[format('{0}/{1}', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'Microsoft.ApplicationInsights.AzureWebSites')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/extensions', format('function-{0}-websearcher-plugin', variables('uniqueName')), 'MSDeploy')]",
+        "[resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))]"
       ]
     },
     {
