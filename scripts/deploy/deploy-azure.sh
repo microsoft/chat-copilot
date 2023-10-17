@@ -25,6 +25,7 @@ usage() {
     echo "                                             \"AzureCognitiveSearch\" (default) and \"Qdrant\""
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
+    echo "  -ws, --deploy-web-searcher-plugin          Deploy the web searcher plugin"
     echo "  -dd, --debug-deployment                    Switches on verbose template deployment output"
     echo "  -ndp, --no-deploy-package                  Skips deploying binary packages to cloud when set."
 }
@@ -105,6 +106,10 @@ while [[ $# -gt 0 ]]; do
         NO_SPEECH_SERVICES=true
         shift
         ;;
+    -ws | --deploy-web-searcher-plugin)
+        DEPLOY_WEB_SEARCHER_PLUGIN=true
+        shift
+        ;;
     -dd | --debug-deployment)
         DEBUG_DEPLOYMENT=true
         shift
@@ -182,6 +187,7 @@ az account set -s "$SUBSCRIPTION"
 : "${MEMORY_STORE:="AzureCognitiveSearch"}"
 : "${NO_COSMOS_DB:=false}"
 : "${NO_SPEECH_SERVICES:=false}"
+: "${DEPLOY_WEB_SEARCHER_PLUGIN:=false}"
 
 # Create JSON config
 JSON_CONFIG=$(
@@ -199,7 +205,8 @@ JSON_CONFIG=$(
     "deployNewAzureOpenAI": { "value": $([ "$NO_NEW_AZURE_OPENAI" = true ] && echo "false" || echo "true") },
     "memoryStore": { "value": "$MEMORY_STORE" },
     "deployCosmosDB": { "value": $([ "$NO_COSMOS_DB" = true ] && echo "false" || echo "true") },
-    "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") }
+    "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") },
+    "deployWebSearcherPlugin": { "value": $([ "$DEPLOY_WEB_SEARCHER_PLUGIN" = true ] && echo "true" || echo "false") }
 }
 EOF
 )

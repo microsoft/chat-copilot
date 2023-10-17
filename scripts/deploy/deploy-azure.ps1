@@ -72,6 +72,10 @@ param(
     $NoSpeechServices,
 
     [switch]
+    # Deploy the web searcher plugin
+    $DeployWebSearcherPlugin,
+
+    [switch]
     # Switches on verbose template deployment output
     $DebugDeployment,
 
@@ -118,7 +122,8 @@ $jsonConfig = "
     `\`"deployNewAzureOpenAI`\`": { `\`"value`\`": $(If ($DeployAzureOpenAI) {"true"} Else {"false"}) },
     `\`"memoryStore`\`": { `\`"value`\`": `\`"$MemoryStore`\`" },
     `\`"deployCosmosDB`\`": { `\`"value`\`": $(If (!($NoCosmosDb)) {"true"} Else {"false"}) },
-    `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) }
+    `\`"deploySpeechServices`\`": { `\`"value`\`": $(If (!($NoSpeechServices)) {"true"} Else {"false"}) },
+    `\`"deployWebSearcherPlugin`\`": { `\`"value`\`": $(If ($DeployWebSearcherPlugin) {"true"} Else {"false"}) }
 }
 "
 
