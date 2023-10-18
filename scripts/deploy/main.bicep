@@ -78,7 +78,7 @@ param deploySpeechServices bool = true
 @description('Whether to deploy the web searcher plugin, which requires a Bing resource')
 param deployWebSearcherPlugin bool = false
 
-@description('Whether to deploy binary packages to the cloud')
+@description('Whether to deploy pre-built binary packages to the cloud')
 param deployPackages bool = true
 
 @description('Region for the resources')
