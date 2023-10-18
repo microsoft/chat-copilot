@@ -93,7 +93,7 @@ var uniqueName = '${name}-${rgIdHash}'
 @description('Name of the Azure Storage file share to create')
 var storageFileShareName = 'aciqdrantshare'
 
-resource openAI 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployNewAzureOpenAI) {
+resource openAI 'Microsoft.CognitiveServices/accounts@2023-05-01' = if (deployNewAzureOpenAI) {
   name: 'ai-${uniqueName}'
   location: location
   kind: 'OpenAI'
@@ -105,30 +105,32 @@ resource openAI 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployNe
   }
 }
 
-resource openAI_completionModel 'Microsoft.CognitiveServices/accounts/deployments@2022-12-01' = if (deployNewAzureOpenAI) {
+resource openAI_completionModel 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = if (deployNewAzureOpenAI) {
   parent: openAI
   name: completionModel
+  sku: {
+    name: 'Standard'
+    capacity: 30
+  }
   properties: {
     model: {
       format: 'OpenAI'
       name: completionModel
     }
-    scaleSettings: {
-      scaleType: 'Standard'
-    }
   }
 }
 
-resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments@2022-12-01' = if (deployNewAzureOpenAI) {
+resource openAI_embeddingModel 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = if (deployNewAzureOpenAI) {
   parent: openAI
   name: embeddingModel
+  sku: {
+    name: 'Standard'
+    capacity: 30
+  }
   properties: {
     model: {
       format: 'OpenAI'
       name: embeddingModel
-    }
-    scaleSettings: {
-      scaleType: 'Standard'
     }
   }
   dependsOn: [// This "dependency" is to create models sequentially because the resource
