@@ -388,6 +388,18 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
           value: embeddingModel
         }
         {
+          name: 'SemanticMemory:Services:OpenAI:TextModel'
+          value: completionModel
+        }
+        {
+          name: 'SemanticMemory:Services:OpenAI:EmbeddingModel'
+          value: embeddingModel
+        }
+        {
+          name: 'SemanticMemory:Services:OpenAI:APIKey'
+          value: aiApiKey
+        }
+        {
           name: 'Plugins:0:Name'
           value: 'Klarna Shopping'
         }
