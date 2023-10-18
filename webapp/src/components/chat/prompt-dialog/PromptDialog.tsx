@@ -19,6 +19,7 @@ import {
     TabValue,
     Tooltip,
     makeStyles,
+    mergeClasses,
     shorthands,
 } from '@fluentui/react-components';
 import { Info16Regular } from '@fluentui/react-icons';
@@ -26,7 +27,7 @@ import React from 'react';
 import { BotResponsePrompt, DependencyDetails, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { PlanType } from '../../../libs/models/Plan';
-import { StepwiseThoughtProcess } from '../../../libs/models/StepwiseThoughtProcess';
+import { PlanExecutionMetadata } from '../../../libs/models/PlanExecutionMetadata';
 import { useDialogClasses } from '../../../styles';
 import { TokenUsageGraph } from '../../token-usage/TokenUsageGraph';
 import { formatParagraphTextContent } from '../../utils/TextUtils';
@@ -38,6 +39,10 @@ const useClasses = makeStyles({
         ...shorthands.margin(0),
         minWidth: 'auto',
         marginLeft: 'auto', // align to right
+    },
+    text: {
+        width: '100%',
+        overflowWrap: 'break-word',
     },
 });
 
@@ -71,8 +76,18 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                 const information = value as DependencyDetails;
                 if (information.context) {
                     // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
-                    const details = information.context as StepwiseThoughtProcess;
+                    const details = information.context as PlanExecutionMetadata;
                     isStepwiseThoughtProcess = details.plannerType === PlanType.Stepwise;
+
+                    // Backend can be configured to return the raw response from Stepwise Planner. In this case, no meta prompt was generated or completed
+                    // and we should show the Stepwise thought process as the raw content view.
+                    if ((prompt as BotResponsePrompt).metaPromptTemplate.length <= 0) {
+                        (prompt as BotResponsePrompt).rawView = (
+                            <pre className={mergeClasses(dialogClasses.text, classes.text)}>
+                                {JSON.stringify(JSON.parse(details.stepsTaken), null, 2)}
+                            </pre>
+                        );
+                    }
                 }
 
                 if (!isStepwiseThoughtProcess) {
@@ -134,15 +149,17 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                         >
                             {selectedTab === 'formatted' && promptDetails}
                             {selectedTab === 'rawContent' &&
-                                (prompt as BotResponsePrompt).metaPromptTemplate.map((contextMessage, index) => {
-                                    return (
-                                        <div key={`context-message-${index}`}>
-                                            <p>{`Role: ${contextMessage.Role.Label}`}</p>
-                                            {formatParagraphTextContent(`Content: ${contextMessage.Content}`)}
-                                            <Divider />
-                                        </div>
-                                    );
-                                })}
+                                ((prompt as BotResponsePrompt).metaPromptTemplate.length > 0
+                                    ? (prompt as BotResponsePrompt).metaPromptTemplate.map((contextMessage, index) => {
+                                          return (
+                                              <div key={`context-message-${index}`}>
+                                                  <p>{`Role: ${contextMessage.Role.Label}`}</p>
+                                                  {formatParagraphTextContent(`Content: ${contextMessage.Content}`)}
+                                                  <Divider />
+                                              </div>
+                                          );
+                                      })
+                                    : (prompt as BotResponsePrompt).rawView)}
                         </div>
                     </DialogContent>
                     <DialogActions position="start" className={dialogClasses.footer}>

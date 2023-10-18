@@ -171,7 +171,7 @@
       "type": "bool",
       "defaultValue": true,
       "metadata": {
-        "description": "Whether to deploy binary packages to the cloud"
+        "description": "Whether to deploy pre-built binary packages to the cloud"
       }
     },
     "location": {
@@ -487,6 +487,18 @@
           {
             "name": "SemanticMemory:Services:AzureFormRecognizer:APIKey",
             "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName'))), '2022-12-01').key1]"
+          },
+          {
+            "name": "SemanticMemory:Services:OpenAI:TextModel",
+            "value": "[parameters('completionModel')]"
+          },
+          {
+            "name": "SemanticMemory:Services:OpenAI:EmbeddingModel",
+            "value": "[parameters('embeddingModel')]"
+          },
+          {
+            "name": "SemanticMemory:Services:OpenAI:APIKey",
+            "value": "[parameters('aiApiKey')]"
           },
           {
             "name": "Logging:LogLevel:Default",

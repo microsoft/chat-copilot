@@ -152,10 +152,13 @@ chmod +x ./deploy-webapi.sh
 
 # Deploy Hosted Plugins
 
-> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The `deployWebSearcherPackage = true` setting in main.bicep ensures that the WebSearcher is deployed.
+> **_NOTE:_** This step can be skipped if the required resources for the web searcher plugin are not deployed. The required resources include a Bing resource and an Azure Function. The required resources are NOT deployed by default. To deploy the required resources, use the `-DeployWebSearcherPlugin` or `--deploy-web-searcher-plugin` flag when running the **deploy-azure.ps1/deploy-azure.sh** script.
+
+> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step, including the resources required by the Web Search plugin, succeeded without errors. The `deployPackages = true` setting in main.bicep ensures that the WebSearcher is deployed.
+
 > **_NOTE:_** More hosted plugins will be available.
 
-To deploy the plugins, build the packages first and deploy then to the Azure resources created above.
+To deploy the plugins, build the packages first and deploy them to the Azure resources created above.
 
 ## PowerShell
 
@@ -177,9 +180,9 @@ chmod +x ./deploy-plugins.sh
 
 # (Optional) Deploy Memory Pipeline
 
-> **_NOTE:_** This step can be skipped if the WebApi is not configured to run asynchronously for document processing. By default, the WebApi is configured to run asynchronously for document processing in deployment.
+> **_NOTE:_** This step can be skipped if the WebApi is NOT configured to run asynchronously for document processing. By default, the WebApi is configured to run asynchronously for document processing in deployment.
 
-> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The deployMemoryPipelinePackage = true setting in main.bicep ensures that the latest Chat Copilot memory pipeline is deployed.
+> **_NOTE:_** This step can be skipped if the previous Azure Resources creation step succeeded without errors. The deployPackages = true setting in main.bicep ensures that the latest Chat Copilot memory pipeline is deployed.
 
 To deploy the memorypipeline, build the deployment package first and deploy it to the Azure resources created above.
 

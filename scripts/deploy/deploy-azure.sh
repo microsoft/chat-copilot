@@ -22,12 +22,12 @@ usage() {
     echo "  -i, --instance AZURE_AD_INSTANCE           Azure AD cloud instance for authenticating users"
     echo "                                             (default: \"https://login.microsoftonline.com\")"
     echo "  -ms, --memory-store                        Method to use to persist embeddings. Valid values are"
-    echo "                                             \"AzureCognitiveSearch\" (default), \"Qdrant\", \"Postgres\" and \"Volatile\""
-    echo "  -sap, --sql-admin-password                 Password for the PostgreSQL Server admin user"
+    echo "                                             \"AzureCognitiveSearch\" (default) and \"Qdrant\""
     echo "  -nc, --no-cosmos-db                        Don't deploy Cosmos DB for chat storage - Use volatile memory instead"
     echo "  -ns, --no-speech-services                  Don't deploy Speech Services to enable speech as chat input"
+    echo "  -ws, --deploy-web-searcher-plugin          Deploy the web searcher plugin"
     echo "  -dd, --debug-deployment                    Switches on verbose template deployment output"
-    echo "  -ndp, --no-deploy-package                  Skips deploying the Web API package when set."
+    echo "  -ndp, --no-deploy-package                  Skips deploying binary packages to cloud when set."
 }
 
 # Parse arguments
@@ -98,17 +98,16 @@ while [[ $# -gt 0 ]]; do
         MEMORY_STORE=="$2"
         shift
         ;;
-    -sap | --sql-admin-password)
-        SQL_ADMIN_PASSWORD="$2"
-        shift
-        shift
-        ;;
     -nc | --no-cosmos-db)
         NO_COSMOS_DB=true
         shift
         ;;
     -ns | --no-speech-services)
         NO_SPEECH_SERVICES=true
+        shift
+        ;;
+    -ws | --deploy-web-searcher-plugin)
+        DEPLOY_WEB_SEARCHER_PLUGIN=true
         shift
         ;;
     -dd | --debug-deployment)
@@ -166,13 +165,6 @@ if [[ "${AI_SERVICE_TYPE,,}" = "openai" ]] && [[ -z "$AI_SERVICE_KEY" ]]; then
     exit 1
 fi
 
-# If MEMORY_STORE is Postges, then SQL_ADMIN_PASSWORD is mandatory
-if [[ "${MEMORY_STORE,,}" = "postgres" ]] && [[ -z "$SQL_ADMIN_PASSWORD" ]]; then
-    echo "When --memory-store is 'Postgres', --sql-admin-password must be set."
-    usage
-    exit 1
-fi
-
 # If resource group is not set, then set it to rg-DEPLOYMENT_NAME
 if [ -z "$RESOURCE_GROUP" ]; then
     RESOURCE_GROUP="rg-${DEPLOYMENT_NAME}"
@@ -195,6 +187,7 @@ az account set -s "$SUBSCRIPTION"
 : "${MEMORY_STORE:="AzureCognitiveSearch"}"
 : "${NO_COSMOS_DB:=false}"
 : "${NO_SPEECH_SERVICES:=false}"
+: "${DEPLOY_WEB_SEARCHER_PLUGIN:=false}"
 
 # Create JSON config
 JSON_CONFIG=$(
@@ -203,9 +196,7 @@ JSON_CONFIG=$(
     "webAppServiceSku": { "value": "$WEB_APP_SVC_SKU" },
     "aiService": { "value": "$AI_SERVICE_TYPE" },
     "aiApiKey": { "value": "$AI_SERVICE_KEY" },
-    "deployWebApiPackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
-    "deployMemoryPipelinePackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
-    "deployWebSearcherPackage": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
+    "deployPackages": { "value": $([ "$NO_DEPLOY_PACKAGE" = true ] && echo "false" || echo "true") },
     "aiEndpoint": { "value": "$([ ! -z "$AI_ENDPOINT" ] && echo "$AI_ENDPOINT")" },
     "azureAdInstance": { "value": "$AZURE_AD_INSTANCE" },
     "azureAdTenantId": { "value": "$AZURE_AD_TENANT_ID" },
@@ -213,9 +204,9 @@ JSON_CONFIG=$(
     "frontendClientId": { "value": "$FRONTEND_CLIENT_ID" },
     "deployNewAzureOpenAI": { "value": $([ "$NO_NEW_AZURE_OPENAI" = true ] && echo "false" || echo "true") },
     "memoryStore": { "value": "$MEMORY_STORE" },
-    "sqlAdminPassword": { "value": "$SQL_ADMIN_PASSWORD" },
     "deployCosmosDB": { "value": $([ "$NO_COSMOS_DB" = true ] && echo "false" || echo "true") },
-    "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") }
+    "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") },
+    "deployWebSearcherPlugin": { "value": $([ "$DEPLOY_WEB_SEARCHER_PLUGIN" = true ] && echo "true" || echo "false") }
 }
 EOF
 )
