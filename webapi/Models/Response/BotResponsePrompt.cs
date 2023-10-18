@@ -44,7 +44,7 @@ public class BotResponsePrompt
     /// Relevant additional knowledge extracted using a planner.
     /// </summary>
     [JsonPropertyName("externalInformation")]
-    public ISemanticDependency ExternalInformation { get; set; }
+    public SemanticDependency<PlanExecutionMetadata> ExternalInformation { get; set; }
 
     /// <summary>
     /// The collection of context messages associated with this chat completions request.
@@ -58,7 +58,7 @@ public class BotResponsePrompt
         string audience,
         string userIntent,
         string chatMemories,
-        ISemanticDependency externalInformation,
+        SemanticDependency<PlanExecutionMetadata> externalInformation,
         string chatHistory,
         ChatCompletionContextMessages metaPromptTemplate
     )

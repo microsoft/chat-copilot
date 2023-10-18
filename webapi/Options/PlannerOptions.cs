@@ -67,6 +67,12 @@ public class PlannerOptions
     public ErrorOptions ErrorHandling { get; set; } = new ErrorOptions();
 
     /// <summary>
+    /// Optional flag to indicate whether to use the planner result as the bot response.
+    /// </summary>
+    [RequiredOnPropertyValue(nameof(Type), PlanType.Stepwise)]
+    public bool UseStepwiseResultAsBotResponse { get; set; } = false;
+
+    /// <summary>
     /// The configuration for the stepwise planner.
     /// </summary>
     [RequiredOnPropertyValue(nameof(Type), PlanType.Stepwise)]
