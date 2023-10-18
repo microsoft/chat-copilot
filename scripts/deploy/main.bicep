@@ -583,6 +583,18 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
         value: ocrAccount.listKeys().key1
       }
       {
+        name: 'SemanticMemory:Services:OpenAI:TextModel'
+        value: completionModel
+      }
+      {
+        name: 'SemanticMemory:Services:OpenAI:EmbeddingModel'
+        value: embeddingModel
+      }
+      {
+        name: 'SemanticMemory:Services:OpenAI:APIKey'
+        value: aiApiKey
+      }
+      {
         name: 'Logging:LogLevel:Default'
         value: 'Information'
       }
