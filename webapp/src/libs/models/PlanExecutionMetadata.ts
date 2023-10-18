@@ -1,7 +1,7 @@
 import { PlanType } from './Plan';
 
-// Information about a pass through stepwise planner.
-export interface StepwiseThoughtProcess {
+// Metadata about plan execution.
+export interface PlanExecutionMetadata {
     // Steps taken execution stat.
     stepsTaken: string;
 

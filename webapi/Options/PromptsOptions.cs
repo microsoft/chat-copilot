@@ -71,6 +71,11 @@ public class PromptsOptions
     /// </summary>
     [Required, NotEmptyOrWhitespace] public string PlanResultsDescription { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Supplement to help guide model in using a response from StepwisePlanner.
+    /// </summary>
+    [Required, NotEmptyOrWhitespace] public string StepwisePlannerSupplement { get; set; } = string.Empty;
+
     internal string[] SystemAudiencePromptComponents => new string[]
     {
         this.SystemAudience,

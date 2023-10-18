@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// Information about a pass through stepwise planner.
+/// Metadata about plan execution.
 /// </summary>
-public class StepwiseThoughtProcess
+public class PlanExecutionMetadata
 {
     /// <summary>
     /// Steps taken execution stat.
@@ -34,10 +34,17 @@ public class StepwiseThoughtProcess
     [JsonPropertyName("plannerType")]
     public PlanType PlannerType { get; set; } = PlanType.Stepwise;
 
-    public StepwiseThoughtProcess(string stepsTaken, string timeTaken, string skillsUsed)
+    /// <summary>
+    /// Raw result of the planner.
+    /// </summary>
+    [JsonIgnore]
+    public string RawResult { get; set; } = string.Empty;
+
+    public PlanExecutionMetadata(string stepsTaken, string timeTaken, string skillsUsed, string rawResult)
     {
         this.StepsTaken = stepsTaken;
         this.TimeTaken = timeTaken;
         this.SkillsUsed = skillsUsed;
+        this.RawResult = rawResult;
     }
 }

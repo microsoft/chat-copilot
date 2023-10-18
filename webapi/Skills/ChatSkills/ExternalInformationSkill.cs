@@ -17,9 +17,12 @@ using CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
 using CopilotChat.WebApi.Skills.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
+using Microsoft.SemanticKernel.Planning.Stepwise;
 using Microsoft.SemanticKernel.SkillDefinition;
+using Microsoft.SemanticKernel.TemplateEngine.Prompt;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -47,7 +50,13 @@ public class ExternalInformationSkill
     ///  Options for the planner.
     /// </summary>
     private readonly PlannerOptions? _plannerOptions;
-    public PlannerOptions? PlannerOptions => this._plannerOptions;
+    public PlannerOptions? PlannerOptions
+    {
+        get
+        {
+            return this._plannerOptions;
+        }
+    }
 
     /// <summary>
     /// Proposed plan to return for approval.
@@ -57,7 +66,7 @@ public class ExternalInformationSkill
     /// <summary>
     /// Stepwise thought process to return for view.
     /// </summary>
-    public StepwiseThoughtProcess? StepwiseThoughtProcess { get; private set; }
+    public PlanExecutionMetadata? StepwiseThoughtProcess { get; private set; }
 
     /// <summary>
     /// Header to indicate plan results.
@@ -101,15 +110,11 @@ public class ExternalInformationSkill
 
         var contextString = this.GetChatContextString(context);
         var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\n{userIntent}";
+
+        // Run stepwise planner if PlannerOptions.Type == Stepwise
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
-            var plannerContext = context.Clone();
-            plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
-            this.StepwiseThoughtProcess = new StepwiseThoughtProcess(
-                plannerContext.Variables["stepsTaken"],
-                plannerContext.Variables["timeTaken"],
-                plannerContext.Variables["skillCount"]);
-            return $"{plannerContext.Variables.Input.Trim()}\n";
+            return await this.RunStepwisePlannerAsync(goal, context, cancellationToken);
         }
 
         // Create a plan and set it in context for approval.
@@ -193,7 +198,83 @@ public class ExternalInformationSkill
         return $"{functionsUsed}\n{ResultHeader}{planResult.Trim()}";
     }
 
+    /// <summary>
+    /// Determines whether to use the stepwise planner result as the bot response, thereby bypassing meta prompt generation and completion.
+    /// </summary>
+    /// <param name="planResult">The result obtained from the stepwise planner.</param>
+    /// <returns>
+    /// True if the stepwise planner result should be used as the bot response,
+    /// false otherwise.
+    /// </returns>
+    /// <remarks>
+    /// This method checks the following conditions:
+    /// 1. The plan result is not null, empty, or whitespace.
+    /// 2. The planner options are specified, and the plan type is set to Stepwise.
+    /// 3. The UseStepwiseResultAsBotResponse option is enabled.
+    /// 4. The StepwiseThoughtProcess is not null.
+    /// </remarks>
+    public bool UseStepwiseResultAsBotResponse(string planResult)
+    {
+        return !string.IsNullOrWhiteSpace(planResult)
+            && this._plannerOptions?.Type == PlanType.Stepwise
+            && this._plannerOptions.UseStepwiseResultAsBotResponse
+            && this.StepwiseThoughtProcess != null;
+    }
+
     #region Private
+
+    /// <summary>
+    /// Executes the stepwise planner with a given goal and context, and returns the result along with descriptive text.
+    /// Also sets any metadata associated with stepwise planner execution.
+    /// </summary>
+    /// <param name="goal">The goal to be achieved by the stepwise planner.</param>
+    /// <param name="context">The SKContext containing the necessary information for the planner.</param>
+    /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
+    /// <returns>
+    /// A formatted string containing the result of the stepwise planner and a supplementary message to guide the model in using the result.
+    /// </returns>
+    private async Task<string> RunStepwisePlannerAsync(string goal, SKContext context, CancellationToken cancellationToken)
+    {
+        var plannerContext = context.Clone();
+        plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
+
+        // Populate the execution metadata.
+        var plannerResult = plannerContext.Variables.Input.Trim();
+        this.StepwiseThoughtProcess = new PlanExecutionMetadata(
+            plannerContext.Variables["stepsTaken"],
+            plannerContext.Variables["timeTaken"],
+            plannerContext.Variables["skillCount"],
+            plannerResult);
+
+        // Return empty string if result was not found so it's omitted from the meta prompt.
+        if (plannerResult.Contains("Result not found, review 'stepsTaken' to see what happened.", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        // Parse the steps taken to determine which functions were used.
+        if (plannerContext.Variables.TryGetValue("stepsTaken", out var stepsTaken))
+        {
+            var steps = JsonSerializer.Deserialize<List<SystemStep>>(stepsTaken);
+            var functionsUsed = new HashSet<string>();
+            steps?.ForEach(step =>
+            {
+                if (!step.Action.IsNullOrEmpty()) { functionsUsed.Add(step.Action); }
+            });
+
+            var planFunctions = string.Join(", ", functionsUsed);
+            plannerContext.Variables.Set("planFunctions", functionsUsed.Count > 0 ? planFunctions : "N/A");
+        }
+
+        // Render the supplement to guide the model in using the result.
+        var promptRenderer = new PromptTemplateEngine();
+        var resultSupplement = await promptRenderer.RenderAsync(
+            this._promptOptions.StepwisePlannerSupplement,
+            plannerContext,
+            cancellationToken);
+
+        return $"{resultSupplement}\n\nResult:\n\"{plannerResult}\"";
+    }
 
     /// <summary>
     /// Merge any variables from context into plan parameters.
