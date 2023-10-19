@@ -12,7 +12,7 @@ usage() {
     echo "  -p, --package PACKAGE_FILE_PATH         Path to the package file from a 'package-webapi.sh' run (default: \"./out/webapi.zip\")"
     echo "  -o, --slot DEPLOYMENT_SLOT              Name of the target web app deployment slot"
     echo "  -sr, --skip-app-registration            Skip adding our URI in app registration's redirect URIs"
-    echo "  -sc, --skip-cors-registraion            Skip registration of service with the plugins as allowed CORS origin"
+    echo "  -sc, --skip-cors-registration           Skip registration of service with the plugins as allowed CORS origin"
 }
 
 # Parse arguments
@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-    -c|--skip-cors-registraion)
+    -c|--skip-cors-registration)
         REGISTER_CORS=false
         shift
         ;;
