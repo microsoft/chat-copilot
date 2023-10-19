@@ -60,6 +60,14 @@ if (-Not $SkipFrontendFiles) {
     Write-Host "Building static frontend files..."
 
     Push-Location -Path "$PSScriptRoot/../../webapp"
+    
+    if ($Version -ne "0.0.0") {
+        Add-Content -Path ./.env -Value "REACT_APP_SK_VERSION=$Version"
+    }
+    
+    if ($InformationalVersion -ne "") {
+        Add-Content -Path ./.env -Value "REACT_APP_SK_BUILD_INFO=$InformationalVersion"
+    }
 
     Write-Host "Installing yarn dependencies..."
     yarn install
