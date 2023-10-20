@@ -24,6 +24,7 @@ services:
     depends_on:
       chat-copilot-webapi:
         condition: service_started
+  #  Alternatively use webapi image to serve frontend files
   #  chat-copilot-webapp:
   #    image: chat-copilot-webapp
   #    build:
