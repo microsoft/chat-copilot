@@ -27,7 +27,7 @@ param(
     $PackageFilePath = "$PSScriptRoot/out/webapi.zip",
 
     [switch]
-    # Don't attempt to add our URIs in app registration's redirect URIs
+    # Don't attempt to add our URIs in frontend app registration's redirect URIs
     $SkipAppRegistration,
     
     [switch]
