@@ -46,9 +46,11 @@ $publishedZipFilePath = "$publishedZipDirectory/webapi.zip"
 if (!(Test-Path $publishedZipDirectory)) {
     New-Item -ItemType Directory -Force -Path $publishedZipDirectory | Out-Null
 }
-if (!(Test-Path $publishOutputDirectory)) {
-    New-Item -ItemType Directory -Force -Path $publishOutputDirectory | Out-Null
+if (Test-Path $publishOutputDirectory) {
+    rm $publishOutputDirectory/* -r -force
 }
+
+New-Item -ItemType Directory -Force -Path $publishOutputDirectory | Out-Null
 
 Write-Host "Build configuration: $BuildConfiguration"
 dotnet publish "$PSScriptRoot/../../webapi/CopilotChatWebApi.csproj" --configuration $BuildConfiguration --framework $DotNetFramework --runtime $TargetRuntime --self-contained --output "$publishOutputDirectory" /p:AssemblyVersion=$Version /p:FileVersion=$Version /p:InformationalVersion=$InformationalVersion
@@ -61,13 +63,14 @@ if (-Not $SkipFrontendFiles) {
 
     Push-Location -Path "$PSScriptRoot/../../webapp"
     
-    if ($Version -ne "0.0.0") {
-        Add-Content -Path ./.env -Value "REACT_APP_SK_VERSION=$Version"
+    $filePath = "./.env.production"
+    if (Test-path $filePath -PathType leaf) {
+        Remove-Item $filePath
     }
     
-    if ($InformationalVersion -ne "") {
-        Add-Content -Path ./.env -Value "REACT_APP_SK_BUILD_INFO=$InformationalVersion"
-    }
+    Add-Content -Path $filePath -Value "REACT_APP_BACKEND_URI="
+    Add-Content -Path $filePath -Value "REACT_APP_SK_VERSION=$Version"
+    Add-Content -Path $filePath -Value "REACT_APP_SK_BUILD_INFO=$InformationalVersion"
 
     Write-Host "Installing yarn dependencies..."
     yarn install

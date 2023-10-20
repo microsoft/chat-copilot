@@ -112,13 +112,14 @@ if [[ -z "$SKIP_FRONTEND" ]]; then
 
     pushd "$SCRIPT_ROOT/../../webapp"
 
-    if [ "$Version" != "0.0.0" ]; then
-        echo "REACT_APP_SK_VERSION=$Version" >> .env
+    filePath="./.env.production"
+    if [ -f "$filePath" ]; then
+        rm "$filePath"
     fi
 
-    if [ -n "$InformationalVersion" ]; then
-        echo "REACT_APP_SK_BUILD_INFO=$InformationalVersion" >> .env
-    fi
+    echo "REACT_APP_BACKEND_URI=" >> "$filePath"
+    echo "REACT_APP_SK_VERSION=$Version" >> "$filePath"
+    echo "REACT_APP_SK_BUILD_INFO=$InformationalVersion" >> "$filePath"
 
     echo "Installing yarn dependencies..."
     yarn install
