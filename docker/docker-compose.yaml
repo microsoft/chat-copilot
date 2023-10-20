@@ -1,33 +1,139 @@
-version: '3'
+# To start docker-compose:
+# 1. Copy the example .env file for webapi:
+#    cp ../docker/webapi/.env.example ../docker/webapi/.env
+# 2. Edit the .env file to add the corresponding configuration values.
+# 3. Copy the example .env file for web searcher plugin:
+#    cp ../docker/plugins/web-searcher/.env.example ../docker/plugins/web-searcher/.env
+# 4. Edit the .env file for web searcher plugin to add the corresponding configuration values.
+# 5. Copy the example .env file for memorypipeline:
+#    cp ../docker/memorypipeline/.env.example ../docker/memorypipeline/.env
+# 6. Edit the .env file for memmorypipeline to add the corresponding configuration values.
+# 7. With the .env files populated, you can now start docker-compose by running "docker-compose up --build"
+
+version: "3"
 services:
-  chat-copilot-webapp:
+  chat-copilot-webapp-nginx:
     image: chat-copilot-webapp-nginx
-    build: 
+    build:
       context: ..
-      dockerfile: docker/webapp/Dockerfile
+      dockerfile: docker/webapp/Dockerfile.nginx
+      args:
+        - REACT_APP_BACKEND_URI=http://localhost:3080
     ports:
       - 3000:3000
-    env_file:
-      - ../webapp/.env
     depends_on:
       chat-copilot-webapi:
         condition: service_started
+  #  Alternatively use webapi image to serve frontend files
+  #  chat-copilot-webapp:
+  #    image: chat-copilot-webapp
+  #    build:
+  #      context: ..
+  #      dockerfile: docker/webapp/Dockerfile
+  #    ports:
+  #      - 3000:3000
+  #    environment:
+  #      - REACT_APP_BACKEND_URI=http://localhost:3080
+  #    depends_on:
+  #      chat-copilot-webapi:
+  #        condition: service_started
   chat-copilot-webapi:
     image: chat-copilot-webapi
-    build: 
+    build:
       context: ..
       dockerfile: docker/webapi/Dockerfile
     ports:
-      - 8080:8080
+      - 3080:8080
     env_file:
-      - ../webapi/.env
+      - webapi/.env
     environment:
-      - MemoryStore__Qdrant__Host=http://qdrant
+      - Authentication__Type=AzureAd
+      - SemanticMemory__Services__Qdrant__Endpoint=http://qdrant:6333
+      - SemanticMemory__Services__Qdrant__APIKey=chat-copilot
+      - SemanticMemory__Services__RabbitMq__Host=rabbitmq
+      - SemanticMemory__Services__RabbitMq__Port=5672
+      - SemanticMemory__Services__RabbitMq__Username=chat-copilot
+      - SemanticMemory__Services__RabbitMq__Password=chat-copilot
+      - SemanticMemory__ContentStorageType=AzureBlobs
+      - SemanticMemory__ImageOcrType=Tesseract
+      - SemanticMemory__TextGeneratorType=AzureOpenAI
+      - SemanticMemory__DataIngestion__OrchestrationType=Distributed
+      - SemanticMemory__DataIngestion__DistributedOrchestration__QueueType=RabbitMQ
+      - SemanticMemory__DataIngestion__VectorDbTypes__0=Qdrant
+      - SemanticMemory__DataIngestion__EmbeddingGeneratorTypes__0=AzureOpenAI
+      - SemanticMemory__Retrieval__EmbeddingGeneratorType=AzureOpenAI
+      - SemanticMemory__Retrieval__VectorDbType=Qdrant
+      - Plugins__1__Name=WebSearcher
+      - Plugins__1__ManifestDomain=http://web-searcher
+      - Plugins__1__Key=chat-copilot
     depends_on:
       qdrant:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      web-searcher:
+        condition: service_healthy
   qdrant:
     image: qdrant/qdrant
     ports:
       - 6333:6333
-
+    environment:
+      - QDRANT__SERVICE__API_KEY=chat-copilot
+      - QDRANT__LOG_LEVEL=INFO
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=chat-copilot
+      - RABBITMQ_DEFAULT_PASS=chat-copilot
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  web-searcher:
+    image: web-searcher
+    build:
+      context: ..
+      dockerfile: docker/plugins/web-searcher/Dockerfile
+      args:
+        - AZURE_FUNCTION_MASTER_KEY=chat-copilot
+    env_file:
+      - plugins/web-searcher/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/.well-known/ai-plugin.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  chat-copilot-memorypipeline:
+    image: chat-copilot-memorypipeline
+    build:
+      context: ..
+      dockerfile: docker/memorypipeline/Dockerfile
+    ports:
+      - 3280:80
+    env_file:
+      - memorypipeline/.env
+    environment:
+      - SemanticMemory__Services__Qdrant__Endpoint=http://qdrant:6333
+      - SemanticMemory__Services__Qdrant__APIKey=chat-copilot
+      - SemanticMemory__Services__RabbitMq__Host=rabbitmq
+      - SemanticMemory__Services__RabbitMq__Port=5672
+      - SemanticMemory__Services__RabbitMq__Username=chat-copilot
+      - SemanticMemory__Services__RabbitMq__Password=chat-copilot
+      - SemanticMemory__ContentStorageType=AzureBlobs
+      - SemanticMemory__ImageOcrType=Tesseract
+      - SemanticMemory__TextGeneratorType=AzureOpenAI
+      - SemanticMemory__DataIngestion__OrchestrationType=Distributed
+      - SemanticMemory__DataIngestion__DistributedOrchestration__QueueType=RabbitMQ
+      - SemanticMemory__DataIngestion__VectorDbTypes__0=Qdrant
+      - SemanticMemory__DataIngestion__EmbeddingGeneratorTypes__0=AzureOpenAI
+      - SemanticMemory__Retrieval__EmbeddingGeneratorType=AzureOpenAI
+      - SemanticMemory__Retrieval__VectorDbType=Qdrant
+    depends_on:
+      qdrant:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
