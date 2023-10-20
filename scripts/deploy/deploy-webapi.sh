@@ -11,8 +11,8 @@ usage() {
     echo "  -rg, --resource-group RESOURCE_GROUP    Resource group name from a 'deploy-azure.sh' deployment (mandatory)"
     echo "  -p, --package PACKAGE_FILE_PATH         Path to the package file from a 'package-webapi.sh' run (default: \"./out/webapi.zip\")"
     echo "  -o, --slot DEPLOYMENT_SLOT              Name of the target web app deployment slot"
-    echo "  -r, --register-app                      Switch to add our URI in app registration's redirect URIs if missing"
-    echo "  -c, --register-cors                     Register service with the plugins as allowed CORS origin"
+    echo "  -sr, --skip-app-registration            Skip adding our URI in app registration's redirect URIs"
+    echo "  -sc, --skip-cors-registration           Skip registration of service with the plugins as allowed CORS origin"
 }
 
 # Parse arguments
@@ -39,8 +39,8 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-    -r|--register-app)
-        REGISTER_APP=true
+    -r|--skip-app-registration)
+        REGISTER_APP=false
         shift
         ;;
     -o|--slot)
@@ -48,8 +48,8 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
-    -c|--register-cors)
-        REGISTER_CORS=true
+    -c|--skip-cors-registration)
+        REGISTER_CORS=false
         shift
         ;;
     *)
@@ -143,7 +143,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [[ -n $REGISTER_APP ]]; then
+if [[ -z $REGISTER_APP ]]; then
     WEBAPI_SETTINGS=$(az webapp config appsettings list --name $WEB_API_NAME --resource-group $RESOURCE_GROUP --output json)
     FRONTEND_CLIENT_ID=$(echo $WEBAPI_SETTINGS | jq -r '.[] | select(.name == "Frontend:AadClientId") | .value')
     OBJECT_ID=$(az ad app show --id $FRONTEND_CLIENT_ID | jq -r '.id')
@@ -177,13 +177,13 @@ if [[ -n $REGISTER_APP ]]; then
             --body $BODY
 
         if [ $? -ne 0 ]; then
-            echo "Failed to update app registration $OBJECT_ID with redirect URIs"
+            echo "Failed to update app registration $OBJECT_ID with redirect URIs - Use -sc switch to skip this step"
             exit 1
         fi
     fi
 fi
 
-if [[ -n $REGISTER_CORS ]]; then
+if [[ -z $REGISTER_CORS ]]; then
     for PLUGIN_NAME in $PLUGIN_NAMES; do
         ALLOWED_ORIGINS=$(az webapp cors show --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION | jq -r '.allowedOrigins[]')
         for ADDRESS in $(echo "$ORIGINS"); do
@@ -192,7 +192,7 @@ if [[ -n $REGISTER_CORS ]]; then
             if [[ ! "$ALLOWED_ORIGINS" =~ "$ORIGIN" ]]; then
                 az webapp cors add --name $PLUGIN_NAME --resource-group $RESOURCE_GROUP --subscription $SUBSCRIPTION --allowed-origins "$ORIGIN"
                 if [ $? -ne 0 ]; then
-                    echo "Failed to update CORS origins with $ORIGIN"
+                    echo "Failed to update CORS origins with $ORIGIN - Use -sc switch to skip this step"
                     exit 1
                 fi
             fi 

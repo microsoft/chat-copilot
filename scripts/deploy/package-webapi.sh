@@ -112,6 +112,15 @@ if [[ -z "$SKIP_FRONTEND" ]]; then
 
     pushd "$SCRIPT_ROOT/../../webapp"
 
+    filePath="./.env.production"
+    if [ -f "$filePath" ]; then
+        rm "$filePath"
+    fi
+
+    echo "REACT_APP_BACKEND_URI=" >> "$filePath"
+    echo "REACT_APP_SK_VERSION=$Version" >> "$filePath"
+    echo "REACT_APP_SK_BUILD_INFO=$InformationalVersion" >> "$filePath"
+
     echo "Installing yarn dependencies..."
     yarn install
     if [ $? -ne 0 ]; then
