@@ -81,4 +81,4 @@ jobs:
 
       - name: "Deploy"
         run: |
-          scripts/deploy/deploy-webapi.sh -p "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}/webapi.zip" -d ${{inputs.DEPLOYMENT_NAME}} -s ${{secrets.AZURE_SUBSCRIPTION_ID}} -rg ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --register-cors
+          scripts/deploy/deploy-webapi.sh -p "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}/webapi.zip" -d ${{inputs.DEPLOYMENT_NAME}} -s ${{secrets.AZURE_SUBSCRIPTION_ID}} -rg ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --skip-app-registration

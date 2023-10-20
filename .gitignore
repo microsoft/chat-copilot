@@ -410,6 +410,7 @@ FodyWeavers.xsd
 *.pem
 
 .env
+.env.production
 certs/
 launchSettings.json
 config.development.yaml
