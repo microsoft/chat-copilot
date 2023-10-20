@@ -1,11 +1,14 @@
 # To start docker-compose:
-# 1. Copy the example .env file:
+# 1. Copy the example .env file for webapi:
 #    cp ../docker/webapi/.env.example ../docker/webapi/.env
 # 2. Edit the .env file to add the corresponding configuration values.
-# 3. Copy the example .env file for the web searcher plugin:
+# 3. Copy the example .env file for web searcher plugin:
 #    cp ../docker/plugins/web-searcher/.env.example ../docker/plugins/web-searcher/.env
-# 4. Edit the .env file for the web searcher plugin to add the corresponding configuration values.
-# 5. With the .env files populated, you can now start docker-compose by running "docker-compose up --build"
+# 4. Edit the .env file for web searcher plugin to add the corresponding configuration values.
+# 5. Copy the example .env file for memorypipeline:
+#    cp ../docker/memorypipeline/.env.example ../docker/memorypipeline/.env
+# 6. Edit the .env file for memmorypipeline to add the corresponding configuration values.
+# 7. With the .env files populated, you can now start docker-compose by running "docker-compose up --build"
 
 version: "3"
 services:
