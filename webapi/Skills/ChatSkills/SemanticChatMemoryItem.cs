@@ -38,6 +38,6 @@ public class SemanticChatMemoryItem
     /// <returns>A formatted string representing the item.</returns>
     public string ToFormattedString()
     {
-        return $"{this.Label}: {this.Details.Trim()}";
+        return $"{this.Label}: {this.Details?.Trim()}";
     }
 }
