@@ -21,7 +21,7 @@ using Microsoft.Extensions.Logging;
 namespace CopilotChat.WebApi;
 
 /// <summary>
-/// Copilot Chat Service
+/// Chat Copilot Service
 /// </summary>
 public sealed class Program
 {
