@@ -493,9 +493,7 @@ webapi/CopilotChatWebApi.sln
 *.traineddata
 
 # Semantic Memory local storage
-tmp-cache
-tmp-database
-tmp-queues
+tmp/*
 
 # Custom plugins in default directories
 */Skills/NativePlugins
