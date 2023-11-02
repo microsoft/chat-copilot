@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.22.6.54827",
-      "templateHash": "7392657133670008096"
+      "templateHash": "9623885437439794816"
     }
   },
   "parameters": {
@@ -335,7 +335,8 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-webapi', variables('uniqueName')), 'web')]",
+        "[resourceId('Microsoft.Web/sites/virtualNetworkConnections', format('app-{0}-webapi', variables('uniqueName')), 'webSubnetConnection')]"
       ]
     },
     {
@@ -369,7 +370,6 @@
         "minTlsVersion": "1.2",
         "netFrameworkVersion": "v6.0",
         "use32BitWorkerProcess": false,
-        "vnetName": "webSubnetConnection",
         "vnetRouteAllEnabled": true,
         "appSettings": [
           {
@@ -525,8 +525,7 @@
         "[resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('cog-ocr-{0}', variables('uniqueName')))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]",
-        "[resourceId('Microsoft.Web/sites/virtualNetworkConnections', format('app-{0}-webapi', variables('uniqueName')), 'webSubnetConnection')]"
+        "[resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash')))]"
       ]
     },
     {
@@ -540,7 +539,8 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-memorypipeline', variables('uniqueName')), 'web')]"
+        "[resourceId('Microsoft.Web/sites/config', format('app-{0}-memorypipeline', variables('uniqueName')), 'web')]",
+        "[resourceId('Microsoft.Web/sites/virtualNetworkConnections', format('app-{0}-memorypipeline', variables('uniqueName')), 'memSubnetConnection')]"
       ]
     },
     {
@@ -836,16 +836,6 @@
               "privateEndpointNetworkPolicies": "Disabled",
               "privateLinkServiceNetworkPolicies": "Enabled"
             }
-          },
-          {
-            "name": "postgresSubnet",
-            "properties": {
-              "addressPrefix": "10.0.3.0/24",
-              "serviceEndpoints": [],
-              "delegations": [],
-              "privateEndpointNetworkPolicies": "Disabled",
-              "privateLinkServiceNetworkPolicies": "Enabled"
-            }
           }
         ]
       },
@@ -896,6 +886,19 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('app-{0}-webapi', variables('uniqueName')))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/virtualNetworkConnections",
+      "apiVersion": "2022-09-01",
+      "name": "[format('{0}/{1}', format('app-{0}-memorypipeline', variables('uniqueName')), 'memSubnetConnection')]",
+      "properties": {
+        "vnetResourceId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName'))), '2021-05-01').subnets[0].id]",
+        "isSwift": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('app-{0}-memorypipeline', variables('uniqueName')))]",
         "[resourceId('Microsoft.Network/virtualNetworks', format('vnet-{0}', variables('uniqueName')))]"
       ]
     },
