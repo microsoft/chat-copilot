@@ -177,7 +177,7 @@ internal static class SemanticKernelExtensions
     /// </summary>
     private static Task RegisterChatCopilotSkillsAsync(IServiceProvider sp, IKernel kernel)
     {
-        // Copilot chat skills
+        // Chat Copilot skills
         kernel.RegisterChatSkill(sp);
 
         // Time skill

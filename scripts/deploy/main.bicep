@@ -435,6 +435,7 @@ resource appServiceWebDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (d
   }
   dependsOn: [
     appServiceWebConfig
+    webSubnetConnection
   ]
 }
 
@@ -463,7 +464,6 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
     minTlsVersion: '1.2'
     netFrameworkVersion: 'v6.0'
     use32BitWorkerProcess: false
-    vnetName: webSubnetConnection.name
     vnetRouteAllEnabled: true
     appSettings: [
       {
@@ -623,6 +623,7 @@ resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-
   }
   dependsOn: [
     appServiceMemoryPipelineConfig
+    memSubnetConnection
   ]
 }
 
@@ -883,16 +884,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
       }
-      {
-        name: 'postgresSubnet'
-        properties: {
-          addressPrefix: '10.0.3.0/24'
-          serviceEndpoints: []
-          delegations: []
-          privateEndpointNetworkPolicies: 'Disabled'
-          privateLinkServiceNetworkPolicies: 'Enabled'
-        }
-      }
     ]
   }
 }
@@ -930,6 +921,15 @@ resource qdrantNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = {
 resource webSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = {
   parent: appServiceWeb
   name: 'webSubnetConnection'
+  properties: {
+    vnetResourceId: virtualNetwork.properties.subnets[0].id
+    isSwift: true
+  }
+}
+
+resource memSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = {
+  parent: appServiceMemoryPipeline
+  name: 'memSubnetConnection'
   properties: {
     vnetResourceId: virtualNetwork.properties.subnets[0].id
     isSwift: true

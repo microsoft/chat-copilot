@@ -19,8 +19,8 @@
   <ItemGroup>
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.15.1" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.36.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.15.3" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.24.230918.1-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="0.24.230918.1-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="0.24.230918.1-preview" />
@@ -29,7 +29,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Skills.MsGraph" Version="0.24.230918.1-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.OpenAPI" Version="0.24.230918.1-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Skills.Web" Version="0.24.230918.1-preview" />
-    <PackageReference Include="Microsoft.SemanticMemory.Core" Version="0.2.230919.2-preview" />
+    <PackageReference Include="Microsoft.SemanticMemory.Core" Version="0.4.231023.1-preview" />
     <PackageReference Include="SharpToken" Version="1.2.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
@@ -54,17 +54,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.Analyzers" Version="4.5.0">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.6.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.5.0">
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.6.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.5.0">
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.6.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

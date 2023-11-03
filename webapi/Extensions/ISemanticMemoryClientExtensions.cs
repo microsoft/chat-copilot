@@ -98,6 +98,7 @@ internal static class ISemanticMemoryClientExtensions
                 query,
                 indexName,
                 filter,
+                null,
                 resultCount,
                 cancellationToken);
 

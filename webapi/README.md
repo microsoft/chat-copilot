@@ -100,7 +100,7 @@ To enable sequential planner,
      return new SequentialPlanner(this.Kernel, new SequentialPlannerConfig { RelevancyThreshold = 0.75 }).CreatePlanAsync(goal);
      ```
      \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
-1. Restart the `webapi` - Copilot Chat should be now running locally with SequentialPlanner.
+1. Restart the `webapi` - Chat Copilot should be now running locally with SequentialPlanner.
 
 ## (Optional) Enabling Cosmos Chat Store.
 
@@ -125,7 +125,7 @@ In an effort to optimize performance, each container must be created with a spec
 By default, the service uses an in-memory volatile memory store that, when the service stops or restarts, forgets all memories.
 [Qdrant](https://github.com/qdrant/qdrant) is a persistent scalable vector search engine that can be deployed locally in a container or [at-scale in the cloud](https://github.com/Azure-Samples/qdrant-azure).
 
-To enable the Qdrant memory store, you must first deploy Qdrant locally and then configure the Copilot Chat API service to use it.
+To enable the Qdrant memory store, you must first deploy Qdrant locally and then configure the Chat Copilot API service to use it.
 
 ### 1. Configure your environment
 
@@ -153,7 +153,7 @@ Before you get started, make sure you have the following additional requirements
 
 ## (Optional) Enabling the Azure Cognitive Search Memory Store
 
-Azure Cognitive Search can be used as a persistent memory store for Copilot Chat.
+Azure Cognitive Search can be used as a persistent memory store for Chat Copilot.
 The service uses its [vector search](https://learn.microsoft.com/en-us/azure/search/vector-search-overview) capabilities.
 
 ## (Optional) Enable Application Insights telemetry
