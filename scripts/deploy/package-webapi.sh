@@ -76,7 +76,7 @@ echo  "Building backend executables..."
 # Set defaults
 : "${CONFIGURATION:="Release"}"
 : "${DOTNET:="net6.0"}"
-: "${RUNTIME:="linux-x64"}"
+: "${RUNTIME:="win-x64"}"
 : "${VERSION:="0.0.0"}"
 : "${INFO:=""}"
 : "${OUTPUT_DIRECTORY:="$SCRIPT_ROOT"}"
@@ -99,9 +99,9 @@ dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" \
     --runtime $RUNTIME \
     --self-contained \
     --output "$PUBLISH_OUTPUT_DIRECTORY" \
-    //p:AssemblyVersion=$VERSION \
-    //p:FileVersion=$VERSION \
-    //p:InformationalVersion=$INFO
+    /p:AssemblyVersion=$VERSION \
+    /p:FileVersion=$VERSION \
+    /p:InformationalVersion=$INFO
 
 if [ $? -ne 0 ]; then
     exit 1
