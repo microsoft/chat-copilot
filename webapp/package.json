@@ -15,7 +15,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.38.2",
+    "@azure/msal-browser": "^2.38.3",
     "@azure/msal-react": "^1.5.11",
     "@fluentui/react-components": "^9.37.0",
     "@fluentui/react-icons": "^2.0.221",
