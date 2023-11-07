@@ -27,11 +27,13 @@ public sealed class SemanticKernelProvider
 
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration)
+    public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         this._serviceProvider = serviceProvider;
         this._configuration = configuration;
+        this._httpClientFactory = httpClientFactory;
     }
 
     /// <summary>
@@ -83,11 +85,15 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIText");
-                return kernelBuilder.WithAzureChatCompletionService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+#pragma warning disable CA2000 // Dispose objects before losing scope - No need to dispose of HttpClient instances from IHttpClientFactory
+                return kernelBuilder.WithAzureChatCompletionService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey,
+                                                                    httpClient: this._httpClientFactory.CreateClient());
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(this._configuration, "OpenAI");
-                return kernelBuilder.WithOpenAIChatCompletionService(openAIOptions.TextModel, openAIOptions.APIKey);
+                return kernelBuilder.WithOpenAIChatCompletionService(openAIOptions.TextModel, openAIOptions.APIKey,
+                                                                     httpClient: this._httpClientFactory.CreateClient());
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             default:
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'SemanticMemory' settings.");
@@ -107,12 +113,15 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIText");
-                return kernelBuilder.WithAzureChatCompletionService(plannerOptions.Model, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+#pragma warning disable CA2000 // Dispose objects before losing scope - No need to dispose of HttpClient instances from IHttpClientFactory
+                return kernelBuilder.WithAzureChatCompletionService(plannerOptions.Model, azureAIOptions.Endpoint, azureAIOptions.APIKey,
+                                                                    httpClient: this._httpClientFactory.CreateClient());
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(this._configuration, "OpenAI");
-                return kernelBuilder.WithOpenAIChatCompletionService(plannerOptions.Model, openAIOptions.APIKey);
-
+                return kernelBuilder.WithOpenAIChatCompletionService(plannerOptions.Model, openAIOptions.APIKey,
+                                                                     httpClient: this._httpClientFactory.CreateClient());
+#pragma warning restore CA2000 // Dispose objects before losing scope
             default:
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'SemanticMemory' settings.");
         }
@@ -130,12 +139,15 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIEmbedding");
-                return kernelBuilder.WithAzureTextEmbeddingGenerationService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+#pragma warning disable CA2000 // Dispose objects before losing scope - No need to dispose of HttpClient instances from IHttpClientFactory
+                return kernelBuilder.WithAzureTextEmbeddingGenerationService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey,
+                                                                             httpClient: this._httpClientFactory.CreateClient());
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(this._configuration, "OpenAI");
-                return kernelBuilder.WithOpenAITextEmbeddingGenerationService(openAIOptions.EmbeddingModel, openAIOptions.APIKey);
-
+                return kernelBuilder.WithOpenAITextEmbeddingGenerationService(openAIOptions.EmbeddingModel, openAIOptions.APIKey,
+                                                                              httpClient: this._httpClientFactory.CreateClient());
+#pragma warning restore CA2000 // Dispose objects before losing scope
             default:
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'SemanticMemory' settings.");
         }
