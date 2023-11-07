@@ -4,6 +4,32 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <OutputType>Exe</OutputType>
+        <LangVersion>latestmajor</LangVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1"/>
+        <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.9" />
+        <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2"/>
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0"/>
+        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.1" />
+        <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="7.0.13"/>
+        <PackageReference Include="Microsoft.Identity.Web" Version="2.15.3"/>
+        <PackageReference Include="Microsoft.Identity.Web.GraphServiceClient" Version="2.15.3"/>
+        <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0"/>
+        <PackageReference Include="Microsoft.Azure.Core.Spatial" Version="1.1.0"/>
+        <PackageReference Include="System.Linq.Async" Version="6.0.1"/>
+        <PackageReference Include="System.Spatial" Version="5.8.5"/>
+        <PackageReference Include="Azure.Search.Documents" Version="11.5.0-beta.4"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="1.5.1"/>
+        <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.1"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
