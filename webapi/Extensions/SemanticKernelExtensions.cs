@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
@@ -169,7 +170,7 @@ internal static class SemanticKernelExtensions
 
     private static void InitializeKernelProvider(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(sp => new SemanticKernelProvider(sp, builder.Configuration));
+        builder.Services.AddSingleton(sp => new SemanticKernelProvider(sp, builder.Configuration, sp.GetRequiredService<IHttpClientFactory>()));
     }
 
     /// <summary>

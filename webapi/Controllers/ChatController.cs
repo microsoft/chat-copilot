@@ -45,6 +45,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class ChatController : ControllerBase, IDisposable
 {
     private readonly ILogger<ChatController> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
@@ -58,12 +59,14 @@ public class ChatController : ControllerBase, IDisposable
 
     public ChatController(
         ILogger<ChatController> logger,
+        IHttpClientFactory httpClientFactory,
         ITelemetryService telemetryService,
         IOptions<ServiceOptions> serviceOptions,
         IOptions<PlannerOptions> plannerOptions,
         IDictionary<string, Plugin> plugins)
     {
         this._logger = logger;
+        this._httpClientFactory = httpClientFactory;
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
@@ -335,15 +338,12 @@ public class ChatController : ControllerBase, IDisposable
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
-                        HttpClient httpClient = new();
-                        httpClient.Timeout = TimeSpan.FromSeconds(this._plannerOptions.PluginTimeoutLimitInS);
-
                         await planner.Kernel.ImportAIPluginAsync(
                             $"{plugin.NameForModel}Plugin",
                             PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenApiSkillExecutionParameters
                             {
-                                HttpClient = httpClient,
+                                HttpClient = this._httpClientFactory.CreateClient("Plugin"),
                                 IgnoreNonCompliantErrors = true,
                                 AuthCallback = requiresAuth ? authenticationProvider.AuthenticateRequestAsync : null
                             });
@@ -395,7 +395,7 @@ public class ChatController : ControllerBase, IDisposable
                     PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                     new OpenApiSkillExecutionParameters
                     {
-                        HttpClient = new HttpClient(),
+                        HttpClient = this._httpClientFactory.CreateClient("Plugin"),
                         IgnoreNonCompliantErrors = true,
                         AuthCallback = authenticationProvider.AuthenticateRequestAsync
                     });
