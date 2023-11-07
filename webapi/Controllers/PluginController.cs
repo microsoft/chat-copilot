@@ -27,15 +27,18 @@ public class PluginController : ControllerBase
 {
     private const string PluginStateChanged = "PluginStateChanged";
     private readonly ILogger<PluginController> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDictionary<string, Plugin> _availablePlugins;
     private readonly ChatSessionRepository _sessionRepository;
 
     public PluginController(
         ILogger<PluginController> logger,
+        IHttpClientFactory httpClientFactory,
         IDictionary<string, Plugin> availablePlugins,
         ChatSessionRepository sessionRepository)
     {
         this._logger = logger;
+        this._httpClientFactory = httpClientFactory;
         this._availablePlugins = availablePlugins;
         this._sessionRepository = sessionRepository;
     }
@@ -54,7 +57,7 @@ public class PluginController : ControllerBase
         // Need to set the user agent to avoid 403s from some sites.
         request.Headers.Add("User-Agent", Telemetry.HttpUserAgent);
 
-        using HttpClient client = new();
+        using HttpClient client = this._httpClientFactory.CreateClient("Plugin");
         var response = await client.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
