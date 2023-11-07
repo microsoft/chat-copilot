@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -58,7 +58,7 @@ public class ChatMemoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
-        [FromServices] ISemanticMemoryClient memoryClient,
+        [FromServices] IKernelMemory memoryClient,
         [FromRoute] string chatId,
         [FromQuery] string type)
     {

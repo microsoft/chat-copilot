@@ -19,8 +19,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Skills.Core;
-using Microsoft.SemanticMemory;
+using Microsoft.SemanticKernel.Plugins.Core;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -150,10 +150,10 @@ internal static class SemanticKernelExtensions
     public static IKernel RegisterChatSkill(this IKernel kernel, IServiceProvider sp)
     {
         // Chat skill
-        kernel.ImportSkill(
+        kernel.ImportFunctions(
             new ChatSkill(
                 kernel,
-                memoryClient: sp.GetRequiredService<ISemanticMemoryClient>(),
+                memoryClient: sp.GetRequiredService<IKernelMemory>(),
                 chatMessageRepository: sp.GetRequiredService<ChatMessageRepository>(),
                 chatSessionRepository: sp.GetRequiredService<ChatSessionRepository>(),
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
@@ -181,7 +181,7 @@ internal static class SemanticKernelExtensions
         kernel.RegisterChatSkill(sp);
 
         // Time skill
-        kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
+        kernel.ImportFunctions(new TimePlugin(), nameof(TimePlugin));
 
         return Task.CompletedTask;
     }
@@ -201,7 +201,7 @@ internal static class SemanticKernelExtensions
             {
                 try
                 {
-                    kernel.ImportSemanticSkillFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
+                    kernel.ImportSemanticFunctionsFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
                 catch (SKException ex)
                 {
@@ -230,7 +230,7 @@ internal static class SemanticKernelExtensions
                     try
                     {
                         var plugin = Activator.CreateInstance(classType);
-                        kernel.ImportSkill(plugin!, classType.Name!);
+                        kernel.ImportFunctions(plugin!, classType.Name!);
                     }
                     catch (SKException ex)
                     {
@@ -262,7 +262,7 @@ internal static class SemanticKernelExtensions
     /// </summary>
     private static ChatArchiveEmbeddingConfig WithBotConfig(this IServiceProvider provider, IConfiguration configuration)
     {
-        var memoryOptions = provider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryOptions = provider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {

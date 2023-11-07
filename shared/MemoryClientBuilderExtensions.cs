@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using CopilotChat.Shared.Ocr;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.Shared;
 
@@ -10,7 +10,7 @@ namespace CopilotChat.Shared;
 /// </summary>
 public static class MemoryClientBuilderExtensions
 {
-    public static MemoryClientBuilder WithCustomOcr(this MemoryClientBuilder builder, IConfiguration configuration)
+    public static KernelMemoryBuilder WithCustomOcr(this KernelMemoryBuilder builder, IConfiguration configuration)
     {
         var ocrEngine = configuration.CreateCustomOcr();
 

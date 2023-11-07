@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -37,7 +37,7 @@ public class ChatHistoryController : ControllerBase
     private const string GetChatRoute = "GetChatRoute";
 
     private readonly ILogger<ChatHistoryController> _logger;
-    private readonly ISemanticMemoryClient _memoryClient;
+    private readonly IKernelMemory _memoryClient;
     private readonly ChatSessionRepository _sessionRepository;
     private readonly ChatMessageRepository _messageRepository;
     private readonly ChatParticipantRepository _participantRepository;
@@ -58,7 +58,7 @@ public class ChatHistoryController : ControllerBase
     /// <param name="authInfo">The auth info for the current request.</param>
     public ChatHistoryController(
         ILogger<ChatHistoryController> logger,
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         ChatSessionRepository sessionRepository,
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,

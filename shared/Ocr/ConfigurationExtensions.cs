@@ -3,8 +3,8 @@
 using System;
 using CopilotChat.Shared.Ocr.Tesseract;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticMemory.Configuration;
-using Microsoft.SemanticMemory.DataFormats.Image;
+using Microsoft.KernelMemory.Configuration;
+using Microsoft.KernelMemory.DataFormats.Image;
 
 namespace CopilotChat.Shared.Ocr;
 
@@ -17,13 +17,13 @@ public static class ConfigurationExtensions
 
     public static IOcrEngine? CreateCustomOcr(this IConfiguration configuration)
     {
-        var ocrType = configuration.GetSection($"{MemoryConfiguration.SemanticMemorySection}:{ConfigOcrType}").Value ?? string.Empty;
+        var ocrType = configuration.GetSection($"{MemoryConfiguration.KernelMemorySection}:{ConfigOcrType}").Value ?? string.Empty;
         switch (ocrType)
         {
             case string x when x.Equals(TesseractOptions.SectionName, StringComparison.OrdinalIgnoreCase):
                 var tesseractOptions =
                     configuration
-                        .GetSection($"{MemoryConfiguration.SemanticMemorySection}:{MemoryConfiguration.ServicesSection}:{TesseractOptions.SectionName}")
+                        .GetSection($"{MemoryConfiguration.KernelMemorySection}:{MemoryConfiguration.ServicesSection}:{TesseractOptions.SectionName}")
                         .Get<TesseractOptions>();
 
                 if (tesseractOptions == null)

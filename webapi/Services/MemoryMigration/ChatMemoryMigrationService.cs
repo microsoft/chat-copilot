@@ -11,7 +11,7 @@ using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
 
@@ -22,7 +22,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
 {
     private readonly ILogger<ChatMemoryMigrationService> _logger;
     private readonly ISemanticTextMemory _memory;
-    private readonly ISemanticMemoryClient _memoryClient;
+    private readonly IKernelMemory _memoryClient;
     private readonly ChatSessionRepository _chatSessionRepository;
     private readonly ChatMemorySourceRepository _memorySourceRepository;
     private readonly string _globalIndex;
@@ -35,7 +35,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         ILogger<ChatMemoryMigrationService> logger,
         IOptions<DocumentMemoryOptions> documentMemoryOptions,
         IOptions<PromptsOptions> promptOptions,
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         ChatSessionRepository chatSessionRepository,
         ChatMemorySourceRepository memorySourceRepository,
         SemanticKernelProvider provider)

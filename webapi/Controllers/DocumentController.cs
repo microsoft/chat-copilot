@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -86,7 +86,7 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public Task<IActionResult> DocumentImportAsync(
-        [FromServices] ISemanticMemoryClient memoryClient,
+        [FromServices] IKernelMemory memoryClient,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromForm] DocumentImportForm documentImportForm)
     {
@@ -107,7 +107,7 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public Task<IActionResult> DocumentImportAsync(
-        [FromServices] ISemanticMemoryClient memoryClient,
+        [FromServices] IKernelMemory memoryClient,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromRoute] Guid chatId,
         [FromForm] DocumentImportForm documentImportForm)
@@ -116,7 +116,7 @@ public class DocumentController : ControllerBase
     }
 
     private async Task<IActionResult> DocumentImportAsync(
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         IHubContext<MessageRelayHub> messageRelayHubContext,
         DocumentScopes documentScope,
         Guid chatId,

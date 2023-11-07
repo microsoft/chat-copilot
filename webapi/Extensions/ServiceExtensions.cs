@@ -21,7 +21,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
+using CopilotChat.Shared;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -31,8 +32,6 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 public static class CopilotChatServiceExtensions
 {
-    private const string SemanticMemoryOptionsName = "SemanticMemory";
-
     /// <summary>
     /// Parse configuration into options.
     /// </summary>
@@ -59,7 +58,7 @@ public static class CopilotChatServiceExtensions
 
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
-        AddOptions<SemanticMemoryConfig>(SemanticMemoryOptionsName);
+        AddOptions<KernelMemoryConfig>(MemoryConfiguration.KernelMemorySection);
 
         AddOptions<FrontendOptions>(FrontendOptions.PropertyName);
 

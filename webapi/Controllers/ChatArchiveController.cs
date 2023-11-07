@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -24,7 +24,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class ChatArchiveController : ControllerBase
 {
     private readonly ILogger<ChatArchiveController> _logger;
-    private readonly ISemanticMemoryClient _memoryClient;
+    private readonly IKernelMemory _memoryClient;
     private readonly ChatSessionRepository _chatRepository;
     private readonly ChatMessageRepository _chatMessageRepository;
     private readonly ChatParticipantRepository _chatParticipantRepository;
@@ -41,7 +41,7 @@ public class ChatArchiveController : ControllerBase
     /// <param name="promptOptions">The document memory options.</param>
     /// <param name="logger">The logger.</param>
     public ChatArchiveController(
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         ChatSessionRepository chatRepository,
         ChatMessageRepository chatMessageRepository,
         ChatParticipantRepository chatParticipantRepository,

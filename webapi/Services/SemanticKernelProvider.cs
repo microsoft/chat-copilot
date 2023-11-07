@@ -13,8 +13,9 @@ using Microsoft.SemanticKernel.AI.Embeddings;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticMemory;
-using Microsoft.SemanticMemory.MemoryStorage.Qdrant;
+using Microsoft.KernelMemory;
+using Microsoft.KernelMemory.MemoryStorage.Qdrant;
+using Microsoft.SemanticKernel.Plugins.Memory;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -27,11 +28,13 @@ public sealed class SemanticKernelProvider
 
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _configuration;
+    private readonly KernelBuilder _builder;
 
     public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration)
     {
         this._serviceProvider = serviceProvider;
         this._configuration = configuration;
+        this._builder = new KernelBuilder();
     }
 
     /// <summary>
@@ -39,11 +42,11 @@ public sealed class SemanticKernelProvider
     /// </summary>
     public IKernel GetCompletionKernel()
     {
-        var builder = Kernel.Builder.WithLoggerFactory(this._serviceProvider.GetRequiredService<ILoggerFactory>());
+        this._builder.WithLoggerFactory(this._serviceProvider.GetRequiredService<ILoggerFactory>());
 
-        this.WithCompletionBackend(builder);
+        this.WithCompletionBackend();
 
-        return builder.Build();
+        return this._builder.Build();
     }
 
     /// <summary>
@@ -51,11 +54,11 @@ public sealed class SemanticKernelProvider
     /// </summary>
     public IKernel GetPlannerKernel()
     {
-        var builder = Kernel.Builder.WithLoggerFactory(this._serviceProvider.GetRequiredService<ILoggerFactory>());
+        this._builder.WithLoggerFactory(this._serviceProvider.GetRequiredService<ILoggerFactory>());
 
-        this.WithPlannerBackend(builder);
+        this.WithPlannerBackend();
 
-        return builder.Build();
+        return this._builder.Build();
     }
 
     /// <summary>
@@ -63,10 +66,10 @@ public sealed class SemanticKernelProvider
     /// </summary>
     public IKernel GetMigrationKernel()
     {
-        var builder = Kernel.Builder.WithLoggerFactory(this._serviceProvider.GetRequiredService<ILoggerFactory>());
+        var builder = this._builder.WithLoggerFactory(this._serviceProvider.GetRequiredService<ILoggerFactory>());
 
-        this.WithEmbeddingBackend(builder);
-        this.WithSemanticTextMemory(builder);
+        this.WithEmbeddingBackend();
+        this.WithSemanticTextMemory();
 
         return builder.Build();
     }
@@ -74,32 +77,34 @@ public sealed class SemanticKernelProvider
     /// <summary>
     /// Add the completion backend to the kernel config
     /// </summary>
-    private KernelBuilder WithCompletionBackend(KernelBuilder kernelBuilder)
+    private void WithCompletionBackend()
     {
-        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         switch (memoryOptions.TextGeneratorType)
         {
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIText");
-                return kernelBuilder.WithAzureChatCompletionService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+                this._builder.WithAzureChatCompletionService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+                break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(this._configuration, "OpenAI");
-                return kernelBuilder.WithOpenAIChatCompletionService(openAIOptions.TextModel, openAIOptions.APIKey);
+                this._builder.WithOpenAIChatCompletionService(openAIOptions.TextModel, openAIOptions.APIKey);
+                break;
 
             default:
-                throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'SemanticMemory' settings.");
+                throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'KernelMemory' settings.");
         }
     }
 
     /// <summary>
     /// Add the completion backend to the kernel config for the planner.
     /// </summary>
-    private KernelBuilder WithPlannerBackend(KernelBuilder kernelBuilder)
+    private void WithPlannerBackend()
     {
-        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
         var plannerOptions = this._serviceProvider.GetRequiredService<IOptions<PlannerOptions>>().Value;
 
         switch (memoryOptions.TextGeneratorType)
@@ -107,55 +112,57 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIText");
-                return kernelBuilder.WithAzureChatCompletionService(plannerOptions.Model, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+                this._builder.WithAzureChatCompletionService(plannerOptions.Model, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+                break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(this._configuration, "OpenAI");
-                return kernelBuilder.WithOpenAIChatCompletionService(plannerOptions.Model, openAIOptions.APIKey);
+                this._builder.WithOpenAIChatCompletionService(plannerOptions.Model, openAIOptions.APIKey);
+                break;
 
             default:
-                throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'SemanticMemory' settings.");
+                throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'KernelMemory' settings.");
         }
     }
 
     /// <summary>
     /// Add the embedding backend to the kernel config
     /// </summary>
-    private KernelBuilder WithEmbeddingBackend(KernelBuilder kernelBuilder)
+    private void WithEmbeddingBackend()
     {
-        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(this._configuration, "AzureOpenAIEmbedding");
-                return kernelBuilder.WithAzureTextEmbeddingGenerationService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+                this._builder.WithAzureTextEmbeddingGenerationService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+                break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(this._configuration, "OpenAI");
-                return kernelBuilder.WithOpenAITextEmbeddingGenerationService(openAIOptions.EmbeddingModel, openAIOptions.APIKey);
+                this._builder.WithOpenAITextEmbeddingGenerationService(openAIOptions.EmbeddingModel, openAIOptions.APIKey);
+                break;
 
             default:
-                throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'SemanticMemory' settings.");
+                throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'KernelMemory' settings.");
         }
     }
 
     /// <summary>
     /// Add the semantic text memory.
     /// </summary>
-    private void WithSemanticTextMemory(KernelBuilder builder)
+    private void WithSemanticTextMemory()
     {
-        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryOptions = this._serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         IMemoryStore memoryStore = CreateMemoryStore();
 
-#pragma warning disable CA2000 // Ownership passed to kernel
-        builder.WithMemory(
+        this._builder.WithMemory(
             new SemanticTextMemory(
                 memoryStore,
                 this._serviceProvider.GetRequiredService<ITextEmbeddingGeneration>()));
-#pragma warning restore CA2000 // Ownership passed to kernel
 
         IMemoryStore CreateMemoryStore()
         {
