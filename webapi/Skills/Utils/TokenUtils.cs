@@ -19,6 +19,8 @@ namespace CopilotChat.WebApi.Skills.Utils;
 /// </summary>
 public static class TokenUtils
 {
+    private static SharpToken.GptEncoding tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
+
     /// <summary>
     /// Semantic dependencies of ChatSkill.
     ///  If you add a new semantic dependency, please add it here.
@@ -101,7 +103,6 @@ public static class TokenUtils
     /// <param name="text">The string to calculate the number of tokens in.</param>
     internal static int TokenCount(string text)
     {
-        var tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
         var tokens = tokenizer.Encode(text);
         return tokens.Count;
     }
