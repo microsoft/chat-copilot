@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.Utils;
+using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 
-namespace CopilotChat.WebApi.Skills.ChatSkills;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
 /// This class provides the functions to query semantic memory.

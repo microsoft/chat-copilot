@@ -2,7 +2,7 @@
 
 using static CopilotChat.WebApi.Models.Storage.ChatMessage;
 
-namespace CopilotChat.WebApi.Skills.Utils;
+namespace CopilotChat.WebApi.Plugins.Utils;
 
 /// <summary>
 /// Utility methods for prompt generation.

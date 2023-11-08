@@ -32,7 +32,7 @@ public class PromptsOptions
     internal double MemoriesResponseContextWeight { get; } = 0.6;
 
     /// <summary>
-    /// Weight of information returned from planner (i.e., responses from OpenAPI skills).
+    /// Weight of information returned from planner (i.e., responses from OpenAPI functions).
     /// Contextual prompt excludes all the system commands and user intent.
     /// </summary>
     internal double ExternalInformationContextWeight { get; } = 0.3;
@@ -79,7 +79,7 @@ public class PromptsOptions
     internal string[] SystemAudiencePromptComponents => new string[]
     {
         this.SystemAudience,
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatPlugin.ExtractChatHistory}}",
         this.SystemAudienceContinuation
     };
 
@@ -89,7 +89,7 @@ public class PromptsOptions
     {
         this.SystemDescription,
         this.SystemIntent,
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatPlugin.ExtractChatHistory}}",
         this.SystemIntentContinuation
     };
 
@@ -125,7 +125,7 @@ public class PromptsOptions
         $"{this.LongTermMemoryName} Description:\n{this.LongTermMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatPlugin.ExtractChatHistory}}",
         this.MemoryContinuation
     };
 
@@ -141,7 +141,7 @@ public class PromptsOptions
         $"{this.WorkingMemoryName} Description:\n{this.WorkingMemoryExtraction}",
         this.MemoryAntiHallucination,
         $"Chat Description:\n{this.SystemDescription}",
-        "{{ChatSkill.ExtractChatHistory}}",
+        "{{ChatPlugin.ExtractChatHistory}}",
         this.MemoryContinuation
     };
 

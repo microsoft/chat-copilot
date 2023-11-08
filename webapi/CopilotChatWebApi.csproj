@@ -84,10 +84,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <!--
-    <Content Include="Skills\NativePlugins\*.*">
+    <Content Include="Plugins\NativePlugins\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Skills\SemanticPlugins\*.*">
+    <Content Include="Plugins\SemanticPlugins\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     -->

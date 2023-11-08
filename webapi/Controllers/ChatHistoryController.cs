@@ -12,7 +12,7 @@ using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.Utils;
+using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
