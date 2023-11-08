@@ -31,7 +31,7 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class SemanticKernelExtensions
 {
     /// <summary>
-    /// Delegate to register plugins with a Semantic Kernel
+    /// Delegate to register functions with a Semantic Kernel
     /// </summary>
     public delegate Task RegisterFunctionsWithKernel(IServiceProvider sp, IKernel kernel);
 
