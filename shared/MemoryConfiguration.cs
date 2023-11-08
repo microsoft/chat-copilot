@@ -2,7 +2,7 @@
 namespace CopilotChat.Shared;
 
 /// <summary>
-/// Configuration constants for semantic-memory.
+/// Configuration constants for kernel memory.
 /// </summary>
 public static class MemoryConfiguration
 {

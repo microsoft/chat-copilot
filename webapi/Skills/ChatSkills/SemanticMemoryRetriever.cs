@@ -18,7 +18,7 @@ using Microsoft.KernelMemory;
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
 /// <summary>
-/// This class provides the functions to query semantic memory.
+/// This class provides the functions to query kernel memory.
 /// </summary>
 public class SemanticMemoryRetriever
 {

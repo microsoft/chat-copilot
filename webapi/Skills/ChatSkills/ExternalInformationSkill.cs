@@ -20,6 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
+using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
@@ -252,11 +253,9 @@ public class ExternalInformationSkill
         }
 
         // Render the supplement to guide the model in using the result.
-        var promptRenderer = new BasicPromptTemplateEngine();
-        var resultSupplement = await promptRenderer.RenderAsync(
-            this._promptOptions.StepwisePlannerSupplement,
-            plannerContext,
-            cancellationToken);
+        var promptTemplateFactory = new BasicPromptTemplateFactory();
+        var promptTemplate = promptTemplateFactory.Create(this._promptOptions.StepwisePlannerSupplement, new PromptTemplateConfig());
+        var resultSupplement = await promptTemplate.RenderAsync(plannerContext, cancellationToken);
 
         return $"{resultSupplement}\n\nResult:\n\"{plannerResult}\"";
     }

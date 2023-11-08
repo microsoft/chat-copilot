@@ -29,9 +29,9 @@ The following material is under development and may not be complete or accurate.
    - **Azure Form Recognizer** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
      - You will need to obtain an [Azure Form Recognizer](https://azure.microsoft.com/en-us/services/form-recognizer/) resource and add the `SemanticMemory:Services:AzureFormRecognizer:Endpoint` and `SemanticMemory:Services:AzureFormRecognizer:Key` values to the `./appsettings.json` file.
 
-## Running [Memory Service](https://github.com/microsoft/semantic-memory)
+## Running [Memory Service](https://github.com/microsoft/kernel-memory)
 
-The memory service handles the creation and querying of semantic memory, including cognitive memory and documents.
+The memory service handles the creation and querying of kernel memory, including cognitive memory and documents.
 
 ### InProcess Processing (Default)
 
