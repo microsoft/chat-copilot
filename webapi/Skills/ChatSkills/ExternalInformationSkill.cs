@@ -47,14 +47,7 @@ public class ExternalInformationSkill
     /// <summary>
     ///  Options for the planner.
     /// </summary>
-    private readonly PlannerOptions? _plannerOptions;
-    public PlannerOptions? PlannerOptions
-    {
-        get
-        {
-            return this._plannerOptions;
-        }
-    }
+    public PlannerOptions? PlannerOptions { get; }
 
     /// <summary>
     /// Proposed plan to return for approval.
@@ -81,7 +74,7 @@ public class ExternalInformationSkill
     {
         this._promptOptions = promptOptions.Value;
         this._planner = planner;
-        this._plannerOptions = planner.PlannerOptions;
+        this.PlannerOptions = planner.PlannerOptions;
         this._logger = logger;
     }
 
@@ -210,8 +203,8 @@ public class ExternalInformationSkill
     public bool UseStepwiseResultAsBotResponse(string planResult)
     {
         return !string.IsNullOrWhiteSpace(planResult)
-            && this._plannerOptions?.Type == PlanType.Stepwise
-            && this._plannerOptions.UseStepwiseResultAsBotResponse
+            && this.PlannerOptions?.Type == PlanType.Stepwise
+            && this.PlannerOptions.UseStepwiseResultAsBotResponse
             && this.StepwiseThoughtProcess != null;
     }
 
