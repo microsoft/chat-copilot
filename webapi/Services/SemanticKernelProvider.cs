@@ -191,7 +191,7 @@ public sealed class SemanticKernelProvider
                     var qdrantConfig = memoryOptions.GetServiceConfig<QdrantConfig>(configuration, "Qdrant");
 
 #pragma warning disable CA2000 // Ownership passed to QdrantMemoryStore
-                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true }); // $$$
+                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
 #pragma warning restore CA2000 // Ownership passed to QdrantMemoryStore
                     if (!string.IsNullOrWhiteSpace(qdrantConfig.APIKey))
                     {

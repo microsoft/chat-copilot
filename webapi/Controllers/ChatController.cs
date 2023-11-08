@@ -292,7 +292,7 @@ public class ChatController : ControllerBase, IDisposable
         if (openApiSkillsAuthHeaders.TryGetValue("JIRA", out string? JiraAuthHeader))
         {
             this._logger.LogInformation("Registering Jira plugin");
-            var authenticationProvider = new BearerAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
+            var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
             var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out string? serverUrlOverride);
 
             await planner.Kernel.ImportPluginFunctionsAsync(
