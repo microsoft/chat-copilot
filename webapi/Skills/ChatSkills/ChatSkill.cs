@@ -21,15 +21,14 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
-using Microsoft.SemanticKernel.SkillDefinition;
-using Microsoft.SemanticKernel.TemplateEngine.Prompt;
-using Microsoft.SemanticMemory;
+using Microsoft.SemanticKernel.TemplateEngine.Basic;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
@@ -49,7 +48,7 @@ public class ChatSkill
     /// <summary>
     /// Client for the semantic-memory service.
     /// </summary>
-    private readonly ISemanticMemoryClient _memoryClient;
+    private readonly IKernelMemory _memoryClient;
 
     /// <summary>
     /// A logger instance to log events.
@@ -96,7 +95,7 @@ public class ChatSkill
     /// </summary>
     public ChatSkill(
         IKernel kernel,
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         ChatMessageRepository chatMessageRepository,
         ChatSessionRepository chatSessionRepository,
         IHubContext<MessageRelayHub> messageRelayHubContext,
@@ -133,10 +132,7 @@ public class ChatSkill
     /// </summary>
     /// <param name="context">The SKContext.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    [SKFunction, Description("Extract user intent")]
-    [SKParameter("chatId", "Chat ID to extract history from")]
-    [SKParameter("audience", "The audience the chat bot is interacting with.")]
-    public async Task<string> ExtractUserIntentAsync(SKContext context, CancellationToken cancellationToken = default)
+    private async Task<string> ExtractUserIntentAsync(SKContext context, CancellationToken cancellationToken = default)
     {
         var tokenLimit = this._promptOptions.CompletionTokenLimit;
         var historyTokenBudget =
@@ -157,12 +153,12 @@ public class ChatSkill
 
         var completionFunction = this._kernel.CreateSemanticFunction(
             this._promptOptions.SystemIntentExtraction,
-            skillName: nameof(ChatSkill),
+            pluginName: nameof(ChatSkill),
             description: "Complete the prompt.");
 
         var result = await completionFunction.InvokeAsync(
             intentExtractionContext,
-            settings: this.CreateIntentCompletionSettings(),
+            this.CreateIntentCompletionSettings(),
             cancellationToken
         );
 
@@ -178,9 +174,7 @@ public class ChatSkill
     /// </summary>
     /// <param name="context">The SKContext.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    [SKFunction, Description("Extract audience list")]
-    [SKParameter("chatId", "Chat ID to extract history from")]
-    public async Task<string> ExtractAudienceAsync(SKContext context, CancellationToken cancellationToken = default)
+    private async Task<string> ExtractAudienceAsync(SKContext context, CancellationToken cancellationToken = default)
     {
         var tokenLimit = this._promptOptions.CompletionTokenLimit;
         var historyTokenBudget =
@@ -199,12 +193,12 @@ public class ChatSkill
 
         var completionFunction = this._kernel.CreateSemanticFunction(
             this._promptOptions.SystemAudienceExtraction,
-            skillName: nameof(ChatSkill),
+            pluginName: nameof(ChatSkill),
             description: "Complete the prompt.");
 
         var result = await completionFunction.InvokeAsync(
             audienceExtractionContext,
-            settings: this.CreateIntentCompletionSettings(),
+            this.CreateIntentCompletionSettings(),
             cancellationToken
         );
 
@@ -442,7 +436,7 @@ public class ChatSkill
 
             // Add bot message proposal as prompt context message
             chatContext.Variables.Set("planFunctions", this._externalInformationSkill.FormattedFunctionsString(deserializedPlan.Plan));
-            var promptRenderer = new PromptTemplateEngine();
+            var promptRenderer = new BasicPromptTemplateEngine();
             var proposedPlanBotMessage = await promptRenderer.RenderAsync(
                this._promptOptions.ProposedPlanBotMessage,
                 chatContext,
@@ -517,8 +511,6 @@ public class ChatSkill
 
         return context;
     }
-
-    #region Private
 
     /// <summary>
     /// Generate the necessary chat context to create a prompt then invoke the model to get a response.
@@ -635,7 +627,7 @@ public class ChatSkill
     {
         // Render system instruction components
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
-        var promptRenderer = new PromptTemplateEngine();
+        var promptRenderer = new BasicPromptTemplateEngine();
         return await promptRenderer.RenderAsync(
             this._promptOptions.SystemPersona,
             context,
@@ -859,11 +851,11 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Create `ChatRequestSettings` for chat response. Parameters are read from the PromptSettings class.
+    /// Create `OpenAIRequestSettings` for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private ChatRequestSettings CreateChatRequestSettings()
+    private OpenAIRequestSettings CreateChatRequestSettings()
     {
-        return new ChatRequestSettings
+        return new OpenAIRequestSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
             Temperature = this._promptOptions.ResponseTemperature,
@@ -874,11 +866,11 @@ public class ChatSkill
     }
 
     /// <summary>
-    /// Create `CompleteRequestSettings` for intent response. Parameters are read from the PromptSettings class.
+    /// Create `OpenAIRequestSettings` for intent response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private CompleteRequestSettings CreateIntentCompletionSettings()
+    private OpenAIRequestSettings CreateIntentCompletionSettings()
     {
-        return new CompleteRequestSettings
+        return new OpenAIRequestSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
             Temperature = this._promptOptions.IntentTemperature,
@@ -949,7 +941,11 @@ public class ChatSkill
     {
         // Create the stream
         var chatCompletion = this._kernel.GetService<IChatCompletion>();
-        var stream = chatCompletion.GenerateMessageStreamAsync(prompt.MetaPromptTemplate, this.CreateChatRequestSettings(), cancellationToken);
+        var stream =
+            chatCompletion.GenerateMessageStreamAsync(
+                prompt.MetaPromptTemplate,
+                this.CreateChatRequestSettings(),
+                cancellationToken);
 
         // Create message on client
         var chatMessage = await this.CreateBotMessageOnClient(
@@ -1033,6 +1029,4 @@ public class ChatSkill
 
         this._promptOptions.SystemDescription = chatSession!.SystemDescription;
     }
-
-    # endregion
 }

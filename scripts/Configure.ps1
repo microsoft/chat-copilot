@@ -141,7 +141,7 @@ $webapiProjectPath = Join-Path "$PSScriptRoot" '../webapi'
 
 Write-Host "Setting 'APIKey' user secret for $AIService..."
 if ($AIService -eq $varOpenAI) {
-    dotnet user-secrets set --project $webapiProjectPath SemanticMemory:Services:OpenAI:APIKey $ApiKey
+    dotnet user-secrets set --project $webapiProjectPath KernelMemory:Services:OpenAI:APIKey $ApiKey
     if ($LASTEXITCODE -ne 0) { exit(1) }
     $AIServiceOverrides = @{
         OpenAI = @{
@@ -151,9 +151,9 @@ if ($AIService -eq $varOpenAI) {
     };
 }
 else {
-    dotnet user-secrets set --project $webapiProjectPath SemanticMemory:Services:AzureOpenAIText:APIKey $ApiKey
+    dotnet user-secrets set --project $webapiProjectPath KernelMemory:Services:AzureOpenAIText:APIKey $ApiKey
     if ($LASTEXITCODE -ne 0) { exit(1) }
-    dotnet user-secrets set --project $webapiProjectPath SemanticMemory:Services:AzureOpenAIEmbedding:APIKey $ApiKey
+    dotnet user-secrets set --project $webapiProjectPath KernelMemory:Services:AzureOpenAIEmbedding:APIKey $ApiKey
     if ($LASTEXITCODE -ne 0) { exit(1) }
     $AIServiceOverrides = @{
         AzureOpenAIText      = @{
@@ -180,7 +180,7 @@ $appsettingsOverrides = @{
     Planner = @{
         Model = $PlannerModel
     };
-    SemanticMemory = @{
+    KernelMemory = @{
         TextGeneratorType = $AIService;
         DataIngestion     = @{
             EmbeddingGeneratorTypes = @($AIService)

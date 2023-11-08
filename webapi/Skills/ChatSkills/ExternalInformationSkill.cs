@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -19,10 +18,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
-using Microsoft.SemanticKernel.Planning.Stepwise;
-using Microsoft.SemanticKernel.SkillDefinition;
-using Microsoft.SemanticKernel.TemplateEngine.Prompt;
+using Microsoft.SemanticKernel.TemplateEngine.Basic;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -49,14 +47,7 @@ public class ExternalInformationSkill
     /// <summary>
     ///  Options for the planner.
     /// </summary>
-    private readonly PlannerOptions? _plannerOptions;
-    public PlannerOptions? PlannerOptions
-    {
-        get
-        {
-            return this._plannerOptions;
-        }
-    }
+    public PlannerOptions? PlannerOptions { get; }
 
     /// <summary>
     /// Proposed plan to return for approval.
@@ -83,7 +74,7 @@ public class ExternalInformationSkill
     {
         this._promptOptions = promptOptions.Value;
         this._planner = planner;
-        this._plannerOptions = planner.PlannerOptions;
+        this.PlannerOptions = planner.PlannerOptions;
         this._logger = logger;
     }
 
@@ -92,18 +83,14 @@ public class ExternalInformationSkill
     /// <summary>
     /// Invoke planner to generate a new plan or extract relevant additional knowledge.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    [SKFunction, Description("Acquire external information")]
-    [SKParameter("tokenLimit", "Maximum number of tokens")]
-    [SKParameter("proposedPlan", "Previously proposed plan that is approved")]
     public async Task<string> InvokePlannerAsync(
-        [Description("The intent to whether external information is needed")] string userIntent,
+        string userIntent,
         SKContext context,
         CancellationToken cancellationToken = default)
     {
         // TODO: [Issue #2106] Calculate planner and plan token usage
-        FunctionsView functions = this._planner.Kernel.Skills.GetFunctionsView(true, true);
-        if (functions.NativeFunctions.IsEmpty && functions.SemanticFunctions.IsEmpty)
+        var functions = this._planner.Kernel.Functions.GetFunctionViews();
+        if (functions.IsNullOrEmpty())
         {
             return string.Empty;
         }
@@ -169,12 +156,12 @@ public class ExternalInformationSkill
         CancellationToken cancellationToken = default)
     {
         // Reload the plan with the planner's kernel so it has full context to be executed
-        var newPlanContext = new SKContext(null, this._planner.Kernel.Skills, this._planner.Kernel.LoggerFactory);
+        var newPlanContext = this._planner.Kernel.CreateNewContext(context.Variables, this._planner.Kernel.Functions, this._planner.Kernel.LoggerFactory);
         string planJson = JsonSerializer.Serialize(plan);
-        plan = Plan.FromJson(planJson, newPlanContext);
+        plan = Plan.FromJson(planJson, this._planner.Kernel.Functions);
 
         // Invoke plan
-        newPlanContext = await plan.InvokeAsync(newPlanContext, cancellationToken: cancellationToken);
+        var functionResult = await plan.InvokeAsync(newPlanContext, null, cancellationToken);
         var functionsUsed = $"FUNCTIONS USED: {this.FormattedFunctionsString(plan)}";
 
         // TODO: #2581 Account for planner system instructions
@@ -216,12 +203,10 @@ public class ExternalInformationSkill
     public bool UseStepwiseResultAsBotResponse(string planResult)
     {
         return !string.IsNullOrWhiteSpace(planResult)
-            && this._plannerOptions?.Type == PlanType.Stepwise
-            && this._plannerOptions.UseStepwiseResultAsBotResponse
+            && this.PlannerOptions?.Type == PlanType.Stepwise
+            && this.PlannerOptions.UseStepwiseResultAsBotResponse
             && this.StepwiseThoughtProcess != null;
     }
-
-    #region Private
 
     /// <summary>
     /// Executes the stepwise planner with a given goal and context, and returns the result along with descriptive text.
@@ -236,10 +221,10 @@ public class ExternalInformationSkill
     private async Task<string> RunStepwisePlannerAsync(string goal, SKContext context, CancellationToken cancellationToken)
     {
         var plannerContext = context.Clone();
-        plannerContext = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
+        var functionResult = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
 
         // Populate the execution metadata.
-        var plannerResult = plannerContext.Variables.Input.Trim();
+        var plannerResult = functionResult.GetValue<string>()?.Trim() ?? string.Empty;
         this.StepwiseThoughtProcess = new PlanExecutionMetadata(
             plannerContext.Variables["stepsTaken"],
             plannerContext.Variables["timeTaken"],
@@ -267,7 +252,7 @@ public class ExternalInformationSkill
         }
 
         // Render the supplement to guide the model in using the result.
-        var promptRenderer = new PromptTemplateEngine();
+        var promptRenderer = new BasicPromptTemplateEngine();
         var resultSupplement = await promptRenderer.RenderAsync(
             this._promptOptions.StepwisePlannerSupplement,
             plannerContext,
@@ -324,6 +309,7 @@ public class ExternalInformationSkill
         }
 
         json = string.Empty;
+
         return false;
     }
 
@@ -336,7 +322,7 @@ public class ExternalInformationSkill
         // Remove all new line characters + leading and trailing white space
         jsonContent = Regex.Replace(jsonContent.Trim(), @"[\n\r]", string.Empty);
         var document = JsonDocument.Parse(jsonContent);
-        string lastSkillInvoked = plan.Steps[^1].SkillName;
+        string lastSkillInvoked = plan.Steps[^1].PluginName;
         string lastSkillFunctionInvoked = plan.Steps[^1].Name;
         bool trimSkillResponse = false;
 
@@ -479,7 +465,7 @@ public class ExternalInformationSkill
         List<string> steps = new();
         foreach (var step in plan.Steps)
         {
-            steps.Add($"{step.SkillName}.{step.Name}");
+            steps.Add($"{step.PluginName}.{step.Name}");
         }
 
         return steps;
@@ -499,6 +485,4 @@ public class ExternalInformationSkill
             || v.Key.Contains("chatId", StringComparison.CurrentCultureIgnoreCase)))
             .Select(v => $"{v.Key}: {v.Value}"));
     }
-
-    #endregion
 }

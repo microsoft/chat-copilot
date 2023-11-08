@@ -11,25 +11,25 @@ using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Extensions;
 
 /// <summary>
-/// Extension methods for <see cref="ISemanticMemoryClient"/> and service registration.
+/// Extension methods for <see cref="IKernelMemory"/> and service registration.
 /// </summary>
 internal static class ISemanticMemoryClientExtensions
 {
     private static readonly List<string> pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_embeddings" };
 
     /// <summary>
-    /// Inject <see cref="ISemanticMemoryClient"/>.
+    /// Inject <see cref="IKernelMemory"/>.
     /// </summary>
     public static void AddSemanticMemoryServices(this WebApplicationBuilder appBuilder)
     {
         var serviceProvider = appBuilder.Services.BuildServiceProvider();
 
-        var memoryConfig = serviceProvider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryConfig = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         var ocrType = memoryConfig.ImageOcrType;
         var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
@@ -39,7 +39,7 @@ internal static class ISemanticMemoryClientExtensions
 
         appBuilder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
 
-        var memoryBuilder = new MemoryClientBuilder(appBuilder.Services);
+        var memoryBuilder = new KernelMemoryBuilder(appBuilder.Services);
 
         if (isDistributed)
         {
@@ -53,13 +53,13 @@ internal static class ISemanticMemoryClientExtensions
             }
         }
 
-        ISemanticMemoryClient memory = memoryBuilder.FromAppSettings().Build();
+        IKernelMemory memory = memoryBuilder.FromAppSettings().Build();
 
         appBuilder.Services.AddSingleton(memory);
     }
 
     public static Task<SearchResult> SearchMemoryAsync(
-        this ISemanticMemoryClient memoryClient,
+        this IKernelMemory memoryClient,
         string indexName,
         string query,
         float relevanceThreshold,
@@ -71,7 +71,7 @@ internal static class ISemanticMemoryClientExtensions
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
-        this ISemanticMemoryClient memoryClient,
+        this IKernelMemory memoryClient,
         string indexName,
         string query,
         float relevanceThreshold,
@@ -106,7 +106,7 @@ internal static class ISemanticMemoryClientExtensions
     }
 
     public static async Task StoreDocumentAsync(
-        this ISemanticMemoryClient memoryClient,
+        this IKernelMemory memoryClient,
         string indexName,
         string documentId,
         string chatId,
@@ -131,7 +131,7 @@ internal static class ISemanticMemoryClientExtensions
     }
 
     public static Task StoreMemoryAsync(
-        this ISemanticMemoryClient memoryClient,
+        this IKernelMemory memoryClient,
         string indexName,
         string chatId,
         string memoryName,
@@ -142,7 +142,7 @@ internal static class ISemanticMemoryClientExtensions
     }
 
     public static async Task StoreMemoryAsync(
-        this ISemanticMemoryClient memoryClient,
+        this IKernelMemory memoryClient,
         string indexName,
         string chatId,
         string memoryName,
@@ -176,7 +176,7 @@ internal static class ISemanticMemoryClientExtensions
     }
 
     public static async Task RemoveChatMemoriesAsync(
-        this ISemanticMemoryClient memoryClient,
+        this IKernelMemory memoryClient,
         string indexName,
         string chatId,
         CancellationToken cancellationToken = default)

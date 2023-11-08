@@ -47,8 +47,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
         this._logger = logger;
         this._indexNameGlobalDocs = docOptions.Value.GlobalDocumentCollectionName;
         this._indexNameAllMemory = promptOptions.Value.MemoryIndexName;
-        var kernel = provider.GetMigrationKernel();
-        this._memory = kernel.Memory;
+        this._memory = provider.GetMigrationMemory();
     }
 
     /// <inheritdoc/>

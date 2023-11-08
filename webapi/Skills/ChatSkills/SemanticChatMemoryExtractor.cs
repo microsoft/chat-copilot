@@ -9,10 +9,10 @@ using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Skills.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticMemory;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
@@ -32,7 +32,7 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="cancellationToken">The cancellation token.</param>
     public static async Task ExtractSemanticChatMemoryAsync(
         string chatId,
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         IKernel kernel,
         SKContext context,
         PromptsOptions options,
@@ -135,9 +135,9 @@ internal static class SemanticChatMemoryExtractor
     /// <summary>
     /// Create a completion settings object for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private static CompleteRequestSettings ToCompletionSettings(this PromptsOptions options)
+    private static OpenAIRequestSettings ToCompletionSettings(this PromptsOptions options)
     {
-        var completionSettings = new CompleteRequestSettings
+        var completionSettings = new OpenAIRequestSettings
         {
             MaxTokens = options.ResponseTokenLimit,
             Temperature = options.ResponseTemperature,

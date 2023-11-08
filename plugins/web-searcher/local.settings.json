@@ -7,7 +7,7 @@
     "Host": {
         "CORS": "*"
     },
-    "PluginConfig": {
-        "BingApiKey": ""
-    }
+  "PluginConfig": {
+    "BingApiKey": ""
+  }
 }
