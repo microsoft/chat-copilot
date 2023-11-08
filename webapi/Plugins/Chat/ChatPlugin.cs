@@ -436,7 +436,7 @@ public class ChatPlugin
             chatHistoryString += "\n" + PromptUtils.FormatChatHistoryMessage(ChatMessage.AuthorRoles.User, deserializedPlan.OriginalUserInput);
 
             // Add bot message proposal as prompt context message
-            chatContext.Variables.Set("planFunctions", this._externalInformationSkill.FormattedFunctionsString(deserializedPlan.Plan));
+            chatContext.Variables.Set("planFunctions", this._externalInformationPlugin.FormattedFunctionsString(deserializedPlan.Plan));
             var promptTemplateFactory = new BasicPromptTemplateFactory();
             var proposedPlanTemplate = promptTemplateFactory.Create(this._promptOptions.ProposedPlanBotMessage, new PromptTemplateConfig());
             var proposedPlanBotMessage = await proposedPlanTemplate.RenderAsync(chatContext, cancellationToken);
