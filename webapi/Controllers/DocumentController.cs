@@ -28,7 +28,7 @@ namespace CopilotChat.WebApi.Controllers;
 /// Controller for importing documents.
 /// </summary>
 /// <remarks>
-/// This controller is responsible for contracts that are not possible to fulfill by semantic-memory components.
+/// This controller is responsible for contracts that are not possible to fulfill by kernel memory components.
 /// </remarks>
 [ApiController]
 public class DocumentController : ControllerBase
