@@ -32,9 +32,9 @@ public sealed class SemanticKernelProvider
 
     public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
-        this._builderChat = InitializeCompletionKernel(serviceProvider, configuration);
-        this._builderPlanner = InitializePlannerKernel(serviceProvider, configuration);
-        this._builderMemory = InitializeMigrationMemory(serviceProvider, configuration);
+        this._builderChat = InitializeCompletionKernel(serviceProvider, configuration, httpClientFactory);
+        this._builderPlanner = InitializePlannerKernel(serviceProvider, configuration, httpClientFactory);
+        this._builderMemory = InitializeMigrationMemory(serviceProvider, configuration, httpClientFactory);
     }
 
     /// <summary>
