@@ -18,7 +18,7 @@ Importing documents enables Copilot Chat to have up-to-date knowledge of specifi
 
 ### Memory pipeline in Chat Copilot
 
-Chat copilot integrates [Semantic Memory](https://github.com/microsoft/semantic-memory) as the memory solution provider. The memory pipeline is designed to be run as an asynchronous service. If you are expecting to import big documents that can require minutes to process or planning to carry long conversations with the bot, then you can deploy the memory pipeline as a separate service along with the [chat copilot webapi](https://github.com/microsoft/chat-copilot/tree/main/webapi).
+Chat copilot integrates [Kernel Memory](https://github.com/microsoft/kernel-memory) as the memory solution provider. The memory pipeline is designed to be run as an asynchronous service. If you are expecting to import big documents that can require minutes to process or planning to carry long conversations with the bot, then you can deploy the memory pipeline as a separate service along with the [chat copilot webapi](https://github.com/microsoft/chat-copilot/tree/main/webapi).
 
 ### Configuration
 

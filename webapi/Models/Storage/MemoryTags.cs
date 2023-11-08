@@ -3,7 +3,7 @@
 namespace CopilotChat.WebApi.Models.Storage;
 
 /// <summary>
-/// Tag names for semantic memory.
+/// Tag names for kernel memory.
 /// </summary>
 internal static class MemoryTags
 {

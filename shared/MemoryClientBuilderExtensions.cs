@@ -6,7 +6,7 @@ using Microsoft.KernelMemory;
 namespace CopilotChat.Shared;
 
 /// <summary>
-/// Dependency injection for semantic-memory using custom OCR configuration defined in appsettings.json
+/// Dependency injection for kernel memory using custom OCR configuration defined in appsettings.json
 /// </summary>
 public static class MemoryClientBuilderExtensions
 {
