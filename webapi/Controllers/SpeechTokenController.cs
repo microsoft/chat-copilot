@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -23,11 +22,15 @@ public class SpeechTokenController : ControllerBase
     }
 
     private readonly ILogger<SpeechTokenController> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly AzureSpeechOptions _options;
 
-    public SpeechTokenController(IOptions<AzureSpeechOptions> options, ILogger<SpeechTokenController> logger)
+    public SpeechTokenController(IOptions<AzureSpeechOptions> options,
+        ILogger<SpeechTokenController> logger,
+        IHttpClientFactory httpClientFactory)
     {
         this._logger = logger;
+        this._httpClientFactory = httpClientFactory;
         this._options = options.Value;
     }
 
@@ -55,16 +58,16 @@ public class SpeechTokenController : ControllerBase
 
     private async Task<TokenResult> FetchTokenAsync(string fetchUri, string subscriptionKey)
     {
-        // TODO: get the HttpClient from the DI container
-        using var client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
-        UriBuilder uriBuilder = new(fetchUri);
+        using var client = this._httpClientFactory.CreateClient();
 
-        var result = await client.PostAsync(uriBuilder.Uri, null);
+        using var request = new HttpRequestMessage(HttpMethod.Post, fetchUri);
+        request.Headers.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
+
+        var result = await client.SendAsync(request);
         if (result.IsSuccessStatusCode)
         {
             var response = result.EnsureSuccessStatusCode();
-            this._logger.LogDebug("Token Uri: {0}", uriBuilder.Uri.AbsoluteUri);
+            this._logger.LogDebug("Token Uri: {0}", fetchUri);
             string token = await result.Content.ReadAsStringAsync();
             return new TokenResult { Token = token, ResponseCode = response.StatusCode };
         }

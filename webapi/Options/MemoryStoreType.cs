@@ -63,7 +63,7 @@ public static class MemoryStoreTypeExtensions
                 {
                     return MemoryStoreType.Volatile;
                 }
-                else if (type.Equals("TextFile", StringComparison.OrdinalIgnoreCase))
+                else if (type.Equals("Disk", StringComparison.OrdinalIgnoreCase))
                 {
                     return MemoryStoreType.TextFile;
                 }
