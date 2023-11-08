@@ -8,8 +8,8 @@ export interface PlanExecutionMetadata {
     // Time taken to fulfil the goal.
     timeTaken: string;
 
-    // Skills used execution stat.
-    skillsUsed: string;
+    // Functions used execution stat.
+    functionsUsed: string;
 
     // Planner type.
     plannerType: PlanType;
