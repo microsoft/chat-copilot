@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
+using CopilotChat.Shared;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
@@ -20,9 +21,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.KernelMemory;
-using CopilotChat.Shared;
+using Microsoft.SemanticKernel.Diagnostics;
 
 namespace CopilotChat.WebApi.Extensions;
 
