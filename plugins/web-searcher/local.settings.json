@@ -8,6 +8,6 @@
         "CORS": "*"
     },
   "PluginConfig": {
-    "BingApiKey": "e2d2e1daa3a746da9bff392c4e164d4e"
+    "BingApiKey": ""
   }
 }
