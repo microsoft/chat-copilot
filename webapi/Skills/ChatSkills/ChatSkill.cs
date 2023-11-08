@@ -132,10 +132,7 @@ public class ChatSkill
     /// </summary>
     /// <param name="context">The SKContext.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    [SKFunction, Description("Extract user intent")]
-    //[SKParameter("chatId", "Chat ID to extract history from")] $$$
-    //[SKParameter("audience", "The audience the chat bot is interacting with.")] $$$
-    public async Task<string> ExtractUserIntentAsync(SKContext context, CancellationToken cancellationToken = default)
+    private async Task<string> ExtractUserIntentAsync(SKContext context, CancellationToken cancellationToken = default)
     {
         var tokenLimit = this._promptOptions.CompletionTokenLimit;
         var historyTokenBudget =
@@ -177,9 +174,7 @@ public class ChatSkill
     /// </summary>
     /// <param name="context">The SKContext.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    [SKFunction, Description("Extract audience list")]
-    //[SKParameter("chatId", "Chat ID to extract history from")] $$$
-    public async Task<string> ExtractAudienceAsync(SKContext context, CancellationToken cancellationToken = default)
+    private async Task<string> ExtractAudienceAsync(SKContext context, CancellationToken cancellationToken = default)
     {
         var tokenLimit = this._promptOptions.CompletionTokenLimit;
         var historyTokenBudget =

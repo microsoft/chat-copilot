@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
@@ -18,7 +17,6 @@ using CopilotChat.WebApi.Skills.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
@@ -92,12 +90,8 @@ public class ExternalInformationSkill
     /// <summary>
     /// Invoke planner to generate a new plan or extract relevant additional knowledge.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    [SKFunction, Description("Acquire external information")]
-    //[SKParameter("tokenLimit", "Maximum number of tokens")] $$$
-    //[SKParameter("proposedPlan", "Previously proposed plan that is approved")] $$$
     public async Task<string> InvokePlannerAsync(
-        [Description("The intent to whether external information is needed")] string userIntent,
+        string userIntent,
         SKContext context,
         CancellationToken cancellationToken = default)
     {
@@ -169,12 +163,12 @@ public class ExternalInformationSkill
         CancellationToken cancellationToken = default)
     {
         // Reload the plan with the planner's kernel so it has full context to be executed
-        var newPlanContext = this._planner.Kernel.CreateNewContext(null, this._planner.Kernel.Functions, this._planner.Kernel.LoggerFactory);
+        var newPlanContext = this._planner.Kernel.CreateNewContext(context.Variables, this._planner.Kernel.Functions, this._planner.Kernel.LoggerFactory);
         string planJson = JsonSerializer.Serialize(plan);
         plan = Plan.FromJson(planJson, this._planner.Kernel.Functions);
 
         // Invoke plan
-        var functionResult = await plan.InvokeAsync(newPlanContext, null, cancellationToken); // $$$ RECONCILE W/ CONTEXT ???
+        var functionResult = await plan.InvokeAsync(newPlanContext, null, cancellationToken);
         var functionsUsed = $"FUNCTIONS USED: {this.FormattedFunctionsString(plan)}";
 
         // TODO: #2581 Account for planner system instructions
@@ -238,7 +232,6 @@ public class ExternalInformationSkill
 
         // Populate the execution metadata.
         var plannerResult = functionResult.GetValue<string>()?.Trim() ?? string.Empty;
-        // $$$ plannerResult => plannerContext ???
         this.StepwiseThoughtProcess = new PlanExecutionMetadata(
             plannerContext.Variables["stepsTaken"],
             plannerContext.Variables["timeTaken"],

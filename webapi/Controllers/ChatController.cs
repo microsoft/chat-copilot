@@ -188,7 +188,7 @@ public class ChatController : ControllerBase, IDisposable
         await this.RegisterPlannerSkillsAsync(planner, openApiSkillsAuthHeaders, contextVariables);
 
         // Register hosted plugins that have been enabled
-        await this.RegisterPlannerHostedSkillsAsync(planner, chat.EnabledPlugins);
+        await this.RegisterPlannerHostedSkillsAsync(planner, chat!.EnabledPlugins);
 
         // Get the function to invoke
         ISKFunction? function = null;
