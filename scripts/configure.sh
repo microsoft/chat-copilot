@@ -158,7 +158,7 @@ WEBAPI_PROJECT_PATH="${SCRIPT_DIRECTORY}/../webapi"
 
 echo "Setting 'APIKey' user secret for $AI_SERVICE..."
 if [ "$AI_SERVICE" = "$ENV_OPEN_AI" ]; then
-  dotnet user-secrets set --project $WEBAPI_PROJECT_PATH SemanticMemory:Services:OpenAI:APIKey $API_KEY
+  dotnet user-secrets set --project $WEBAPI_PROJECT_PATH KernelMemory:Services:OpenAI:APIKey $API_KEY
   if [ $? -ne 0 ]; then exit 1; fi
   AISERVICE_OVERRIDES="{
     \"OpenAI\":
@@ -168,9 +168,9 @@ if [ "$AI_SERVICE" = "$ENV_OPEN_AI" ]; then
       }
     }"
 else
-  dotnet user-secrets set --project $WEBAPI_PROJECT_PATH SemanticMemory:Services:AzureOpenAIText:APIKey $API_KEY
+  dotnet user-secrets set --project $WEBAPI_PROJECT_PATH KernelMemory:Services:AzureOpenAIText:APIKey $API_KEY
   if [ $? -ne 0 ]; then exit 1; fi
-  dotnet user-secrets set --project $WEBAPI_PROJECT_PATH SemanticMemory:Services:AzureOpenAIEmbedding:APIKey $API_KEY
+  dotnet user-secrets set --project $WEBAPI_PROJECT_PATH KernelMemory:Services:AzureOpenAIEmbedding:APIKey $API_KEY
   if [ $? -ne 0 ]; then exit 1; fi
   AISERVICE_OVERRIDES="{
     \"AzureOpenAIText\": {
@@ -197,7 +197,7 @@ APPSETTINGS_OVERRIDES="{
   \"Planner\": {
     \"Model\": \"${PLANNER_MODEL}\"
   },
-  \"SemanticMemory\": {
+  \"KernelMemory\": {
     \"TextGeneratorType\": \"${AI_SERVICE}\",
     \"DataIngestion\": {
       \"EmbeddingGeneratorTypes\": [\"${AI_SERVICE}\"]
