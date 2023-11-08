@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using CopilotChat.Shared;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
-using DocumentFormat.OpenXml.Office2010.Word;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
