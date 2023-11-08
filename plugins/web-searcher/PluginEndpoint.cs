@@ -122,7 +122,11 @@ public class PluginEndpoint
             return await this.CreateBadRequestResponseAsync(req, "Invalid number of results.");
         }
 
-        var offset = queries.ContainsKey("Offset") ? int.Parse(queries["Offset"]) : 0;
+        int offset = 0;
+        if (queries.TryGetValue("Offset", out var offsetValue))
+        {
+            int.TryParse(offsetValue, out offset);
+        }
 
         var site = queries.ContainsKey("Site") ? queries["Site"].ToString() : string.Empty;
         if (string.IsNullOrWhiteSpace(site))
