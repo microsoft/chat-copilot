@@ -30,7 +30,7 @@ public sealed class SemanticKernelProvider
     private readonly KernelBuilder _builderPlanner;
     private readonly MemoryBuilder _builderMemory;
 
-    public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration)
+    public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         this._builderChat = InitializeCompletionKernel(serviceProvider, configuration);
         this._builderPlanner = InitializePlannerKernel(serviceProvider, configuration);
@@ -54,7 +54,8 @@ public sealed class SemanticKernelProvider
 
     private static KernelBuilder InitializeCompletionKernel(
         IServiceProvider serviceProvider,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
         var builder = new KernelBuilder();
 
@@ -67,12 +68,23 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
-                builder.WithAzureChatCompletionService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+#pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
+                builder.WithAzureChatCompletionService(
+                    azureAIOptions.Deployment,
+                    azureAIOptions.Endpoint,
+                    azureAIOptions.APIKey,
+                    httpClient: httpClientFactory.CreateClient());
+#pragma warning restore CA2000
                 break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
-                builder.WithOpenAIChatCompletionService(openAIOptions.TextModel, openAIOptions.APIKey);
+#pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
+                builder.WithOpenAIChatCompletionService(
+                    openAIOptions.TextModel,
+                    openAIOptions.APIKey,
+                    httpClient: httpClientFactory.CreateClient());
+#pragma warning restore CA2000
                 break;
 
             default:
@@ -84,7 +96,8 @@ public sealed class SemanticKernelProvider
 
     private static KernelBuilder InitializePlannerKernel(
         IServiceProvider serviceProvider,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
         var builder = new KernelBuilder();
 
@@ -98,12 +111,23 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
-                builder.WithAzureChatCompletionService(plannerOptions.Model, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+#pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
+                builder.WithAzureChatCompletionService(
+                    plannerOptions.Model,
+                    azureAIOptions.Endpoint,
+                    azureAIOptions.APIKey,
+                    httpClient: httpClientFactory.CreateClient());
+#pragma warning restore CA2000
                 break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
-                builder.WithOpenAIChatCompletionService(plannerOptions.Model, openAIOptions.APIKey);
+#pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
+                builder.WithOpenAIChatCompletionService(
+                    plannerOptions.Model,
+                    openAIOptions.APIKey,
+                    httpClient: httpClientFactory.CreateClient());
+#pragma warning restore CA2000
                 break;
 
             default:
@@ -113,7 +137,10 @@ public sealed class SemanticKernelProvider
         return builder;
     }
 
-    private static MemoryBuilder InitializeMigrationMemory(IServiceProvider serviceProvider, IConfiguration configuration)
+    private static MemoryBuilder InitializeMigrationMemory(
+        IServiceProvider serviceProvider,
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
         var memoryOptions = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
@@ -127,12 +154,23 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
-                builder.WithAzureTextEmbeddingGenerationService(azureAIOptions.Deployment, azureAIOptions.Endpoint, azureAIOptions.APIKey);
+#pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
+                builder.WithAzureTextEmbeddingGenerationService(
+                    azureAIOptions.Deployment,
+                    azureAIOptions.Endpoint,
+                    azureAIOptions.APIKey,
+                    httpClient: httpClientFactory.CreateClient());
+#pragma warning restore CA2000
                 break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
-                builder.WithOpenAITextEmbeddingGenerationService(openAIOptions.EmbeddingModel, openAIOptions.APIKey);
+#pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
+                builder.WithOpenAITextEmbeddingGenerationService(
+                    openAIOptions.EmbeddingModel,
+                    openAIOptions.APIKey,
+                    httpClient: httpClientFactory.CreateClient());
+#pragma warning restore CA2000
                 break;
 
             default:
@@ -153,7 +191,7 @@ public sealed class SemanticKernelProvider
                     var qdrantConfig = memoryOptions.GetServiceConfig<QdrantConfig>(configuration, "Qdrant");
 
 #pragma warning disable CA2000 // Ownership passed to QdrantMemoryStore
-                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true });
+                    HttpClient httpClient = new(new HttpClientHandler { CheckCertificateRevocationList = true }); // $$$
 #pragma warning restore CA2000 // Ownership passed to QdrantMemoryStore
                     if (!string.IsNullOrWhiteSpace(qdrantConfig.APIKey))
                     {
