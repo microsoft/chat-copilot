@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.Shared;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
+using DocumentFormat.OpenXml.Office2010.Word;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -182,9 +184,9 @@ internal static class ISemanticMemoryClientExtensions
         CancellationToken cancellationToken = default)
     {
         var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancellationToken);
-        foreach (var memory in memories.Results)
-        {
-            await memoryClient.DeleteDocumentAsync(indexName, memory.Link, cancellationToken);
-        }
+        var documentIds = memories.Results.Select(memory => memory.Link.Split('/').First()).Distinct().ToArray();
+        var tasks = documentIds.Select(documentId => memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken)).ToArray();
+
+        Task.WaitAll(tasks, cancellationToken);
     }
 }
