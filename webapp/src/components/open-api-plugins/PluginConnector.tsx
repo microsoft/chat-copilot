@@ -177,7 +177,7 @@ export const PluginConnector: React.FC<PluginConnectorProps> = ({
                                     },
                                     initials: '', // Set to empty string so no initials are rendered behind image
                                 }}
-                                secondaryText={`${publisher} | Semantic Kernel Skills`}
+                                secondaryText={`${publisher} | Semantic Kernel`}
                             />
                         </DialogTitle>
                         <DialogContent className={classes.content}>

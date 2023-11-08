@@ -8,10 +8,10 @@ namespace CopilotChat.WebApi.Services;
 public interface ITelemetryService
 {
     /// <summary>
-    /// Creates a telemetry event when a skill function is executed.
+    /// Creates a telemetry event when a function is executed.
     /// </summary>
-    /// <param name="skillName">Name of the skill</param>
-    /// <param name="functionName">Skill function name</param>
-    /// <param name="success">If the skill executed successfully</param>
-    void TrackSkillFunction(string skillName, string functionName, bool success);
+    /// <param name="pluginName">Name of the plugin</param>
+    /// <param name="functionName">Function name</param>
+    /// <param name="success">If the function executed successfully</param>
+    void TrackPluginFunction(string pluginName, string functionName, bool success);
 }

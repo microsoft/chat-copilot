@@ -11,9 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.OpenApiPlugins.GitHubPlugin.Model;
-using CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
-using CopilotChat.WebApi.Skills.Utils;
+using CopilotChat.WebApi.Plugins.OpenApi.GitHubPlugin.Model;
+using CopilotChat.WebApi.Plugins.OpenApi.JiraPlugin.Model;
+using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -23,12 +23,12 @@ using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
 
-namespace CopilotChat.WebApi.Skills.ChatSkills;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
-/// This skill provides the functions to acquire external information.
+/// This plugin provides the functions to acquire external information.
 /// </summary>
-public class ExternalInformationSkill
+public class ExternalInformationPlugin
 {
     /// <summary>
     /// High level logger.
@@ -66,9 +66,9 @@ public class ExternalInformationSkill
     private const string ResultHeader = "RESULT: ";
 
     /// <summary>
-    /// Create a new instance of ExternalInformationSkill.
+    /// Create a new instance of ExternalInformationPlugin.
     /// </summary>
-    public ExternalInformationSkill(
+    public ExternalInformationPlugin(
         IOptions<PromptsOptions> promptOptions,
         CopilotChatPlanner planner,
         ILogger logger)
@@ -170,12 +170,12 @@ public class ExternalInformationSkill
             - TokenUtils.TokenCount(functionsUsed)
             - TokenUtils.TokenCount(ResultHeader);
 
-        // The result of the plan may be from an OpenAPI skill. Attempt to extract JSON from the response.
+        // The result of the plan may be from an OpenAPI plugin. Attempt to extract JSON from the response.
         bool extractJsonFromOpenApi =
             this.TryExtractJsonFromOpenApiPlanResult(newPlanContext, newPlanContext.Result, out string planResult);
         if (extractJsonFromOpenApi)
         {
-            planResult = this.OptimizeOpenApiSkillJson(planResult, tokenLimit, plan);
+            planResult = this.OptimizeOpenApiPluginJson(planResult, tokenLimit, plan);
         }
         else
         {
@@ -229,7 +229,7 @@ public class ExternalInformationSkill
         this.StepwiseThoughtProcess = new PlanExecutionMetadata(
             plannerContext.Variables["stepsTaken"],
             plannerContext.Variables["timeTaken"],
-            plannerContext.Variables["skillCount"],
+            plannerContext.Variables["pluginCount"],
             plannerResult);
 
         // Return empty string if result was not found so it's omitted from the meta prompt.
@@ -280,13 +280,13 @@ public class ExternalInformationSkill
     }
 
     /// <summary>
-    /// Try to extract json from the planner response as if it were from an OpenAPI skill.
+    /// Try to extract json from the planner response as if it were from an OpenAPI plugin.
     /// </summary>
-    private bool TryExtractJsonFromOpenApiPlanResult(SKContext context, string openApiSkillResponse, out string json)
+    private bool TryExtractJsonFromOpenApiPlanResult(SKContext context, string openApiPluginResponse, out string json)
     {
         try
         {
-            JsonNode? jsonNode = JsonNode.Parse(openApiSkillResponse);
+            JsonNode? jsonNode = JsonNode.Parse(openApiPluginResponse);
             string contentType = jsonNode?["contentType"]?.ToString() ?? string.Empty;
             if (contentType.StartsWith("application/json", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -300,7 +300,7 @@ public class ExternalInformationSkill
         }
         catch (JsonException)
         {
-            this._logger.LogDebug("Unable to extract JSON from planner response, it is likely not from an OpenAPI skill.");
+            this._logger.LogDebug("Unable to extract JSON from planner response, it is likely not from an OpenAPI plugin.");
         }
         catch (InvalidOperationException)
         {
@@ -316,24 +316,24 @@ public class ExternalInformationSkill
     /// Try to optimize json from the planner response
     /// based on token limit
     /// </summary>
-    private string OptimizeOpenApiSkillJson(string jsonContent, int tokenLimit, Plan plan)
+    private string OptimizeOpenApiPluginJson(string jsonContent, int tokenLimit, Plan plan)
     {
         // Remove all new line characters + leading and trailing white space
         jsonContent = Regex.Replace(jsonContent.Trim(), @"[\n\r]", string.Empty);
         var document = JsonDocument.Parse(jsonContent);
-        string lastSkillInvoked = plan.Steps[^1].PluginName;
-        string lastSkillFunctionInvoked = plan.Steps[^1].Name;
-        bool trimSkillResponse = false;
+        string lastPluginInvoked = plan.Steps[^1].PluginName;
+        string lastFunctionInvoked = plan.Steps[^1].Name;
+        bool trimResponse = false;
 
         // The json will be deserialized based on the response type of the particular operation that was last invoked by the planner
         // The response type can be a custom trimmed down json structure, which is useful in staying within the token limit
-        Type skillResponseType = this.GetOpenApiSkillResponseType(ref document, ref lastSkillInvoked, ref lastSkillFunctionInvoked, ref trimSkillResponse);
+        Type responseType = this.GetOpenApiFunctionResponseType(ref document, ref lastPluginInvoked, ref lastFunctionInvoked, ref trimResponse);
 
-        if (trimSkillResponse)
+        if (trimResponse)
         {
-            // Deserializing limits the json content to only the fields defined in the respective OpenApiSkill's Model classes
-            var skillResponse = JsonSerializer.Deserialize(jsonContent, skillResponseType);
-            jsonContent = skillResponse != null ? JsonSerializer.Serialize(skillResponse) : string.Empty;
+            // Deserializing limits the json content to only the fields defined in the respective OpenApi's Model classes
+            var functionResponse = JsonSerializer.Deserialize(jsonContent, responseType);
+            jsonContent = functionResponse != null ? JsonSerializer.Serialize(functionResponse) : string.Empty;
             document = JsonDocument.Parse(jsonContent);
         }
 
@@ -414,39 +414,39 @@ public class ExternalInformationSkill
 
         return itemList.Count > 0
             ? string.Format(CultureInfo.InvariantCulture, "{0}{1}", resultsDescriptor, JsonSerializer.Serialize(itemList))
-            : string.Format(CultureInfo.InvariantCulture, "JSON response from {0} is too large to be consumed at this time.", this._planner.PlannerOptions?.Type == PlanType.Sequential ? "plan" : lastSkillInvoked);
+            : string.Format(CultureInfo.InvariantCulture, "JSON response from {0} is too large to be consumed at this time.", this._planner.PlannerOptions?.Type == PlanType.Sequential ? "plan" : lastPluginInvoked);
     }
 
-    private Type GetOpenApiSkillResponseType(ref JsonDocument document, ref string lastSkillInvoked, ref string lastSkillFunctionInvoked, ref bool trimSkillResponse)
+    private Type GetOpenApiFunctionResponseType(ref JsonDocument document, ref string lastPluginInvoked, ref string lastFunctionInvoked, ref bool trimResponse)
     {
         // TODO: [Issue #93] Find a way to determine response type if multiple steps are invoked
-        Type skillResponseType = typeof(object); // Use a reasonable default response type
+        Type responseType = typeof(object); // Use a reasonable default response type
 
-        // Different operations under the skill will return responses as json structures;
+        // Different operations under the plugin will return responses as json structures;
         // Prune each operation response according to the most important/contextual fields only to avoid going over the token limit
-        // Check what the last skill invoked was and deserialize the JSON content accordingly
-        if (string.Equals(lastSkillInvoked, "GitHubPlugin", StringComparison.Ordinal))
+        // Check what the last function invoked was and deserialize the JSON content accordingly
+        if (string.Equals(lastPluginInvoked, "GitHubPlugin", StringComparison.Ordinal))
         {
-            trimSkillResponse = true;
-            skillResponseType = this.GetGithubSkillResponseType(ref document);
+            trimResponse = true;
+            responseType = this.GetGithubPluginResponseType(ref document);
         }
-        else if (string.Equals(lastSkillInvoked, "JiraPlugin", StringComparison.Ordinal))
+        else if (string.Equals(lastPluginInvoked, "JiraPlugin", StringComparison.Ordinal))
         {
-            trimSkillResponse = true;
-            skillResponseType = this.GetJiraPluginResponseType(ref document, ref lastSkillFunctionInvoked);
+            trimResponse = true;
+            responseType = this.GetJiraPluginResponseType(ref document, ref lastFunctionInvoked);
         }
 
-        return skillResponseType;
+        return responseType;
     }
 
-    private Type GetGithubSkillResponseType(ref JsonDocument document)
+    private Type GetGithubPluginResponseType(ref JsonDocument document)
     {
         return document.RootElement.ValueKind == JsonValueKind.Array ? typeof(PullRequest[]) : typeof(PullRequest);
     }
 
-    private Type GetJiraPluginResponseType(ref JsonDocument document, ref string lastSkillFunctionInvoked)
+    private Type GetJiraPluginResponseType(ref JsonDocument document, ref string lastFunctionInvoked)
     {
-        if (lastSkillFunctionInvoked == "GetIssue")
+        if (lastFunctionInvoked == "GetIssue")
         {
             return document.RootElement.ValueKind == JsonValueKind.Array ? typeof(IssueResponse[]) : typeof(IssueResponse);
         }
@@ -471,7 +471,7 @@ public class ExternalInformationSkill
     }
 
     /// <summary>
-    /// Returns a string representation of the chat context, excluding some variables that are only relevant to the ChatSkill execution context and should be ignored by the planner.
+    /// Returns a string representation of the chat context, excluding some variables that are only relevant to the ChatPlugin execution context and should be ignored by the planner.
     /// This helps clarify the context that is passed to the planner as well as save on tokens.
     /// </summary>
     /// <param name="context">The chat context object that contains the variables and their values.</param>

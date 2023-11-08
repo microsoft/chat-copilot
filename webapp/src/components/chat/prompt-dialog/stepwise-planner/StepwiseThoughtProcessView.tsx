@@ -65,7 +65,9 @@ export const StepwiseThoughtProcessView: React.FC<IStepwiseThoughtProcessViewPro
                     <Body1Strong>Time Taken:</Body1Strong>
                     <Body1>{stepwiseDetails.timeTaken}</Body1>
                     <Body1Strong>Plugins Used:</Body1Strong>
-                    <Body1>{!stepwiseDetails.skillsUsed.startsWith('0') ? stepwiseDetails.skillsUsed : 'None'}</Body1>
+                    <Body1>
+                        {!stepwiseDetails.functionsUsed.startsWith('0') ? stepwiseDetails.functionsUsed : 'None'}
+                    </Body1>
                 </>
             )}
             {(resultNotFound || showthoughtProcess) && (

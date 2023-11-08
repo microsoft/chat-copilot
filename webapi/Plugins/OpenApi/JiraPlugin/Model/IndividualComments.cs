@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace CopilotChat.WebApi.Skills.OpenApiPlugins.JiraPlugin.Model;
+namespace CopilotChat.WebApi.Plugins.OpenApi.JiraPlugin.Model;
 
 /// <summary>
 /// Represents an individual comment on an issue in jira.
