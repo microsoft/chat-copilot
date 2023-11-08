@@ -28,6 +28,7 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
+using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
@@ -46,7 +47,7 @@ public class ChatSkill
     private readonly IKernel _kernel;
 
     /// <summary>
-    /// Client for the semantic-memory service.
+    /// Client for the kernel memory service.
     /// </summary>
     private readonly IKernelMemory _memoryClient;
 
@@ -76,7 +77,7 @@ public class ChatSkill
     private readonly PromptsOptions _promptOptions;
 
     /// <summary>
-    /// A semantic memory retriever instance to query semantic memories.
+    /// A kernel memory retriever instance to query semantic memories.
     /// </summary>
     private readonly SemanticMemoryRetriever _semanticMemoryRetriever;
 
@@ -436,11 +437,9 @@ public class ChatSkill
 
             // Add bot message proposal as prompt context message
             chatContext.Variables.Set("planFunctions", this._externalInformationSkill.FormattedFunctionsString(deserializedPlan.Plan));
-            var promptRenderer = new BasicPromptTemplateEngine();
-            var proposedPlanBotMessage = await promptRenderer.RenderAsync(
-               this._promptOptions.ProposedPlanBotMessage,
-                chatContext,
-                cancellationToken);
+            var promptTemplateFactory = new BasicPromptTemplateFactory();
+            var proposedPlanTemplate = promptTemplateFactory.Create(this._promptOptions.ProposedPlanBotMessage, new PromptTemplateConfig());
+            var proposedPlanBotMessage = await proposedPlanTemplate.RenderAsync(chatContext, cancellationToken);
             promptTemplate.AddAssistantMessage(proposedPlanBotMessage);
             chatHistoryString += "\n" + PromptUtils.FormatChatHistoryMessage(ChatMessage.AuthorRoles.Bot, proposedPlanBotMessage);
 
@@ -453,10 +452,8 @@ public class ChatSkill
             promptTemplate.AddSystemMessage(deserializedPlan.UserIntent);
 
             // Render system supplement to help guide model in using data.
-            var promptSupplement = await promptRenderer.RenderAsync(
-                this._promptOptions.PlanResultsDescription,
-                chatContext,
-                cancellationToken);
+            var promptSupplementTemplate = promptTemplateFactory.Create(this._promptOptions.PlanResultsDescription, new PromptTemplateConfig());
+            var promptSupplement = await promptSupplementTemplate.RenderAsync(chatContext, cancellationToken);
 
             // Calculate remaining token budget and execute plan
             await this.UpdateBotResponseStatusOnClientAsync(chatId, "Executing plan", cancellationToken);
@@ -627,11 +624,11 @@ public class ChatSkill
     {
         // Render system instruction components
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
-        var promptRenderer = new BasicPromptTemplateEngine();
-        return await promptRenderer.RenderAsync(
-            this._promptOptions.SystemPersona,
-            context,
-            cancellationToken);
+
+        var promptTemplateFactory = new BasicPromptTemplateFactory();
+        var template = promptTemplateFactory.Create(this._promptOptions.SystemPersona, new PromptTemplateConfig());
+
+        return await template.RenderAsync(context, cancellationToken);
     }
 
     /// <summary>

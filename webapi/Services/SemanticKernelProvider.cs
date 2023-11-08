@@ -48,7 +48,7 @@ public sealed class SemanticKernelProvider
     public IKernel GetPlannerKernel() => this._builderPlanner.Build();
 
     /// <summary>
-    /// Produce semantic-kernel with semantic-memory.
+    /// Produce semantic-kernel with kernel memory.
     /// </summary>
     public ISemanticTextMemory GetMigrationMemory() => this._builderMemory.Build();
 

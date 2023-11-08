@@ -9,7 +9,7 @@ using Microsoft.KernelMemory.DataFormats.Image;
 namespace CopilotChat.Shared.Ocr;
 
 /// <summary>
-/// Dependency injection for semantic-memory using configuration defined in appsettings.json
+/// Dependency injection for kernel memory using configuration defined in appsettings.json
 /// </summary>
 public static class ConfigurationExtensions
 {
