@@ -17,10 +17,10 @@ using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 
-namespace CopilotChat.WebApi.Skills.ChatSkills;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
-/// A lightweight wrapper around a planner to allow for curating which skills are available to it.
+/// A lightweight wrapper around a planner to allow for curating which functions are available to it.
 /// </summary>
 public class CopilotChatPlanner
 {

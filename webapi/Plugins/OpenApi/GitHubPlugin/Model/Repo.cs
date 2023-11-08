@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace CopilotChat.WebApi.Skills.OpenApiPlugins.GitHubPlugin.Model;
+namespace CopilotChat.WebApi.Plugins.OpenApi.GitHubPlugin.Model;
 
 /// <summary>
 /// Represents a GitHub Repo.

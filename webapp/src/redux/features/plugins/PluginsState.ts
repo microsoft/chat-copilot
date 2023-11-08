@@ -32,7 +32,7 @@ export interface PluginAuthRequirements {
     helpLink?: string;
 }
 
-// Additional information required to enable OpenAPI skills, i.e., server-url
+// Additional information required to enable OpenAPI functions, i.e., server-url
 // Key should be the property name and in kebab case (valid format for request header),
 // make sure it matches exactly with the property name the API requires
 export type AdditionalApiProperties = Record<

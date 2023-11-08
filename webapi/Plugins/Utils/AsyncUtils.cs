@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.SemanticKernel.Diagnostics;
 
-namespace CopilotChat.WebApi.Skills.Utils;
+namespace CopilotChat.WebApi.Plugins.Utils;
 
 /// <summary>
 /// Utility methods for working with asynchronous operations and callbacks.

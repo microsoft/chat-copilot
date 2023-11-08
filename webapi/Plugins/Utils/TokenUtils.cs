@@ -12,7 +12,7 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
 using Microsoft.SemanticKernel.Orchestration;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
-namespace CopilotChat.WebApi.Skills.Utils;
+namespace CopilotChat.WebApi.Plugins.Utils;
 
 /// <summary>
 /// Utility methods for token management.
@@ -22,7 +22,7 @@ public static class TokenUtils
     private static SharpToken.GptEncoding tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
 
     /// <summary>
-    /// Semantic dependencies of ChatSkill.
+    /// Semantic dependencies of ChatPlugin.
     ///  If you add a new semantic dependency, please add it here.
     /// </summary>
     public static readonly Dictionary<string, string> semanticFunctions = new()
