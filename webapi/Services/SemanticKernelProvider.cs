@@ -8,14 +8,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.KernelMemory;
+using Microsoft.KernelMemory.MemoryStorage.Qdrant;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.KernelMemory;
-using Microsoft.KernelMemory.MemoryStorage.Qdrant;
 using Microsoft.SemanticKernel.Plugins.Memory;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 
 namespace CopilotChat.WebApi.Services;
 

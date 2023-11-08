@@ -10,8 +10,8 @@ using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel.Memory;
 using Microsoft.KernelMemory;
+using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
 

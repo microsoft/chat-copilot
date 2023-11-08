@@ -9,10 +9,10 @@ using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Skills.Utils;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.KernelMemory;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.Orchestration;
 
 namespace CopilotChat.WebApi.Skills.ChatSkills;
 
