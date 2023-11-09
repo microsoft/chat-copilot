@@ -3,6 +3,11 @@
 import {
     Button,
     Label,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
     ProgressBar,
     Radio,
     RadioGroup,
@@ -30,14 +35,16 @@ import {
     DocumentPdfRegular,
     DocumentTextRegular,
     FluentIconsProps,
+    GlobeAdd20Regular,
 } from '@fluentui/react-icons';
 import * as React from 'react';
 import { useRef } from 'react';
+import { Constants } from '../../../Constants';
 import { useChat, useFile } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
-import { Constants } from '../../../Constants';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
+import { Add20 } from '../../shared/BundledIcons';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { TabView } from './TabView';
 
@@ -92,7 +99,8 @@ export const DocumentsTab: React.FC = () => {
     const { importingDocuments } = conversations[selectedId];
 
     const [resources, setResources] = React.useState<ChatMemorySource[]>([]);
-    const documentFileRef = useRef<HTMLInputElement | null>(null);
+    const localDocumentFileRef = useRef<HTMLInputElement | null>(null);
+    const globalDocumentFileRef = useRef<HTMLInputElement | null>(null);
 
     React.useEffect(() => {
         if (!conversations[selectedId].disabled) {
@@ -130,26 +138,66 @@ export const DocumentsTab: React.FC = () => {
                 {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
                 <input
                     type="file"
-                    ref={documentFileRef}
+                    ref={localDocumentFileRef}
                     style={{ display: 'none' }}
                     accept={Constants.app.importTypes}
                     multiple={true}
                     onChange={() => {
-                        void fileHandler.handleImport(selectedId, documentFileRef);
+                        void fileHandler.handleImport(selectedId, localDocumentFileRef, false);
                     }}
                 />
-                <Tooltip content="Embed file into chat session" relationship="label">
-                    <Button
-                        className={classes.uploadButton}
-                        icon={<DocumentArrowUp20Regular />}
-                        disabled={
-                            conversations[selectedId].disabled || (importingDocuments && importingDocuments.length > 0)
-                        }
-                        onClick={() => documentFileRef.current?.click()}
-                    >
-                        Upload
-                    </Button>
-                </Tooltip>
+                <input
+                    type="file"
+                    ref={globalDocumentFileRef}
+                    style={{ display: 'none' }}
+                    accept={Constants.app.importTypes}
+                    multiple={true}
+                    onChange={() => {
+                        void fileHandler.handleImport(selectedId, globalDocumentFileRef, true);
+                    }}
+                />
+                <Menu>
+                    <MenuTrigger disableButtonEnhancement>
+                        <Tooltip content="Embed file into chat session" relationship="label">
+                            <Button
+                                className={classes.uploadButton}
+                                icon={<DocumentArrowUp20Regular />}
+                                disabled={
+                                    conversations[selectedId].disabled ||
+                                    (importingDocuments && importingDocuments.length > 0)
+                                }
+                            >
+                                Upload
+                            </Button>
+                        </Tooltip>
+                    </MenuTrigger>
+                    <MenuPopover>
+                        <MenuList>
+                            <MenuItem
+                                data-testid="addNewLocalDoc"
+                                onClick={() => localDocumentFileRef.current?.click()}
+                                icon={<Add20 />}
+                                disabled={
+                                    conversations[selectedId].disabled ||
+                                    (importingDocuments && importingDocuments.length > 0)
+                                }
+                            >
+                                New local chat document
+                            </MenuItem>
+                            <MenuItem
+                                data-testid="addNewLocalDoc"
+                                onClick={() => globalDocumentFileRef.current?.click()}
+                                icon={<GlobeAdd20Regular />}
+                                disabled={
+                                    conversations[selectedId].disabled ||
+                                    (importingDocuments && importingDocuments.length > 0)
+                                }
+                            >
+                                New global document
+                            </MenuItem>
+                        </MenuList>
+                    </MenuPopover>
+                </Menu>
                 {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
                 {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
                 <div className={classes.vectorDatabase}>
