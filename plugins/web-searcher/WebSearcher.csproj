@@ -8,10 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
+    <!-- Make sure the app is thoroughly tested after any Microsoft.Azure.Functions.* package updates. -->
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="1.5.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.13.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.18.0" />
   </ItemGroup>
 
   <ItemGroup>
