@@ -99,7 +99,7 @@ public class ChatArchiveController : ControllerBase
         chatArchive.ChatTitle = chat.Title;
 
         // get the system description
-        chatArchive.SystemDescription = chat.SystemDescription;
+        chatArchive.SystemDescription = chat.SafeSystemDescription;
 
         // get the chat history
         chatArchive.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);
