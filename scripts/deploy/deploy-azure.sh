@@ -107,7 +107,7 @@ while [[ $# -gt 0 ]]; do
         shift
         ;;
     -ws | --deploy-web-searcher-plugin)
-        DEPLOY_WEB_SEARCHER_PLUGIN=true
+        DEPLOY_WEB_SEARCHER_PLUGIN=false
         shift
         ;;
     -dd | --debug-deployment)
@@ -185,8 +185,8 @@ az account set -s "$SUBSCRIPTION"
 : "${WEB_APP_SVC_SKU:="B1"}"
 : "${AZURE_AD_INSTANCE:="https://login.microsoftonline.com"}"
 : "${MEMORY_STORE:="AzureCognitiveSearch"}"
-: "${NO_COSMOS_DB:=false}"
-: "${NO_SPEECH_SERVICES:=false}"
+: "${NO_COSMOS_DB:=true}"
+: "${NO_SPEECH_SERVICES:=true}"
 : "${DEPLOY_WEB_SEARCHER_PLUGIN:=false}"
 
 # Create JSON config
@@ -206,7 +206,7 @@ JSON_CONFIG=$(
     "memoryStore": { "value": "$MEMORY_STORE" },
     "deployCosmosDB": { "value": $([ "$NO_COSMOS_DB" = true ] && echo "false" || echo "true") },
     "deploySpeechServices": { "value": $([ "$NO_SPEECH_SERVICES" = true ] && echo "false" || echo "true") },
-    "deployWebSearcherPlugin": { "value": $([ "$DEPLOY_WEB_SEARCHER_PLUGIN" = true ] && echo "true" || echo "false") }
+    "deployWebSearcherPlugin": { "value": $([ "$DEPLOY_WEB_SEARCHER_PLUGIN" = false ] && echo "true" || echo "false") }
 }
 EOF
 )

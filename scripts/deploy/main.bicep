@@ -24,6 +24,10 @@ param memoryPipelinePackageUri string = 'https://aka.ms/copilotchat/memorypipeli
 #disable-next-line no-hardcoded-env-urls
 param webSearcherPackageUri string = 'https://aka.ms/copilotchat/websearcher/latest'
 
+@description('Location of the adme plugin to deploy')
+#disable-next-line no-hardcoded-env-urls
+param admePackageUri string = 'https://aka.ms/copilotchat/adme/latest'
+
 @description('Underlying AI service')
 @allowed([
   'AzureOpenAI'
@@ -63,7 +67,7 @@ param azureAdInstance string = environment().authentication.loginEndpoint
 param deployNewAzureOpenAI bool = false
 
 @description('Whether to deploy Cosmos DB for persistent chat storage')
-param deployCosmosDB bool = true
+param deployCosmosDB bool = false
 
 @description('What method to use to persist embeddings')
 @allowed([
@@ -73,10 +77,13 @@ param deployCosmosDB bool = true
 param memoryStore string = 'AzureCognitiveSearch'
 
 @description('Whether to deploy Azure Speech Services to enable input by voice')
-param deploySpeechServices bool = true
+param deploySpeechServices bool = false
 
 @description('Whether to deploy the web searcher plugin, which requires a Bing resource')
 param deployWebSearcherPlugin bool = false
+
+@description('Whether to deploy the ADME plugin')
+param deployAdmePlugin bool = true
 
 @description('Whether to deploy pre-built binary packages to the cloud')
 param deployPackages bool = true
@@ -421,7 +428,18 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
           name: 'Plugins:1:Key'
           value: listkeys('${functionAppWebSearcherPlugin.id}/host/default/', '2022-09-01').functionKeys.default
         }
-      ] : []
+      ] : (deployAdmePlugin) ? [{
+          name: 'Plugins:1:Name'
+          value: 'Adme'
+        }
+        {
+          name: 'Plugins:1:ManifestDomain'
+          value: 'https://${functionAppAdmePlugin.properties.defaultHostName}'
+        }
+        {
+          name: 'Plugins:1:Key'
+          value: listkeys('${functionAppAdmePlugin.id}/host/default/', '2022-09-01').functionKeys.default
+        }] : []
     )
   }
 }
@@ -681,6 +699,61 @@ resource functionAppWebSearcherDeploy 'Microsoft.Web/sites/extensions@2022-09-01
   }
   dependsOn: [
     functionAppWebSearcherPluginConfig
+  ]
+}
+
+// ADME Plugin
+resource functionAppAdmePlugin 'Microsoft.Web/sites@2022-09-01' = if (deployAdmePlugin) {
+  name: 'function-${uniqueName}-adme-plugin'
+  location: location
+  kind: 'functionapp'
+  tags: {
+    skweb: '1'
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+    siteConfig: {
+      alwaysOn: true
+    }
+  }
+}
+
+resource functionAppAdmePluginConfig 'Microsoft.Web/sites/config@2022-09-01' = if (deployAdmePlugin) {
+  parent: functionAppAdmePlugin
+  name: 'web'
+  properties: {
+    minTlsVersion: '1.2'
+    appSettings: [
+      {
+        name: 'FUNCTIONS_EXTENSION_VERSION'
+        value: '~4'
+      }
+      {
+        name: 'FUNCTIONS_WORKER_RUNTIME'
+        value: 'dotnet-isolated'
+      }
+      {
+        name: 'AzureWebJobsStorage'
+        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
+      }
+      {
+        name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+        value: appInsights.properties.InstrumentationKey
+      }
+    ]
+  }
+}
+
+resource functionAppAdmeDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployPackages && deployAdmePlugin) {
+  name: 'MSDeploy'
+  kind: 'string'
+  parent: functionAppAdmePlugin
+  properties: {
+    packageUri: admePackageUri
+  }
+  dependsOn: [
+    functionAppAdmePluginConfig
   ]
 }
 
@@ -1145,7 +1218,4 @@ resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = if (deployWebS
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name
-output pluginNames array = concat(
-  [],
-  (deployWebSearcherPlugin) ? [ functionAppWebSearcherPlugin.name ] : []
-)
+output pluginNames array = [ (deployWebSearcherPlugin) ? functionAppWebSearcherPlugin.name : null, (deployAdmePlugin) ? functionAppAdmePlugin.name : null ]

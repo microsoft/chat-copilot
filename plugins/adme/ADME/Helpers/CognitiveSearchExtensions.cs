@@ -43,7 +43,7 @@ public static class CognitiveSearchExtensions
     public static void SetResultValues<T>(this SearchData<T> data, SearchResults<T> result)
     {
         data.ResultList = result.GetResults();
-        data.Facets = result.Facets.ToFacetDictionary();
+        //data.Facets = result.Facets.ToFacetDictionary();
         data.TotalCount = result.TotalCount;
     }
 
@@ -108,7 +108,6 @@ public static class CognitiveSearchExtensions
         options.QueryType = SearchQueryType.Semantic;
         options.QueryLanguage = QueryLanguage.EnUs;
         options.ScoringStatistics = ScoringStatistics.Global;
-        options.SearchFields.Add("id");
         options.SemanticFields.Add("content");
     }
 

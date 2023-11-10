@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
+using ADME.Helpers;
 using ADME.Models;
 using ADME.Services;
 using ADME.Services.Interfaces;
+using Asp.Versioning;
 using Azure;
 using Azure.Core.Serialization;
 using Azure.Identity;
@@ -17,6 +19,22 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRouting();
 builder.Services.AddOptions();
 builder.Services.Configure<OpenAiConfig>(builder.Configuration.GetSection("Azure:OpenAi"));
+builder.Services.AddApiVersioning(c =>
+    {
+        c.DefaultApiVersion = new ApiVersion(0, 2);
+        // c.ApiVersionReader = new UrlSegmentApiVersionReader();
+        c.AssumeDefaultVersionWhenUnspecified = true;
+        c.ReportApiVersions = true;
+    })
+    .AddMvc()
+    .AddApiExplorer(
+        options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
+
+builder.AddSwagger(scopes: new[] {"access_as_user"});
 
 string searchServiceEndpoint = builder.Configuration["Azure:CognitiveSearch:Endpoint"];
 string searchAlias = builder.Configuration["Azure:CognitiveSearch:SearchIndexAlias"];
@@ -53,6 +71,8 @@ builder.Services.AddScoped<ICognitiveSearchService, CognitiveSearchService>();
 
 WebApplication app = builder.Build();
 
+app.UseSwaggerUi(builder.Configuration["Swagger:ClientId"]!,
+    realmClientId: builder.Configuration["Azure:EntraID:ClientId"]!);
 app.UseHttpsRedirection();
 app.UseRouting();
 app.MapControllers();

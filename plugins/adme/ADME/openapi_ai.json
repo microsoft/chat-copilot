@@ -1,0 +1,170 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "OSDU Copilot Plugin",
+    "description": "This is the OSDU plugin for Copilot",
+    "version": "0.2"
+  },
+  "paths": {
+    "/api/search/{parm}": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "This endpoint performs key word search with filters on azure cognitive search index containing OSDU data",
+        "operationId": "Search",
+        "parameters": [
+          {
+            "name": "parm",
+            "in": "path",
+            "description": "The prompt being used for search",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "IdFilter",
+            "in": "query",
+            "description": "Is empty or contains any number of Ids split by the '|' character",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CategoryFilter",
+            "in": "query",
+            "description": "Is empty or contains any number of Categories split by the '|' character",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "KindFilter",
+            "in": "query",
+            "description": "Is empty or contains any number of Kinds split by the '|' character",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiPluginResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AiPluginResult": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The data of a given OSDU object",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique OSDU ID of a given OSDU object",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "description": "The Kind of a given OSDU object",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represent the result from one page"
+      },
+      "SearchFilters": {
+        "type": "object",
+        "properties": {
+          "kindFilter": {
+            "type": "string",
+            "description": "Is empty or contains any number of kinds split by the '|' character",
+            "nullable": true
+          },
+          "idFilter": {
+            "type": "string",
+            "description": "Is empty or contains any number of Ids split by the '|' character",
+            "nullable": true
+          },
+          "categoryFilter": {
+            "type": "string",
+            "description": "Is empty or contains any number of categories split by the '|' character",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Class to hold the facet filters input in api"
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      }
+    },
+    "securitySchemes": {
+      "OAuth2": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/oauth2/v2.0/authorize",
+            "tokenUrl": "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/oauth2/v2.0/token",
+            "scopes": {
+              "api://4ad01fea-bb1f-4529-b952-d70603b10382/access_as_user": "Access the API"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "OAuth2": []
+    }
+  ]
+}
