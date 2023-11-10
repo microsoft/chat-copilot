@@ -1024,6 +1024,6 @@ public class ChatPlugin
             throw new ArgumentException("Chat session does not exist.");
         }
 
-        this._promptOptions.SystemDescription = chatSession!.SystemDescription;
+        this._promptOptions.SystemDescription = chatSession!.SafeSystemDescription;
     }
 }

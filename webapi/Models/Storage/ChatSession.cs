@@ -35,6 +35,11 @@ public class ChatSession : IStorageEntity
     public string SystemDescription { get; set; }
 
     /// <summary>
+    /// Fixed system description with "TimeSkill" replaced by "TimePlugin"
+    /// </summary>
+    public string SafeSystemDescription => this.SystemDescription.Replace("TimeSkill", "TimePlugin", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// The balance between long term memory and working term memory.
     /// The higher this value, the more the system will rely on long term memory by lowering
     /// the relevance threshold of long term memory and increasing the threshold score of working memory.
