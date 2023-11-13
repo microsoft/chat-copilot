@@ -1,3 +1,5 @@
+**NOTE**: This is a **sample** application to help you understand how Semantic Kernel and AI can work in Web Applications.  This sample is **NOT FOR PRODUCTION** deployments.
+
 # Chat Copilot Sample Application
 
 This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft [Semantic Kernel](https://github.com/microsoft/semantic-kernel) and has three components:
