@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
@@ -31,7 +31,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta5" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta5" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta5" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta6" />
     <PackageReference Include="Microsoft.SemanticKernel.TemplateEngine.Basic" Version="1.0.0-beta5" />
     <PackageReference Include="SharpToken" Version="1.2.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
