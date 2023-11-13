@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Asp.Versioning.Mvc" Version="6.0.0-preview.1" />
-        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="6.0.0-preview.1" />
+        <PackageReference Include="Asp.Versioning.Mvc" Version="6.0.0-preview.1"/>
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="6.0.0-preview.1"/>
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1"/>
-        <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.9" />
+        <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.9"/>
         <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2"/>
         <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0"/>
-        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.1" />
+        <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.1"/>
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="7.0.13"/>
         <PackageReference Include="Microsoft.Identity.Web" Version="2.15.3"/>
         <PackageReference Include="Microsoft.Identity.Web.GraphServiceClient" Version="2.15.3"/>
@@ -27,7 +27,7 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="1.5.1"/>
         <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.1"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
     </ItemGroup>
     <ItemGroup>
         <None Update="appsettings.json">
@@ -36,8 +36,11 @@
         <None Update="openapi_ai.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="logo.png">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\shared\PluginShared.csproj" />
+        <ProjectReference Include="..\..\shared\PluginShared.csproj"/>
     </ItemGroup>
 </Project>

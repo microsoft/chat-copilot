@@ -14,7 +14,9 @@ using Microsoft.Extensions.Configuration;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddControllers();
+builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRouting();
 builder.Services.AddOptions();
@@ -22,7 +24,6 @@ builder.Services.Configure<OpenAiConfig>(builder.Configuration.GetSection("Azure
 builder.Services.AddApiVersioning(c =>
     {
         c.DefaultApiVersion = new ApiVersion(0, 2);
-        // c.ApiVersionReader = new UrlSegmentApiVersionReader();
         c.AssumeDefaultVersionWhenUnspecified = true;
         c.ReportApiVersions = true;
     })
@@ -63,7 +64,7 @@ builder.Services.AddAzureClients(az =>
         new Uri(builder.Configuration["Azure:OpenAi:Endpoint"] ??
                 throw new ArgumentNullException("Azure:OpenAi:Endpoint")),
         new AzureKeyCredential(builder.Configuration["Azure:OpenAi:ApiKey"] ??
-                               throw new ArgumentNullException("Azure:OpenAi:ApiKey"))).WithName("OpenAi");
+                               throw new ArgumentNullException("Azure:OpenAi:ApiKey")));
 });
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
