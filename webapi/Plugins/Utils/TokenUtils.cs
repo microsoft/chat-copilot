@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
 using Microsoft.SemanticKernel.Orchestration;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
-namespace CopilotChat.WebApi.Skills.Utils;
+namespace CopilotChat.WebApi.Plugins.Utils;
 
 /// <summary>
 /// Utility methods for token management.
@@ -20,7 +22,7 @@ public static class TokenUtils
     private static SharpToken.GptEncoding tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
 
     /// <summary>
-    /// Semantic dependencies of ChatSkill.
+    /// Semantic dependencies of ChatPlugin.
     ///  If you add a new semantic dependency, please add it here.
     /// </summary>
     public static readonly Dictionary<string, string> semanticFunctions = new()
@@ -68,7 +70,7 @@ public static class TokenUtils
     /// <param name="logger">The logger instance to use for logging errors.</param>
     /// <param name="functionName">Name of the function that invoked the chat completion.</param>
     /// <returns> true if token usage is found in result context; otherwise, false.</returns>
-    internal static void GetFunctionTokenUsage(SKContext result, SKContext chatContext, ILogger logger, string? functionName = null)
+    internal static void GetFunctionTokenUsage(FunctionResult result, SKContext chatContext, ILogger logger, string? functionName = null)
     {
         try
         {
@@ -78,13 +80,14 @@ public static class TokenUtils
                 return;
             }
 
-            if (result.ModelResults == null || result.ModelResults.Count == 0)
+            var modelResults = result.GetModelResults();
+            if (modelResults.IsNullOrEmpty())
             {
                 logger.LogError("Unable to determine token usage for {0}", functionKey);
                 return;
             }
 
-            var tokenUsage = result.ModelResults.First().GetResult<ChatModelResult>().Usage.TotalTokens;
+            var tokenUsage = modelResults!.First().GetResult<ChatModelResult>().Usage.TotalTokens;
             chatContext.Variables.Set(functionKey!, tokenUsage.ToString(CultureInfo.InvariantCulture));
         }
         catch (Exception e)

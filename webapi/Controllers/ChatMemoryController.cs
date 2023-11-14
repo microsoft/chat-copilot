@@ -14,12 +14,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
 /// <summary>
-/// Controller for retrieving semantic memory data of chat sessions.
+/// Controller for retrieving kernel memory data of chat sessions.
 /// </summary>
 [ApiController]
 public class ChatMemoryController : ControllerBase
@@ -47,7 +47,7 @@ public class ChatMemoryController : ControllerBase
     }
 
     /// <summary>
-    /// Gets the semantic memory for the chat session.
+    /// Gets the kernel memory for the chat session.
     /// </summary>
     /// <param name="semanticTextMemory">The semantic text memory instance.</param>
     /// <param name="chatId">The chat id.</param>
@@ -58,7 +58,7 @@ public class ChatMemoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetSemanticMemoriesAsync(
-        [FromServices] ISemanticMemoryClient memoryClient,
+        [FromServices] IKernelMemory memoryClient,
         [FromRoute] string chatId,
         [FromQuery] string type)
     {
@@ -81,7 +81,7 @@ public class ChatMemoryController : ControllerBase
             return this.BadRequest($"Chat session: {sanitizedChatId} does not exist.");
         }
 
-        // Gather the requested semantic memory.
+        // Gather the requested kernel memory.
         // Will use a dummy query since we don't care about relevance.
         // minRelevanceScore is set to 0.0 to return all memories.
         List<string> memories = new();
@@ -91,7 +91,6 @@ public class ChatMemoryController : ControllerBase
             var filter = new MemoryFilter();
             filter.ByTag("chatid", chatId);
             filter.ByTag("memory", memoryContainerName);
-            filter.MinRelevance = 0;
 
             var searchResult =
                 await memoryClient.SearchMemoryAsync(

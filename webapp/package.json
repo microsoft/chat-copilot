@@ -17,7 +17,7 @@
   "dependencies": {
     "@azure/msal-browser": "^2.38.3",
     "@azure/msal-react": "^1.5.11",
-    "@fluentui/react-components": "^9.37.0",
+    "@fluentui/react-components": "^9.39.0",
     "@fluentui/react-icons": "^2.0.222",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^7.0.12",
@@ -33,14 +33,14 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@types/debug": "^4.1.7",
+    "@types/debug": "^4.1.12",
     "@types/node": "^20.8.10",
-    "@types/react": "^18.2.24",
+    "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.14",
-    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.9.0",
     "eslint": "^8.53.0",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "react-scripts": "^5.0.1",
     "serve": "^14.2.1",
     "typescript": "5.2.2"

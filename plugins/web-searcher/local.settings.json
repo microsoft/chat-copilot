@@ -1,13 +1,13 @@
 {
     "IsEncrypted": false,
     "Values": {
-        "AzureWebJobsStorage": "",
+        "AzureWebJobsStorage": "UseDevelopmentStorage=none",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
     },
     "Host": {
         "CORS": "*"
     },
-    "PluginConfig": {
-        "BingApiKey": ""
-    }
+  "PluginConfig": {
+    "BingApiKey": ""
+  }
 }

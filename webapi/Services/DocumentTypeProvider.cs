@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.SemanticMemory.Pipeline;
+using Microsoft.KernelMemory.Pipeline;
 
 namespace CopilotChat.WebApi.Services;
 

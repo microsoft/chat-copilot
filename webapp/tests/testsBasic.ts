@@ -19,7 +19,7 @@ Summary: Tests for the following behaviour from the WebApp:
 - Start New Chat
 - Send a message to the bot, and expect a response
 - Chat History has the correct number of messages and that the last message is from Copilot
-- SK core skill testing for jokes and fun facts
+- SK core function testing for jokes and fun facts
 */
 export async function basicBotResponses(page) {
     await util.loginAndCreateNewChat(page);

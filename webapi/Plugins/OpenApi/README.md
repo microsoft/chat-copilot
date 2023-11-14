@@ -1,4 +1,4 @@
-# OpenAPI Skills
+# OpenAPI Plugins
 
 ## GitHubPlugin
 
@@ -19,5 +19,5 @@ Version 3.0 of jira's swagger document is hosted at https://developer.atlassian.
 
 # Model Classes
 
-OpenApi skills return responses as json structures, these responses can vary based on the functions that are eventually invoked. Some responses are very big and go over the token limit of the underlying language model. To work around the token limit we can specifically prune the json response before passing that information back to the language model.
-The Model classes under `.\webapi\Skills\OpenApiSkills\<SkillName>\Model\` determine which json properties are picked for deserializing the json response; Only the json properties defined via the Model classes remain in the trimmed response passed back to the language model.
+OpenApi plugins return responses as json structures, these responses can vary based on the functions that are eventually invoked. Some responses are very big and go over the token limit of the underlying language model. To work around the token limit we can specifically prune the json response before passing that information back to the language model.
+The Model classes under `.\webapi\Plugins\OpenApiS\<PluginName>\Model\` determine which json properties are picked for deserializing the json response; Only the json properties defined via the Model classes remain in the trimmed response passed back to the language model.

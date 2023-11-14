@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace CopilotChat.WebApi.Skills.ChatSkills;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
 /// A single entry in the chat memory.

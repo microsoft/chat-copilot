@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.Utils;
+using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
-namespace CopilotChat.WebApi.Skills.ChatSkills;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
-/// This class provides the functions to query semantic memory.
+/// This class provides the functions to query kernel memory.
 /// </summary>
 public class SemanticMemoryRetriever
 {
@@ -26,7 +26,7 @@ public class SemanticMemoryRetriever
 
     private readonly ChatSessionRepository _chatSessionRepository;
 
-    private readonly ISemanticMemoryClient _memoryClient;
+    private readonly IKernelMemory _memoryClient;
 
     private readonly List<string> _memoryNames;
 
@@ -41,7 +41,7 @@ public class SemanticMemoryRetriever
     public SemanticMemoryRetriever(
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository chatSessionRepository,
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         ILogger logger)
     {
         this._promptOptions = promptOptions.Value;

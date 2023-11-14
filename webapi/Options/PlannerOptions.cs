@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.ComponentModel.DataAnnotations;
 using CopilotChat.WebApi.Models.Response;
-using Microsoft.SemanticKernel.Planning.Stepwise;
+using Microsoft.SemanticKernel.Planners;
 
 namespace CopilotChat.WebApi.Options;
 

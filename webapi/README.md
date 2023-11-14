@@ -29,9 +29,9 @@ The following material is under development and may not be complete or accurate.
    - **Azure Form Recognizer** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
      - You will need to obtain an [Azure Form Recognizer](https://azure.microsoft.com/en-us/services/form-recognizer/) resource and add the `SemanticMemory:Services:AzureFormRecognizer:Endpoint` and `SemanticMemory:Services:AzureFormRecognizer:Key` values to the `./appsettings.json` file.
 
-## Running [Memory Service](https://github.com/microsoft/semantic-memory)
+## Running [Memory Service](https://github.com/microsoft/kernel-memory)
 
-The memory service handles the creation and querying of semantic memory, including cognitive memory and documents.
+The memory service handles the creation and querying of kernel memory, including cognitive memory and documents.
 
 ### InProcess Processing (Default)
 
@@ -90,7 +90,7 @@ To enable sequential planner,
 1. In [./webapi/appsettings.json](appsettings.json), set `"Type": "Sequential"` under the `Planner` section.
 1. Then, set your preferred Planner model (`gpt-4` or `gpt-3.5-turbo`) under the `AIService` configuration section.
 1. If using `gpt-4`, no other changes are required.
-1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Skills/ChatSkills/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
+1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Plugins/Chat/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
    - Add `using` statement to top of file:
      ```
      using Microsoft.SemanticKernel.Planning.Sequential;
@@ -164,7 +164,7 @@ To use Application Insights, first create an instance in your Azure subscription
 
 On the resource overview page, in the top right use the copy button to copy the Connection String and paste this into the `APPLICATIONINSIGHTS_CONNECTION_STRING` setting as either a appsettings value, or add it as a secret.
 
-In addition to this there are some custom events that can inform you how users are using the service such as `SkillFunction`.
+In addition to this there are some custom events that can inform you how users are using the service such as `PluginFunction`.
 
 To access these custom events the suggested method is to use Azure Data Explorer (ADX). To access data from Application Insights in ADX, create a new dashboard and add a new Data Source (use the ellipsis dropdown in the top right).
 
@@ -174,24 +174,24 @@ For more info see [Query data in Azure Monitor using Azure Data Explorer](https:
 
 CopilotChat specific events are in a table called `customEvents`.
 
-For example to see the most recent 100 skill function invocations:
+For example to see the most recent 100 plugin function invocations:
 
 ```kql
 customEvents
 | where timestamp between (_startTime .. _endTime)
-| where name == "SkillFunction"
-| extend skill = tostring(customDimensions.skillName)
+| where name == "PluginFunction"
+| extend plugin = tostring(customDimensions.pluginName)
 | extend function = tostring(customDimensions.functionName)
 | extend success = tobool(customDimensions.success)
 | extend userId = tostring(customDimensions.userId)
 | extend environment = tostring(customDimensions.AspNetCoreEnvironment)
-| extend skillFunction = strcat(skill, '/', function)
-| project timestamp, skillFunction, success, userId, environment
+| extend pluginFunction = strcat(plugin, '/', function)
+| project timestamp, pluginFunction, success, userId, environment
 | order by timestamp desc
 | limit 100
 ```
 
-Or to report the success rate of skill functions against environments, you can first add a parameter to the dashboard to filter the environment.
+Or to report the success rate of plugin functions against environments, you can first add a parameter to the dashboard to filter the environment.
 
 You can use this query to show the environments available by adding the `Source` as this `Query`:
 
@@ -209,14 +209,14 @@ You can then query the success rate with this query:
 ```kql
 customEvents
 | where timestamp between (_startTime .. _endTime)
-| where name == "SkillFunction"
-| extend skill = tostring(customDimensions.skillName)
+| where name == "PluginFunction"
+| extend plugin = tostring(customDimensions.pluginName)
 | extend function = tostring(customDimensions.functionName)
 | extend success = tobool(customDimensions.success)
 | extend environment = tostring(customDimensions.AspNetCoreEnvironment)
-| extend skillFunction = strcat(skill, '/', function)
-| summarize Total=count(), Success=countif(success) by skillFunction, environment
-| project skillFunction, SuccessPercentage = 100.0 * Success/Total, environment
+| extend pluginFunction = strcat(plugin, '/', function)
+| summarize Total=count(), Success=countif(success) by pluginFunction, environment
+| project pluginFunction, SuccessPercentage = 100.0 * Success/Total, environment
 | order by SuccessPercentage asc
 ```
 
@@ -227,14 +227,14 @@ Finally you could render this data over time with a query like this:
 ```kql
 customEvents
 | where timestamp between (_startTime .. _endTime)
-| where name == "SkillFunction"
-| extend skill = tostring(customDimensions.skillName)
+| where name == "PluginFunction"
+| extend plugin = tostring(customDimensions.pluginName)
 | extend function = tostring(customDimensions.functionName)
 | extend success = tobool(customDimensions.success)
 | extend environment = tostring(customDimensions.AspNetCoreEnvironment)
-| extend skillFunction = strcat(skill, '/', function)
-| summarize Total=count(), Success=countif(success) by skillFunction, environment, bin(timestamp,1m)
-| project skillFunction, SuccessPercentage = 100.0 * Success/Total, environment, timestamp
+| extend pluginFunction = strcat(plugin, '/', function)
+| summarize Total=count(), Success=countif(success) by pluginFunction, environment, bin(timestamp,1m)
+| project pluginFunction, SuccessPercentage = 100.0 * Success/Total, environment, timestamp
 | order by timestamp asc
 ```
 
@@ -248,14 +248,14 @@ Then use a Time chart on the Visual tab.
 
 If you wish to load custom plugins into the kernel or planner:
 
-1. Create two new folders under `./Skills` directory named `./SemanticPlugins` and `./NativePlugins`. There, you can add your custom plugins (synonymous with skills).
+1. Create two new folders under `./Plugins` directory named `./SemanticPlugins` and `./NativePlugins`. There, you can add your custom plugins (synonymous with plugins).
 2. Then, comment out the respective options in `appsettings.json`:
 
    ```json
    "Service": {
       // "TimeoutLimitInS": "120"
-      "SemanticPluginsDirectory": "./Skills/SemanticPlugins",
-      "NativePluginsDirectory": "./Skills/NativePlugins"
+      "SemanticPluginsDirectory": "./Plugins/SemanticPlugins",
+      "NativePluginsDirectory": "./Plugins/NativePlugins"
       // "KeyVault": ""
       // "InMaintenance":  true
    },
@@ -280,9 +280,9 @@ If you wish to load custom plugins into the kernel or planner:
 
 If you want to deploy your custom plugins with the webapi, additional configuration is required. You have the following options:
 
-1. **[Recommended]** Create custom setup hooks to import your skills into the kernel and planner.
+1. **[Recommended]** Create custom setup hooks to import your plugins into the kernel and planner.
 
-   > The default `RegisterSkillsAsync` function uses reflection to import native functions from your custom plugin files. C# reflection is a powerful but slow mechanism that dynamically inspects and invokes types and methods at runtime. It works well for loading a few plugin files, but it can degrade performance and increase memory usage if you have many plugins or complex types. Therefore, we recommend creating your own import function to load your custom plugins manually. This way, you can avoid reflection overhead and have more control over how and when your plugins are loaded.
+   > The default `RegisterPluginsAsync` function uses reflection to import native functions from your custom plugin files. C# reflection is a powerful but slow mechanism that dynamically inspects and invokes types and methods at runtime. It works well for loading a few plugin files, but it can degrade performance and increase memory usage if you have many plugins or complex types. Therefore, we recommend creating your own import function to load your custom plugins manually. This way, you can avoid reflection overhead and have more control over how and when your plugins are loaded.
 
    Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the [next two sections](#add-custom-setup-to-chat-copilots-kernel) for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
 
@@ -290,13 +290,13 @@ Alternatively,
 
 2. If you want to use local files for custom plugins and don't mind exposing your source code, you need to make sure that the files are copied to the output directory when you publish or run the app. The deployed app expects to find the files in a subdirectory specified by the `NativePluginsDirectory` or `SemanticPluginsDirectory` option, which is relative to the assembly location by default. To copy the files to the output directory,
 
-   Mark the files and the subdirectory as Copy to Output Directory in the project file or the file properties. For example, if your files are in a subdirectories called `Skills\NativePlugins` and `Skills\SemanticPlugins`, you can uncomment the following lines the `CopilotChatWebApi.csproj` file:
+   Mark the files and the subdirectory as Copy to Output Directory in the project file or the file properties. For example, if your files are in a subdirectories called `Plugins\NativePlugins` and `Plugins\SemanticPlugins`, you can uncomment the following lines the `CopilotChatWebApi.csproj` file:
 
    ```xml
-   <Content Include="Skills\NativePlugins\*.*">
+   <Content Include="Plugins\NativePlugins\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Skills\SemanticPlugins\*.*">
+    <Content Include="Plugins\SemanticPlugins\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
    ```
@@ -315,7 +315,7 @@ For example, the following code snippet shows how to create a custom hook that r
 private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
 {
    // Import your plugin into the kernel with the name "MyPlugin"
-   kernel.ImportSkill(new MyPlugin(), nameof(MyPlugin));
+   kernel.ImportFunctions(new MyPlugin(), nameof(MyPlugin));
 
    // Perform any other setup actions on the kernel
    // ...

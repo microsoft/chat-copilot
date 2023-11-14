@@ -7,22 +7,22 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Skills.Utils;
+using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticMemory;
 
-namespace CopilotChat.WebApi.Skills.ChatSkills;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
-/// Helper class to extract and create semantic memory from chat history.
+/// Helper class to extract and create kernel memory from chat history.
 /// </summary>
 internal static class SemanticChatMemoryExtractor
 {
     /// <summary>
-    /// Extract and save semantic memory.
+    /// Extract and save kernel memory.
     /// </summary>
     /// <param name="chatId">The Chat ID.</param>
     /// <param name="kernel">The semantic kernel.</param>
@@ -32,7 +32,7 @@ internal static class SemanticChatMemoryExtractor
     /// <param name="cancellationToken">The cancellation token.</param>
     public static async Task ExtractSemanticChatMemoryAsync(
         string chatId,
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         IKernel kernel,
         SKContext context,
         PromptsOptions options,
@@ -45,7 +45,7 @@ internal static class SemanticChatMemoryExtractor
             {
                 if (!options.TryGetMemoryContainerName(memoryType, out var memoryName))
                 {
-                    logger.LogInformation("Unable to extract semantic memory for invalid memory type {0}. Continuing...", memoryType);
+                    logger.LogInformation("Unable to extract kernel memory for invalid memory type {0}. Continuing...", memoryType);
                     continue;
                 }
                 var semanticMemory = await ExtractCognitiveMemoryAsync(memoryType, memoryName, logger);
@@ -56,9 +56,9 @@ internal static class SemanticChatMemoryExtractor
             }
             catch (Exception ex) when (!ex.IsCriticalException())
             {
-                // Skip semantic memory extraction for this item if it fails.
+                // Skip kernel memory extraction for this item if it fails.
                 // We cannot rely on the model to response with perfect Json each time.
-                logger.LogInformation("Unable to extract semantic memory for {0}: {1}. Continuing...", memoryType, ex.Message);
+                logger.LogInformation("Unable to extract kernel memory for {0}: {1}. Continuing...", memoryType, ex.Message);
                 continue;
             }
         }
@@ -135,9 +135,9 @@ internal static class SemanticChatMemoryExtractor
     /// <summary>
     /// Create a completion settings object for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private static CompleteRequestSettings ToCompletionSettings(this PromptsOptions options)
+    private static OpenAIRequestSettings ToCompletionSettings(this PromptsOptions options)
     {
-        var completionSettings = new CompleteRequestSettings
+        var completionSettings = new OpenAIRequestSettings
         {
             MaxTokens = options.ResponseTokenLimit,
             Temperature = options.ResponseTemperature,
