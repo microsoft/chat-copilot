@@ -69,7 +69,7 @@ public sealed class SemanticKernelProvider
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithAzureChatCompletionService(
+                builder.WithAzureOpenAIChatCompletionService(
                     azureAIOptions.Deployment,
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
@@ -112,7 +112,7 @@ public sealed class SemanticKernelProvider
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithAzureChatCompletionService(
+                builder.WithAzureOpenAIChatCompletionService(
                     plannerOptions.Model,
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
@@ -155,7 +155,7 @@ public sealed class SemanticKernelProvider
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithAzureTextEmbeddingGenerationService(
+                builder.WithAzureOpenAITextEmbeddingGenerationService(
                     azureAIOptions.Deployment,
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
