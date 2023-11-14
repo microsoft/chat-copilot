@@ -58,8 +58,8 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                                 ? lastMessage.type === ChatMessageType.Document
                                     ? 'Sent a file'
                                     : lastMessage.type === ChatMessageType.Plan
-                                    ? 'Click to view proposed plan'
-                                    : lastMessage.content
+                                      ? 'Click to view proposed plan'
+                                      : lastMessage.content
                                 : 'Click to start the chat'
                         }
                         botProfilePicture={convo.botProfilePicture}
