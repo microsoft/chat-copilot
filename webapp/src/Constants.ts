@@ -44,7 +44,8 @@ export const Constants = {
     plugins: {
         // For a list of Microsoft Graph permissions, see https://learn.microsoft.com/en-us/graph/permissions-reference.
         // Your application registration will need to be granted these permissions in Azure Active Directory.
-        msGraphScopes: ['Calendars.Read', 'Mail.Read', 'Mail.Send', 'Tasks.ReadWrite', 'User.Read'],
+        //msGraphScopes: ['Calendars.Read', 'Mail.Read', 'Mail.Send', 'Tasks.ReadWrite', 'User.Read'],
+        msGraphScopes: ['Calendars.Read', 'Mail.Read', 'Tasks.ReadWrite', 'User.Read'],
     },
     KEYSTROKE_DEBOUNCE_TIME_MS: 250,
 };
