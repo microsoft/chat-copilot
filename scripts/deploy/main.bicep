@@ -100,6 +100,19 @@ var uniqueName = '${name}-${rgIdHash}'
 @description('Name of the Azure Storage file share to create')
 var storageFileShareName = 'aciqdrantshare'
 
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: 'copilot-kv'
+  location: location
+  properties: {
+    tenantId: azureAdTenantId
+    enableRbacAuthorization: true
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+  }
+}
+
 resource openAI 'Microsoft.CognitiveServices/accounts@2023-05-01' = if (deployNewAzureOpenAI) {
   name: 'ai-${uniqueName}'
   location: location
@@ -415,31 +428,20 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
           value: 'https://www.klarna.com'
         }
       ],
-      (deployWebSearcherPlugin) ? [
+      (deployAdmePlugin) ? [
         {
-          name: 'Plugins:1:Name'
-          value: 'WebSearcher'
-        }
-        {
-          name: 'Plugins:1:ManifestDomain'
-          value: 'https://${functionAppWebSearcherPlugin.properties.defaultHostName}'
-        }
-        {
-          name: 'Plugins:1:Key'
-          value: listkeys('${functionAppWebSearcherPlugin.id}/host/default/', '2022-09-01').functionKeys.default
-        }
-      ] : (deployAdmePlugin) ? [{
           name: 'Plugins:1:Name'
           value: 'Adme'
         }
         {
           name: 'Plugins:1:ManifestDomain'
-          value: 'https://${functionAppAdmePlugin.properties.defaultHostName}'
+          value: 'https://${appServiceAdmePlugin.properties.defaultHostName}'
         }
         {
           name: 'Plugins:1:Key'
-          value: listkeys('${functionAppAdmePlugin.id}/host/default/', '2022-09-01').functionKeys.default
-        }] : []
+          value: listkeys('${appServiceAdmePlugin.id}/host/default/', '2022-09-01').functionKeys.default
+        }
+      ] : []
     )
   }
 }
@@ -644,6 +646,73 @@ resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-
   ]
 }
 
+resource appServiceAdmePlugin 'Microsoft.Web/sites@2022-09-01' = if (deployAdmePlugin) {
+  name: 'app-${uniqueName}-adme-plugin'
+  location: location
+  kind: 'app'
+  tags: {
+    skweb: '1'
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+    siteConfig: {
+      alwaysOn: true
+    }
+  }
+}
+
+resource appServiceAdmePluginConfig 'Microsoft.Web/sites/config@2022-09-01' = if (deployAdmePlugin) {
+  parent: appServiceAdmePlugin
+  name: 'web'
+  properties: {
+    minTlsVersion: '1.2'
+    appSettings: [
+      {
+        name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+        value: appInsights.properties.InstrumentationKey
+      }
+      {
+        name: 'CognitiveSearch:AdminKey'
+        value: '@Microsoft.KeyVault(VaultName=copilot-kv;SecretName=acs-admin-key)'
+      }
+      {
+        name: 'OpenAi:ApiKey'
+        value: (deployWebSearcherPlugin) ? bingSearchService.listKeys().key1 : ''
+      }
+    ]
+  }
+}
+
+resource appServiceAdmePluginDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployPackages && deployAdmePlugin) {
+  name: 'MSDeploy'
+  kind: 'string'
+  parent: appServiceAdmePlugin
+  properties: {
+    packageUri: admePackageUri
+  }
+  dependsOn: [
+    appServiceAdmePluginConfig
+  ]
+}
+
+resource keyVaultSecretsUserRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '4633458b-17de-408a-b874-0445c86b69e6'
+}
+
+resource keyVaultSecretsUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, keyVault.name, keyVaultSecretsUserRoleDefinition.id, appServiceAdmePlugin.id)
+  scope: keyVault
+  properties: {
+    principalId: appServiceAdmePlugin.identity.principalId
+    roleDefinitionId: keyVaultSecretsUserRoleDefinition.id
+    principalType: 'ServicePrincipal'
+  }
+}
+
 resource functionAppWebSearcherPlugin 'Microsoft.Web/sites@2022-09-01' = if (deployWebSearcherPlugin) {
   name: 'function-${uniqueName}-websearcher-plugin'
   location: location
@@ -699,61 +768,6 @@ resource functionAppWebSearcherDeploy 'Microsoft.Web/sites/extensions@2022-09-01
   }
   dependsOn: [
     functionAppWebSearcherPluginConfig
-  ]
-}
-
-// ADME Plugin
-resource functionAppAdmePlugin 'Microsoft.Web/sites@2022-09-01' = if (deployAdmePlugin) {
-  name: 'function-${uniqueName}-adme-plugin'
-  location: location
-  kind: 'functionapp'
-  tags: {
-    skweb: '1'
-  }
-  properties: {
-    serverFarmId: appServicePlan.id
-    httpsOnly: true
-    siteConfig: {
-      alwaysOn: true
-    }
-  }
-}
-
-resource functionAppAdmePluginConfig 'Microsoft.Web/sites/config@2022-09-01' = if (deployAdmePlugin) {
-  parent: functionAppAdmePlugin
-  name: 'web'
-  properties: {
-    minTlsVersion: '1.2'
-    appSettings: [
-      {
-        name: 'FUNCTIONS_EXTENSION_VERSION'
-        value: '~4'
-      }
-      {
-        name: 'FUNCTIONS_WORKER_RUNTIME'
-        value: 'dotnet-isolated'
-      }
-      {
-        name: 'AzureWebJobsStorage'
-        value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[1].value}'
-      }
-      {
-        name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-        value: appInsights.properties.InstrumentationKey
-      }
-    ]
-  }
-}
-
-resource functionAppAdmeDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (deployPackages && deployAdmePlugin) {
-  name: 'MSDeploy'
-  kind: 'string'
-  parent: functionAppAdmePlugin
-  properties: {
-    packageUri: admePackageUri
-  }
-  dependsOn: [
-    functionAppAdmePluginConfig
   ]
 }
 
@@ -1218,4 +1232,4 @@ resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = if (deployWebS
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name
-output pluginNames array = [ (deployWebSearcherPlugin) ? functionAppWebSearcherPlugin.name : null, (deployAdmePlugin) ? functionAppAdmePlugin.name : null ]
+output pluginNames array = [ (deployWebSearcherPlugin) ? functionAppWebSearcherPlugin.name : null, (deployAdmePlugin) ? appServiceAdmePlugin.name : null ]

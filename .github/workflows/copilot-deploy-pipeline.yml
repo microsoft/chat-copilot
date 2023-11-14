@@ -16,18 +16,20 @@ permissions:
 jobs:
   int-tests:
     uses: ./.github/workflows/copilot-run-integration-tests.yml
-    needs: int
     with:
       ENVIRONMENT: int
       BACKEND_HOST: ${{needs.int.outputs.backend-host}}
 
   build-webapi:
+    needs: [int-tests]
     uses: ./.github/workflows/copilot-build-backend.yml
 
   build-memorypipeline:
+    needs: [int-tests]
     uses: ./.github/workflows/copilot-build-memorypipeline.yml
 
   build-plugins:
+    needs: [int-tests]
     uses: ./.github/workflows/copilot-build-plugins.yml
 
   int:
