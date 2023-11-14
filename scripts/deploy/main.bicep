@@ -677,11 +677,11 @@ resource appServiceAdmePluginConfig 'Microsoft.Web/sites/config@2022-09-01' = if
       }
       {
         name: 'CognitiveSearch:AdminKey'
-        value: '@Microsoft.KeyVault(VaultName=copilot-kv;SecretName=acs-admin-key)'
+        value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=acs-admin-key)'
       }
       {
         name: 'OpenAi:ApiKey'
-        value: (deployWebSearcherPlugin) ? bingSearchService.listKeys().key1 : ''
+        value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=openai-api-key)'
       }
     ]
   }
