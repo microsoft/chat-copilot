@@ -279,7 +279,7 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogInformation("Enabling GitHub plugin.");
             BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
-            await planner.Kernel.ImportPluginFunctionsAsync(
+            await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
                 pluginName: "GitHubPlugin",
                 filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/GitHubPlugin/openapi.json"),
                 new OpenApiFunctionExecutionParameters
@@ -295,7 +295,7 @@ public class ChatController : ControllerBase, IDisposable
             var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
             var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out string? serverUrlOverride);
 
-            await planner.Kernel.ImportPluginFunctionsAsync(
+            await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
                 pluginName: "JiraPlugin",
                 filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/JiraPlugin/openapi.json"),
                 new OpenApiFunctionExecutionParameters
@@ -334,7 +334,7 @@ public class ChatController : ControllerBase, IDisposable
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
-                        await planner.Kernel.ImportPluginFunctionsAsync(
+                        await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
                             $"{plugin.NameForModel}Plugin",
                             PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenApiFunctionExecutionParameters
@@ -386,7 +386,7 @@ public class ChatController : ControllerBase, IDisposable
                     () => Task.FromResult(plugin.Key));
 
                 // Register the ChatGPT plugin with the planner's kernel.
-                await planner.Kernel.ImportPluginFunctionsAsync(
+                await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
                     PluginUtils.SanitizePluginName(plugin.Name),
                     PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                     new OpenApiFunctionExecutionParameters
