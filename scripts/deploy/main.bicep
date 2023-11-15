@@ -1232,4 +1232,4 @@ resource bingSearchService 'Microsoft.Bing/accounts@2020-06-10' = if (deployWebS
 output webapiUrl string = appServiceWeb.properties.defaultHostName
 output webapiName string = appServiceWeb.name
 output memoryPipelineName string = appServiceMemoryPipeline.name
-output pluginNames array = [ (deployWebSearcherPlugin) ? functionAppWebSearcherPlugin.name : null, (deployAdmePlugin) ? appServiceAdmePlugin.name : null ]
+output pluginNames array = [ (deployAdmePlugin) ? appServiceAdmePlugin.name : null ]

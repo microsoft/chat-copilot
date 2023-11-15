@@ -137,7 +137,7 @@
     },
     "deployCosmosDB": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Whether to deploy Cosmos DB for persistent chat storage"
       }
@@ -155,7 +155,7 @@
     },
     "deploySpeechServices": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Whether to deploy Azure Speech Services to enable input by voice"
       }
@@ -165,6 +165,13 @@
       "defaultValue": false,
       "metadata": {
         "description": "Whether to deploy the web searcher plugin, which requires a Bing resource"
+      }
+    },
+    "deployAdmePlugin": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether to deploy the adme plugin"
       }
     },
     "deployPackages": {
