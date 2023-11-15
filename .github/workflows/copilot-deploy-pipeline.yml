@@ -14,22 +14,13 @@ permissions:
   id-token: write
 
 jobs:
-  int-tests:
-    uses: ./.github/workflows/copilot-run-integration-tests.yml
-    with:
-      ENVIRONMENT: int
-      BACKEND_HOST: ${{needs.int.outputs.backend-host}}
-
   build-webapi:
-    needs: [int-tests]
     uses: ./.github/workflows/copilot-build-backend.yml
 
   build-memorypipeline:
-    needs: [int-tests]
     uses: ./.github/workflows/copilot-build-memorypipeline.yml
 
   build-plugins:
-    needs: [int-tests]
     uses: ./.github/workflows/copilot-build-plugins.yml
 
   int:
@@ -45,6 +36,12 @@ jobs:
       AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
       AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
       AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
+
+  int-tests:
+    uses: ./.github/workflows/copilot-run-integration-tests.yml
+    with:
+      ENVIRONMENT: int
+      BACKEND_HOST: ${{needs.int.outputs.backend-host}}
 
   # stable:
   #   needs: int-tests
