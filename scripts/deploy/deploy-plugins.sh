@@ -69,14 +69,14 @@ fi
 
 az account set -s "$SUBSCRIPTION"
 
-echo "Getting Azure Function resource names"
+echo "Getting Web App resource names"
 PLUGIN_DEPLOYMENT_NAMES=$(
     az deployment group show \
         --name $DEPLOYMENT_NAME \
         --resource-group $RESOURCE_GROUP \
         --output json | jq -r '.properties.outputs.pluginNames.value[]'
 )
-echo "-----Found the following Azure Function names-----"
+echo "-----Found the following Web App names-----"
 for PLUGIN_DEPLOYMENT_NAME in $PLUGIN_DEPLOYMENT_NAMES; do
     echo $PLUGIN_DEPLOYMENT_NAME
 done
@@ -85,7 +85,7 @@ echo ""
 # Find the Azure Function resource name for each plugin package
 # before we deploy the plugins. This can minimize the risk of
 # deploying to the wrong Azure Function resource.
-echo "---Matching plugins to Azure Function resources---"
+echo "---Matching plugins to Web App resources---"
 PLUGIN_DEPLOYMENT_MATCHES=()
 PLUGIN_PACKAGE_MATCHES=()
 for PLUGIN_PACKAGE in $PACKAGES_PATH/*; do
@@ -104,34 +104,34 @@ for PLUGIN_PACKAGE in $PACKAGES_PATH/*; do
     done
 
     if [[ $MATCHED_NUMBER -eq 0 ]]; then
-        echo "Could not find Azure Function resource name for plugin '$PLUGIN_NAME'."
-        echo "Make sure the deployed Azure Function resource name matches the plugin zip package name."
+        echo "Could not find Web App resource name for plugin '$PLUGIN_NAME'."
+        echo "Make sure the deployed Web App resource name matches the plugin zip package name."
         exit 1
     elif [[ $MATCHED_NUMBER -gt 1 ]]; then
-        echo "Found multiple Azure Function resource names for plugin '$PLUGIN_NAME'."
-        echo "Make sure the deployed Azure Function resource name matches the plugin zip package name."
+        echo "Found multiple Web App resource names for plugin '$PLUGIN_NAME'."
+        echo "Make sure the deployed Web App resource name matches the plugin zip package name."
         exit 1
     fi
 
-    echo "Matched Azure Function resource name '$MATCHED_DEPLOYMENT' for '$PLUGIN_NAME'"
+    echo "Matched Web App resource name '$MATCHED_DEPLOYMENT' for '$PLUGIN_NAME'"
     PLUGIN_DEPLOYMENT_MATCHES+=($MATCHED_DEPLOYMENT)
     PLUGIN_PACKAGE_MATCHES+=($PLUGIN_PACKAGE)
 done
 echo ""
 
-echo "-------Deploying plugins to Azure Functions-------"
+echo "-------Deploying plugins to Web App-------"
 for i in "${!PLUGIN_DEPLOYMENT_MATCHES[@]}"; do
     PLUGIN_DEPLOYMENT_NAME=${PLUGIN_DEPLOYMENT_MATCHES[$i]}
     PLUGIN_PACKAGE=${PLUGIN_PACKAGE_MATCHES[$i]}
 
-    echo "Deploying '$PLUGIN_PACKAGE' to Azure Function '$PLUGIN_DEPLOYMENT_NAME'..."
-    az functionapp deployment source config-zip \
+    echo "Deploying '$PLUGIN_PACKAGE' to Web App '$PLUGIN_DEPLOYMENT_NAME'..."
+    az webapp deployment source config-zip \
         --resource-group $RESOURCE_GROUP \
         --name $PLUGIN_DEPLOYMENT_NAME \
         --src $PLUGIN_PACKAGE
 
     if [ $? -ne 0 ]; then
-        echo "Could not deploy '$PLUGIN_PACKAGE' to Azure Function '$PLUGIN_DEPLOYMENT_NAME'."
+        echo "Could not deploy '$PLUGIN_PACKAGE' to Web App '$PLUGIN_DEPLOYMENT_NAME'."
         exit 1
     fi
 done
