@@ -54,7 +54,7 @@ param webApiClientId string
 param frontendClientId string
 
 @description('Azure AD tenant ID for authenticating users')
-param azureAdTenantId string = environment().authentication.tenant
+param azureAdTenantId string
 
 @description('Azure AD cloud instance for authenticating users')
 param azureAdInstance string = environment().authentication.loginEndpoint

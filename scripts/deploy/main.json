@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.23.1.45101",
-      "templateHash": "12341117698294862245"
+      "templateHash": "10280441124249350356"
     }
   },
   "parameters": {
@@ -113,7 +113,6 @@
     },
     "azureAdTenantId": {
       "type": "string",
-      "defaultValue": "[environment().authentication.tenant]",
       "metadata": {
         "description": "Azure AD tenant ID for authenticating users"
       }
