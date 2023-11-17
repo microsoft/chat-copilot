@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <RootNamespace>CopilotChat.WebApi</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
@@ -21,18 +21,18 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.36.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.15.3" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.8.231108.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Functions.OpenAPI" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta5" />
-    <PackageReference Include="Microsoft.SemanticKernel.TemplateEngine.Basic" Version="1.0.0-beta5" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.8.231113.1-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Functions.OpenAPI" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.TemplateEngine.Basic" Version="1.0.0-beta6" />
     <PackageReference Include="SharpToken" Version="1.2.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
@@ -57,17 +57,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.Analyzers" Version="4.6.1">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.6.1">
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.6.1">
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.6.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
