@@ -35,15 +35,5 @@
     429,
     500,
     503
-  ],
-  "httpHeaders": [
-    {
-      "urls": [
-        "https://platform.openai.com/"
-      ],
-      "headers": {
-        "User-Agent": "PostmanRuntime/7.33.0"
-      }
-    }
   ]
 }
