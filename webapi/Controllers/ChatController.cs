@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -30,6 +31,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Functions.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Functions.OpenAPI.Extensions;
+using Microsoft.SemanticKernel.Functions.OpenAPI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Plugins.MsGraph;
 using Microsoft.SemanticKernel.Plugins.MsGraph.Connectors;
@@ -332,16 +334,21 @@ public class ChatController : ControllerBase, IDisposable
 
                         // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
-                        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
+                        OpenAIAuthenticateRequestAsyncCallback authCallback = (request, _, _) =>
+                        {
+                            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
 
-                        await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
+                            return Task.CompletedTask;
+                        };
+
+                        await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
                             $"{plugin.NameForModel}Plugin",
                             PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
-                            new OpenApiFunctionExecutionParameters
+                            new OpenAIFunctionExecutionParameters
                             {
                                 HttpClient = this._httpClientFactory.CreateClient("Plugin"),
                                 IgnoreNonCompliantErrors = true,
-                                AuthCallback = requiresAuth ? authenticationProvider.AuthenticateRequestAsync : null
+                                AuthCallback = requiresAuth ? authCallback : null
                             });
                     }
                 }
@@ -381,19 +388,22 @@ public class ChatController : ControllerBase, IDisposable
             {
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
-                CustomAuthenticationProvider authenticationProvider = new(
-                    () => Task.FromResult("X-Functions-Key"),
-                    () => Task.FromResult(plugin.Key));
+                OpenAIAuthenticateRequestAsyncCallback authCallback = (request, _, _) =>
+                {
+                    request.Headers.Add("X-Functions-Key", plugin.Key);
+
+                    return Task.CompletedTask;
+                };
 
                 // Register the ChatGPT plugin with the planner's kernel.
-                await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
+                await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
                     PluginUtils.SanitizePluginName(plugin.Name),
                     PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
-                    new OpenApiFunctionExecutionParameters
+                    new OpenAIFunctionExecutionParameters
                     {
                         HttpClient = this._httpClientFactory.CreateClient("Plugin"),
                         IgnoreNonCompliantErrors = true,
-                        AuthCallback = authenticationProvider.AuthenticateRequestAsync
+                        AuthCallback = authCallback
                     });
             }
             else
@@ -401,6 +411,7 @@ public class ChatController : ControllerBase, IDisposable
                 this._logger.LogWarning("Failed to find plugin {0}.", enabledPlugin);
             }
         }
+
         return;
     }
 
