@@ -45,16 +45,16 @@ param aiEndpoint string = ''
 
 @secure()
 @description('Azure OpenAI or OpenAI API key')
-param aiApiKey string = ''
+param aiApiKey string
 
 @description('Azure AD client ID for the backend web API')
-param webApiClientId string = ''
+param webApiClientId string
 
 @description('Azure AD client ID for the frontend')
-param frontendClientId string = ''
+param frontendClientId string
 
 @description('Azure AD tenant ID for authenticating users')
-param azureAdTenantId string = ''
+param azureAdTenantId string
 
 @description('Azure AD cloud instance for authenticating users')
 param azureAdInstance string = environment().authentication.loginEndpoint
@@ -157,7 +157,7 @@ resource appServiceWeb 'Microsoft.Web/sites@2022-09-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     httpsOnly: true
-    virtualNetworkSubnetId: virtualNetwork.properties.subnets[0].id
+    virtualNetworkSubnetId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[0].id : null
     siteConfig: {
       healthCheckPath: '/healthz'
     }
@@ -167,6 +167,9 @@ resource appServiceWeb 'Microsoft.Web/sites@2022-09-01' = {
 resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
   parent: appServiceWeb
   name: 'web'
+  dependsOn: [
+    webSubnetConnection
+  ]
   properties: {
     alwaysOn: false
     cors: {
@@ -435,7 +438,6 @@ resource appServiceWebDeploy 'Microsoft.Web/sites/extensions@2022-09-01' = if (d
   }
   dependsOn: [
     appServiceWebConfig
-    webSubnetConnection
   ]
 }
 
@@ -448,7 +450,7 @@ resource appServiceMemoryPipeline 'Microsoft.Web/sites@2022-09-01' = {
   }
   properties: {
     serverFarmId: appServicePlan.id
-    virtualNetworkSubnetId: virtualNetwork.properties.subnets[0].id
+    virtualNetworkSubnetId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[0].id : null
     siteConfig: {
       alwaysOn: true
     }
@@ -458,6 +460,9 @@ resource appServiceMemoryPipeline 'Microsoft.Web/sites@2022-09-01' = {
 resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' = {
   parent: appServiceMemoryPipeline
   name: 'web'
+  dependsOn: [
+    memSubnetConnection
+  ]
   properties: {
     alwaysOn: true
     detailedErrorLoggingEnabled: true
@@ -623,7 +628,6 @@ resource appServiceMemoryPipelineDeploy 'Microsoft.Web/sites/extensions@2022-09-
   }
   dependsOn: [
     appServiceMemoryPipelineConfig
-    memSubnetConnection
   ]
 }
 
@@ -775,7 +779,7 @@ resource appServiceQdrant 'Microsoft.Web/sites@2022-09-01' = if (memoryStore == 
     httpsOnly: true
     reserved: true
     clientCertMode: 'Required'
-    virtualNetworkSubnetId: virtualNetwork.properties.subnets[1].id
+    virtualNetworkSubnetId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[1].id : null
     siteConfig: {
       numberOfWorkers: 1
       linuxFxVersion: 'DOCKER|qdrant/qdrant:latest'
@@ -783,7 +787,7 @@ resource appServiceQdrant 'Microsoft.Web/sites@2022-09-01' = if (memoryStore == 
       vnetRouteAllEnabled: true
       ipSecurityRestrictions: [
         {
-          vnetSubnetResourceId: virtualNetwork.properties.subnets[0].id
+          vnetSubnetResourceId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[0].id : null
           action: 'Allow'
           priority: 300
           name: 'Allow front vnet'
@@ -820,7 +824,7 @@ resource azureCognitiveSearch 'Microsoft.Search/searchServices@2022-09-01' = if 
   }
 }
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = if (memoryStore == 'Qdrant') {
   name: 'vnet-${uniqueName}'
   location: location
   properties: {
@@ -888,7 +892,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   }
 }
 
-resource webNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = {
+resource webNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = if (memoryStore == 'Qdrant') {
   name: 'nsg-${uniqueName}-webapi'
   location: location
   properties: {
@@ -910,7 +914,7 @@ resource webNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = {
   }
 }
 
-resource qdrantNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = {
+resource qdrantNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = if (memoryStore == 'Qdrant') {
   name: 'nsg-${uniqueName}-qdrant'
   location: location
   properties: {
@@ -918,20 +922,20 @@ resource qdrantNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = {
   }
 }
 
-resource webSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = {
+resource webSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = if (memoryStore == 'Qdrant') {
   parent: appServiceWeb
   name: 'webSubnetConnection'
   properties: {
-    vnetResourceId: virtualNetwork.properties.subnets[0].id
+    vnetResourceId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[0].id : null
     isSwift: true
   }
 }
 
-resource memSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = {
+resource memSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2022-09-01' = if (memoryStore == 'Qdrant') {
   parent: appServiceMemoryPipeline
   name: 'memSubnetConnection'
   properties: {
-    vnetResourceId: virtualNetwork.properties.subnets[0].id
+    vnetResourceId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[0].id : null
     isSwift: true
   }
 }
@@ -940,7 +944,7 @@ resource qdrantSubnetConnection 'Microsoft.Web/sites/virtualNetworkConnections@2
   parent: appServiceQdrant
   name: 'qdrantSubnetConnection'
   properties: {
-    vnetResourceId: virtualNetwork.properties.subnets[1].id
+    vnetResourceId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[1].id : null
     isSwift: true
   }
 }
