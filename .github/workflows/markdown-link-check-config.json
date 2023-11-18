@@ -23,27 +23,14 @@
     },
     {
       "pattern": "^https://localhost"
+    },
+    {
+      "pattern": "^https://platform.openai.com"
     }
   ],
   "timeout": "20s",
   "retryOn429": true,
   "retryCount": 3,
   "fallbackRetryDelay": "30s",
-  "aliveStatusCodes": [
-    200,
-    206,
-    429,
-    500,
-    503
-  ],
-  "httpHeaders": [
-    {
-      "urls": [
-        "https://platform.openai.com/"
-      ],
-      "headers": {
-        "User-Agent": "PostmanRuntime/7.33.0"
-      }
-    }
-  ]
+  "aliveStatusCodes": [200, 206, 429, 500, 503]
 }
