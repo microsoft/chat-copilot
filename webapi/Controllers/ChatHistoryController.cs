@@ -98,7 +98,7 @@ public class ChatHistoryController : ControllerBase
         await this._sessionRepository.CreateAsync(newChat);
 
         // Create initial bot message
-        var chatMessage = ChatMessage.CreateBotResponseMessage(
+        var chatMessage = CopilotChatMessage.CreateBotResponseMessage(
             newChat.Id,
             this._promptOptions.InitialBotMessage,
             string.Empty, // The initial bot message doesn't need a prompt.

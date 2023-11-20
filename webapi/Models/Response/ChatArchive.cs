@@ -35,7 +35,7 @@ public class ChatArchive
     /// <summary>
     /// The chat history. It contains all the messages in the conversation with the bot.
     /// </summary>
-    public List<ChatMessage> ChatHistory { get; set; } = new List<ChatMessage>();
+    public List<CopilotChatMessage> ChatHistory { get; set; } = new List<CopilotChatMessage>();
 
     /// <summary>
     /// Chat archive's embeddings.
