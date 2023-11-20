@@ -127,7 +127,7 @@ public static class TokenUtils
     internal static int GetContextMessagesTokenCount(ChatCompletionContextMessages chatHistory)
     {
         var tokenCount = 0;
-        foreach (var message in chatHistory.Messages)
+        foreach (var message in chatHistory)
         {
             tokenCount += GetContextMessageTokenCount(message.Role, message.Content);
         }

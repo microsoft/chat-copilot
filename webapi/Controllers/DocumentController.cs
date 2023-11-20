@@ -440,11 +440,11 @@ public class DocumentController : ControllerBase
     /// <param name="chatId">The target chat-id</param>
     /// <param name="documentMessageContent">The document message content</param>
     /// <returns>A ChatMessage object if successful, null otherwise</returns>
-    private async Task<ChatMessage?> TryCreateDocumentUploadMessage(
+    private async Task<CopilotChatMessage?> TryCreateDocumentUploadMessage(
         Guid chatId,
         DocumentMessageContent documentMessageContent)
     {
-        var chatMessage = ChatMessage.CreateDocumentMessage(
+        var chatMessage = CopilotChatMessage.CreateDocumentMessage(
             this._authInfo.UserId,
             this._authInfo.Name, // User name
             chatId.ToString(),
