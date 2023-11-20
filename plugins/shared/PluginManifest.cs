@@ -6,7 +6,7 @@ namespace Plugins.PluginShared;
 
 /// <summary>
 /// This class represents the OpenAI plugin manifest:
-/// https://platform.openai.com/docs/plugins/getting-started
+/// https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
 /// </summary>
 public class PluginManifest
 {

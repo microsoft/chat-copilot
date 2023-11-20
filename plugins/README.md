@@ -28,7 +28,7 @@ Read more about plugin authentication here: [Plugin authentication](https://plat
 ### Prerequisites
 
 1. The name of your plugin. This should be identical to the `NameForHuman` in your plugin manifest.
-   > Please refer to OpenAI for the [manifest requirements](https://platform.openai.com/docs/plugins/getting-started/).
+   > Please refer to OpenAI for the [manifest requirements](https://platform.openai.com/docs/plugins/getting-started/plugin-manifest).
 2. Url of your plugin.
    > This should be the root url to your API. Not the manifest url nor the OpenAPI spec url.
 3. (Optional) Key of the plugin if it requires one.
