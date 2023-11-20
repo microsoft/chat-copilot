@@ -13,7 +13,7 @@ using Microsoft.Identity.Client;
 namespace ImportDocument;
 
 /// <summary>
-/// This console app imports a list of files to the CopilotChat WebAPI document memory store.
+/// This console app imports a list of files to Chat Copilot's WebAPI document memory store.
 /// </summary>
 public static class Program
 {
@@ -39,7 +39,7 @@ public static class Program
         );
 
         var rootCommand = new RootCommand(
-            "This console app imports files to the CopilotChat WebAPI's document memory store."
+            "This console app imports files to Chat Copilot's WebAPI document memory store."
         )
         {
             filesOption,
