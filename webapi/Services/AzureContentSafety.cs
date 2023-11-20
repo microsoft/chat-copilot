@@ -31,7 +31,7 @@ public record ImageAnalysisRequest(
 /// </summary>
 public sealed class AzureContentSafety : IContentSafetyService
 {
-    private const string HttpUserAgent = "Copilot Chat";
+    private const string HttpUserAgent = "Chat Copilot";
 
     private readonly string _endpoint;
     private readonly HttpClient _httpClient;
