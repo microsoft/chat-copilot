@@ -256,7 +256,7 @@ public static class CopilotChatServiceExtensions
     /// <summary>
     /// Add authorization services
     /// </summary>
-    public static IServiceCollection AddCopilotChatAuthorization(this IServiceCollection services)
+    public static IServiceCollection AddChatCopilotAuthorization(this IServiceCollection services)
     {
         return services.AddScoped<IAuthorizationHandler, ChatParticipantAuthorizationHandler>()
             .AddAuthorizationCore(options =>
@@ -275,7 +275,7 @@ public static class CopilotChatServiceExtensions
     /// <summary>
     /// Add authentication services
     /// </summary>
-    public static IServiceCollection AddCopilotChatAuthentication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddChatCopilotAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IAuthInfo, AuthInfo>();
         var config = services.BuildServiceProvider().GetRequiredService<IOptions<ChatAuthenticationOptions>>().Value;
