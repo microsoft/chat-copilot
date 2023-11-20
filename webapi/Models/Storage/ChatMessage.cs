@@ -257,6 +257,6 @@ public class ChatMessage : IStorageEntity
     private static bool IsPlan(string response)
     {
         var planPrefix = "proposedPlan\":";
-        return response.IndexOf(planPrefix, StringComparison.Ordinal) != -1;
+        return response.Contains(planPrefix, StringComparison.InvariantCulture);
     }
 }
