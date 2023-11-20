@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta7" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="1.0.0-beta7" />
     <PackageReference Include="Microsoft.SemanticKernel.Functions.OpenAPI" Version="1.0.0-beta7" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta7" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta7" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-beta7" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta7" />
