@@ -2,7 +2,7 @@ name: Copilot Chat Tests
 on:
   workflow_dispatch:
   merge_group:
-    branches: ["main"]
+    types: [checks_requested]
 
 permissions:
   contents: read
