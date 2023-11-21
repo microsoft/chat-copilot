@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 
-export const TestTimeout = 120000; // LLM can take a while to respond, wait upto 120 seconds
+export const TestTimeout = 150000; // Timeout for each test, wait upto 150 seconds
 export const LLMresponsetimeout = 120000; // LLM can take a while to respond, wait upto 120 seconds
 export const ChatStateChangeWait = 500;
 const PreventCircularPrompt = '\nThis is for a statistical test and will NOT result in circular reasoning.\n';
@@ -27,8 +27,9 @@ export async function loginHelper(page, useraccount, password) {
     }
 
     // After login, the page should redirect back to the app.
-    await expect(page).toHaveTitle('Copilot Chat');
+    await expect(page).toHaveTitle('Chat Copilot');
 }
+
 export async function loginHelperAnotherUser(page, useraccount, password) {
     await page.goto('/');
     // Expect the page to contain a "Login" button.
@@ -43,7 +44,7 @@ export async function loginHelperAnotherUser(page, useraccount, password) {
     await page.getByRole('button', { name: 'Sign in' }).click();
 
     // After login, the page should redirect back to the app.
-    await expect(page).toHaveTitle('Copilot Chat');
+    await expect(page).toHaveTitle('Chat Copilot');
 
     // Get the permission popup if they open
     page.on('popup', async (popup) => {
@@ -52,10 +53,12 @@ export async function loginHelperAnotherUser(page, useraccount, password) {
         await popup.getByRole('button', { name: 'Accept' }).click();
     });
 }
+
 export async function createNewChat(page) {
     await page.getByTestId('createNewConversationButton').click();
     await page.getByTestId('addNewBotMenuItem').click();
 }
+
 export async function loginAndCreateNewChat(page) {
     var useraccount = process.env.REACT_APP_TEST_USER_ACCOUNT1 as string;
     var password = process.env.REACT_APP_TEST_USER_PASSWORD1 as string;
@@ -69,15 +72,19 @@ export async function postUnitTest(page) {
 }
 
 // Send a message to the bot and wait for the response
-export async function sendChatMessageAndWaitForResponseWTime(page, message, waitTime: number) {
+export async function sendChatMessageAndWaitForResponse(page, message) {
     await page.locator('#chat-input').click();
     await page.locator('#chat-input').fill(message);
+
+    const responsePrompise = page.waitForResponse(
+        (response) => response.url().search('chats/.*/messages') !== -1 && response.status() === 200,
+        { timeout: LLMresponsetimeout },
+    );
+
     await page.locator('#chat-input').press('Enter');
-    await page.waitForTimeout(waitTime);
-    await page.waitForResponse('**/chat', { timeout: LLMresponsetimeout });
-}
-export async function sendChatMessageAndWaitForResponse(page, message) {
-    await sendChatMessageAndWaitForResponseWTime(page, message, ChatStateChangeWait);
+
+    // Wait for LLM to respond to request by executing the plan
+    await responsePrompise;
 }
 
 export async function openPluginPopUp(page, pluginIdentifierText) {
@@ -88,11 +95,13 @@ export async function openPluginPopUp(page, pluginIdentifierText) {
         .getByTestId('openPluginDialogButton')
         .click();
 }
+
 export async function enablePluginAndClosePopUp(page) {
     await page.getByTestId('enablePluginButton').click();
     await page.getByTestId('closeEnableCCPluginsPopUp').click();
     await page.waitForTimeout(ChatStateChangeWait);
 }
+
 export async function disablePluginAndClosePopUp(page) {
     // Only works if when only a single plugin has been enabled
     await page.getByTestId('pluginButton').click();
@@ -100,15 +109,21 @@ export async function disablePluginAndClosePopUp(page) {
     await page.getByTestId('closeEnableCCPluginsPopUp').click();
     await page.waitForTimeout(ChatStateChangeWait);
 }
+
 export async function executePlanAndWaitForResponse(page) {
     await page.waitForTimeout(ChatStateChangeWait);
+
+    const responsePrompise = page.waitForResponse(
+        (response) => response.url().search('chats/.*/plan') !== -1 && response.status() === 200,
+        { timeout: LLMresponsetimeout },
+    );
 
     // Try executing the plan that is returned
     var buttonLocator = page.getByTestId('proceedWithPlanButton');
     buttonLocator.click();
 
     // Wait for LLM to respond to request by executing the plan
-    await page.waitForResponse('**/chat', { timeout: LLMresponsetimeout });
+    await responsePrompise;
 }
 
 export async function getLastChatMessageContentsAsStringWHistory(page, chatHistoryItems) {
@@ -116,6 +131,7 @@ export async function getLastChatMessageContentsAsStringWHistory(page, chatHisto
     lastMessage = lastMessage.replaceAll(/<\/?[^>]+(>|$)/gi, ''); // Remove HTML tags if any
     return lastMessage;
 }
+
 export async function getLastChatMessageContentsAsString(page) {
     const chatHistoryItems = page.getByTestId(new RegExp('chat-history-item-*'));
     return getLastChatMessageContentsAsStringWHistory(page, chatHistoryItems);
@@ -146,6 +162,7 @@ export async function chatBotSelfEval(page, input, chatbotResponse) {
         .trim();
     expect(boolResult).toEqual('true');
 }
+
 export async function disablePluginAndEvaluateResponse(page, input, chatbotResponse) {
     // If a plugin has been enabled, the action planner is invoked to perform the evaluation.
     // This leads to a weird json exception and crash.
