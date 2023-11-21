@@ -83,7 +83,6 @@ const useClasses = makeStyles({
 });
 
 interface ConversationsView {
-    filteredConversations?: Conversations;
     latestConversations?: Conversations;
     olderConversations?: Conversations;
 }
