@@ -10,8 +10,7 @@ to generate a plan and execute it. Klarna doesnt require any auth credentials.
 export async function klarnaTest(page) {
     await util.loginAndCreateNewChat(page);
 
-    // Enable Klarna
-    const pluginIdentifierText = 'Klarna ShoppingKlarnaEnableSearch';
+    const pluginIdentifierText = 'Klarna Shopping';
     await util.openPluginPopUp(page, pluginIdentifierText);
     await util.enablePluginAndClosePopUp(page);
 
@@ -51,7 +50,7 @@ export async function jiraTest(page) {
     await util.enablePluginAndClosePopUp(page);
 
     // Try using Jira by sending a request to the bot and wait for it to respond.
-    const jiraQuery = 'Can you Get Issue details about SKTES-1 from jira ?';
+    const jiraQuery = 'Can you Get Issue details about SKTES-1 from jira?';
     await util.sendChatMessageAndWaitForResponse(page, jiraQuery);
     await util.executePlanAndWaitForResponse(page);
 
