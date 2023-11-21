@@ -2,7 +2,7 @@ name: Copilot Chat Tests
 on:
   workflow_dispatch:
   merge_group:
-    branches: ["main"]
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -41,6 +41,7 @@ jobs:
           AzureOpenAI__Endpoint: ${{ secrets.AZUREOPENAI__ENDPOINT }}
           TenantId: ${{ secrets.COPILOT_CHAT_TEST_TENANT_ID }}
           WebApi_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}
+          WebApp_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID }}
         run: |
           dotnet dev-certs https
           dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIText:APIKey" "$AzureOpenAI__ApiKey"
@@ -50,6 +51,7 @@ jobs:
           dotnet user-secrets set "Authentication:Type" "AzureAd"
           dotnet user-secrets set "Authentication:AzureAd:TenantId" "$TenantId"
           dotnet user-secrets set "Authentication:AzureAd:ClientId" "$WebApi_ClientId"
+          dotnet user-secrets set "Frontend:AadClientId" "$WebApp_ClientId"
 
       - name: Start service in background
         working-directory: webapi
@@ -72,7 +74,6 @@ jobs:
           REACT_APP_BACKEND_URI: https://localhost:40443/
 
           REACT_APP_TEST_USER_ACCOUNT1: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1 }}
-          REACT_APP_TEST_USER_ACCOUNT1_INITIALS: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1_INITIALS }}
           REACT_APP_TEST_USER_ACCOUNT2: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT2 }}
           REACT_APP_TEST_USER_PASSWORD1: ${{ secrets.COPILOT_CHAT_TEST_USER_PASSWORD1 }}
           REACT_APP_TEST_USER_PASSWORD2: ${{ secrets.COPILOT_CHAT_TEST_USER_PASSWORD2 }}

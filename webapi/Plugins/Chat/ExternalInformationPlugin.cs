@@ -41,7 +41,7 @@ public class ExternalInformationPlugin
     private readonly PromptsOptions _promptOptions;
 
     /// <summary>
-    /// CopilotChat's planner to gather additional information for the chat context.
+    /// Chat Copilot's planner to gather additional information for the chat context.
     /// </summary>
     private readonly CopilotChatPlanner _planner;
 
