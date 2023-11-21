@@ -16,7 +16,6 @@ jobs:
       run:
         working-directory: webapp
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -73,6 +72,7 @@ jobs:
           done
 
       - name: Run Playwright tests
+        timeout-minutes: 5
         env:
           REACT_APP_BACKEND_URI: https://localhost:40443/
 
