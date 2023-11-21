@@ -12,6 +12,7 @@ import {
 } from '@fluentui/react-components';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useChat, useFile } from '../../../libs/hooks';
+import { getFriendlyChatName } from '../../../libs/hooks/useChat';
 import { AlertType } from '../../../libs/models/AlertType';
 import { ChatArchive } from '../../../libs/models/ChatArchive';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
@@ -82,7 +83,6 @@ const useClasses = makeStyles({
 });
 
 interface ConversationsView {
-    filteredConversations?: Conversations;
     latestConversations?: Conversations;
     olderConversations?: Conversations;
 }
@@ -136,7 +136,11 @@ export const ChatList: FC = () => {
         const nonHiddenConversations: Conversations = {};
         for (const key in conversations) {
             const conversation = conversations[key];
-            if (!conversation.hidden && (!filterText || conversation.title.toLowerCase().includes(filterText))) {
+            if (
+                !conversation.hidden &&
+                (!filterText ||
+                    getFriendlyChatName(conversation).toLocaleUpperCase().includes(filterText.toLocaleUpperCase()))
+            ) {
                 nonHiddenConversations[key] = conversation;
             }
         }
@@ -207,21 +211,11 @@ export const ChatList: FC = () => {
                 )}
             </div>
             <div aria-label={'chat list'} className={classes.list}>
-                {isFiltering && filterText.length > 0 ? (
-                    <>
-                        {conversationsView.filteredConversations && (
-                            <ChatListSection conversations={conversationsView.filteredConversations} />
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {conversationsView.latestConversations && (
-                            <ChatListSection header="Today" conversations={conversationsView.latestConversations} />
-                        )}
-                        {conversationsView.olderConversations && (
-                            <ChatListSection header="Older" conversations={conversationsView.olderConversations} />
-                        )}
-                    </>
+                {conversationsView.latestConversations && (
+                    <ChatListSection header="Today" conversations={conversationsView.latestConversations} />
+                )}
+                {conversationsView.olderConversations && (
+                    <ChatListSection header="Older" conversations={conversationsView.olderConversations} />
                 )}
             </div>
         </div>
