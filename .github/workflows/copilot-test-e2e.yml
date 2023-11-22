@@ -59,17 +59,26 @@ jobs:
         working-directory: webapi
         run: |
           dotnet run > service-log.txt 2>&1 &
+
+          STARTED=false;
+
           for attempt in {0..20}; do
             jobs
             echo 'Waiting for service to start...';
             if curl -k https://localhost:40443/healthz; then
               echo;
               echo 'Service started';
+              STARTED=true;
               break;
             fi;
 
             sleep 5;
           done
+
+          if [ "$STARTED" = false ]; then
+            echo 'Service failed to start';
+            exit 1;
+          fi
 
       - name: Run Playwright tests
         timeout-minutes: 5
