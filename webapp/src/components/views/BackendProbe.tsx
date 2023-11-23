@@ -84,14 +84,14 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
                 </div>
             ) : (
                 <div className={classes.informativeView}>
-                    <Title3>Looking for your backend</Title3>
+                    <Title3>Connecting...</Title3>
                     <Spinner />
                     <Body1>
-                        This sample expects to find a Semantic Kernel service from <strong>webapi/</strong> running at{' '}
+                        This app expects to find a server running at{' '}
                         <strong>{BackendServiceUrl}</strong>
                     </Body1>
                     <Body1>
-                        Run your Semantic Kernel service locally using Visual Studio, Visual Studio Code or by typing
+                        To run the server locally, use Visual Studio, Visual Studio Code or by type
                         the following command:{' '}
                         <code>
                             <strong>dotnet run</strong>
