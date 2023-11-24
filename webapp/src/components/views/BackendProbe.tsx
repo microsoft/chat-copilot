@@ -87,12 +87,11 @@ export const BackendProbe: FC<IData> = ({ onBackendFound }) => {
                     <Title3>Connecting...</Title3>
                     <Spinner />
                     <Body1>
-                        This app expects to find a server running at{' '}
-                        <strong>{BackendServiceUrl}</strong>
+                        This app expects to find a server running at <strong>{BackendServiceUrl}</strong>
                     </Body1>
                     <Body1>
-                        To run the server locally, use Visual Studio, Visual Studio Code or by type
-                        the following command:{' '}
+                        To run the server locally, use Visual Studio, Visual Studio Code or by type the following
+                        command:{' '}
                         <code>
                             <strong>dotnet run</strong>
                         </code>
