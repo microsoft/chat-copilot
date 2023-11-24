@@ -87,7 +87,7 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
         }
         else
         {
-            result = await app.AcquireTokenByUsernamePassword(scopes, configuration[UsernameSettingName], this.configuration[PasswordSettingName]).ExecuteAsync();
+            result = await app.AcquireTokenByUsernamePassword(scopes, this.configuration[UsernameSettingName], this.configuration[PasswordSettingName]).ExecuteAsync();
         }
 
         return result?.AccessToken ?? string.Empty;
