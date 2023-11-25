@@ -1,11 +1,9 @@
 name: copilot-run-integration-tests
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
-      ENVIRONMENT:
-        required: true
-        type: string
       BACKEND_HOST:
         required: true
         type: string
@@ -15,7 +13,6 @@ permissions:
 
 jobs:
   tests:
-    environment: ${{inputs.ENVIRONMENT}}
     name: Integration Testing
     runs-on: windows-latest
 
