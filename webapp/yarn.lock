@@ -288,7 +288,7 @@
     "@babel/traverse" "^7.22.6"
     "@babel/types" "^7.22.5"
 
-"@babel/highlight@^7.22.13", "@babel/highlight@^7.22.5":
+"@babel/highlight@^7.22.13":
   version "7.22.20"
   resolved "https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.22.20.tgz#4ca92b71d80554b01427815e06f2df965b9c1f54"
   integrity sha512-dkdMCN3py0+ksCgYmGG8jKeGA/8Tk+gJwSYYlFGxG5lmhfKNoAy004YpLxpS1W2J8m/EK2Ew+yOs9pVRwO89mg==
@@ -297,7 +297,7 @@
     chalk "^2.4.2"
     js-tokens "^4.0.0"
 
-"@babel/parser@^7.1.0", "@babel/parser@^7.14.7", "@babel/parser@^7.20.7", "@babel/parser@^7.22.15", "@babel/parser@^7.22.5", "@babel/parser@^7.22.7", "@babel/parser@^7.23.0":
+"@babel/parser@^7.1.0", "@babel/parser@^7.14.7", "@babel/parser@^7.20.7", "@babel/parser@^7.22.15", "@babel/parser@^7.22.7", "@babel/parser@^7.23.0":
   version "7.23.0"
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.23.0.tgz#da950e622420bf96ca0d0f2909cdddac3acd8719"
   integrity sha512-vvPKKdMemU85V9WE/l5wZEmImpCtLqbnTvqDS2U1fJ96KrxoW7KrXhNsNCblQlg8Ck4b85yxdTyelsMUgFUXiw==
@@ -1703,10 +1703,10 @@
     "@fluentui/styles" "^0.66.5"
     classnames "^2.2.6"
 
-"@fluentui/react-icons@^2.0.217", "@fluentui/react-icons@^2.0.222":
-  version "2.0.222"
-  resolved "https://registry.yarnpkg.com/@fluentui/react-icons/-/react-icons-2.0.222.tgz#5d1cec5f7fe1fe759b83a4cd4c68bf227885f628"
-  integrity sha512-3Qy9GPww9rj51mJ6iEGCqSBEDZ8qBK+FK0BdtcVF4LFxpnPbB45hEf2dZ6LBQbfuKgH8NB3QHRSky75DjrjfdA==
+"@fluentui/react-icons@^2.0.217", "@fluentui/react-icons@^2.0.223":
+  version "2.0.223"
+  resolved "https://registry.yarnpkg.com/@fluentui/react-icons/-/react-icons-2.0.223.tgz#bee59335f794e5ac386dfdcc9b7a150c916cc4b2"
+  integrity sha512-nKE4y2e9DilNfly2Z5CSMBG2aOFZlGG9SJsw7UZmZu00acqWKEO09YAuHIDXlp6moYgCHF96MpZFDPU9sjbrwg==
   dependencies:
     "@griffel/react" "^1.0.0"
     tslib "^2.1.0"
@@ -3175,10 +3175,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.4.tgz#cd667bcfdd025213aafb7ca5915a932590acdcdc"
   integrity sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==
 
-"@types/react-dom@^18.2.14":
-  version "18.2.14"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.2.14.tgz#c01ba40e5bb57fc1dc41569bb3ccdb19eab1c539"
-  integrity sha512-V835xgdSVmyQmI1KLV2BEIUgqEuinxp9O4G6g3FqO/SqLac049E53aysv0oEFD2kHfejeKU+ZqL2bcFWj9gLAQ==
+"@types/react-dom@^18.2.17":
+  version "18.2.17"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.2.17.tgz#375c55fab4ae671bd98448dcfa153268d01d6f64"
+  integrity sha512-rvrT/M7Df5eykWFxn6MYt5Pem/Dbyc1N8Y0S9Mrkw2WFCRiqUgw9P7ul2NpwsXCSM1DVdENzdG9J5SreqfAIWg==
   dependencies:
     "@types/react" "*"
 
@@ -4401,7 +4401,7 @@ chalk@5.0.1:
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.0.1.tgz#ca57d71e82bb534a296df63bbacc4a1c22b2a4b6"
   integrity sha512-Fo07WOYGqMfCWHOzSXOt2CxDbC6skS/jO9ynEcmpANMoPrD+W1r1K6Vx7iNm+AQmETU1Xr2t+n8nzkV9t6xh3w==
 
-chalk@^2.0.0, chalk@^2.4.1, chalk@^2.4.2:
+chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
@@ -9527,17 +9527,16 @@ react-is@^18.0.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
   integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
 
-react-markdown@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/react-markdown/-/react-markdown-9.0.0.tgz#7a41bde9e1b0b1d6911f6f9f8c3cdb4a3e9f9328"
-  integrity sha512-v6yNf3AB8GfJ8lCpUvzxAXKxgsHpdmWPlcVRQ6Nocsezp255E/IDrF31kLQsPJeB/cKto/geUwjU36wH784FCA==
+react-markdown@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/react-markdown/-/react-markdown-9.0.1.tgz#c05ddbff67fd3b3f839f8c648e6fb35d022397d1"
+  integrity sha512-186Gw/vF1uRkydbsOIkcGXw7aHq0sZOCRFFjGrr7b9+nVZg4UfA4enXCaxm4fUzecU38sWfrNDitGhshuU7rdg==
   dependencies:
     "@types/hast" "^3.0.0"
     devlop "^1.0.0"
     hast-util-to-jsx-runtime "^2.0.0"
     html-url-attributes "^3.0.0"
     mdast-util-to-hast "^13.0.0"
-    micromark-util-sanitize-uri "^2.0.0"
     remark-parse "^11.0.0"
     remark-rehype "^11.0.0"
     unified "^11.0.0"
@@ -10918,10 +10917,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@5.2.2:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.2.tgz#5ebb5e5a5b75f085f22bc3f8460fba308310fa78"
-  integrity sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==
+typescript@5.3.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.3.2.tgz#00d1c7c1c46928c5845c1ee8d0cc2791031d4c43"
+  integrity sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"
