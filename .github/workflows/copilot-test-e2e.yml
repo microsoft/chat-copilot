@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   e2e:
-    if: github.event.review.state == 'APPROVED'
+    if: github.event.review.state == 'APPROVED' || github.event_name == 'workflow_dispatch'
     defaults:
       run:
         working-directory: webapp
