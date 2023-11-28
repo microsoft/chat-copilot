@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.Shared;
@@ -32,8 +31,6 @@ internal static class ISemanticMemoryClientExtensions
         var serviceProvider = appBuilder.Services.BuildServiceProvider();
 
         var memoryConfig = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
-
-        Console.WriteLine($"Memory configuration: {JsonSerializer.Serialize(memoryConfig)}");
 
         var ocrType = memoryConfig.ImageOcrType;
         var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
