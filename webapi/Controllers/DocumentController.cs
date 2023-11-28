@@ -147,7 +147,7 @@ public class DocumentController : ControllerBase
 
         if (chatMessage == null)
         {
-            this._logger.LogInformation("chatMessage is null. Returning 400.");
+            this._logger.LogWarning("Failed to create document upload message - {Content}", documentMessageContent.ToString());
             return this.BadRequest();
         }
 
