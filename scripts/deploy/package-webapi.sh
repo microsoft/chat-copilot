@@ -13,7 +13,7 @@ usage() {
     echo "Arguments:"
     echo "  -c, --configuration CONFIGURATION      Build configuration (default: Release)"
     echo "  -d, --dotnet DOTNET_FRAMEWORK_VERSION  Target dotnet framework (default: net6.0)"
-    echo "  -r, --runtime TARGET_RUNTIME           Runtime identifier (default: linux-x64)"
+    echo "  -r, --runtime TARGET_RUNTIME           Runtime identifier (default: win-x64)"
     echo "  -o, --output OUTPUT_DIRECTORY          Output directory (default: $SCRIPT_ROOT)"
     echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
     echo "  -i  --info INFO                        Additional info to put in version details"
@@ -76,7 +76,7 @@ echo  "Building backend executables..."
 # Set defaults
 : "${CONFIGURATION:="Release"}"
 : "${DOTNET:="net6.0"}"
-: "${RUNTIME:="linux-x64"}"
+: "${RUNTIME:="win-x64"}"
 : "${VERSION:="0.0.0"}"
 : "${INFO:=""}"
 : "${OUTPUT_DIRECTORY:="$SCRIPT_ROOT"}"
@@ -111,6 +111,15 @@ if [[ -z "$SKIP_FRONTEND" ]]; then
     echo "Building static frontend files..."
 
     pushd "$SCRIPT_ROOT/../../webapp"
+
+    filePath="./.env.production"
+    if [ -f "$filePath" ]; then
+        rm "$filePath"
+    fi
+
+    echo "REACT_APP_BACKEND_URI=" >> "$filePath"
+    echo "REACT_APP_SK_VERSION=$Version" >> "$filePath"
+    echo "REACT_APP_SK_BUILD_INFO=$InformationalVersion" >> "$filePath"
 
     echo "Installing yarn dependencies..."
     yarn install

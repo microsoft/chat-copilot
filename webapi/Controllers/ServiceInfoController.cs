@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -27,7 +27,7 @@ public class ServiceInfoController : ControllerBase
 
     private readonly IConfiguration Configuration;
 
-    private readonly SemanticMemoryConfig memoryOptions;
+    private readonly KernelMemoryConfig memoryOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
     private readonly IEnumerable<Plugin> availablePlugins;
@@ -36,7 +36,7 @@ public class ServiceInfoController : ControllerBase
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
         IConfiguration configuration,
-        IOptions<SemanticMemoryConfig> memoryOptions,
+        IOptions<KernelMemoryConfig> memoryOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
         IOptions<FrontendOptions> frontendOptions,
         IDictionary<string, Plugin> availablePlugins,

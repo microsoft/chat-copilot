@@ -11,7 +11,7 @@ namespace CopilotChat.WebApi.Services.MemoryMigration;
 public interface IChatMemoryMigrationService
 {
     /// <summary>
-    /// Migrates all non-document memory to the semantic-memory index.
+    /// Migrates all non-document memory to the kernel memory index.
     /// Subsequent/redunant migration is non-destructive/no-impact to migrated index.
     /// </summary>
     Task MigrateAsync(CancellationToken cancellationToken = default);

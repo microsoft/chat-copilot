@@ -1,3 +1,5 @@
+**NOTE**: This is a **sample** application to help you understand how Semantic Kernel and AI can work in Web Applications. This sample is **NOT FOR PRODUCTION** deployments.
+
 # Chat Copilot Sample Application
 
 This sample allows you to build your own integrated large language model (LLM) chat copilot. The sample is built on Microsoft [Semantic Kernel](https://github.com/microsoft/semantic-kernel) and has three components:
@@ -28,7 +30,7 @@ You will need the following items to run the sample:
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
-| OpenAI       | - [Account](https://platform.openai.com)<br>- [API key](https://platform.openai.com/account/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| OpenAI       | - [Account](https://platform.openai.com/docs/overview)<br>- [API key](https://platform.openai.com/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 # Instructions
 
@@ -326,6 +328,12 @@ By default, Chat Copilot runs locally without authentication, using a guest user
    sudo apt update;
    sudo apt install --assume-yes dotnet-sdk-7.0;
    ```
+
+# A note on branches
+
+Every release is associated with a release branch. For instance, release [v0.9](https://github.com/microsoft/chat-copilot/releases/tag/v0.9) is on a branch called [0.9](https://github.com/microsoft/chat-copilot/tree/0.9).
+Once a release is out, its branch will no longer be updated. The exception to this is the latest release branch, which will only receive bug fixes.
+This is to provide some stability to those for whom breaking changes and being on the bleeding edge (with the bugs it can entail) is not a desirable option.
 
 # Check out our other repos!
 

@@ -23,10 +23,10 @@ public class PlanExecutionMetadata
     public string TimeTaken { get; set; } = string.Empty;
 
     /// <summary>
-    /// Skills used execution stat.
+    /// Functions used execution stat.
     /// </summary>
-    [JsonPropertyName("skillsUsed")]
-    public string SkillsUsed { get; set; } = string.Empty;
+    [JsonPropertyName("functionsUsed")]
+    public string FunctionsUsed { get; set; } = string.Empty;
 
     /// <summary>
     /// Planner type.
@@ -40,11 +40,11 @@ public class PlanExecutionMetadata
     [JsonIgnore]
     public string RawResult { get; set; } = string.Empty;
 
-    public PlanExecutionMetadata(string stepsTaken, string timeTaken, string skillsUsed, string rawResult)
+    public PlanExecutionMetadata(string stepsTaken, string timeTaken, string functionsUsed, string rawResult)
     {
         this.StepsTaken = stepsTaken;
         this.TimeTaken = timeTaken;
-        this.SkillsUsed = skillsUsed;
+        this.FunctionsUsed = functionsUsed;
         this.RawResult = rawResult;
     }
 }

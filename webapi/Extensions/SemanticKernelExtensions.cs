@@ -3,13 +3,14 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Chat;
 using CopilotChat.WebApi.Services;
-using CopilotChat.WebApi.Skills.ChatSkills;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
@@ -17,10 +18,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Skills.Core;
-using Microsoft.SemanticMemory;
+using Microsoft.SemanticKernel.Plugins.Core;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -30,9 +31,9 @@ namespace CopilotChat.WebApi.Extensions;
 internal static class SemanticKernelExtensions
 {
     /// <summary>
-    /// Delegate to register plugins with a Semantic Kernel
+    /// Delegate to register functions with a Semantic Kernel
     /// </summary>
-    public delegate Task RegisterSkillsWithKernel(IServiceProvider sp, IKernel kernel);
+    public delegate Task RegisterFunctionsWithKernel(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
     /// Delegate for any complimentary setup of the kernel, i.e., registering custom plugins, etc.
@@ -44,7 +45,7 @@ internal static class SemanticKernelExtensions
     /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
     /// See webapi/README.md#Add-Custom-Plugin-Registration-to-the-Planner's-Kernel for more details.
     /// </summary>
-    public delegate Task RegisterSkillsWithPlannerHook(IServiceProvider sp, IKernel kernel);
+    public delegate Task RegisterFunctionsWithPlannerHook(IServiceProvider sp, IKernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -60,7 +61,7 @@ internal static class SemanticKernelExtensions
                 var provider = sp.GetRequiredService<SemanticKernelProvider>();
                 var kernel = provider.GetCompletionKernel();
 
-                sp.GetRequiredService<RegisterSkillsWithKernel>()(sp, kernel);
+                sp.GetRequiredService<RegisterFunctionsWithKernel>()(sp, kernel);
 
                 // If KernelSetupHook is not null, invoke custom kernel setup.
                 sp.GetService<KernelSetupHook>()?.Invoke(sp, kernel);
@@ -71,7 +72,7 @@ internal static class SemanticKernelExtensions
         builder.Services.AddContentSafety();
 
         // Register plugins
-        builder.Services.AddScoped<RegisterSkillsWithKernel>(sp => RegisterChatCopilotSkillsAsync);
+        builder.Services.AddScoped<RegisterFunctionsWithKernel>(sp => RegisterChatCopilotFunctionsAsync);
 
         // Add any additional setup needed for the kernel.
         // Uncomment the following line and pass in a custom hook for any complimentary setup of the kernel.
@@ -96,7 +97,7 @@ internal static class SemanticKernelExtensions
             var plannerKernel = provider.GetPlannerKernel();
 
             // Invoke custom plugin registration for planner's kernel.
-            sp.GetService<RegisterSkillsWithPlannerHook>()?.Invoke(sp, plannerKernel);
+            sp.GetService<RegisterFunctionsWithPlannerHook>()?.Invoke(sp, plannerKernel);
 
             return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
         });
@@ -131,29 +132,29 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register custom hook for registering plugins with the planner's kernel.
     /// These plugins will be persistent and available to the planner on every request.
-    /// Transient plugins requiring auth or configured by the webapp should be registered in RegisterPlannerSkillsAsync of ChatController.
+    /// Transient plugins requiring auth or configured by the webapp should be registered in RegisterPlannerFunctionsAsync of ChatController.
     /// </summary>
     /// <param name="registerPluginsHook">The delegate to register plugins with the planner's kernel. If null, defaults to local runtime plugin registration using RegisterPluginsAsync.</param>
-    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterSkillsWithPlannerHook? registerPluginsHook = null)
+    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterFunctionsWithPlannerHook? registerPluginsHook = null)
     {
         // Default to local runtime plugin registration.
         registerPluginsHook ??= RegisterPluginsAsync;
 
         // Add the hook to the service collection
-        services.AddScoped<RegisterSkillsWithPlannerHook>(sp => registerPluginsHook);
+        services.AddScoped<RegisterFunctionsWithPlannerHook>(sp => registerPluginsHook);
         return services;
     }
 
     /// <summary>
-    /// Register the chat skill with the kernel.
+    /// Register the chat plugin with the kernel.
     /// </summary>
-    public static IKernel RegisterChatSkill(this IKernel kernel, IServiceProvider sp)
+    public static IKernel RegisterChatPlugin(this IKernel kernel, IServiceProvider sp)
     {
-        // Chat skill
-        kernel.ImportSkill(
-            new ChatSkill(
+        // Chat plugin
+        kernel.ImportFunctions(
+            new ChatPlugin(
                 kernel,
-                memoryClient: sp.GetRequiredService<ISemanticMemoryClient>(),
+                memoryClient: sp.GetRequiredService<IKernelMemory>(),
                 chatMessageRepository: sp.GetRequiredService<ChatMessageRepository>(),
                 chatSessionRepository: sp.GetRequiredService<ChatSessionRepository>(),
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
@@ -161,27 +162,27 @@ internal static class SemanticKernelExtensions
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
                 contentSafety: sp.GetService<AzureContentSafety>(),
                 planner: sp.GetRequiredService<CopilotChatPlanner>(),
-                logger: sp.GetRequiredService<ILogger<ChatSkill>>()),
-            nameof(ChatSkill));
+                logger: sp.GetRequiredService<ILogger<ChatPlugin>>()),
+            nameof(ChatPlugin));
 
         return kernel;
     }
 
     private static void InitializeKernelProvider(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton(sp => new SemanticKernelProvider(sp, builder.Configuration));
+        builder.Services.AddSingleton(sp => new SemanticKernelProvider(sp, builder.Configuration, sp.GetRequiredService<IHttpClientFactory>()));
     }
 
     /// <summary>
-    /// Register skills with the main kernel responsible for handling Chat Copilot requests.
+    /// Register functions with the main kernel responsible for handling Chat Copilot requests.
     /// </summary>
-    private static Task RegisterChatCopilotSkillsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterChatCopilotFunctionsAsync(IServiceProvider sp, IKernel kernel)
     {
-        // Copilot chat skills
-        kernel.RegisterChatSkill(sp);
+        // Chat Copilot functions
+        kernel.RegisterChatPlugin(sp);
 
-        // Time skill
-        kernel.ImportSkill(new TimeSkill(), nameof(TimeSkill));
+        // Time plugin
+        kernel.ImportFunctions(new TimePlugin(), nameof(TimePlugin));
 
         return Task.CompletedTask;
     }
@@ -201,7 +202,7 @@ internal static class SemanticKernelExtensions
             {
                 try
                 {
-                    kernel.ImportSemanticSkillFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
+                    kernel.ImportSemanticFunctionsFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
                 catch (SKException ex)
                 {
@@ -230,7 +231,7 @@ internal static class SemanticKernelExtensions
                     try
                     {
                         var plugin = Activator.CreateInstance(classType);
-                        kernel.ImportSkill(plugin!, classType.Name!);
+                        kernel.ImportFunctions(plugin!, classType.Name!);
                     }
                     catch (SKException ex)
                     {
@@ -262,7 +263,7 @@ internal static class SemanticKernelExtensions
     /// </summary>
     private static ChatArchiveEmbeddingConfig WithBotConfig(this IServiceProvider provider, IConfiguration configuration)
     {
-        var memoryOptions = provider.GetRequiredService<IOptions<SemanticMemoryConfig>>().Value;
+        var memoryOptions = provider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         switch (memoryOptions.Retrieval.EmbeddingGeneratorType)
         {

@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Models.Storage;
 
 /// <summary>
 /// Information about a citation source.
-/// This is a replica of the <see cref="Citation"/> class in Semantic Memory.
-/// Creating a replica here is to avoid taking a direct dependency on Semantic Memory in our data model.
+/// This is a replica of the <see cref="Citation"/> class in Kernel Memory.
+/// Creating a replica here is to avoid taking a direct dependency on Kernel Memory in our data model.
 /// </summary>
 public class CitationSource
 {

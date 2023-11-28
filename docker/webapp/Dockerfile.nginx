@@ -3,10 +3,7 @@
 
 # builder
 FROM node:lts-alpine as builder
-
 ARG REACT_APP_BACKEND_URI
-ENV REACT_APP_BACKEND_URI $REACT_APP_BACKEND_URI
-
 WORKDIR /app
 COPY webapp/ .
 RUN yarn install \
@@ -14,7 +11,6 @@ RUN yarn install \
   --frozen-lockfile \
   --non-interactive \
   --production=false
-
 RUN yarn build
 
 # final stage/image

@@ -27,12 +27,12 @@ param(
     $PackageFilePath = "$PSScriptRoot/out/webapi.zip",
 
     [switch]
-    # Switch to add our URIs in app registration's redirect URIs if missing
-    $EnsureUriInAppRegistration,
+    # Don't attempt to add our URIs in frontend app registration's redirect URIs
+    $SkipAppRegistration,
     
     [switch]
-    # Switch to add our URIs in CORS origins for our plugins
-    $RegisterPluginCors
+    # Don't attempt to add our URIs in CORS origins for our plugins
+    $SkipCorsRegistration
 )
 
 # Ensure $PackageFilePath exists
@@ -107,7 +107,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-if ($EnsureUriInAppRegistration) {
+if (-Not $SkipAppRegistration) {
     $webapiSettings = $(az webapp config appsettings list --name $webapiName --resource-group $ResourceGroupName | ConvertFrom-JSON)
     $frontendClientId = ($webapiSettings | Where-Object -Property name -EQ -Value Frontend:AadClientId).value
     $objectId = (az ad app show --id $frontendClientId | ConvertFrom-Json).id
@@ -137,12 +137,13 @@ if ($EnsureUriInAppRegistration) {
             --headers 'Content-Type=application/json' `
             --body $body
         if ($LASTEXITCODE -ne 0) {
+            Write-Host "Failed to update AAD app registration - Use -SkipAppRegistration switch to skip this step"
             exit $LASTEXITCODE
         }
     }
 }
 
-if ($RegisterPluginCors) {
+if (-Not $SkipCorsRegistration) {
     foreach ($pluginName in $pluginNames) {
         $allowedOrigins = $((az webapp cors show --name $pluginName --resource-group $ResourceGroupName --subscription $Subscription | ConvertFrom-Json).allowedOrigins)
         foreach ($address in $origins) {
@@ -150,6 +151,10 @@ if ($RegisterPluginCors) {
             Write-Host "Ensuring '$origin' is included in CORS origins for plugin '$pluginName'..."
             if (-not $allowedOrigins -contains $origin) {
                 az webapp cors add --name $pluginName --resource-group $ResourceGroupName --subscription $Subscription --allowed-origins $origin
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "Failed to update plugin CORS URIs - Use -SkipCorsRegistration switch to skip this step"
+                    exit $LASTEXITCODE
+                }
             }
         }
     }

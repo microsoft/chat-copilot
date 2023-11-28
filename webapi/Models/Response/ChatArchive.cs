@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -35,7 +35,7 @@ public class ChatArchive
     /// <summary>
     /// The chat history. It contains all the messages in the conversation with the bot.
     /// </summary>
-    public List<ChatMessage> ChatHistory { get; set; } = new List<ChatMessage>();
+    public List<CopilotChatMessage> ChatHistory { get; set; } = new List<CopilotChatMessage>();
 
     /// <summary>
     /// Chat archive's embeddings.
@@ -43,7 +43,7 @@ public class ChatArchive
     public Dictionary<string, List<Citation>> Embeddings { get; set; } = new Dictionary<string, List<Citation>>();
 
     /// <summary>
-    /// The embeddings of uploaded documents in Copilot Chat. It represents the document memory which is accessible to all chat sessions of a given user.
+    /// The embeddings of uploaded documents in Chat Copilot. It represents the document memory which is accessible to all chat sessions of a given user.
     /// </summary>
     public Dictionary<string, List<Citation>> DocumentEmbeddings { get; set; } = new Dictionary<string, List<Citation>>();
 }

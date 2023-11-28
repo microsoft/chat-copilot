@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticMemory;
+using Microsoft.KernelMemory;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -24,7 +24,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class ChatArchiveController : ControllerBase
 {
     private readonly ILogger<ChatArchiveController> _logger;
-    private readonly ISemanticMemoryClient _memoryClient;
+    private readonly IKernelMemory _memoryClient;
     private readonly ChatSessionRepository _chatRepository;
     private readonly ChatMessageRepository _chatMessageRepository;
     private readonly ChatParticipantRepository _chatParticipantRepository;
@@ -41,7 +41,7 @@ public class ChatArchiveController : ControllerBase
     /// <param name="promptOptions">The document memory options.</param>
     /// <param name="logger">The logger.</param>
     public ChatArchiveController(
-        ISemanticMemoryClient memoryClient,
+        IKernelMemory memoryClient,
         ChatSessionRepository chatRepository,
         ChatMessageRepository chatMessageRepository,
         ChatParticipantRepository chatParticipantRepository,
@@ -99,7 +99,7 @@ public class ChatArchiveController : ControllerBase
         chatArchive.ChatTitle = chat.Title;
 
         // get the system description
-        chatArchive.SystemDescription = chat.SystemDescription;
+        chatArchive.SystemDescription = chat.SafeSystemDescription;
 
         // get the chat history
         chatArchive.ChatHistory = await this.GetAllChatMessagesAsync(chatIdString);
@@ -174,7 +174,7 @@ public class ChatArchiveController : ControllerBase
     /// </summary>
     /// <param name="chatId">The chat id</param>
     /// <returns>The list of chat messages in descending order of the timestamp</returns>
-    private async Task<List<ChatMessage>> GetAllChatMessagesAsync(string chatId)
+    private async Task<List<CopilotChatMessage>> GetAllChatMessagesAsync(string chatId)
     {
         return (await this._chatMessageRepository.FindByChatIdAsync(chatId))
             .OrderByDescending(m => m.Timestamp).ToList();

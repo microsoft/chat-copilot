@@ -2,8 +2,8 @@
 
 using System;
 using Microsoft.Extensions.Configuration;
-using Microsoft.SemanticMemory;
-using Microsoft.SemanticMemory.MemoryStorage.DevTools;
+using Microsoft.KernelMemory;
+using Microsoft.KernelMemory.MemoryStorage.DevTools;
 
 namespace CopilotChat.WebApi.Options;
 
@@ -42,7 +42,7 @@ public static class MemoryStoreTypeExtensions
     /// </summary>
     /// <param name="configuration">The configuration.</param>
     /// <returns>The memory store type.</returns>
-    public static MemoryStoreType GetMemoryStoreType(this SemanticMemoryConfig memoryOptions, IConfiguration configuration)
+    public static MemoryStoreType GetMemoryStoreType(this KernelMemoryConfig memoryOptions, IConfiguration configuration)
     {
         var type = memoryOptions.Retrieval.VectorDbType;
         if (type.Equals("AzureCognitiveSearch", StringComparison.OrdinalIgnoreCase))
@@ -63,7 +63,7 @@ public static class MemoryStoreTypeExtensions
                 {
                     return MemoryStoreType.Volatile;
                 }
-                else if (type.Equals("TextFile", StringComparison.OrdinalIgnoreCase))
+                else if (type.Equals("Disk", StringComparison.OrdinalIgnoreCase))
                 {
                     return MemoryStoreType.TextFile;
                 }
