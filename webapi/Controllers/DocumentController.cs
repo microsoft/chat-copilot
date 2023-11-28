@@ -144,6 +144,12 @@ public class DocumentController : ControllerBase
         var importResults = await this.ImportDocumentsAsync(memoryClient, chatId, documentImportForm, documentMessageContent);
 
         var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
+        
+        if (chatMessage == null)
+        {
+            this._logger.LogInformation("chatMessage is null. Returning 400.");
+            return this.BadRequest();
+        }
 
         // Broadcast the document uploaded event to other users.
         if (documentScope == DocumentScopes.Chat)
@@ -155,7 +161,7 @@ public class DocumentController : ControllerBase
             await messageRelayHubContext.Clients.Group(chatId.ToString())
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
-            this._logger.LogInformation("Local upload chat message: {0}", chatMessage != null ? chatMessage!.ToString() : "null");
+            this._logger.LogInformation("Local upload chat message: {0}", chatMessage.ToString());
 
             return this.Ok(chatMessage);
         }
@@ -166,7 +172,7 @@ public class DocumentController : ControllerBase
             this._authInfo.Name
         );
 
-        this._logger.LogInformation("Global upload chat message: {0}", chatMessage != null ? chatMessage!.ToString() : "null");
+        this._logger.LogInformation("Global upload chat message: {0}", chatMessage.ToString());
 
         return this.Ok(chatMessage);
     }
