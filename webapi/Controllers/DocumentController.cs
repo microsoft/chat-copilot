@@ -155,7 +155,7 @@ public class DocumentController : ControllerBase
             await messageRelayHubContext.Clients.Group(chatId.ToString())
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
-            this._logger.LogInformation("Local upload chat message: {0}", chatMessage!.ToString());
+            this._logger.LogInformation("Local upload chat message: {0}", chatMessage != null ? chatMessage!.ToString() : "null");
 
             return this.Ok(chatMessage);
         }
@@ -166,7 +166,7 @@ public class DocumentController : ControllerBase
             this._authInfo.Name
         );
 
-        this._logger.LogInformation("Global upload chat message: {0}", chatMessage!.ToString());
+        this._logger.LogInformation("Global upload chat message: {0}", chatMessage != null ? chatMessage!.ToString() : "null");
 
         return this.Ok(chatMessage);
     }
