@@ -21,7 +21,7 @@ public class SpeechTokenTests : ChatCopilotIntegrationTest
         var speechTokenResponse = await JsonSerializer.DeserializeAsync<SpeechTokenResponse>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         Assert.NotNull(speechTokenResponse);
-        Assert.True((speechTokenResponse.IsSuccess == true && string.IsNullOrEmpty(speechTokenResponse.Token)) ||
+        Assert.True((speechTokenResponse.IsSuccess == true && !string.IsNullOrEmpty(speechTokenResponse.Token)) ||
                      speechTokenResponse.IsSuccess == false);
     }
 }
