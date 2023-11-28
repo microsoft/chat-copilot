@@ -144,7 +144,7 @@ public class DocumentController : ControllerBase
         var importResults = await this.ImportDocumentsAsync(memoryClient, chatId, documentImportForm, documentMessageContent);
 
         var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
-        
+
         if (chatMessage == null)
         {
             this._logger.LogInformation("chatMessage is null. Returning 400.");
