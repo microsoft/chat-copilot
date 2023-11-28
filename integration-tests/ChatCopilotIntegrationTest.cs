@@ -14,6 +14,7 @@ namespace ChatCopilotIntegrationTests;
 /// <summary>
 /// Base class for Chat Copilot integration tests
 /// </summary>
+[Trait("Category", "Integration Tests")]
 public abstract class ChatCopilotIntegrationTest : IDisposable
 {
     protected const string BaseUrlSettingName = "BaseServerUrl";
