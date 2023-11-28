@@ -2,6 +2,10 @@ name: copilot-run-integration-tests
 
 on:
   workflow_dispatch:
+    inputs:
+      BACKEND_HOST:
+        required: true
+        type: string
   workflow_call:
     inputs:
       BACKEND_HOST:
