@@ -29,8 +29,6 @@ public class ServiceInfoTests : ChatCopilotIntegrationTest
     [Fact]
     public async void GetAuthConfig()
     {
-        await this.SetUpAuth();
-
         HttpResponseMessage response = await this._httpClient.GetAsync("authConfig/");
         response.EnsureSuccessStatusCode();
 
