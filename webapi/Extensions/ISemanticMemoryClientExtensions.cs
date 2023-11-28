@@ -54,7 +54,10 @@ internal static class ISemanticMemoryClientExtensions
             }
         }
 
-        IKernelMemory memory = memoryBuilder.FromAppSettings().Build();
+        IKernelMemory memory = memoryBuilder.FromConfiguration(
+            memoryConfig,
+            appBuilder.Configuration
+        ).Build();
 
         appBuilder.Services.AddSingleton(memory);
     }
