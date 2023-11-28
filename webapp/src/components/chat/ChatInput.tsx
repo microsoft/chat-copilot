@@ -29,7 +29,9 @@ const useClasses = makeStyles({
     root: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.margin(0, '72px'),
+        width: '100%',
+        maxWidth: '105em',
+        ...shorthands.margin(0, tokens.spacingHorizontalM),
     },
     typingIndicator: {
         maxHeight: '28px',
