@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Azure.AI.OpenAI;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
@@ -146,6 +145,12 @@ public class DocumentController : ControllerBase
 
         var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
 
+        if (chatMessage == null)
+        {
+            this._logger.LogWarning("Failed to create document upload message - {Content}", documentMessageContent.ToString());
+            return this.BadRequest();
+        }
+
         // Broadcast the document uploaded event to other users.
         if (documentScope == DocumentScopes.Chat)
         {
@@ -156,7 +161,7 @@ public class DocumentController : ControllerBase
             await messageRelayHubContext.Clients.Group(chatId.ToString())
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
 
-            this._logger.LogInformation("Local upload chat message: {0}", chatMessage!.ToString());
+            this._logger.LogInformation("Local upload chat message: {0}", chatMessage.ToString());
 
             return this.Ok(chatMessage);
         }
@@ -167,7 +172,7 @@ public class DocumentController : ControllerBase
             this._authInfo.Name
         );
 
-        this._logger.LogInformation("Global upload chat message: {0}", chatMessage!.ToString());
+        this._logger.LogInformation("Global upload chat message: {0}", chatMessage.ToString());
 
         return this.Ok(chatMessage);
     }
