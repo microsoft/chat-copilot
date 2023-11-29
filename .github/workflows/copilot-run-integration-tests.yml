@@ -25,9 +25,9 @@ jobs:
       - name: Run integration tests
         env:
           BaseServerUrl: "https://${{inputs.BACKEND_HOST}}.azurewebsites.net/"
-          Authority: "https://login.microsoftonline.com/${{secrets.COPILOT_CHAT_TEST_TENANT_ID}}"
+          TenantID: ${{secrets.COPILOT_CHAT_TEST_TENANT_ID}}
           ClientID: ${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID}}
+          BackendClientID: ${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID}}
           Username: ${{secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1}}
           Password: ${{secrets.COPILOT_CHAT_TEST_USER_PASSWORD1}}
-          Scopes: "openid, offline_access, profile, api://${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID}}/access_as_user"
-        run: dotnet test --logger trx
+        run: dotnet test --logger trx -e Authority="https://login.microsoftonline.com/$env:TenantID" -e Scopes="openid, offline_access, profile, api://$env:BackendClientID/access_as_user"
