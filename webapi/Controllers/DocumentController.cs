@@ -112,7 +112,12 @@ public class DocumentController : ControllerBase
         [FromRoute] Guid chatId,
         [FromForm] DocumentImportForm documentImportForm)
     {
-        return this.DocumentImportAsync(memoryClient, messageRelayHubContext, DocumentScopes.Chat, chatId, documentImportForm);
+        return this.DocumentImportAsync(
+            memoryClient,
+            messageRelayHubContext,
+            DocumentScopes.Chat,
+            chatId,
+            documentImportForm);
     }
 
     private async Task<IActionResult> DocumentImportAsync(
@@ -136,19 +141,27 @@ public class DocumentController : ControllerBase
         // Pre-create chat-message
         DocumentMessageContent documentMessageContent = new();
 
-        var importResults = await ImportDocumentsAsync();
+        var importResults = await this.ImportDocumentsAsync(memoryClient, chatId, documentImportForm, documentMessageContent);
+
+        var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
+
+        if (chatMessage == null)
+        {
+            this._logger.LogWarning("Failed to create document upload message - {Content}", documentMessageContent.ToString());
+            return this.BadRequest();
+        }
 
         // Broadcast the document uploaded event to other users.
         if (documentScope == DocumentScopes.Chat)
         {
-            var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
-
             // If chat message isn't created, it is still broadcast and visible in the documents tab.
             // The chat message won't, however, be displayed when the chat is freshly rendered.
 
             var userId = this._authInfo.UserId;
             await messageRelayHubContext.Clients.Group(chatId.ToString())
                 .SendAsync(ReceiveMessageClientCall, chatId, userId, chatMessage);
+
+            this._logger.LogInformation("Local upload chat message: {0}", chatMessage.ToString());
 
             return this.Ok(chatMessage);
         }
@@ -159,81 +172,83 @@ public class DocumentController : ControllerBase
             this._authInfo.Name
         );
 
-        return this.Ok("Documents imported successfully to global scope.");
+        this._logger.LogInformation("Global upload chat message: {0}", chatMessage.ToString());
 
-        async Task<IList<ImportResult>> ImportDocumentsAsync()
-        {
-            IEnumerable<ImportResult> importResults = new List<ImportResult>();
+        return this.Ok(chatMessage);
+    }
 
-            await Task.WhenAll(
-                documentImportForm.FormFiles.Select(
-                    async formFile =>
-                        await ImportDocumentAsync(formFile).ContinueWith(
-                            task =>
+    private async Task<IList<ImportResult>> ImportDocumentsAsync(IKernelMemory memoryClient, Guid chatId, DocumentImportForm documentImportForm, DocumentMessageContent messageContent)
+    {
+        IEnumerable<ImportResult> importResults = new List<ImportResult>();
+
+        await Task.WhenAll(
+            documentImportForm.FormFiles.Select(
+                async formFile =>
+                    await this.ImportDocumentAsync(formFile, memoryClient, chatId).ContinueWith(
+                        task =>
+                        {
+                            var importResult = task.Result;
+                            if (importResult != null)
                             {
-                                var importResult = task.Result;
-                                if (importResult != null)
-                                {
-                                    documentMessageContent.AddDocument(
-                                        formFile.FileName,
-                                        this.GetReadableByteString(formFile.Length),
-                                        importResult.IsSuccessful);
+                                messageContent.AddDocument(
+                                    formFile.FileName,
+                                    this.GetReadableByteString(formFile.Length),
+                                    importResult.IsSuccessful);
 
-                                    importResults = importResults.Append(importResult);
-                                }
-                            },
-                            TaskScheduler.Default)));
+                                importResults = importResults.Append(importResult);
+                            }
+                        },
+                        TaskScheduler.Default)));
 
-            return importResults.ToArray();
+        return importResults.ToArray();
+    }
+
+    private async Task<ImportResult> ImportDocumentAsync(IFormFile formFile, IKernelMemory memoryClient, Guid chatId)
+    {
+        this._logger.LogInformation("Importing document {0}", formFile.FileName);
+
+        // Create memory source
+        MemorySource memorySource = new(
+            chatId.ToString(),
+            formFile.FileName,
+            this._authInfo.UserId,
+            MemorySourceType.File,
+            formFile.Length,
+            hyperlink: null
+        );
+
+        if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
+        {
+            this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
+
+            return ImportResult.Fail;
         }
 
-        async Task<ImportResult> ImportDocumentAsync(IFormFile formFile)
+        if (!(await TryStoreMemoryAsync()))
         {
-            this._logger.LogInformation("Importing document {0}", formFile.FileName);
+            await this.TryRemoveMemoryAsync(memorySource);
+        }
 
-            // Create memory source
-            MemorySource memorySource = new(
-                chatId.ToString(),
-                formFile.FileName,
-                this._authInfo.UserId,
-                MemorySourceType.File,
-                formFile.Length,
-                hyperlink: null
-            );
+        return new ImportResult(memorySource.Id);
 
-            if (!(await this.TryUpsertMemorySourceAsync(memorySource)))
+        async Task<bool> TryStoreMemoryAsync()
+        {
+            try
             {
-                this._logger.LogDebug("Failed to upsert memory source for file {0}.", formFile.FileName);
+                using var stream = formFile.OpenReadStream();
+                await memoryClient.StoreDocumentAsync(
+                    this._promptOptions.MemoryIndexName,
+                    memorySource.Id,
+                    chatId.ToString(),
+                    this._promptOptions.DocumentMemoryName,
+                    formFile.FileName,
+                    stream);
 
-                return ImportResult.Fail;
+                return true;
             }
-
-            if (!(await TryStoreMemoryAsync()))
+            catch (Exception ex) when (ex is not SystemException)
             {
-                await this.TryRemoveMemoryAsync(memorySource);
-            }
-
-            return new ImportResult(memorySource.Id);
-
-            async Task<bool> TryStoreMemoryAsync()
-            {
-                try
-                {
-                    using var stream = formFile.OpenReadStream();
-                    await memoryClient.StoreDocumentAsync(
-                        this._promptOptions.MemoryIndexName,
-                        memorySource.Id,
-                        chatId.ToString(),
-                        this._promptOptions.DocumentMemoryName,
-                        formFile.FileName,
-                        stream);
-
-                    return true;
-                }
-                catch (Exception ex) when (ex is not SystemException)
-                {
-                    return false;
-                }
+                return false;
             }
         }
     }
@@ -438,17 +453,17 @@ public class DocumentController : ControllerBase
     /// Try to create a chat message that represents document upload.
     /// </summary>
     /// <param name="chatId">The target chat-id</param>
-    /// <param name="documentMessageContent">The document message content</param>
+    /// <param name="messageContent">The document message content</param>
     /// <returns>A ChatMessage object if successful, null otherwise</returns>
     private async Task<CopilotChatMessage?> TryCreateDocumentUploadMessage(
         Guid chatId,
-        DocumentMessageContent documentMessageContent)
+        DocumentMessageContent messageContent)
     {
         var chatMessage = CopilotChatMessage.CreateDocumentMessage(
             this._authInfo.UserId,
             this._authInfo.Name, // User name
             chatId.ToString(),
-            documentMessageContent);
+            messageContent);
 
         try
         {
