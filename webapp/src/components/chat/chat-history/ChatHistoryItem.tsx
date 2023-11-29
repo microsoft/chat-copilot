@@ -57,7 +57,7 @@ const useClasses = makeStyles({
     },
     me: {
         backgroundColor: customTokens.colorMeBackground,
-        width: "100%",
+        width: '100%',
     },
     time: {
         color: customTokens.colorNeutralForeground3,
@@ -119,8 +119,8 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
     const avatar: AvatarProps = isBot
         ? { image: { src: conversations[selectedId].botProfilePicture } }
         : isDefaultUser
-            ? { idForColor: selectedId, color: 'colorful' }
-            : { name: fullName, color: 'colorful' };
+          ? { idForColor: selectedId, color: 'colorful' }
+          : { name: fullName, color: 'colorful' };
 
     let content: JSX.Element;
     if (isBot && message.type === ChatMessageType.Plan) {
@@ -140,9 +140,9 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
         messageIndex === conversations[selectedId].messages.length - 1 &&
         message.userId === 'Bot';
 
-    const messageCitations = (message.citations ?? []);
+    const messageCitations = message.citations ?? [];
     const showMessageCitation = messageCitations.length > 0;
-    const showExtra = showMessageCitation || showShowRLHFMessage || showCitationCards
+    const showExtra = showMessageCitation || showShowRLHFMessage || showCitationCards;
 
     return (
         <div
@@ -184,7 +184,9 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                                 }}
                                 size="small"
                             >
-                                {`${messageCitations.length} ${messageCitations.length === 1 ? 'citation' : 'citations'}`}
+                                {`${messageCitations.length} ${
+                                    messageCitations.length === 1 ? 'citation' : 'citations'
+                                }`}
                             </ToggleButton>
                         )}
                         {showShowRLHFMessage && (
