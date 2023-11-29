@@ -3,15 +3,12 @@ on:
   workflow_dispatch:
   merge_group:
     types: [checks_requested]
-  pull_request_review:
-    types: [submitted]
 
 permissions:
   contents: read
 
 jobs:
   e2e:
-    if: github.event.review.state == 'APPROVED' || github.event_name == 'workflow_dispatch'
     defaults:
       run:
         working-directory: webapp
