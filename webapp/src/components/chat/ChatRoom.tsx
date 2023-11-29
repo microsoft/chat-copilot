@@ -33,7 +33,7 @@ const useClasses = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'center',
-        ...shorthands.padding(tokens.spacingVerticalS, '0'),
+        ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingVerticalNone),
     },
 });
 
