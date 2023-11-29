@@ -94,6 +94,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Plugins\SemanticPlugins\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 </Project>
