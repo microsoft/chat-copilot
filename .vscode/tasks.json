@@ -1,15 +1,16 @@
 {
     "version": "2.0.0",
     "tasks": [
-        // Copilot Chat
         {
             "label": "run (Copilot Chat)",
             "detail": "Run all copilot chat components",
             "group": "test",
-            "dependsOn": ["run (CopilotChatWebApi)", "run (CopilotChatApp)"],
+            "dependsOn": [
+                "run (CopilotChatWebApi)",
+                "run (CopilotChatApp)"
+            ],
             "dependsOrder": "parallel"
         },
-        // Copilot Setup
         {
             "label": "install (CopilotChatApp)",
             "detail": "Install all copilot chat app dependencies",
@@ -32,20 +33,25 @@
             "label": "setup (Copilot Chat)",
             "detail": "Setup (like setting secrets) for copilot chat app and api",
             "group": "test",
-            "dependsOn": ["GetSecret (AIService:Key)"],
+            "dependsOn": [
+                "GetSecret (AIService:Key)"
+            ],
             "dependsOrder": "sequence"
-            // TODO -- add tasks for configuring environment variables
         },
         {
             "label": "GetSecret (AIService:Key)",
             "command": "dotnet",
             "type": "process",
-            "args": ["user-secrets", "set", "AIService:Key", "${input:aiServiceSecret}"],
+            "args": [
+                "user-secrets",
+                "set",
+                "AIService:Key",
+                "${input:aiServiceSecret}"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/webapi"
             }
         },
-        // Copilot Chat App
         {
             "label": "build (CopilotChatApp)",
             "type": "shell",
@@ -76,7 +82,6 @@
                 "cwd": "${workspaceFolder}/webapp"
             }
         },
-        // Copilot Chat Api
         {
             "label": "build (CopilotChatWebApi)",
             "command": "dotnet",
@@ -120,6 +125,82 @@
             ],
             "problemMatcher": "$msCompile",
             "group": "build"
+        },
+        {
+            "label": "clean (functions)",
+            "command": "dotnet",
+            "args": [
+                "clean",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/plugins\\web-searcher"
+            }
+        },
+        {
+            "label": "build (functions)",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "dependsOn": "clean (functions)",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/plugins\\web-searcher"
+            }
+        },
+        {
+            "label": "clean release (functions)",
+            "command": "dotnet",
+            "args": [
+                "clean",
+                "--configuration",
+                "Release",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/plugins\\web-searcher"
+            }
+        },
+        {
+            "label": "publish (functions)",
+            "command": "dotnet",
+            "args": [
+                "publish",
+                "--configuration",
+                "Release",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "type": "process",
+            "dependsOn": "clean release (functions)",
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/plugins\\web-searcher"
+            }
+        },
+        {
+            "type": "func",
+            "dependsOn": "build (functions)",
+            "options": {
+                "cwd": "${workspaceFolder}/plugins\\web-searcher/bin/Debug/net6.0"
+            },
+            "command": "host start",
+            "isBackground": true,
+            "problemMatcher": "$func-dotnet-watch"
         }
     ],
     "inputs": [

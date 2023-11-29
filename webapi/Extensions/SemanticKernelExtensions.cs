@@ -76,7 +76,7 @@ internal static class SemanticKernelExtensions
 
         // Add any additional setup needed for the kernel.
         // Uncomment the following line and pass in a custom hook for any complimentary setup of the kernel.
-        // builder.Services.AddKernelSetupHook(customHook);
+        builder.Services.AddKernelSetupHook(RegisterPluginsAsync);
 
         return builder;
     }

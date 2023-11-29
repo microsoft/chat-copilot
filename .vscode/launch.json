@@ -1,7 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
             "name": "Debug CopilotChatWebApi",
             "type": "coreclr",
@@ -11,7 +10,13 @@
             "cwd": "${workspaceFolder}/webapi",
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
-            },
+            }
+        },
+        {
+            "name": "Attach to .NET Functions",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:azureFunctions.pickProcess}"
         }
     ]
 }
