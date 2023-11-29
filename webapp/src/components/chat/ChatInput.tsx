@@ -31,7 +31,7 @@ const useClasses = makeStyles({
         flexDirection: 'column',
         width: '100%',
         maxWidth: '105em',
-        ...shorthands.margin(0, tokens.spacingHorizontalM),
+        ...shorthands.margin(tokens.spacingVerticalNone, tokens.spacingHorizontalM),
     },
     typingIndicator: {
         maxHeight: '28px',
