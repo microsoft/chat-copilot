@@ -51,4 +51,9 @@
     },
     "dotnet.defaultSolution": "CopilotChat.sln",
     "editor.tabSize": 2,
+    "azureFunctions.deploySubpath": "plugins\\web-searcher/bin/Release/net6.0/publish",
+    "azureFunctions.projectLanguage": "C#",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.preDeployTask": "publish (functions)",
   }

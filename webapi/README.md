@@ -270,7 +270,7 @@ If you wish to load custom plugins into the kernel or planner:
 
       // Add any additional setup needed for the kernel.
       // Uncomment the following line and pass in your custom hook.
-      builder.Services.AddKernelSetupHook(RegisterPluginsAsync);
+      //builder.Services.AddKernelSetupHook(RegisterPluginsAsync);
 
       return services;
    }
