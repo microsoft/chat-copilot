@@ -87,7 +87,7 @@ if (-Not $SkipFrontendFiles) {
     Pop-Location
 
     Write-Host "Copying frontend files to package"
-    Copy-Item -Path "$PSScriptRoot/../../webapp/build" -Destination "$publishOutputDirectory\wwwroot" -Recurse -Force
+    Copy-Item -Path "$PSScriptRoot/../../webapp/build/*" -Destination "$publishOutputDirectory\wwwroot" -Recurse -Force
 }
 
 Write-Host "Compressing package to $publishedZipFilePath"
