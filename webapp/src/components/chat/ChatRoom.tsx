@@ -24,13 +24,16 @@ const useClasses = makeStyles({
     },
     history: {
         ...shorthands.padding(tokens.spacingVerticalM),
-        marginLeft: '40px',
-        paddingRight: '40px',
+        paddingLeft: tokens.spacingHorizontalM,
+        paddingRight: tokens.spacingHorizontalM,
         display: 'flex',
         justifyContent: 'center',
     },
     input: {
-        ...shorthands.padding(tokens.spacingVerticalM),
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingVerticalNone),
     },
 });
 
