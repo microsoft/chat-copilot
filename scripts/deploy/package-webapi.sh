@@ -138,7 +138,7 @@ if [[ -z "$SKIP_FRONTEND" ]]; then
     popd
 
     echo "Copying frontend files to package"
-    cp -R "$SCRIPT_ROOT/../../webapp/build" "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
+    cp -R "$SCRIPT_ROOT/../../webapp/build/." "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
 fi
 
 # if not NO_ZIP then zip the package
