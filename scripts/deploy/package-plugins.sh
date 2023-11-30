@@ -95,9 +95,9 @@ for PLUGIN_PROJECT_FILE in $PLUGIN_PROJECT_FILES; do
         --configuration $CONFIGURATION \
         --framework $DOTNET \
         --output "$PUBLISH_OUTPUT_DIRECTORY" \
-        //p:AssemblyVersion=$VERSION \
-        //p:FileVersion=$VERSION \
-        //p:InformationalVersion=$INFO
+        -p:AssemblyVersion=$VERSION \
+        -p:FileVersion=$VERSION \
+        -p:InformationalVersion=$INFO
 
     if [ $? -ne 0 ]; then
         exit 1

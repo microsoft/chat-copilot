@@ -92,9 +92,9 @@ dotnet publish "$SCRIPT_ROOT/../../memorypipeline/CopilotChatMemoryPipeline.cspr
     --runtime $RUNTIME \
     --self-contained \
     --output "$PUBLISH_OUTPUT_DIRECTORY" \
-    //p:AssemblyVersion=$VERSION \
-    //p:FileVersion=$VERSION \
-    //p:InformationalVersion=$INFO
+    -p:AssemblyVersion=$VERSION \
+    -p:FileVersion=$VERSION \
+    -p:InformationalVersion=$INFO
 
 if [ $? -ne 0 ]; then
     exit 1
