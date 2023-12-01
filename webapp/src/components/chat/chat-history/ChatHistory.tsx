@@ -10,7 +10,7 @@ const useClasses = makeStyles({
         ...shorthands.gap(tokens.spacingVerticalM),
         display: 'flex',
         flexDirection: 'column',
-        maxWidth: '900px',
+        maxWidth: '105em',
         width: '100%',
         justifySelf: 'center',
     },

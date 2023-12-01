@@ -22,9 +22,9 @@ public class CreateChatResponse
     /// Initial bot message.
     /// </summary>
     [JsonPropertyName("initialBotMessage")]
-    public ChatMessage InitialBotMessage { get; set; }
+    public CopilotChatMessage InitialBotMessage { get; set; }
 
-    public CreateChatResponse(ChatSession chatSession, ChatMessage initialBotMessage)
+    public CreateChatResponse(ChatSession chatSession, CopilotChatMessage initialBotMessage)
     {
         this.ChatSession = chatSession;
         this.InitialBotMessage = initialBotMessage;

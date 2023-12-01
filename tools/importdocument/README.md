@@ -3,12 +3,12 @@
 > **!IMPORTANT**
 > This sample is for educational purposes only and is not recommended for production deployments.
 
-One of the exciting features of the Copilot Chat App is its ability to store contextual information
+One of the exciting features of the Chat Copilot App is its ability to store contextual information
 to [memories](https://github.com/microsoft/semantic-kernel/blob/main/docs/EMBEDDINGS.md) and retrieve
 relevant information from memories to provide more meaningful answers to users through out the conversations.
 
 Memories can be generated from conversations as well as imported from external sources, such as documents.
-Importing documents enables Copilot Chat to have up-to-date knowledge of specific contexts, such as enterprise and personal data.
+Importing documents enables Chat Copilot to have up-to-date knowledge of specific contexts, such as enterprise and personal data.
 
 
 ## Running the app against a local Chat Copilot instance

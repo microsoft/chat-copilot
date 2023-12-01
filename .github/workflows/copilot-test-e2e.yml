@@ -2,7 +2,7 @@ name: Copilot Chat Tests
 on:
   workflow_dispatch:
   merge_group:
-    branches: ["main"]
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -13,7 +13,6 @@ jobs:
       run:
         working-directory: webapp
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -41,38 +40,49 @@ jobs:
           AzureOpenAI__Endpoint: ${{ secrets.AZUREOPENAI__ENDPOINT }}
           TenantId: ${{ secrets.COPILOT_CHAT_TEST_TENANT_ID }}
           WebApi_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}
+          WebApp_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID }}
         run: |
           dotnet dev-certs https
-          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIText:APIKey" "$AzureOpenAI__ApiKey"
-          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIText:Endpoint" "$AzureOpenAI__Endpoint"
-          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIEmbedding:APIKey" "$AzureOpenAI__ApiKey"
-          dotnet user-secrets set "SemanticMemory:Services:AzureOpenAIEmbedding:Endpoint" "$AzureOpenAI__Endpoint"
+          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIText:APIKey" "$AzureOpenAI__ApiKey"
+          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIText:Endpoint" "$AzureOpenAI__Endpoint"
+          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIEmbedding:APIKey" "$AzureOpenAI__ApiKey"
+          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIEmbedding:Endpoint" "$AzureOpenAI__Endpoint"
           dotnet user-secrets set "Authentication:Type" "AzureAd"
           dotnet user-secrets set "Authentication:AzureAd:TenantId" "$TenantId"
           dotnet user-secrets set "Authentication:AzureAd:ClientId" "$WebApi_ClientId"
+          dotnet user-secrets set "Frontend:AadClientId" "$WebApp_ClientId"
 
       - name: Start service in background
         working-directory: webapi
         run: |
           dotnet run > service-log.txt 2>&1 &
+
+          STARTED=false;
+
           for attempt in {0..20}; do
             jobs
             echo 'Waiting for service to start...';
             if curl -k https://localhost:40443/healthz; then
               echo;
               echo 'Service started';
+              STARTED=true;
               break;
             fi;
 
             sleep 5;
           done
 
+          if [ "$STARTED" = false ]; then
+            echo 'Service failed to start';
+            exit 1;
+          fi
+
       - name: Run Playwright tests
+        timeout-minutes: 5
         env:
           REACT_APP_BACKEND_URI: https://localhost:40443/
 
           REACT_APP_TEST_USER_ACCOUNT1: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1 }}
-          REACT_APP_TEST_USER_ACCOUNT1_INITIALS: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1_INITIALS }}
           REACT_APP_TEST_USER_ACCOUNT2: ${{ secrets.COPILOT_CHAT_TEST_USER_ACCOUNT2 }}
           REACT_APP_TEST_USER_PASSWORD1: ${{ secrets.COPILOT_CHAT_TEST_USER_PASSWORD1 }}
           REACT_APP_TEST_USER_PASSWORD2: ${{ secrets.COPILOT_CHAT_TEST_USER_PASSWORD2 }}

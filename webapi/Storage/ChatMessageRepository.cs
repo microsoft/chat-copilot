@@ -10,13 +10,13 @@ namespace CopilotChat.WebApi.Storage;
 /// <summary>
 /// A repository for chat messages.
 /// </summary>
-public class ChatMessageRepository : Repository<ChatMessage>
+public class ChatMessageRepository : Repository<CopilotChatMessage>
 {
     /// <summary>
     /// Initializes a new instance of the ChatMessageRepository class.
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
-    public ChatMessageRepository(IStorageContext<ChatMessage> storageContext)
+    public ChatMessageRepository(IStorageContext<CopilotChatMessage> storageContext)
         : base(storageContext)
     {
     }
@@ -26,7 +26,7 @@ public class ChatMessageRepository : Repository<ChatMessage>
     /// </summary>
     /// <param name="chatId">The chat id.</param>
     /// <returns>A list of ChatMessages matching the given chatId.</returns>
-    public Task<IEnumerable<ChatMessage>> FindByChatIdAsync(string chatId)
+    public Task<IEnumerable<CopilotChatMessage>> FindByChatIdAsync(string chatId)
     {
         return base.StorageContext.QueryEntitiesAsync(e => e.ChatId == chatId);
     }
@@ -36,7 +36,7 @@ public class ChatMessageRepository : Repository<ChatMessage>
     /// </summary>
     /// <param name="chatId">The chat id.</param>
     /// <returns>The most recent ChatMessage matching the given chatId.</returns>
-    public async Task<ChatMessage> FindLastByChatIdAsync(string chatId)
+    public async Task<CopilotChatMessage> FindLastByChatIdAsync(string chatId)
     {
         var chatMessages = await this.FindByChatIdAsync(chatId);
         var first = chatMessages.MaxBy(e => e.Timestamp);

@@ -14,7 +14,7 @@ namespace CopilotChat.WebApi.Models.Storage;
 /// <summary>
 /// Information about a single chat message.
 /// </summary>
-public class ChatMessage : IStorageEntity
+public class CopilotChatMessage : IStorageEntity
 {
     private static readonly JsonSerializerOptions SerializerSettings = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
@@ -31,12 +31,7 @@ public class ChatMessage : IStorageEntity
         /// <summary>
         /// The bot.
         /// </summary>
-        Bot,
-
-        /// <summary>
-        /// The participant who is not the current user nor the bot of the chat.
-        /// </summary>
-        Participant
+        Bot
     }
 
     /// <summary>
@@ -133,7 +128,7 @@ public class ChatMessage : IStorageEntity
     /// <param name="authorRole">Role of the author</param>
     /// <param name="type">Type of the message</param>
     /// <param name="tokenUsage">Total token usages used to generate bot response</param>
-    public ChatMessage(
+    public CopilotChatMessage(
         string userId,
         string userName,
         string chatId,
@@ -164,9 +159,9 @@ public class ChatMessage : IStorageEntity
     /// <param name="content">The message</param>
     /// <param name="prompt">The prompt used to generate the message</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
-    public static ChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
+    public static CopilotChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
     {
-        return new ChatMessage("Bot", "Bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
+        return new CopilotChatMessage("Bot", "Bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
     }
 
     /// <summary>
@@ -176,9 +171,9 @@ public class ChatMessage : IStorageEntity
     /// <param name="userName">The user name that uploaded the document</param>
     /// <param name="chatId">The chat ID that this message belongs to</param>
     /// <param name="documentMessageContent">The document message content</param>
-    public static ChatMessage CreateDocumentMessage(string userId, string userName, string chatId, DocumentMessageContent documentMessageContent)
+    public static CopilotChatMessage CreateDocumentMessage(string userId, string userName, string chatId, DocumentMessageContent documentMessageContent)
     {
-        return new ChatMessage(userId, userName, chatId, documentMessageContent.ToString(), string.Empty, null, AuthorRoles.User, ChatMessageType.Document);
+        return new CopilotChatMessage(userId, userName, chatId, documentMessageContent.ToString(), string.Empty, null, AuthorRoles.User, ChatMessageType.Document);
     }
 
     /// <summary>
@@ -243,9 +238,9 @@ public class ChatMessage : IStorageEntity
     /// </summary>
     /// <param name="json">A json string</param>
     /// <returns>A ChatMessage object</returns>
-    public static ChatMessage? FromString(string json)
+    public static CopilotChatMessage? FromString(string json)
     {
-        return JsonSerializer.Deserialize<ChatMessage>(json, SerializerSettings);
+        return JsonSerializer.Deserialize<CopilotChatMessage>(json, SerializerSettings);
     }
 
     /// <summary>
@@ -257,6 +252,6 @@ public class ChatMessage : IStorageEntity
     private static bool IsPlan(string response)
     {
         var planPrefix = "proposedPlan\":";
-        return response.IndexOf(planPrefix, StringComparison.Ordinal) != -1;
+        return response.Contains(planPrefix, StringComparison.InvariantCulture);
     }
 }

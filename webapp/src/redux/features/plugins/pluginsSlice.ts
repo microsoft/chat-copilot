@@ -12,7 +12,7 @@ export const pluginsState = createSlice({
             let authData = action.payload.accessToken;
 
             switch (action.payload.plugin) {
-                case BuiltInPlugins.Jira:
+                case BuiltInPlugins.Jira.valueOf():
                     authData = `${action.payload.email as string}:${action.payload.accessToken as string}`;
                     break;
                 default:

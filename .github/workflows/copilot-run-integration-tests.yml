@@ -1,11 +1,13 @@
 name: copilot-run-integration-tests
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      ENVIRONMENT:
+      BACKEND_HOST:
         required: true
         type: string
+  workflow_call:
+    inputs:
       BACKEND_HOST:
         required: true
         type: string
@@ -15,11 +17,17 @@ permissions:
 
 jobs:
   tests:
-    environment: ${{inputs.ENVIRONMENT}}
     name: Integration Testing
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
       - name: Run integration tests
-        run: dotnet test --environment BaseUrl="https://${{inputs.BACKEND_HOST}}.azurewebsites.net/" --logger trx
+        env:
+          BaseServerUrl: "https://${{inputs.BACKEND_HOST}}.azurewebsites.net/"
+          TenantID: ${{secrets.COPILOT_CHAT_TEST_TENANT_ID}}
+          ClientID: ${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID}}
+          BackendClientID: ${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID}}
+          Username: ${{secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1}}
+          Password: ${{secrets.COPILOT_CHAT_TEST_USER_PASSWORD1}}
+        run: dotnet test --logger trx -e Authority="https://login.microsoftonline.com/$env:TenantID" -e Scopes="openid, offline_access, profile, api://$env:BackendClientID/access_as_user"

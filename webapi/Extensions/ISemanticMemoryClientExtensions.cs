@@ -54,7 +54,10 @@ internal static class ISemanticMemoryClientExtensions
             }
         }
 
-        IKernelMemory memory = memoryBuilder.FromAppSettings().Build();
+        IKernelMemory memory = memoryBuilder.FromConfiguration(
+            memoryConfig,
+            appBuilder.Configuration
+        ).Build();
 
         appBuilder.Services.AddSingleton(memory);
     }
@@ -117,7 +120,7 @@ internal static class ISemanticMemoryClientExtensions
             new DocumentUploadRequest
             {
                 DocumentId = documentId,
-                Files = new List<DocumentUploadRequest.UploadedFile> { new DocumentUploadRequest.UploadedFile(fileName, fileContent) },
+                Files = new List<DocumentUploadRequest.UploadedFile> { new(fileName, fileContent) },
                 Index = indexName,
                 Steps = pipelineSteps,
             };

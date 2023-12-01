@@ -41,7 +41,6 @@ jobs:
     uses: ./.github/workflows/copilot-run-integration-tests.yml
     needs: int
     with:
-      ENVIRONMENT: int
       BACKEND_HOST: ${{needs.int.outputs.backend-host}}
 
   stable:
