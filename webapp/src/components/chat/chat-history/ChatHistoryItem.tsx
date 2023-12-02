@@ -32,6 +32,7 @@ const useClasses = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         maxWidth: '75%',
+        minWidth: '24em',
         ...shorthands.borderRadius(customTokens.borderRadiusMedium),
         ...Breakpoints.small({
             maxWidth: '100%',
@@ -52,10 +53,11 @@ const useClasses = makeStyles({
     item: {
         backgroundColor: customTokens.colorNeutralBackground1,
         ...shorthands.borderRadius(customTokens.borderRadiusMedium),
-        ...shorthands.padding(customTokens.spacingVerticalS, customTokens.spacingHorizontalL),
+        ...shorthands.padding(customTokens.spacingVerticalXS, customTokens.spacingHorizontalS),
     },
     me: {
         backgroundColor: customTokens.colorMeBackground,
+        width: '100%',
     },
     time: {
         color: customTokens.colorNeutralForeground3,
@@ -138,6 +140,10 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
         messageIndex === conversations[selectedId].messages.length - 1 &&
         message.userId === 'Bot';
 
+    const messageCitations = message.citations ?? [];
+    const showMessageCitation = messageCitations.length > 0;
+    const showExtra = showMessageCitation || showShowRLHFMessage || showCitationCards;
+
     return (
         <div
             className={isMe ? mergeClasses(classes.root, classes.alignEnd) : classes.root}
@@ -164,27 +170,31 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                     {isBot && <PromptDialog message={message} />}
                 </div>
                 {content}
-                <div className={classes.controls}>
-                    {message.citations && message.citations.length > 0 && (
-                        <ToggleButton
-                            appearance="subtle"
-                            checked={showCitationCards}
-                            className={classes.citationButton}
-                            icon={showCitationCards ? <ChevronUp20Regular /> : <ChevronDown20Regular />}
-                            iconPosition="after"
-                            onClick={() => {
-                                setShowCitationCards(!showCitationCards);
-                            }}
-                            size="small"
-                        >
-                            {`${message.citations.length} ${message.citations.length === 1 ? 'citation' : 'citations'}`}
-                        </ToggleButton>
-                    )}
-                    {showShowRLHFMessage && (
-                        <div className={classes.rlhf}>{<UserFeedbackActions messageIndex={messageIndex} />}</div>
-                    )}
-                </div>
-                {showCitationCards && <CitationCards message={message} />}
+                {showExtra && (
+                    <div className={classes.controls}>
+                        {showMessageCitation && (
+                            <ToggleButton
+                                appearance="subtle"
+                                checked={showCitationCards}
+                                className={classes.citationButton}
+                                icon={showCitationCards ? <ChevronUp20Regular /> : <ChevronDown20Regular />}
+                                iconPosition="after"
+                                onClick={() => {
+                                    setShowCitationCards(!showCitationCards);
+                                }}
+                                size="small"
+                            >
+                                {`${messageCitations.length} ${
+                                    messageCitations.length === 1 ? 'citation' : 'citations'
+                                }`}
+                            </ToggleButton>
+                        )}
+                        {showShowRLHFMessage && (
+                            <div className={classes.rlhf}>{<UserFeedbackActions messageIndex={messageIndex} />}</div>
+                        )}
+                        {showCitationCards && <CitationCards message={message} />}
+                    </div>
+                )}
             </div>
             {features[FeatureKeys.RLHF].enabled && message.userFeedback === UserFeedback.Positive && (
                 <ThumbLikeFilled color="gray" />

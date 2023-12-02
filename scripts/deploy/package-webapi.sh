@@ -99,9 +99,9 @@ dotnet publish "$SCRIPT_ROOT/../../webapi/CopilotChatWebApi.csproj" \
     --runtime $RUNTIME \
     --self-contained \
     --output "$PUBLISH_OUTPUT_DIRECTORY" \
-    //p:AssemblyVersion=$VERSION \
-    //p:FileVersion=$VERSION \
-    //p:InformationalVersion=$INFO
+    -p:AssemblyVersion=$VERSION \
+    -p:FileVersion=$VERSION \
+    -p:InformationalVersion=$INFO
 
 if [ $? -ne 0 ]; then
     exit 1
@@ -138,7 +138,7 @@ if [[ -z "$SKIP_FRONTEND" ]]; then
     popd
 
     echo "Copying frontend files to package"
-    cp -R "$SCRIPT_ROOT/../../webapp/build" "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
+    cp -R "$SCRIPT_ROOT/../../webapp/build/." "$PUBLISH_OUTPUT_DIRECTORY/wwwroot"
 fi
 
 # if not NO_ZIP then zip the package

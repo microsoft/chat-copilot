@@ -29,7 +29,9 @@ const useClasses = makeStyles({
     root: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.margin(0, '72px'),
+        width: '100%',
+        maxWidth: '105em',
+        ...shorthands.margin(tokens.spacingVerticalNone, tokens.spacingHorizontalM),
     },
     typingIndicator: {
         maxHeight: '28px',
@@ -156,7 +158,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
 
     const handleDrop = (e: React.DragEvent<HTMLTextAreaElement>) => {
         onDragLeave(e);
-        void fileHandler.handleImport(selectedId, documentFileRef, undefined, e.dataTransfer.files);
+        void fileHandler.handleImport(selectedId, documentFileRef, false, undefined, e.dataTransfer.files);
     };
 
     return (
