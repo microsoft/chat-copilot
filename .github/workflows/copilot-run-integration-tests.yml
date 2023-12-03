@@ -21,6 +21,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Configure test environment
         working-directory: integration-tests
         env:
@@ -37,6 +39,5 @@ jobs:
           dotnet user-secrets set "Username" "$env:Username"
           dotnet user-secrets set "Password" "$env:Password"
 
-      - uses: actions/checkout@v4
       - name: Run integration tests
         run: dotnet test --logger trx
