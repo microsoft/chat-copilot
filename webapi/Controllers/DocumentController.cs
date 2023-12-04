@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
@@ -15,6 +16,7 @@ using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
+using DocumentFormat.OpenXml.Office2010.Word;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -120,6 +122,52 @@ public class DocumentController : ControllerBase
             documentImportForm);
     }
 
+    /// <summary>
+    /// Service API for removing a document.
+    /// Documents imported through this route will be considered as global documents.
+    /// </summary>
+    [Route("documents")]
+    [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task<IActionResult> DocumentRemoveAsync(
+        [FromServices] IKernelMemory memoryClient,
+        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
+        [FromRoute] Guid documentId,
+        CancellationToken cancellationToken)
+    {
+        return this.DocumentRemoveAsync(
+            memoryClient,
+            messageRelayHubContext,
+            DocumentScopes.Global,
+            DocumentMemoryOptions.GlobalDocumentChatId,
+            documentId,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Service API for removing a document.
+    /// </summary>
+    [Route("chats/{chatId}/documents/{documentId}")]
+    [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task<IActionResult> DocumentRemoveAsync(
+        [FromServices] IKernelMemory memoryClient,
+        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
+        [FromRoute] Guid chatId,
+        [FromRoute] Guid documentId,
+        CancellationToken cancellationToken)
+    {
+        return this.DocumentRemoveAsync(
+            memoryClient,
+            messageRelayHubContext,
+            DocumentScopes.Chat,
+            chatId,
+            documentId,
+            cancellationToken);
+    }
+
     private async Task<IActionResult> DocumentImportAsync(
         IKernelMemory memoryClient,
         IHubContext<MessageRelayHub> messageRelayHubContext,
@@ -175,6 +223,27 @@ public class DocumentController : ControllerBase
         this._logger.LogInformation("Global upload chat message: {0}", chatMessage.ToString());
 
         return this.Ok(chatMessage);
+    }
+
+    private async Task<IActionResult> DocumentRemoveAsync(
+        IKernelMemory memoryClient,
+        IHubContext<MessageRelayHub> messageRelayHubContext,
+        DocumentScopes documentScope,
+        Guid chatId,
+        Guid documentId,
+        CancellationToken cancellationToken)
+    {
+        if (!this._options.AllowDocumentRemoval)
+        {
+            return this.BadRequest("Document removal not enabled.");
+        }
+
+        await memoryClient.RemoveDocumentAsync(this._promptOptions.DocumentMemoryName, documentId.ToString(), cancellationToken);
+        // $$$ REMOVE CITED MESSAGES ???
+
+        await this._sourceRepository.DeleteAsync(documentId.ToString(), chatId.ToString());
+
+        return this.Ok();
     }
 
     private async Task<IList<ImportResult>> ImportDocumentsAsync(IKernelMemory memoryClient, Guid chatId, DocumentImportForm documentImportForm, DocumentMessageContent messageContent)

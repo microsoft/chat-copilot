@@ -188,4 +188,13 @@ internal static class ISemanticMemoryClientExtensions
 
         Task.WaitAll(tasks, cancellationToken);
     }
+
+    public static async Task RemoveDocumentAsync(
+        this IKernelMemory memoryClient,
+        string indexName,
+        string documentId,
+        CancellationToken cancellationToken = default)
+    {
+        await memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken);
+    }
 }

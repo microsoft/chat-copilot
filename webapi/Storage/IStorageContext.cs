@@ -41,4 +41,11 @@ public interface IStorageContext<T> where T : IStorageEntity
     /// </summary>
     /// <param name="entity">The entity to be deleted from the context.</param>
     Task DeleteAsync(T entity);
+
+    /// <summary>
+    /// Delete an entity from the storage context.
+    /// </summary>
+    /// <param name="entityId">The entity id.</param>
+    /// <param name="partitionKey">The entity partition</param>
+    Task DeleteAsync(string entityId, string partitionKey);
 }

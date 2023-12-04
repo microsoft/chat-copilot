@@ -35,6 +35,12 @@ public class ServiceInfoResponse
     /// </summary>
     [JsonPropertyName("isContentSafetyEnabled")]
     public bool IsContentSafetyEnabled { get; set; } = false;
+
+    /// <summary>
+    /// True if document removal enabled, false otherwise.
+    /// </summary>
+    [JsonPropertyName("isDeleteDocumentEnabled")]
+    public bool IsDeleteDocumentEnabled { get; set; } = false;
 }
 
 /// <summary>
