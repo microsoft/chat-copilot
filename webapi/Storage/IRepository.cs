@@ -23,6 +23,13 @@ public interface IRepository<T> where T : IStorageEntity
     Task DeleteAsync(T entity);
 
     /// <summary>
+    /// Deletes an entity from the repository.
+    /// </summary>
+    /// <param name="id">Id of the entity.</param>
+    /// <param name="partition">Partition key value of the entity.</param>
+    Task DeleteAsync(string id, string partition);
+
+    /// <summary>
     /// Upserts an entity in the repository.
     /// </summary>
     /// <param name="entity">The entity to be upserted.</param>

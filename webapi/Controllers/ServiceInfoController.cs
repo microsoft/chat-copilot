@@ -23,11 +23,15 @@ namespace CopilotChat.WebApi.Controllers;
 [ApiController]
 public class ServiceInfoController : ControllerBase
 {
+    private static readonly string[] memoryStoreTypes = Enum.GetNames(typeof(MemoryStoreType));
+    private static readonly string assemblyFileVersion = GetAssemblyFileVersion();
+
     private readonly ILogger<ServiceInfoController> _logger;
 
     private readonly IConfiguration Configuration;
 
-    private readonly KernelMemoryConfig memoryOptions;
+    private readonly KernelMemoryConfig _memoryOptions;
+    private readonly DocumentMemoryOptions _documentOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
     private readonly IEnumerable<Plugin> availablePlugins;
@@ -36,15 +40,17 @@ public class ServiceInfoController : ControllerBase
     public ServiceInfoController(
         ILogger<ServiceInfoController> logger,
         IConfiguration configuration,
+        IDictionary<string, Plugin> availablePlugins,
         IOptions<KernelMemoryConfig> memoryOptions,
+        IOptions<DocumentMemoryOptions> documentOptions,
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
         IOptions<FrontendOptions> frontendOptions,
-        IDictionary<string, Plugin> availablePlugins,
         IOptions<ContentSafetyOptions> contentSafetyOptions)
     {
         this._logger = logger;
         this.Configuration = configuration;
-        this.memoryOptions = memoryOptions.Value;
+        this._memoryOptions = memoryOptions.Value;
+        this._documentOptions = documentOptions.Value;
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
         this.availablePlugins = this.SanitizePlugins(availablePlugins);
@@ -59,17 +65,20 @@ public class ServiceInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetServiceInfo()
     {
-        var response = new ServiceInfoResponse()
-        {
-            MemoryStore = new MemoryStoreInfoResponse()
+        var response =
+            new ServiceInfoResponse
             {
-                Types = Enum.GetNames(typeof(MemoryStoreType)),
-                SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
-            },
-            AvailablePlugins = this.availablePlugins,
-            Version = GetAssemblyFileVersion(),
-            IsContentSafetyEnabled = this._contentSafetyOptions.Enabled
-        };
+                MemoryStore =
+                    new MemoryStoreInfoResponse
+                    {
+                        Types = memoryStoreTypes,
+                        SelectedType = this._memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
+                    },
+                AvailablePlugins = this.availablePlugins,
+                Version = assemblyFileVersion,
+                IsContentSafetyEnabled = this._contentSafetyOptions.Enabled,
+                IsDeleteDocumentEnabled = this._documentOptions.AllowDocumentRemoval,
+            };
 
         return this.Ok(response);
     }
@@ -83,22 +92,24 @@ public class ServiceInfoController : ControllerBase
     [AllowAnonymous]
     public IActionResult GetAuthConfig()
     {
-        string authorityUriString = string.Empty;
-        if (!string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.Instance) &&
-            !string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.TenantId))
+        var azureAd = this._chatAuthenticationOptions.AzureAd!;
+        var authorityUriString = string.Empty;
+        if (!string.IsNullOrEmpty(azureAd.Instance) &&
+            !string.IsNullOrEmpty(azureAd.TenantId))
         {
-            var authorityUri = new Uri(this._chatAuthenticationOptions.AzureAd!.Instance);
-            authorityUri = new Uri(authorityUri, this._chatAuthenticationOptions.AzureAd!.TenantId);
+            var authorityUri = new Uri(azureAd.Instance);
+            authorityUri = new Uri(authorityUri, azureAd.TenantId);
             authorityUriString = authorityUri.ToString();
         }
 
-        var config = new FrontendAuthConfig
-        {
-            AuthType = this._chatAuthenticationOptions.Type.ToString(),
-            AadAuthority = authorityUriString,
-            AadClientId = this._frontendOptions.AadClientId,
-            AadApiScope = $"api://{this._chatAuthenticationOptions.AzureAd!.ClientId}/{this._chatAuthenticationOptions.AzureAd!.Scopes}",
-        };
+        var config =
+            new FrontendAuthConfig
+            {
+                AuthType = this._chatAuthenticationOptions.Type.ToString(),
+                AadAuthority = authorityUriString,
+                AadClientId = this._frontendOptions.AadClientId,
+                AadApiScope = $"api://{azureAd.ClientId}/{azureAd.Scopes}",
+            };
 
         return this.Ok(config);
     }
@@ -118,10 +129,13 @@ public class ServiceInfoController : ControllerBase
     /// <returns></returns>
     private IEnumerable<Plugin> SanitizePlugins(IDictionary<string, Plugin> plugins)
     {
-        return plugins.Select(p => new Plugin()
-        {
-            Name = p.Value.Name,
-            ManifestDomain = p.Value.ManifestDomain,
-        });
+        return
+            plugins.Select(
+                p =>
+                    new Plugin
+                    {
+                        Name = p.Value.Name,
+                        ManifestDomain = p.Value.ManifestDomain,
+                    });
     }
 }
