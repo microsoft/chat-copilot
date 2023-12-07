@@ -14,12 +14,12 @@ namespace ChatCopilotIntegrationTests;
 public class ChatTests : ChatCopilotIntegrationTest
 {
     [Fact]
-    public async void ChatWithBot()
+    public async void ChatMessagePostSucceedsWithValidInput()
     {
         await this.SetUpAuth();
 
         // Create chat session
-        var createChatParams = new CreateChatParameters() { Title = nameof(ChatWithBot) };
+        var createChatParams = new CreateChatParameters() { Title = nameof(ChatMessagePostSucceedsWithValidInput) };
         HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("chats", createChatParams);
         response.EnsureSuccessStatusCode();
 
