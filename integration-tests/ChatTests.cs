@@ -24,8 +24,8 @@ public class ChatTests : ChatCopilotIntegrationTest
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
-        var createChatReponse = await JsonSerializer.DeserializeAsync<CreateChatResponse>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        Assert.NotNull(createChatReponse);
+        var createChatResponse = await JsonSerializer.DeserializeAsync<CreateChatResponse>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.NotNull(createChatResponse);
 
         // Ask something to the bot
         var ask = new Ask
@@ -33,7 +33,7 @@ public class ChatTests : ChatCopilotIntegrationTest
             Input = "Who is Satya Nadella?",
             Variables = new KeyValuePair<string, string>[] { new("MessageType", ChatMessageType.Message.ToString()) }
         };
-        response = await this._httpClient.PostAsJsonAsync($"chats/{createChatReponse.ChatSession.Id}/messages", ask);
+        response = await this._httpClient.PostAsJsonAsync($"chats/{createChatResponse.ChatSession.Id}/messages", ask);
         response.EnsureSuccessStatusCode();
 
         contentStream = await response.Content.ReadAsStreamAsync();
@@ -43,7 +43,7 @@ public class ChatTests : ChatCopilotIntegrationTest
 
 
         // Clean up
-        response = await this._httpClient.DeleteAsync($"chats/{createChatReponse.ChatSession.Id}");
+        response = await this._httpClient.DeleteAsync($"chats/{createChatResponse.ChatSession.Id}");
         response.EnsureSuccessStatusCode();
     }
 }
