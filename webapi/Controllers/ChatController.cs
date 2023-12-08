@@ -28,11 +28,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Functions.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Functions.OpenAPI.Extensions;
 using Microsoft.SemanticKernel.Functions.OpenAPI.OpenAI;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Plugins.MsGraph;
 using Microsoft.SemanticKernel.Plugins.MsGraph.Connectors;
 using Microsoft.SemanticKernel.Plugins.MsGraph.Connectors.Client;
@@ -96,7 +94,7 @@ public class ChatController : ControllerBase, IDisposable
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> ChatAsync(
-        [FromServices] IKernel kernel,
+        [FromServices] Kernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] CopilotChatPlanner planner,
         [FromServices] AskConverter askConverter,
@@ -132,7 +130,7 @@ public class ChatController : ControllerBase, IDisposable
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> ProcessPlanAsync(
-        [FromServices] IKernel kernel,
+        [FromServices] Kernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] CopilotChatPlanner planner,
         [FromServices] AskConverter askConverter,
@@ -163,7 +161,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <returns>Results containing the response from the model.</returns>
     private async Task<IActionResult> HandleRequest(
        string functionName,
-       IKernel kernel,
+       Kernel kernel,
        IHubContext<MessageRelayHub> messageRelayHubContext,
        CopilotChatPlanner planner,
        AskConverter askConverter,
@@ -174,7 +172,7 @@ public class ChatController : ControllerBase, IDisposable
        string chatId)
     {
         // Put ask's variables in the context we will use.
-        var contextVariables = askConverter.GetContextVariables(ask);
+        var kernelArguments = askConverter.GetKernelArguments(ask);
 
         // Verify that the chat exists and that the user has access to it.
         ChatSession? chat = null;
@@ -190,25 +188,25 @@ public class ChatController : ControllerBase, IDisposable
 
         // Register plugins that have been enabled
         var openApiPluginAuthHeaders = this.GetPluginAuthHeaders(this.HttpContext.Request.Headers);
-        await this.RegisterPlannerFunctionsAsync(planner, openApiPluginAuthHeaders, contextVariables);
+        await this.RegisterPlannerFunctionsAsync(planner, openApiPluginAuthHeaders, kernelArguments);
 
         // Register hosted plugins that have been enabled
         await this.RegisterPlannerHostedFunctionsUsedAsync(planner, chat!.EnabledPlugins);
 
         // Get the function to invoke
-        ISKFunction? function = null;
+        KernelFunction? function = null;
         try
         {
             function = kernel.Functions.GetFunction(ChatPluginName, functionName);
         }
-        catch (SKException ex)
+        catch (KernelException ex)
         {
             this._logger.LogError("Failed to find {PluginName}/{FunctionName} on server: {Exception}", ChatPluginName, functionName, ex);
             return this.NotFound($"Failed to find {ChatPluginName}/{functionName} on server");
         }
 
         // Run the function.
-        KernelResult? result = null;
+        FunctionResult? result = null;
         try
         {
             using CancellationTokenSource? cts = this._serviceOptions.TimeoutLimitInS is not null
@@ -216,7 +214,7 @@ public class ChatController : ControllerBase, IDisposable
                 ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS))
                 : null;
 
-            result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
+            result = await kernel.InvokeAsync(function!, kernelArguments, cts?.Token ?? default);
             this._telemetryService.TrackPluginFunction(ChatPluginName, functionName, true);
         }
         catch (Exception ex)
@@ -235,7 +233,7 @@ public class ChatController : ControllerBase, IDisposable
         AskResult chatAskResult = new()
         {
             Value = result.GetValue<string>() ?? string.Empty,
-            Variables = contextVariables.Select(v => new KeyValuePair<string, string>(v.Key, v.Value))
+            Variables = kernelArguments.Select(v => new KeyValuePair<string, string>(v.Key, v.Value))
         };
 
         // Broadcast AskResult to all users
@@ -272,7 +270,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <summary>
     /// Register functions with the planner's kernel.
     /// </summary>
-    private async Task RegisterPlannerFunctionsAsync(CopilotChatPlanner planner, Dictionary<string, string> authHeaders, ContextVariables variables)
+    private async Task RegisterPlannerFunctionsAsync(CopilotChatPlanner planner, Dictionary<string, string> authHeaders, KernelArguments variables)
     {
         // Register authenticated functions with the planner's kernel only if the request includes an auth header for the plugin.
 

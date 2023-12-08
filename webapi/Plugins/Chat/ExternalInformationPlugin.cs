@@ -17,10 +17,8 @@ using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
-using Microsoft.SemanticKernel.Planning;
-using Microsoft.SemanticKernel.TemplateEngine;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
@@ -86,7 +84,7 @@ public class ExternalInformationPlugin
     /// </summary>
     public async Task<string> InvokePlannerAsync(
         string userIntent,
-        SKContext context,
+        KernelArguments kernelArguments,
         CancellationToken cancellationToken = default)
     {
         // TODO: [Issue #2106] Calculate planner and plan token usage
@@ -96,13 +94,13 @@ public class ExternalInformationPlugin
             return string.Empty;
         }
 
-        var contextString = this.GetChatContextString(context);
+        var contextString = this.GetChatContextString(kernelArguments);
         var goal = $"Given the following context, accomplish the user intent.\nContext:\n{contextString}\n{userIntent}";
 
         // Run stepwise planner if PlannerOptions.Type == Stepwise
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
-            return await this.RunStepwisePlannerAsync(goal, context, cancellationToken);
+            return await this.RunStepwisePlannerAsync(goal, kernelArguments, cancellationToken);
         }
 
         // Create a plan and set it in context for approval.
@@ -135,24 +133,24 @@ public class ExternalInformationPlugin
             if (plannerOptions.Type == PlanType.Action)
             {
                 // Parameters stored in plan's top level state
-                this.MergeContextIntoPlan(context.Variables, plan.Parameters);
+                this.MergeContextIntoPlan(kernelArguments, plan.Parameters);
             }
             else
             {
                 foreach (var step in plan.Steps)
                 {
-                    this.MergeContextIntoPlan(context.Variables, step.Parameters);
+                    this.MergeContextIntoPlan(kernelArguments, step.Parameters);
                 }
             }
 
-            this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp, userIntent, context.Variables.Input);
+            this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp, userIntent, (string)kernelArguments[KernelArguments.InputParameterName]!);
         }
 
         return string.Empty;
     }
 
     public async Task<string> ExecutePlanAsync(
-        SKContext context,
+        KernelArguments kernelArguments,
         Plan plan,
         CancellationToken cancellationToken = default)
     {
@@ -166,7 +164,7 @@ public class ExternalInformationPlugin
         var functionsUsed = $"FUNCTIONS USED: {this.FormattedFunctionsString(plan)}";
 
         // TODO: #2581 Account for planner system instructions
-        int tokenLimit = int.Parse(context.Variables["tokenLimit"], new NumberFormatInfo())
+        int tokenLimit = (int)kernelArguments["tokenLimit"]!
             - TokenUtils.TokenCount(functionsUsed)
             - TokenUtils.TokenCount(ResultHeader);
 
@@ -214,22 +212,22 @@ public class ExternalInformationPlugin
     /// Also sets any metadata associated with stepwise planner execution.
     /// </summary>
     /// <param name="goal">The goal to be achieved by the stepwise planner.</param>
-    /// <param name="context">The SKContext containing the necessary information for the planner.</param>
+    /// <param name="kernelArguments">The KernelArguments containing the necessary information for the planner.</param>
     /// <param name="cancellationToken">A CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>
     /// A formatted string containing the result of the stepwise planner and a supplementary message to guide the model in using the result.
     /// </returns>
-    private async Task<string> RunStepwisePlannerAsync(string goal, SKContext context, CancellationToken cancellationToken)
+    private async Task<string> RunStepwisePlannerAsync(string goal, KernelArguments kernelArguments, CancellationToken cancellationToken)
     {
-        var plannerContext = context.Clone();
-        var functionResult = await this._planner.RunStepwisePlannerAsync(goal, context, cancellationToken);
+        var plannerArguments = new KernelArguments(kernelArguments);
+        var functionResult = await this._planner.RunStepwisePlannerAsync(goal, kernelArguments, cancellationToken);
 
         // Populate the execution metadata.
         var plannerResult = functionResult.GetValue<string>()?.Trim() ?? string.Empty;
         this.StepwiseThoughtProcess = new PlanExecutionMetadata(
-            plannerContext.Variables["stepsTaken"],
-            plannerContext.Variables["timeTaken"],
-            plannerContext.Variables["pluginCount"],
+            (string)plannerArguments["stepsTaken"]!,
+            (string)plannerArguments["timeTaken"]!,
+            (string)plannerArguments["pluginCount"]!,
             plannerResult);
 
         // Return empty string if result was not found so it's omitted from the meta prompt.
@@ -239,9 +237,9 @@ public class ExternalInformationPlugin
         }
 
         // Parse the steps taken to determine which functions were used.
-        if (plannerContext.Variables.TryGetValue("stepsTaken", out var stepsTaken))
+        if (plannerArguments.TryGetValue("stepsTaken", out var stepsTaken))
         {
-            var steps = JsonSerializer.Deserialize<List<SystemStep>>(stepsTaken);
+            var steps = JsonSerializer.Deserialize<List<SystemStep>>((string)stepsTaken!);
             var functionsUsed = new HashSet<string>();
             steps?.ForEach(step =>
             {
@@ -249,13 +247,13 @@ public class ExternalInformationPlugin
             });
 
             var planFunctions = string.Join(", ", functionsUsed);
-            plannerContext.Variables.Set("planFunctions", functionsUsed.Count > 0 ? planFunctions : "N/A");
+            plannerArguments.Add("planFunctions", functionsUsed.Count > 0 ? planFunctions : "N/A");
         }
 
         // Render the supplement to guide the model in using the result.
         var promptTemplateFactory = new BasicPromptTemplateFactory();
         var promptTemplate = promptTemplateFactory.Create(this._promptOptions.StepwisePlannerSupplement, new PromptTemplateConfig());
-        var resultSupplement = await promptTemplate.RenderAsync(plannerContext, cancellationToken);
+        var resultSupplement = await promptTemplate.RenderAsync(plannerArguments, cancellationToken);
 
         return $"{resultSupplement}\n\nResult:\n\"{plannerResult}\"";
     }
@@ -263,18 +261,18 @@ public class ExternalInformationPlugin
     /// <summary>
     /// Merge any variables from context into plan parameters.
     /// </summary>
-    private void MergeContextIntoPlan(ContextVariables variables, ContextVariables planParams)
+    private void MergeContextIntoPlan(KernelArguments arguments, KernelArguments planArguments)
     {
-        foreach (var param in planParams)
+        foreach (var param in planArguments)
         {
             if (param.Key.Equals("INPUT", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            if (variables.TryGetValue(param.Key, out string? value))
+            if (arguments.TryGetValue(param.Key, out object? value))
             {
-                planParams.Set(param.Key, value);
+                planArguments.Add(param.Key, value);
             }
         }
     }
@@ -282,7 +280,7 @@ public class ExternalInformationPlugin
     /// <summary>
     /// Try to extract json from the planner response as if it were from an OpenAPI plugin.
     /// </summary>
-    private bool TryExtractJsonFromOpenApiPlanResult(SKContext context, string openApiPluginResponse, out string json)
+    private bool TryExtractJsonFromOpenApiPlanResult(KernelArguments kernelArguments, string openApiPluginResponse, out string json)
     {
         try
         {
@@ -476,9 +474,9 @@ public class ExternalInformationPlugin
     /// </summary>
     /// <param name="context">The chat context object that contains the variables and their values.</param>
     /// <returns>A string with one line per variable, in the format "key: value", except for variables that contain "TokenUsage", "tokenLimit", or "chatId" in their names, which are skipped.</returns>
-    private string GetChatContextString(SKContext context)
+    private string GetChatContextString(KernelArguments kernelArguments)
     {
-        return string.Join("\n", context.Variables.Where(v => !(
+        return string.Join("\n", kernelArguments.Where(v => !(
             v.Key.Contains("TokenUsage", StringComparison.CurrentCultureIgnoreCase)
             || v.Key.Contains("tokenLimit", StringComparison.CurrentCultureIgnoreCase)
             || v.Key.Contains("chatId", StringComparison.CurrentCultureIgnoreCase)))

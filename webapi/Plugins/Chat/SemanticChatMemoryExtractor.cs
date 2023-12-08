@@ -11,8 +11,6 @@ using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
-using Microsoft.SemanticKernel.Orchestration;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
@@ -26,15 +24,15 @@ internal static class SemanticChatMemoryExtractor
     /// </summary>
     /// <param name="chatId">The Chat ID.</param>
     /// <param name="kernel">The semantic kernel.</param>
-    /// <param name="context">The Semantic Kernel context.</param>
+    /// <param name="kernelArguments">The Semantic Kernel arguments.</param>
     /// <param name="options">The prompts options.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     public static async Task ExtractSemanticChatMemoryAsync(
         string chatId,
         IKernelMemory memoryClient,
-        IKernel kernel,
-        SKContext context,
+        Kernel kernel,
+        KernelArguments kernelArguments,
         PromptsOptions options,
         ILogger logger,
         CancellationToken cancellationToken)
@@ -80,21 +78,21 @@ internal static class SemanticChatMemoryExtractor
                 options.ResponseTokenLimit -
                 TokenUtils.TokenCount(memoryPrompt);
 
-            var memoryExtractionContext = context.Clone();
-            memoryExtractionContext.Variables.Set("tokenLimit", remainingToken.ToString(new NumberFormatInfo()));
-            memoryExtractionContext.Variables.Set("memoryName", memoryName);
-            memoryExtractionContext.Variables.Set("format", options.MemoryFormat);
-            memoryExtractionContext.Variables.Set("knowledgeCutoff", options.KnowledgeCutoffDate);
+            var memoryExtractionArguments = new KernelArguments(kernelArguments);
+            memoryExtractionArguments.Add("tokenLimit", remainingToken.ToString(new NumberFormatInfo()));
+            memoryExtractionArguments.Add("memoryName", memoryName);
+            memoryExtractionArguments.Add("format", options.MemoryFormat);
+            memoryExtractionArguments.Add("knowledgeCutoff", options.KnowledgeCutoffDate);
 
             var completionFunction = kernel.CreateSemanticFunction(memoryPrompt);
             var result = await completionFunction.InvokeAsync(
-                memoryExtractionContext,
+                memoryExtractionArguments,
                 options.ToCompletionSettings(),
                 cancellationToken);
 
             // Get token usage from ChatCompletion result and add to context
             // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
-            TokenUtils.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryType}");
+            TokenUtils.GetFunctionTokenUsage(result, kernelArguments, logger, $"SystemCognitive_{memoryType}");
 
             SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
             return memory;

@@ -2,12 +2,12 @@
 
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Request;
-using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Utilities;
 
 /// <summary>
-/// Converts <see cref="Ask"/> variables to <see cref="ContextVariables"/>, inserting some system variables along the way.
+/// Converts <see cref="Ask"/> variables to <see cref="KernelArguments"/>, inserting some system variables along the way.
 /// </summary>
 public class AskConverter
 {
@@ -19,23 +19,23 @@ public class AskConverter
     }
 
     /// <summary>
-    /// Converts <see cref="Ask"/> variables to <see cref="ContextVariables"/>, inserting some system variables along the way.
+    /// Converts <see cref="Ask"/> variables to <see cref="KernelArguments"/>, inserting some system variables along the way.
     /// </summary>
-    public ContextVariables GetContextVariables(Ask ask)
+    public KernelArguments GetKernelArguments(Ask ask)
     {
         const string userIdKey = "userId";
         const string userNameKey = "userName";
-        var contextVariables = new ContextVariables(ask.Input);
+        var kernelArguments = new KernelArguments(ask.Input);
         foreach (var variable in ask.Variables)
         {
             if (variable.Key != userIdKey && variable.Key != userNameKey)
             {
-                contextVariables.Set(variable.Key, variable.Value);
+                kernelArguments.Add(variable.Key, variable.Value);
             }
         }
 
-        contextVariables.Set(userIdKey, this._authInfo.UserId);
-        contextVariables.Set(userNameKey, this._authInfo.Name);
-        return contextVariables;
+        kernelArguments.Add(userIdKey, this._authInfo.UserId);
+        kernelArguments.Add(userNameKey, this._authInfo.Name);
+        return kernelArguments;
     }
 }

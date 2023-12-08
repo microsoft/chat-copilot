@@ -20,7 +20,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Plugins.Core;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -33,19 +32,19 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Delegate to register functions with a Semantic Kernel
     /// </summary>
-    public delegate Task RegisterFunctionsWithKernel(IServiceProvider sp, IKernel kernel);
+    public delegate Task RegisterFunctionsWithKernel(IServiceProvider sp, Kernel kernel);
 
     /// <summary>
     /// Delegate for any complimentary setup of the kernel, i.e., registering custom plugins, etc.
     /// See webapi/README.md#Add-Custom-Setup-to-Chat-Copilot's-Kernel for more details.
     /// </summary>
-    public delegate Task KernelSetupHook(IServiceProvider sp, IKernel kernel);
+    public delegate Task KernelSetupHook(IServiceProvider sp, Kernel kernel);
 
     /// <summary>
     /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
     /// See webapi/README.md#Add-Custom-Plugin-Registration-to-the-Planner's-Kernel for more details.
     /// </summary>
-    public delegate Task RegisterFunctionsWithPlannerHook(IServiceProvider sp, IKernel kernel);
+    public delegate Task RegisterFunctionsWithPlannerHook(IServiceProvider sp, Kernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -55,7 +54,7 @@ internal static class SemanticKernelExtensions
         builder.InitializeKernelProvider();
 
         // Semantic Kernel
-        builder.Services.AddScoped<IKernel>(
+        builder.Services.AddScoped<Kernel>(
             sp =>
             {
                 var provider = sp.GetRequiredService<SemanticKernelProvider>();
@@ -148,7 +147,7 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register the chat plugin with the kernel.
     /// </summary>
-    public static IKernel RegisterChatPlugin(this IKernel kernel, IServiceProvider sp)
+    public static Kernel RegisterChatPlugin(this Kernel kernel, IServiceProvider sp)
     {
         // Chat plugin
         kernel.ImportFunctions(
@@ -176,7 +175,7 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register functions with the main kernel responsible for handling Chat Copilot requests.
     /// </summary>
-    private static Task RegisterChatCopilotFunctionsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterChatCopilotFunctionsAsync(IServiceProvider sp, Kernel kernel)
     {
         // Chat Copilot functions
         kernel.RegisterChatPlugin(sp);
@@ -190,7 +189,7 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register plugins with a given kernel.
     /// </summary>
-    private static Task RegisterPluginsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterPluginsAsync(IServiceProvider sp, Kernel kernel)
     {
         var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
 
@@ -204,7 +203,7 @@ internal static class SemanticKernelExtensions
                 {
                     kernel.ImportSemanticFunctionsFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
-                catch (SKException ex)
+                catch (KernelException ex)
                 {
                     logger.LogError("Could not load plugin from {Directory}: {Message}", subDir, ex.Message);
                 }
@@ -233,7 +232,7 @@ internal static class SemanticKernelExtensions
                         var plugin = Activator.CreateInstance(classType);
                         kernel.ImportFunctions(plugin!, classType.Name!);
                     }
-                    catch (SKException ex)
+                    catch (KernelException ex)
                     {
                         logger.LogError("Could not load plugin from file {File}: {Details}", file, ex.Message);
                     }

@@ -12,10 +12,7 @@ using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planners;
-using Microsoft.SemanticKernel.Planning;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
@@ -32,7 +29,7 @@ public class CopilotChatPlanner
     /// <summary>
     /// The planner's kernel.
     /// </summary>
-    public IKernel Kernel { get; }
+    public Kernel Kernel { get; }
 
     /// <summary>
     /// Options for the planner.
@@ -68,7 +65,7 @@ public class CopilotChatPlanner
     /// Initializes a new instance of the <see cref="CopilotChatPlanner"/> class.
     /// </summary>
     /// <param name="plannerKernel">The planner's kernel.</param>
-    public CopilotChatPlanner(IKernel plannerKernel, PlannerOptions? plannerOptions, ILogger logger)
+    public CopilotChatPlanner(Kernel plannerKernel, PlannerOptions? plannerOptions, ILogger logger)
     {
         this.Kernel = plannerKernel;
         this._plannerOptions = plannerOptions;
@@ -116,7 +113,7 @@ public class CopilotChatPlanner
                     break;
             }
         }
-        catch (SKException)
+        catch (KernelException)
         {
             // No relevant functions are available - return an empty plan.
             return new Plan(goal);
@@ -131,7 +128,7 @@ public class CopilotChatPlanner
     /// <param name="goal">The goal containing user intent and ask context.</param>
     /// <param name="context">The context to run the plan in.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task<FunctionResult> RunStepwisePlannerAsync(string goal, SKContext context, CancellationToken cancellationToken = default)
+    public async Task<FunctionResult> RunStepwisePlannerAsync(string goal, KernelArguments kernelArguments, CancellationToken cancellationToken = default)
     {
         var config = new StepwisePlannerConfig()
         {
@@ -148,10 +145,10 @@ public class CopilotChatPlanner
                 this.Kernel,
                 config
             ).CreatePlan(string.Join("\n", goal, StepwisePlannerSupplement));
-            var result = await plan.InvokeAsync(context, cancellationToken: cancellationToken);
+            var result = await plan.InvokeAsync(kernelArguments, cancellationToken: cancellationToken);
 
             sw.Stop();
-            context.Variables.Set("timeTaken", sw.Elapsed.ToString());
+            kernelArguments.Add("timeTaken", sw.Elapsed.ToString());
             return result;
         }
         catch (Exception e)
