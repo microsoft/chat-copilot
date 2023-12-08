@@ -22,12 +22,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Run integration tests
+
+      - name: Configure test environment
+        working-directory: integration-tests
         env:
-          BaseServerUrl: "https://${{inputs.BACKEND_HOST}}.azurewebsites.net/"
-          TenantID: ${{secrets.COPILOT_CHAT_TEST_TENANT_ID}}
-          ClientID: ${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID}}
-          BackendClientID: ${{secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID}}
+          TenantId: ${{ secrets.COPILOT_CHAT_TEST_TENANT_ID }}
+          WebApiClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}
+          WebAppClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID }}
           Username: ${{secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1}}
           Password: ${{secrets.COPILOT_CHAT_TEST_USER_PASSWORD1}}
-        run: dotnet test --logger trx -e Authority="https://login.microsoftonline.com/$env:TenantID" -e Scopes="openid, offline_access, profile, api://$env:BackendClientID/access_as_user"
+        run: |
+          dotnet user-secrets set "BaseServerUrl" "https://${{inputs.BACKEND_HOST}}.azurewebsites.net/"
+          dotnet user-secrets set "Authority" "https://login.microsoftonline.com/$env:TenantID"
+          dotnet user-secrets set "ClientID" "$env:WebAppClientId"
+          dotnet user-secrets set "Scopes" "openid, offline_access, profile, api://$env:WebApiClientId/access_as_user"
+          dotnet user-secrets set "Username" "$env:Username"
+          dotnet user-secrets set "Password" "$env:Password"
+
+      - name: Run integration tests
+        run: dotnet test --logger trx
