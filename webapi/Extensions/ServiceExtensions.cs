@@ -81,11 +81,6 @@ public static class CopilotChatServiceExtensions
             .PostConfigure(TrimStringProperties);
     }
 
-    internal static IServiceCollection AddUtilities(this IServiceCollection services)
-    {
-        return services.AddScoped<AskConverter>();
-    }
-
     internal static IServiceCollection AddPlugins(this IServiceCollection services, IConfiguration configuration)
     {
         var plugins = configuration.GetSection("Plugins").Get<List<Plugin>>() ?? new List<Plugin>();
