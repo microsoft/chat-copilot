@@ -421,10 +421,7 @@ public class ChatController : ControllerBase, IDisposable
         var contextVariables = new ContextVariables(ask.Input);
         foreach (var variable in ask.Variables)
         {
-            if (variable.Key != UserIdKey && variable.Key != UserNameKey)
-            {
-                contextVariables.Set(variable.Key, variable.Value);
-            }
+            contextVariables.Set(variable.Key, variable.Value);
         }
 
         contextVariables.Set(UserIdKey, authInfo.UserId);
