@@ -126,7 +126,7 @@ public class DocumentController : ControllerBase
     /// Service API for removing a document.
     /// Documents imported through this route will be considered as global documents.
     /// </summary>
-    [Route("documents")]
+    [Route("documents/{documentId}")]
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -238,9 +238,12 @@ public class DocumentController : ControllerBase
             return this.BadRequest("Document removal not enabled.");
         }
 
+        // First remove the document embeddings.
         await memoryClient.RemoveDocumentAsync(this._promptOptions.DocumentMemoryName, documentId.ToString(), cancellationToken);
+
         // $$$ REMOVE CITED MESSAGES ???
 
+        // Then remove the memory source.  This ensures that delete may be re-attempted on exception.
         await this._sourceRepository.DeleteAsync(documentId.ToString(), chatId.ToString());
 
         return this.Ok();
