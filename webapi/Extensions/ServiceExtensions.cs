@@ -273,6 +273,7 @@ public static class CopilotChatServiceExtensions
                             AuthPolicyName.RequireChatParticipant,
                             builder => builder.RequireAuthenticatedUser().AddRequirements(new ChatParticipantRequirement()));
 
+                        // $$$ TBD - AUTH
                         //options.AddPolicy(
                         //    AuthPolicyName.RequireChatAdmin,
                         //    builder => builder.RequireAuthenticatedUser()); //.AddRequirements(new ChatParticipantRequirement())) $$$
