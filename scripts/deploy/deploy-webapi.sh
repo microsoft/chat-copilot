@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Deploy Chat Copilot application to Azure
+# deployment script change
 
 usage() {
     echo "Usage: $0 -d DEPLOYMENT_NAME -s SUBSCRIPTION -rg RESOURCE_GROUP [OPTIONS]"
