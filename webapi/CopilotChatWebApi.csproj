@@ -14,6 +14,7 @@
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <AnalysisLevel>latest</AnalysisLevel>
+    <NoWarn>SKEXP0052, SKEXP0003</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,17 +22,17 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.37.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.16.0" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.10.231117.1-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-rc3" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-rc3" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.22.231215.2" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-rc4" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-rc4" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-rc3" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-rc2" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="1.0.0-rc3" />
     <PackageReference Include="Microsoft.SemanticKernel.Functions.OpenAPI" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta8" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-rc3" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-rc3" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-rc3" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-rc4" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-rc4" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-rc4" />
     <PackageReference Include="Microsoft.SemanticKernel.TemplateEngine.Basic" Version="1.0.0-beta8" />
     <PackageReference Include="SharpToken" Version="1.2.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

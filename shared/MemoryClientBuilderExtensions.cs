@@ -10,7 +10,7 @@ namespace CopilotChat.Shared;
 /// </summary>
 public static class MemoryClientBuilderExtensions
 {
-    public static KernelMemoryBuilder WithCustomOcr(this KernelMemoryBuilder builder, IConfiguration configuration)
+    public static IKernelMemoryBuilder WithCustomOcr(this IKernelMemoryBuilder builder, IConfiguration configuration)
     {
         var ocrEngine = configuration.CreateCustomOcr();
 

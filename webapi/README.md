@@ -93,7 +93,7 @@ To enable sequential planner,
 1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Plugins/Chat/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
    - Add `using` statement to top of file:
      ```
-     using Microsoft.SemanticKernel.Planning.Sequential;
+     using Microsoft.SemanticKernel.Planning;
      ```
    - The `CreatePlanAsync` method should return the following line if `this._plannerOptions?.Type == "Sequential"` is true:
      ```

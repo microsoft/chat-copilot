@@ -14,7 +14,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticKernel.Plugins.Memory;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -25,8 +24,8 @@ public sealed class SemanticKernelProvider
 {
     private static IMemoryStore? _volatileMemoryStore;
 
-    private readonly KernelBuilder _builderChat;
-    private readonly KernelBuilder _builderPlanner;
+    private readonly IKernelBuilder _builderChat;
+    private readonly IKernelBuilder _builderPlanner;
     private readonly MemoryBuilder _builderMemory;
 
     public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration, IHttpClientFactory httpClientFactory)
@@ -51,12 +50,12 @@ public sealed class SemanticKernelProvider
     /// </summary>
     public ISemanticTextMemory GetMigrationMemory() => this._builderMemory.Build();
 
-    private static KernelBuilder InitializeCompletionKernel(
+    private static IKernelBuilder InitializeCompletionKernel(
         IServiceProvider serviceProvider,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
     {
-        var builder = new KernelBuilder();
+        var builder = new IKernelBuilder();
 
         builder.WithLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
 
@@ -93,12 +92,12 @@ public sealed class SemanticKernelProvider
         return builder;
     }
 
-    private static KernelBuilder InitializePlannerKernel(
+    private static IKernelBuilder InitializePlannerKernel(
         IServiceProvider serviceProvider,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
     {
-        var builder = new KernelBuilder();
+        var builder = new IKernelBuilder();
 
         builder.WithLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
 

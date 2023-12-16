@@ -7,8 +7,8 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
+using Microsoft.SemanticKernel.ChatCompletion;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.ChatCompletion.ChatHistory;
 
 namespace CopilotChat.WebApi.Plugins.Utils;
 

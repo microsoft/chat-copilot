@@ -81,8 +81,8 @@ public class CopilotChatPlanner
     /// <returns>The plan.</returns>
     public async Task<Plan> CreatePlanAsync(string goal, ILogger logger, CancellationToken cancellationToken = default)
     {
-        var plannerFunctionsView = this.Kernel.Functions.GetFunctionViews();
-        if (plannerFunctionsView.IsNullOrEmpty())
+        var plannerFunctionsMetadata = this.Kernel.Plugins.GetFunctionsMetadata();
+        if (plannerFunctionsMetadata.IsNullOrEmpty())
         {
             // No functions are available - return an empty plan.
             return new Plan(goal);
@@ -119,7 +119,7 @@ public class CopilotChatPlanner
             return new Plan(goal);
         }
 
-        return this._plannerOptions!.ErrorHandling.AllowMissingFunctions ? this.SanitizePlan(plan, plannerFunctionsView, logger) : plan;
+        return this._plannerOptions!.ErrorHandling.AllowMissingFunctions ? this.SanitizePlan(plan, plannerFunctionsMetadata, logger) : plan;
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ public class CopilotChatPlanner
     /// <param name="availableFunctions">The functions available in the planner's kernel.</param>
     /// <param name="logger">Logger from context.</param>
     /// </summary>
-    private Plan SanitizePlan(Plan plan, IEnumerable<FunctionView> availableFunctions, ILogger logger)
+    private Plan SanitizePlan(Plan plan, IEnumerable<KernelFunctionMetadata> availableFunctions, ILogger logger)
     { // TODO: [Issue #2256] Re-evaluate this logic once we have a better understanding of how to handle missing functions
         List<Plan> sanitizedSteps = new();
         List<string> availableOutputs = new();
@@ -174,7 +174,7 @@ public class CopilotChatPlanner
         foreach (var step in plan.Steps)
         {
             // Check if function exists in planner's kernel
-            if (this.Kernel.Functions.TryGetFunction(step.PluginName, step.Name, out var function))
+            if (this.Kernel.Plugins.TryGetFunction(step.PluginName, step.Name, out var function))
             {
                 availableOutputs.AddRange(step.Outputs);
 

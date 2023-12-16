@@ -23,9 +23,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
-using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.ChatCompletion.ChatHistory;
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
@@ -844,11 +845,11 @@ public class ChatPlugin
     }
 
     /// <summary>
-    /// Create `OpenAIRequestSettings` for chat response. Parameters are read from the PromptSettings class.
+    /// Create `OpenAIPromptExecutionSettings` for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private OpenAIRequestSettings CreateChatRequestSettings()
+    private OpenAIPromptExecutionSettings CreateChatRequestSettings()
     {
-        return new OpenAIRequestSettings
+        return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
             Temperature = this._promptOptions.ResponseTemperature,
@@ -859,11 +860,11 @@ public class ChatPlugin
     }
 
     /// <summary>
-    /// Create `OpenAIRequestSettings` for intent response. Parameters are read from the PromptSettings class.
+    /// Create `OpenAIPromptExecutionSettings` for intent response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private OpenAIRequestSettings CreateIntentCompletionSettings()
+    private OpenAIPromptExecutionSettings CreateIntentCompletionSettings()
     {
-        return new OpenAIRequestSettings
+        return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
             Temperature = this._promptOptions.IntentTemperature,

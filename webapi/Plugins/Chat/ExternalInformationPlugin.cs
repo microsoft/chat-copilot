@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Planners;
+using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
 
 namespace CopilotChat.WebApi.Plugins.Chat;

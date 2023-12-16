@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
-using Microsoft.SemanticKernel.Planning;
+using Microsoft.SemanticKernel.Planners;
 
 namespace CopilotChat.WebApi.Models.Response;
 

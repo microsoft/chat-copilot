@@ -11,6 +11,7 @@ using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
@@ -133,9 +134,9 @@ internal static class SemanticChatMemoryExtractor
     /// <summary>
     /// Create a completion settings object for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private static OpenAIRequestSettings ToCompletionSettings(this PromptsOptions options)
+    private static OpenAIPromptExecutionSettings ToCompletionSettings(this PromptsOptions options)
     {
-        var completionSettings = new OpenAIRequestSettings
+        var completionSettings = new OpenAIPromptExecutionSettings
         {
             MaxTokens = options.ResponseTokenLimit,
             Temperature = options.ResponseTemperature,
