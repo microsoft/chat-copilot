@@ -48,21 +48,21 @@ services:
       - webapi/.env
     environment:
       - Authentication__Type=AzureAd
-      - SemanticMemory__Services__Qdrant__Endpoint=http://qdrant:6333
-      - SemanticMemory__Services__Qdrant__APIKey=chat-copilot
-      - SemanticMemory__Services__RabbitMq__Host=rabbitmq
-      - SemanticMemory__Services__RabbitMq__Port=5672
-      - SemanticMemory__Services__RabbitMq__Username=chat-copilot
-      - SemanticMemory__Services__RabbitMq__Password=chat-copilot
-      - SemanticMemory__ContentStorageType=AzureBlobs
-      - SemanticMemory__ImageOcrType=Tesseract
-      - SemanticMemory__TextGeneratorType=AzureOpenAI
-      - SemanticMemory__DataIngestion__OrchestrationType=Distributed
-      - SemanticMemory__DataIngestion__DistributedOrchestration__QueueType=RabbitMQ
-      - SemanticMemory__DataIngestion__VectorDbTypes__0=Qdrant
-      - SemanticMemory__DataIngestion__EmbeddingGeneratorTypes__0=AzureOpenAI
-      - SemanticMemory__Retrieval__EmbeddingGeneratorType=AzureOpenAI
-      - SemanticMemory__Retrieval__VectorDbType=Qdrant
+      - KernelMemory__Services__Qdrant__Endpoint=http://qdrant:6333
+      - KernelMemory__Services__Qdrant__APIKey=chat-copilot
+      - KernelMemory__Services__RabbitMq__Host=rabbitmq
+      - KernelMemory__Services__RabbitMq__Port=5672
+      - KernelMemory__Services__RabbitMq__Username=chat-copilot
+      - KernelMemory__Services__RabbitMq__Password=chat-copilot
+      - KernelMemory__ContentStorageType=AzureBlobs
+      - KernelMemory__ImageOcrType=Tesseract
+      - KernelMemory__TextGeneratorType=AzureOpenAI
+      - KernelMemory__DataIngestion__OrchestrationType=Distributed
+      - KernelMemory__DataIngestion__DistributedOrchestration__QueueType=RabbitMQ
+      - KernelMemory__DataIngestion__VectorDbTypes__0=Qdrant
+      - KernelMemory__DataIngestion__EmbeddingGeneratorTypes__0=AzureOpenAI
+      - KernelMemory__Retrieval__EmbeddingGeneratorType=AzureOpenAI
+      - KernelMemory__Retrieval__VectorDbType=Qdrant
       - Plugins__1__Name=WebSearcher
       - Plugins__1__ManifestDomain=http://web-searcher
       - Plugins__1__Key=chat-copilot
@@ -117,21 +117,21 @@ services:
     env_file:
       - memorypipeline/.env
     environment:
-      - SemanticMemory__Services__Qdrant__Endpoint=http://qdrant:6333
-      - SemanticMemory__Services__Qdrant__APIKey=chat-copilot
-      - SemanticMemory__Services__RabbitMq__Host=rabbitmq
-      - SemanticMemory__Services__RabbitMq__Port=5672
-      - SemanticMemory__Services__RabbitMq__Username=chat-copilot
-      - SemanticMemory__Services__RabbitMq__Password=chat-copilot
-      - SemanticMemory__ContentStorageType=AzureBlobs
-      - SemanticMemory__ImageOcrType=Tesseract
-      - SemanticMemory__TextGeneratorType=AzureOpenAI
-      - SemanticMemory__DataIngestion__OrchestrationType=Distributed
-      - SemanticMemory__DataIngestion__DistributedOrchestration__QueueType=RabbitMQ
-      - SemanticMemory__DataIngestion__VectorDbTypes__0=Qdrant
-      - SemanticMemory__DataIngestion__EmbeddingGeneratorTypes__0=AzureOpenAI
-      - SemanticMemory__Retrieval__EmbeddingGeneratorType=AzureOpenAI
-      - SemanticMemory__Retrieval__VectorDbType=Qdrant
+      - KernelMemory__Services__Qdrant__Endpoint=http://qdrant:6333
+      - KernelMemory__Services__Qdrant__APIKey=chat-copilot
+      - KernelMemory__Services__RabbitMq__Host=rabbitmq
+      - KernelMemory__Services__RabbitMq__Port=5672
+      - KernelMemory__Services__RabbitMq__Username=chat-copilot
+      - KernelMemory__Services__RabbitMq__Password=chat-copilot
+      - KernelMemory__ContentStorageType=AzureBlobs
+      - KernelMemory__ImageOcrType=Tesseract
+      - KernelMemory__TextGeneratorType=AzureOpenAI
+      - KernelMemory__DataIngestion__OrchestrationType=Distributed
+      - KernelMemory__DataIngestion__DistributedOrchestration__QueueType=RabbitMQ
+      - KernelMemory__DataIngestion__VectorDbTypes__0=Qdrant
+      - KernelMemory__DataIngestion__EmbeddingGeneratorTypes__0=AzureOpenAI
+      - KernelMemory__Retrieval__EmbeddingGeneratorType=AzureOpenAI
+      - KernelMemory__Retrieval__VectorDbType=Qdrant
     depends_on:
       qdrant:
         condition: service_started
