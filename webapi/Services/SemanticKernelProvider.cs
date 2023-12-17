@@ -11,8 +11,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.MemoryStorage.Qdrant;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
-using Microsoft.SemanticKernel.Connectors.Memory.Qdrant;
+using Microsoft.SemanticKernel.Connectors.AzureAISearch;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Connectors.Qdrant;
 using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Services;
@@ -55,9 +56,9 @@ public sealed class SemanticKernelProvider
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
     {
-        var builder = new IKernelBuilder();
+        var builder = Kernel.CreateBuilder();
 
-        builder.WithLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+        builder.Services.AddLogging();
 
         var memoryOptions = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
@@ -67,7 +68,7 @@ public sealed class SemanticKernelProvider
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithAzureOpenAIChatCompletionService(
+                builder.AddAzureOpenAIChatCompletion(
                     azureAIOptions.Deployment,
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
@@ -78,7 +79,7 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithOpenAIChatCompletionService(
+                builder.AddOpenAIChatCompletion(
                     openAIOptions.TextModel,
                     openAIOptions.APIKey,
                     httpClient: httpClientFactory.CreateClient());
@@ -97,9 +98,9 @@ public sealed class SemanticKernelProvider
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
     {
-        var builder = new IKernelBuilder();
+        var builder = Kernel.CreateBuilder();
 
-        builder.WithLoggerFactory(serviceProvider.GetRequiredService<ILoggerFactory>());
+        builder.Services.AddLogging();
 
         var memoryOptions = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
         var plannerOptions = serviceProvider.GetRequiredService<IOptions<PlannerOptions>>().Value;
@@ -110,7 +111,7 @@ public sealed class SemanticKernelProvider
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithAzureOpenAIChatCompletionService(
+                builder.AddAzureOpenAIChatCompletion(
                     plannerOptions.Model,
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
@@ -121,7 +122,7 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithOpenAIChatCompletionService(
+                builder.AddOpenAIChatCompletion(
                     plannerOptions.Model,
                     openAIOptions.APIKey,
                     httpClient: httpClientFactory.CreateClient());
@@ -153,8 +154,9 @@ public sealed class SemanticKernelProvider
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIEmbedding");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithAzureOpenAITextEmbeddingGenerationService(
+                builder.WithAzureOpenAITextEmbeddingGeneration(
                     azureAIOptions.Deployment,
+                    azureAIOptions.Deployment, // use Deployment name as ModelId
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
                     httpClient: httpClientFactory.CreateClient());
@@ -164,7 +166,7 @@ public sealed class SemanticKernelProvider
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 var openAIOptions = memoryOptions.GetServiceConfig<OpenAIConfig>(configuration, "OpenAI");
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
-                builder.WithOpenAITextEmbeddingGenerationService(
+                builder.WithOpenAITextEmbeddingGeneration(
                     openAIOptions.EmbeddingModel,
                     openAIOptions.APIKey,
                     httpClient: httpClientFactory.CreateClient());
@@ -178,7 +180,7 @@ public sealed class SemanticKernelProvider
 
         IMemoryStore CreateMemoryStore()
         {
-            switch (memoryOptions.Retrieval.VectorDbType)
+            switch (memoryOptions.Retrieval.MemoryDbType)
             {
                 case string x when x.Equals("SimpleVectorDb", StringComparison.OrdinalIgnoreCase):
                     // Maintain single instance of volatile memory.
@@ -204,11 +206,11 @@ public sealed class SemanticKernelProvider
                             loggerFactory: serviceProvider.GetRequiredService<ILoggerFactory>());
 
                 case string x when x.Equals("AzureCognitiveSearch", StringComparison.OrdinalIgnoreCase):
-                    var acsConfig = memoryOptions.GetServiceConfig<AzureCognitiveSearchConfig>(configuration, "AzureCognitiveSearch");
-                    return new AzureCognitiveSearchMemoryStore(acsConfig.Endpoint, acsConfig.APIKey);
+                    var acsConfig = memoryOptions.GetServiceConfig<AzureAISearchConfig>(configuration, "AzureCognitiveSearch");
+                    return new AzureAISearchMemoryStore(acsConfig.Endpoint, acsConfig.APIKey);
 
                 default:
-                    throw new InvalidOperationException($"Invalid 'VectorDbType' type '{memoryOptions.Retrieval.VectorDbType}'.");
+                    throw new InvalidOperationException($"Invalid 'VectorDbType' type '{memoryOptions.Retrieval.MemoryDbType}'.");
             }
         }
     }

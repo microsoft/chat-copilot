@@ -25,7 +25,6 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel.TemplateEngine.Basic;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.ChatCompletion.ChatHistory;
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 
@@ -149,14 +148,15 @@ public class ChatPlugin
         intentExtractionArugments.Add("tokenLimit", historyTokenBudget);
         intentExtractionArugments.Add("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
 
-        var completionFunction = this._kernel.CreateSemanticFunction(
+        var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemIntentExtraction,
-            pluginName: nameof(ChatPlugin),
+            this.CreateIntentCompletionSettings(),
+            functionName: nameof(ChatPlugin),
             description: "Complete the prompt.");
 
         var result = await completionFunction.InvokeAsync(
+            this._kernel,
             intentExtractionArugments,
-            this.CreateIntentCompletionSettings(),
             cancellationToken
         );
 
@@ -189,14 +189,15 @@ public class ChatPlugin
         var audienceExtractionArguments = new KernelArguments(kernelArguments);
         kernelArguments.Add("tokenLimit", historyTokenBudget);
 
-        var completionFunction = this._kernel.CreateSemanticFunction(
+        var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemAudienceExtraction,
-            pluginName: nameof(ChatPlugin),
+            this.CreateIntentCompletionSettings(),
+            functionName: nameof(ChatPlugin),
             description: "Complete the prompt.");
 
         var result = await completionFunction.InvokeAsync(
+            this._kernel,
             audienceExtractionArguments,
-            this.CreateIntentCompletionSettings(),
             cancellationToken
         );
 
@@ -297,8 +298,7 @@ public class ChatPlugin
             }
         }
 
-        allottedChatHistory.Reverse();
-        chatHistory?.AddRange(allottedChatHistory);
+        chatHistory?.AddRange(allottedChatHistory.Reverse());
 
         return $"Chat history:\n{historyText.Trim()}";
     }
@@ -331,7 +331,7 @@ public class ChatPlugin
         chatContext.Add("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
 
         CopilotChatMessage chatMessage = await this.GetChatResponseAsync(chatId, userId, kernelArguments, newUserMessage, cancellationToken);
-        kernelArguments.Add(KernelArguments.InputParameterName, chatMessage.Content);
+        kernelArguments.Add("input", chatMessage.Content);
 
         if (chatMessage.TokenUsage != null)
         {
@@ -424,51 +424,53 @@ public class ChatPlugin
             // Render system instruction components and create the meta-prompt template
             var systemInstructions = await AsyncUtils.SafeInvokeAsync(
                 () => this.RenderSystemInstructions(chatId, kernelArguments, cancellationToken), nameof(RenderSystemInstructions));
-            var chatCompletion = this._kernel.GetRequiredService<IChatCompletion>();
-            var promptTemplate = chatCompletion.CreateNewChat(systemInstructions);
+            var chatCompletion = this._kernel.GetRequiredService<IChatCompletionService>();
+            var chatHistory = new ChatHistory(systemInstructions);
+            var reply = await chatCompletion.GetChatMessageContentAsync(chatHistory, null, this._kernel, cancellationToken);
+            chatHistory.Add(reply);
             string chatHistoryString = "";
 
             // Add original user input that prompted plan template
-            promptTemplate.AddUserMessage(deserializedPlan.OriginalUserInput);
+            chatHistory.AddUserMessage(deserializedPlan.OriginalUserInput);
             chatHistoryString += "\n" + PromptUtils.FormatChatHistoryMessage(CopilotChatMessage.AuthorRoles.User, deserializedPlan.OriginalUserInput);
 
             // Add bot message proposal as prompt context message
             chatContext.Add("planFunctions", this._externalInformationPlugin.FormattedFunctionsString(deserializedPlan.Plan));
-            var promptTemplateFactory = new BasicPromptTemplateFactory();
-            var proposedPlanTemplate = promptTemplateFactory.Create(this._promptOptions.ProposedPlanBotMessage, new PromptTemplateConfig());
-            var proposedPlanBotMessage = await proposedPlanTemplate.RenderAsync(kernelArguments, cancellationToken);
-            promptTemplate.AddAssistantMessage(proposedPlanBotMessage);
+            var promptTemplateFactory = new KernelPromptTemplateFactory();
+            var proposedPlanTemplate = promptTemplateFactory.Create(new PromptTemplateConfig(this._promptOptions.ProposedPlanBotMessage));
+            var proposedPlanBotMessage = await proposedPlanTemplate.RenderAsync(this._kernel, kernelArguments, cancellationToken);
+            chatHistory.AddAssistantMessage(proposedPlanBotMessage);
             chatHistoryString += "\n" + PromptUtils.FormatChatHistoryMessage(CopilotChatMessage.AuthorRoles.Bot, proposedPlanBotMessage);
 
             // Add user approval message as prompt context message
-            promptTemplate.AddUserMessage("Yes, proceed");
+            chatHistory.AddUserMessage("Yes, proceed");
             chatHistoryString += "\n" + PromptUtils.FormatChatHistoryMessage(CopilotChatMessage.AuthorRoles.User, "Yes, proceed");
 
             // Add user intent behind plan
             // TODO: [Issue #51] Consider regenerating user intent if plan was modified
-            promptTemplate.AddSystemMessage(deserializedPlan.UserIntent);
+            chatHistory.AddSystemMessage(deserializedPlan.UserIntent);
 
             // Render system supplement to help guide model in using data.
-            var promptSupplementTemplate = promptTemplateFactory.Create(this._promptOptions.PlanResultsDescription, new PromptTemplateConfig());
-            var promptSupplement = await promptSupplementTemplate.RenderAsync(kernelArguments, cancellationToken);
+            var promptSupplementTemplate = promptTemplateFactory.Create(new PromptTemplateConfig(this._promptOptions.PlanResultsDescription));
+            var promptSupplement = await promptSupplementTemplate.RenderAsync(this._kernel, kernelArguments, cancellationToken);
 
             // Calculate remaining token budget and execute plan
             await this.UpdateBotResponseStatusOnClientAsync(chatId, "Executing plan", cancellationToken);
-            var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate) - TokenUtils.GetContextMessageTokenCount(AuthorRole.System, promptSupplement);
+            var remainingTokenBudget = this.GetChatContextTokenLimit(chatHistory) - TokenUtils.GetContextMessageTokenCount(AuthorRole.System, promptSupplement);
 
             try
             {
                 var planResult = await this.AcquireExternalInformationAsync(kernelArguments, deserializedPlan.UserIntent, remainingTokenBudget, cancellationToken, deserializedPlan.Plan);
-                promptTemplate.AddSystemMessage(planResult);
+                chatHistory.AddSystemMessage(planResult);
 
                 // Calculate token usage of prompt template
-                chatContext.Add(TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtils.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.CurrentCulture));
+                chatContext.Add(TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtils.GetContextMessagesTokenCount(chatHistory).ToString(CultureInfo.CurrentCulture));
 
                 // TODO: [Issue #150, sk#2106] Accommodate different planner contexts once core team finishes work to return prompt and token usage.
                 var plannerDetails = new SemanticDependency<PlanExecutionMetadata>(planResult, null, deserializedPlan.Type.ToString());
 
                 // Get bot response and stream to client
-                var promptView = new BotResponsePrompt(systemInstructions, "", deserializedPlan.UserIntent, "", plannerDetails, chatHistoryString, promptTemplate);
+                var promptView = new BotResponsePrompt(systemInstructions, "", deserializedPlan.UserIntent, "", plannerDetails, chatHistoryString, chatHistory);
                 chatMessage = await this.HandleBotResponseAsync(chatId, userId, kernelArguments, promptView, cancellationToken);
 
                 if (chatMessage.TokenUsage != null)
@@ -496,7 +498,7 @@ public class ChatPlugin
                 throw new KernelException("Failed to process plan.", ex);
             }
 
-            kernelArguments.Add(KernelArguments.InputParameterName, chatMessage.Content);
+            kernelArguments.Add("input", chatMessage.Content);
         }
         else
         {
@@ -520,8 +522,10 @@ public class ChatPlugin
         // Render system instruction components and create the meta-prompt template
         var systemInstructions = await AsyncUtils.SafeInvokeAsync(
             () => this.RenderSystemInstructions(chatId, kernelArguments, cancellationToken), nameof(RenderSystemInstructions));
-        var chatCompletion = this._kernel.GetRequiredService<IChatCompletion>();
-        var promptTemplate = chatCompletion.CreateNewChat(systemInstructions);
+        var chatCompletion = this._kernel.GetRequiredService<IChatCompletionService>();
+        var chatHistory = new ChatHistory(systemInstructions);
+        var reply = await chatCompletion.GetChatMessageContentAsync(chatHistory, null, this._kernel, cancellationToken);
+        chatHistory.Add(reply);
 
         // Bypass audience extraction if Auth is disabled
         var audience = string.Empty;
@@ -531,18 +535,18 @@ public class ChatPlugin
             await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting audience", cancellationToken);
             audience = await AsyncUtils.SafeInvokeAsync(
                 () => this.GetAudienceAsync(kernelArguments, cancellationToken), nameof(GetAudienceAsync));
-            promptTemplate.AddSystemMessage(audience);
+            chatHistory.AddSystemMessage(audience);
         }
 
         // Extract user intent from the conversation history.
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting user intent", cancellationToken);
         var userIntent = await AsyncUtils.SafeInvokeAsync(
             () => this.GetUserIntentAsync(kernelArguments, cancellationToken), nameof(GetUserIntentAsync));
-        promptTemplate.AddSystemMessage(userIntent);
+        chatHistory.AddSystemMessage(userIntent);
 
         // Calculate the remaining token budget.
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating remaining token budget", cancellationToken);
-        var remainingTokenBudget = this.GetChatContextTokenLimit(promptTemplate, userMessage.ToFormattedString());
+        var remainingTokenBudget = this.GetChatContextTokenLimit(chatHistory, userMessage.ToFormattedString());
 
         // Acquire external information from planner
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Acquiring external information from planner", cancellationToken);
@@ -586,28 +590,28 @@ public class ChatPlugin
 
         if (!string.IsNullOrWhiteSpace(memoryText))
         {
-            promptTemplate.AddSystemMessage(memoryText);
+            chatHistory.AddSystemMessage(memoryText);
         }
 
         // Fill in the chat history with remaining token budget.
-        string chatHistory = string.Empty;
-        var chatHistoryTokenBudget = remainingTokenBudget - TokenUtils.GetContextMessageTokenCount(AuthorRole.System, memoryText) - TokenUtils.GetContextMessageTokenCount(AuthorRole.System, planResult);
+        string allowedChatHistory = string.Empty;
+        var allowedChatHistoryTokenBudget = remainingTokenBudget - TokenUtils.GetContextMessageTokenCount(AuthorRole.System, memoryText) - TokenUtils.GetContextMessageTokenCount(AuthorRole.System, planResult);
 
         // Append previous messages
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
-        chatHistory = await this.GetAllowedChatHistoryAsync(chatId, chatHistoryTokenBudget, promptTemplate, cancellationToken);
+        allowedChatHistory = await this.GetAllowedChatHistoryAsync(chatId, allowedChatHistoryTokenBudget, chatHistory, cancellationToken);
 
         // Append the plan result last, if exists, to imply precedence.
         if (!string.IsNullOrWhiteSpace(planResult))
         {
-            promptTemplate.AddSystemMessage(planResult);
+            chatHistory.AddSystemMessage(planResult);
         }
 
         // Calculate token usage of prompt template
-        kernelArguments.Add(TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtils.GetContextMessagesTokenCount(promptTemplate).ToString(CultureInfo.CurrentCulture));
+        kernelArguments.Add(TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtils.GetContextMessagesTokenCount(chatHistory).ToString(CultureInfo.CurrentCulture));
 
         // Stream the response to the client
-        var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, plannerDetails, chatHistory, promptTemplate);
+        var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, plannerDetails, allowedChatHistory, chatHistory);
         return await this.HandleBotResponseAsync(chatId, userId, kernelArguments, promptView, cancellationToken, citationMap.Values.AsEnumerable());
     }
 
@@ -622,10 +626,10 @@ public class ChatPlugin
         // Render system instruction components
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
 
-        var promptTemplateFactory = new BasicPromptTemplateFactory();
-        var template = promptTemplateFactory.Create(this._promptOptions.SystemPersona, new PromptTemplateConfig());
+        var promptTemplateFactory = new KernelPromptTemplateFactory();
+        var template = promptTemplateFactory.Create(new PromptTemplateConfig(this._promptOptions.SystemPersona));
 
-        return await template.RenderAsync(kernelArguments, cancellationToken);
+        return await template.RenderAsync(this._kernel, kernelArguments, cancellationToken);
     }
 
     /// <summary>
@@ -746,7 +750,7 @@ public class ChatPlugin
         planArguments.Add("tokenLimit", tokenLimit.ToString(new NumberFormatInfo()));
         return plan is not null
             ? await this._externalInformationPlugin.ExecutePlanAsync(planArguments, plan, cancellationToken)
-            : await this._externalInformationPlugin.InvokePlannerAsync(userIntent, planArguments, cancellationToken);
+            : await this._externalInformationPlugin.InvokePlannerAsync(this._kernel, userIntent, planArguments, cancellationToken);
     }
 
     /// <summary>
@@ -934,11 +938,12 @@ public class ChatPlugin
         IEnumerable<CitationSource>? citations = null)
     {
         // Create the stream
-        var chatCompletion = this._kernel.GetRequiredService<IChatCompletion>();
+        var chatCompletion = this._kernel.GetRequiredService<IChatCompletionService>();
         var stream =
-            chatCompletion.GenerateMessageStreamAsync(
+            chatCompletion.GetStreamingChatMessageContentsAsync(
                 prompt.MetaPromptTemplate,
                 this.CreateChatRequestSettings(),
+                this._kernel,
                 cancellationToken);
 
         // Create message on client
@@ -952,7 +957,7 @@ public class ChatPlugin
         );
 
         // Stream the message to the client
-        await foreach (string contentPiece in stream)
+        await foreach (StreamingChatMessageContent contentPiece in stream)
         {
             chatMessage.Content += contentPiece;
             await this.UpdateMessageOnClient(chatMessage, cancellationToken);

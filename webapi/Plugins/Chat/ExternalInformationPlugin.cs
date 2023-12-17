@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.TemplateEngine.Basic;
 
@@ -83,12 +84,13 @@ public class ExternalInformationPlugin
     /// Invoke planner to generate a new plan or extract relevant additional knowledge.
     /// </summary>
     public async Task<string> InvokePlannerAsync(
+        Kernel kernel,
         string userIntent,
         KernelArguments kernelArguments,
         CancellationToken cancellationToken = default)
     {
         // TODO: [Issue #2106] Calculate planner and plan token usage
-        var functions = this._planner.Kernel.Functions.GetFunctionViews();
+        var functions = this._planner.Kernel.Plugins.GetFunctionsMetadata();
         if (functions.IsNullOrEmpty())
         {
             return string.Empty;
@@ -100,7 +102,7 @@ public class ExternalInformationPlugin
         // Run stepwise planner if PlannerOptions.Type == Stepwise
         if (this._planner.PlannerOptions?.Type == PlanType.Stepwise)
         {
-            return await this.RunStepwisePlannerAsync(goal, kernelArguments, cancellationToken);
+            return await this.RunStepwisePlannerAsync(kernel, goal, kernelArguments, cancellationToken);
         }
 
         // Create a plan and set it in context for approval.
@@ -143,7 +145,7 @@ public class ExternalInformationPlugin
                 }
             }
 
-            this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp, userIntent, (string)kernelArguments[KernelArguments.InputParameterName]!);
+            this.ProposedPlan = new ProposedPlan(plan, plannerOptions.Type, PlanState.NoOp, userIntent, (string)kernelArguments["input"]!);
         }
 
         return string.Empty;
@@ -157,7 +159,7 @@ public class ExternalInformationPlugin
         // Reload the plan with the planner's kernel so it has full context to be executed
         var newPlanContext = this._planner.Kernel.CreateNewContext(context.Variables, this._planner.Kernel.Functions, this._planner.Kernel.LoggerFactory);
         string planJson = JsonSerializer.Serialize(plan);
-        plan = Plan.FromJson(planJson, this._planner.Kernel.Functions);
+        plan = Plan.FromJson(planJson, this._planner.Kernel.Plugins);
 
         // Invoke plan
         var functionResult = await plan.InvokeAsync(newPlanContext, null, cancellationToken);
@@ -217,7 +219,7 @@ public class ExternalInformationPlugin
     /// <returns>
     /// A formatted string containing the result of the stepwise planner and a supplementary message to guide the model in using the result.
     /// </returns>
-    private async Task<string> RunStepwisePlannerAsync(string goal, KernelArguments kernelArguments, CancellationToken cancellationToken)
+    private async Task<string> RunStepwisePlannerAsync(Kernel kernel, string goal, KernelArguments kernelArguments, CancellationToken cancellationToken)
     {
         var plannerArguments = new KernelArguments(kernelArguments);
         var functionResult = await this._planner.RunStepwisePlannerAsync(goal, kernelArguments, cancellationToken);
@@ -251,9 +253,9 @@ public class ExternalInformationPlugin
         }
 
         // Render the supplement to guide the model in using the result.
-        var promptTemplateFactory = new BasicPromptTemplateFactory();
-        var promptTemplate = promptTemplateFactory.Create(this._promptOptions.StepwisePlannerSupplement, new PromptTemplateConfig());
-        var resultSupplement = await promptTemplate.RenderAsync(plannerArguments, cancellationToken);
+        var promptTemplateFactory = new KernelPromptTemplateFactory();
+        var promptTemplate = promptTemplateFactory.Create(new PromptTemplateConfig(this._promptOptions.StepwisePlannerSupplement));
+        var resultSupplement = await promptTemplate.RenderAsync(kernel, plannerArguments, cancellationToken);
 
         return $"{resultSupplement}\n\nResult:\n\"{plannerResult}\"";
     }
