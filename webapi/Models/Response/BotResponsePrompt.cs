@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
-using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
+using ChatCompletionContextMessages = Microsoft.SemanticKernel.ChatCompletion.ChatHistory;
 
 namespace CopilotChat.WebApi.Models.Response;
 

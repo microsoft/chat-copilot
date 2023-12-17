@@ -28,14 +28,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Functions.OpenAPI.Authentication;
-using Microsoft.SemanticKernel.Functions.OpenAPI.Extensions;
-using Microsoft.SemanticKernel.Functions.OpenAPI.OpenAI;
-using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.Plugins.OpenApi;
 using Microsoft.SemanticKernel.Plugins.MsGraph;
 using Microsoft.SemanticKernel.Plugins.MsGraph.Connectors;
 using Microsoft.SemanticKernel.Plugins.MsGraph.Connectors.Client;
+using System.Text;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -96,7 +93,7 @@ public class ChatController : ControllerBase, IDisposable
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> ChatAsync(
-        [FromServices] IKernel kernel,
+        [FromServices] Kernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] CopilotChatPlanner planner,
         [FromServices] ChatSessionRepository chatSessionRepository,
@@ -131,7 +128,7 @@ public class ChatController : ControllerBase, IDisposable
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> ProcessPlanAsync(
-        [FromServices] IKernel kernel,
+        [FromServices] Kernel kernel,
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] CopilotChatPlanner planner,
         [FromServices] ChatSessionRepository chatSessionRepository,
@@ -161,7 +158,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <returns>Results containing the response from the model.</returns>
     private async Task<IActionResult> HandleRequest(
        string functionName,
-       IKernel kernel,
+       Kernel kernel,
        IHubContext<MessageRelayHub> messageRelayHubContext,
        CopilotChatPlanner planner,
        ChatSessionRepository chatSessionRepository,
@@ -171,7 +168,7 @@ public class ChatController : ControllerBase, IDisposable
        string chatId)
     {
         // Put ask's variables in the context we will use.
-        var contextVariables = GetContextVariables(ask, authInfo, chatId);
+        var kernelArguments = this.GetKernelArguments(ask, authInfo, chatId);
 
         // Verify that the chat exists and that the user has access to it.
         ChatSession? chat = null;
@@ -187,25 +184,25 @@ public class ChatController : ControllerBase, IDisposable
 
         // Register plugins that have been enabled
         var openApiPluginAuthHeaders = this.GetPluginAuthHeaders(this.HttpContext.Request.Headers);
-        await this.RegisterPlannerFunctionsAsync(planner, openApiPluginAuthHeaders, contextVariables);
+        await this.RegisterPlannerFunctionsAsync(planner, openApiPluginAuthHeaders, kernelArguments);
 
         // Register hosted plugins that have been enabled
         await this.RegisterPlannerHostedFunctionsUsedAsync(planner, chat!.EnabledPlugins);
 
         // Get the function to invoke
-        ISKFunction? function = null;
+        KernelFunction? function = null;
         try
         {
-            function = kernel.Functions.GetFunction(ChatPluginName, functionName);
+            function = kernel.Plugins.GetFunction(ChatPluginName, functionName);
         }
-        catch (SKException ex)
+        catch (KernelException ex)
         {
             this._logger.LogError("Failed to find {PluginName}/{FunctionName} on server: {Exception}", ChatPluginName, functionName, ex);
             return this.NotFound($"Failed to find {ChatPluginName}/{functionName} on server");
         }
 
         // Run the function.
-        KernelResult? result = null;
+        FunctionResult? result = null;
         try
         {
             using CancellationTokenSource? cts = this._serviceOptions.TimeoutLimitInS is not null
@@ -213,7 +210,7 @@ public class ChatController : ControllerBase, IDisposable
                 ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS))
                 : null;
 
-            result = await kernel.RunAsync(function!, contextVariables, cts?.Token ?? default);
+            result = await kernel.InvokeAsync(function!, kernelArguments, cts?.Token ?? default);
             this._telemetryService.TrackPluginFunction(ChatPluginName, functionName, true);
         }
         catch (Exception ex)
@@ -232,7 +229,7 @@ public class ChatController : ControllerBase, IDisposable
         AskResult chatAskResult = new()
         {
             Value = result.GetValue<string>() ?? string.Empty,
-            Variables = contextVariables.Select(v => new KeyValuePair<string, string>(v.Key, v.Value))
+            Variables = kernelArguments.Select(v => new KeyValuePair<string, object?>(v.Key, v.Value))
         };
 
         // Broadcast AskResult to all users
@@ -269,7 +266,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <summary>
     /// Register functions with the planner's kernel.
     /// </summary>
-    private async Task RegisterPlannerFunctionsAsync(CopilotChatPlanner planner, Dictionary<string, string> authHeaders, ContextVariables variables)
+    private async Task RegisterPlannerFunctionsAsync(CopilotChatPlanner planner, Dictionary<string, string> authHeaders, KernelArguments variables)
     {
         // Register authenticated functions with the planner's kernel only if the request includes an auth header for the plugin.
 
@@ -278,12 +275,12 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogInformation("Enabling GitHub plugin.");
             BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
-            await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
+            await planner.Kernel.ImportPluginFromOpenAIAsync(
                 pluginName: "GitHubPlugin",
                 filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/GitHubPlugin/openapi.json"),
-                new OpenApiFunctionExecutionParameters
+                new OpenAIFunctionExecutionParameters
                 {
-                    AuthCallback = authenticationProvider.AuthenticateRequestAsync,
+                    AuthCallback = authenticationProvider.OpenAIAuthenticateRequestAsync,
                 });
         }
 
@@ -292,15 +289,15 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogInformation("Registering Jira plugin");
             var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
-            var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out string? serverUrlOverride);
+            var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out object? serverUrlOverride);
 
-            await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
+            await planner.Kernel.ImportPluginFromOpenApiAsync(
                 pluginName: "JiraPlugin",
                 filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/JiraPlugin/openapi.json"),
                 new OpenApiFunctionExecutionParameters
                 {
                     AuthCallback = authenticationProvider.AuthenticateRequestAsync,
-                    ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!) : null,
+                    ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!.ToString()!) : null,
                 });
         }
 
@@ -309,16 +306,16 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
             BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GraphAuthHeader));
-            GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.AuthenticateRequestAsync);
+            GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.GraphClientAuthenticateRequestAsync);
 
-            planner.Kernel.ImportFunctions(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
-            planner.Kernel.ImportFunctions(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
-            planner.Kernel.ImportFunctions(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
+            planner.Kernel.ImportPluginFromObject(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
+            planner.Kernel.ImportPluginFromObject(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
+            planner.Kernel.ImportPluginFromObject(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
         }
 
-        if (variables.TryGetValue("customPlugins", out string? customPluginsString))
+        if (variables.TryGetValue("customPlugins", out object? customPluginsString))
         {
-            CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString);
+            CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString!.ToString()!);
 
             if (customPlugins != null)
             {
@@ -331,14 +328,14 @@ public class ChatController : ControllerBase, IDisposable
 
                         // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
-                        OpenAIAuthenticateRequestAsyncCallback authCallback = (request, _, _) =>
+                        Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ct = default)
                         {
                             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
 
                             return Task.CompletedTask;
-                        };
+                        }
 
-                        await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
+                        await planner.Kernel.ImportPluginFromOpenAIAsync(
                             $"{plugin.NameForModel}Plugin",
                             PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenAIFunctionExecutionParameters
@@ -385,15 +382,15 @@ public class ChatController : ControllerBase, IDisposable
             {
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
-                OpenAIAuthenticateRequestAsyncCallback authCallback = (request, _, _) =>
+                Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ct = default)
                 {
                     request.Headers.Add("X-Functions-Key", plugin.Key);
 
                     return Task.CompletedTask;
-                };
+                }
 
                 // Register the ChatGPT plugin with the planner's kernel.
-                await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
+                await planner.Kernel.ImportPluginFromOpenAIAsync(
                     PluginUtils.SanitizePluginName(plugin.Name),
                     PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                     new OpenAIFunctionExecutionParameters
@@ -412,23 +409,29 @@ public class ChatController : ControllerBase, IDisposable
         return;
     }
 
-    private static ContextVariables GetContextVariables(Ask ask, IAuthInfo authInfo, string chatId)
+    /// <summary>
+    /// Converts <see cref="Ask"/> variables to <see cref="KernelArguments"/>, inserting some system variables along the way.
+    /// </summary>
+    public KernelArguments GetKernelArguments(Ask ask, IAuthInfo authInfo, string chatId)
     {
         const string UserIdKey = "userId";
         const string UserNameKey = "userName";
         const string ChatIdKey = "chatId";
 
-        var contextVariables = new ContextVariables(ask.Input);
+        var kernelArguments = new KernelArguments() { ["input"] = ask.Input };
         foreach (var variable in ask.Variables)
         {
-            contextVariables.Set(variable.Key, variable.Value);
+            if (variable.Key != UserIdKey && variable.Key != UserNameKey)
+            {
+                kernelArguments.Add(variable.Key, variable.Value);
+            }
         }
 
-        contextVariables.Set(UserIdKey, authInfo.UserId);
-        contextVariables.Set(UserNameKey, authInfo.Name);
-        contextVariables.Set(ChatIdKey, chatId);
+        kernelArguments.Add(UserIdKey, authInfo.UserId);
+        kernelArguments.Add(UserNameKey, authInfo.Name);
+        kernelArguments.Add(ChatIdKey, chatId);
 
-        return contextVariables;
+        return kernelArguments;
     }
 
     /// <summary>
@@ -451,5 +454,81 @@ public class ChatController : ControllerBase, IDisposable
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         this.Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+}
+
+/// <summary>
+/// Retrieves authentication content (e.g. username/password, API key) via the provided delegate and
+/// applies it to HTTP requests using the "basic" authentication scheme.
+/// </summary>
+public class BasicAuthenticationProvider
+{
+    private readonly Func<Task<string>> _credentials;
+
+    /// <summary>
+    /// Creates an instance of the <see cref="BasicAuthenticationProvider"/> class.
+    /// </summary>
+    /// <param name="credentials">Delegate for retrieving credentials.</param>
+    public BasicAuthenticationProvider(Func<Task<string>> credentials)
+    {
+        this._credentials = credentials;
+    }
+
+    /// <summary>
+    /// Applies the authentication content to the provided HTTP request message.
+    /// </summary>
+    /// <param name="request">The HTTP request message.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    public async Task AuthenticateRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+    {
+        // Base64 encode
+        string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(await this._credentials().ConfigureAwait(false)));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", encodedContent);
+    }
+}
+
+/// <summary>
+/// Retrieves a token via the provided delegate and applies it to HTTP requests using the
+/// "bearer" authentication scheme.
+/// </summary>
+public class BearerAuthenticationProvider
+{
+    private readonly Func<Task<string>> _bearerToken;
+
+    /// <summary>
+    /// Creates an instance of the <see cref="BearerAuthenticationProvider"/> class.
+    /// </summary>
+    /// <param name="bearerToken">Delegate to retrieve the bearer token.</param>
+    public BearerAuthenticationProvider(Func<Task<string>> bearerToken)
+    {
+        this._bearerToken = bearerToken;
+    }
+
+    /// <summary>
+    /// Applies the token to the provided HTTP request message.
+    /// </summary>
+    /// <param name="request">The HTTP request message.</param>
+    public async Task AuthenticateRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+    {
+        var token = await this._bearerToken().ConfigureAwait(false);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+
+    /// <summary>
+    /// Applies the token to the provided HTTP request message.
+    /// </summary>
+    /// <param name="request">The HTTP request message.</param>
+    public async Task GraphClientAuthenticateRequestAsync(HttpRequestMessage request)
+    {
+        await this.AuthenticateRequestAsync(request);
+    }
+
+    /// <summary>
+    /// Applies the token to the provided HTTP request message.
+    /// </summary>
+    /// <param name="request">The HTTP request message.</param>
+    public async Task OpenAIAuthenticateRequestAsync(HttpRequestMessage request, string pluginName, OpenAIAuthenticationConfig openAIAuthConfig, CancellationToken cancellationToken = default)
+    {
+        await this.AuthenticateRequestAsync(request, cancellationToken);
     }
 }

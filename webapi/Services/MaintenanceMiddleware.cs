@@ -41,7 +41,7 @@ public class MaintenanceMiddleware
         this._logger = logger;
     }
 
-    public async Task Invoke(HttpContext ctx, IKernel kernel)
+    public async Task Invoke(HttpContext ctx, Kernel kernel)
     {
         // Skip inspection if _isInMaintenance explicitly false.
         if (this._isInMaintenance == null || this._isInMaintenance.Value)
