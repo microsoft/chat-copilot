@@ -33,7 +33,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.TemplateEngine.Basic" Version="1.0.0-beta8" />
-    <PackageReference Include="SharpToken" Version="1.2.12" />
+    <PackageReference Include="SharpToken" Version="1.2.14" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
