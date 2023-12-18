@@ -23,13 +23,13 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="2.16.0" />
     <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.10.231117.1-preview" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta8" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta8" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-rc4" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Qdrant" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Functions.OpenAPI" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta8" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta8" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-rc4" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.TemplateEngine.Basic" Version="1.0.0-beta8" />
