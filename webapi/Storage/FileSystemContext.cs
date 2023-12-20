@@ -37,7 +37,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentException("Entity Id cannot be null or empty.", nameof(entity));
         }
 
         if (this._entities.TryAdd(entity.Id, entity))
@@ -51,12 +51,18 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     /// <inheritdoc/>
     public Task DeleteAsync(T entity)
     {
-        if (string.IsNullOrWhiteSpace(entity.Id))
+        return this.DeleteAsync(entity.Id, entity.Partition);
+    }
+
+    /// <inheritdoc/>
+    public Task DeleteAsync(string entityId, string partitionKey)
+    {
+        if (string.IsNullOrWhiteSpace(entityId))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentNullException(nameof(entityId), "Entity Id cannot be null or empty.");
         }
 
-        if (this._entities.TryRemove(entity.Id, out _))
+        if (this._entities.TryRemove(entityId, out _))
         {
             this.Save(this._entities, this._fileStorage);
         }
@@ -69,7 +75,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entityId))
         {
-            throw new ArgumentOutOfRangeException(nameof(entityId), "Entity Id cannot be null or empty.");
+            throw new ArgumentNullException(nameof(entityId), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.TryGetValue(entityId, out T? entity))
@@ -85,7 +91,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentException("Entity Id cannot be null or empty.", nameof(entity));
         }
 
         if (this._entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity) != null)

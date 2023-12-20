@@ -86,6 +86,17 @@ export const useFile = () => {
         }
     };
 
+    async function deleteDocument(chatId: string, documentId: string): Promise<void> {
+        try {
+    
+            // Call the deleteDocumentAsync method from the DocumentDeleteService
+            await documentImportService.deleteDocumentAsync(chatId, documentId, await AuthHelper.getSKaaSAccessToken(instance, inProgress));
+    
+        } catch (error) {
+            console.error('Failed to delete the file:', error);
+        }
+    }
+    
     const getContentSafetyStatus = async () => {
         try {
             const result = await documentImportService.getContentSafetyStatusAsync(
@@ -105,6 +116,7 @@ export const useFile = () => {
     return {
         loadFile,
         downloadFile,
+        deleteDocument,
         handleImport,
         getContentSafetyStatus,
     };

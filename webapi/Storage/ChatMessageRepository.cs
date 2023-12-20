@@ -32,6 +32,16 @@ public class ChatMessageRepository : Repository<CopilotChatMessage>
     }
 
     /// <summary>
+    /// Finds chat messages by with citations to a specified document id (MemorySource).
+    /// </summary>
+    /// <param name="chatId">The chat id.</param>
+    /// <returns>A list of ChatMessages matching the given chatId.</returns>
+    public Task<IEnumerable<CopilotChatMessage>> FindByDocumentIdAsync(string documentId)
+    {
+        return base.StorageContext.QueryEntitiesAsync(e => e.Citations?.Where(c => c.Link.StartsWith(documentId, System.StringComparison.OrdinalIgnoreCase)).Any() ?? false);
+    }
+
+    /// <summary>
     /// Finds the most recent chat message by chat id.
     /// </summary>
     /// <param name="chatId">The chat id.</param>

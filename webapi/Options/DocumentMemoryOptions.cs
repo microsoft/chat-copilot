@@ -58,4 +58,9 @@ public class DocumentMemoryOptions
     /// </summary>
     [Range(0, int.MaxValue)]
     public int FileCountLimit { get; set; } = 10;
+
+    /// <summary>
+    /// Determines if individual documents can be removed.
+    /// </summary>
+    public bool AllowDocumentRemoval { get; set; }
 }

@@ -15,4 +15,5 @@ export interface ServiceInfo {
     availablePlugins: HostedPlugin[];
     version: string;
     isContentSafetyEnabled: boolean;
+    isDeleteDocumentEnabled: boolean;
 }

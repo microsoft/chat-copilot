@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */ // $$$
 // Copyright (c) Microsoft. All rights reserved.
 
 import {
@@ -8,7 +9,6 @@ import {
     MenuList,
     MenuPopover,
     MenuTrigger,
-    ProgressBar,
     Radio,
     RadioGroup,
     Spinner,
@@ -40,6 +40,7 @@ import {
 import * as React from 'react';
 import { useRef } from 'react';
 import { Constants } from '../../../Constants';
+import { DeleteDocumentDialog } from './dialogs/DeleteDocumentDialog';
 import { useChat, useFile } from '../../../libs/hooks';
 import { ChatMemorySource } from '../../../libs/models/ChatMemorySource';
 import { useAppSelector } from '../../../redux/app/hooks';
@@ -106,16 +107,16 @@ export const DocumentsTab: React.FC = () => {
         if (!conversations[selectedId].disabled) {
             const importingResources = importingDocuments
                 ? importingDocuments.map((document, index) => {
-                      return {
-                          id: `in-progress-${index}`,
-                          chatId: selectedId,
-                          sourceType: 'N/A',
-                          name: document,
-                          sharedBy: 'N/A',
-                          createdOn: 0,
-                          size: 0,
-                      } as ChatMemorySource;
-                  })
+                    return {
+                        id: `in-progress-${index}`,
+                        chatId: selectedId,
+                        sourceType: 'N/A',
+                        name: document,
+                        sharedBy: 'N/A',
+                        createdOn: 0,
+                        size: 0,
+                    } as ChatMemorySource;
+                })
                 : [];
             setResources(importingResources);
 
@@ -127,114 +128,128 @@ export const DocumentsTab: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importingDocuments, selectedId]);
 
-    const { columns, rows } = useTable(resources);
+    const handleDelete = async (chatId: string, documentId: string) => {
+        try {
+            await fileHandler.deleteDocument(chatId, documentId);
+            // Update the state immediately after deleting the file
+            setResources((prevResources) => prevResources.filter((resource) => resource.id !== documentId));
+        } catch (error) {
+            console.error('Failed to delete the file:', error);
+        }
+    };
+
+    const { columns, rows } = useTable(resources, handleDelete);
+
     return (
-        <TabView
-            title="Documents"
-            learnMoreDescription="document embeddings"
-            learnMoreLink="https://aka.ms/sk-docs-vectordb"
-        >
-            <div className={classes.functional}>
-                {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
-                <input
-                    type="file"
-                    ref={localDocumentFileRef}
-                    style={{ display: 'none' }}
-                    accept={Constants.app.importTypes}
-                    multiple={true}
-                    onChange={() => {
-                        void fileHandler.handleImport(selectedId, localDocumentFileRef, false);
-                    }}
-                />
-                <input
-                    type="file"
-                    ref={globalDocumentFileRef}
-                    style={{ display: 'none' }}
-                    accept={Constants.app.importTypes}
-                    multiple={true}
-                    onChange={() => {
-                        void fileHandler.handleImport(selectedId, globalDocumentFileRef, true);
-                    }}
-                />
-                <Menu>
-                    <MenuTrigger disableButtonEnhancement>
-                        <Tooltip content="Embed file into chat session" relationship="label">
-                            <Button
-                                className={classes.uploadButton}
-                                icon={<DocumentArrowUp20Regular />}
-                                disabled={
-                                    conversations[selectedId].disabled ||
-                                    (importingDocuments && importingDocuments.length > 0)
-                                }
-                            >
-                                Upload
-                            </Button>
-                        </Tooltip>
-                    </MenuTrigger>
-                    <MenuPopover>
-                        <MenuList>
-                            <MenuItem
-                                data-testid="addNewLocalDoc"
-                                onClick={() => localDocumentFileRef.current?.click()}
-                                icon={<Add20 />}
-                                disabled={
-                                    conversations[selectedId].disabled ||
-                                    (importingDocuments && importingDocuments.length > 0)
-                                }
-                            >
-                                New local chat document
-                            </MenuItem>
-                            <MenuItem
-                                data-testid="addNewLocalDoc"
-                                onClick={() => globalDocumentFileRef.current?.click()}
-                                icon={<GlobeAdd20Regular />}
-                                disabled={
-                                    conversations[selectedId].disabled ||
-                                    (importingDocuments && importingDocuments.length > 0)
-                                }
-                            >
-                                New global document
-                            </MenuItem>
-                        </MenuList>
-                    </MenuPopover>
-                </Menu>
-                {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
-                {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
-                <div className={classes.vectorDatabase}>
-                    <Label size="large">Vector Database:</Label>
-                    <RadioGroup
-                        defaultValue={serviceInfo.memoryStore.selectedType}
-                        layout="horizontal"
-                        disabled={conversations[selectedId].disabled}
-                    >
-                        {serviceInfo.memoryStore.types.map((storeType) => {
-                            return (
-                                <Radio
-                                    key={storeType}
-                                    value={storeType}
-                                    label={storeType}
-                                    disabled={storeType !== serviceInfo.memoryStore.selectedType}
-                                />
-                            );
-                        })}
-                    </RadioGroup>
+        <>
+            <TabView
+                title="Documents"
+                learnMoreDescription="document embeddings"
+                learnMoreLink="https://aka.ms/sk-docs-vectordb"
+            >
+                <div className={classes.functional}>
+                    {/* Hidden input for file upload. Only accept .txt and .pdf files for now. */}
+                    <input
+                        type="file"
+                        ref={localDocumentFileRef}
+                        style={{ display: 'none' }}
+                        accept={Constants.app.importTypes}
+                        multiple={true}
+                        onChange={() => {
+                            void fileHandler.handleImport(selectedId, localDocumentFileRef, false);
+                        }}
+                    />
+                    <input
+                        type="file"
+                        ref={globalDocumentFileRef}
+                        style={{ display: 'none' }}
+                        accept={Constants.app.importTypes}
+                        multiple={true}
+                        onChange={() => {
+                            void fileHandler.handleImport(selectedId, globalDocumentFileRef, true);
+                        }}
+                    />
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <Tooltip content="Embed file into chat session" relationship="label">
+                                <Button
+                                    className={classes.uploadButton}
+                                    icon={<DocumentArrowUp20Regular />}
+                                    disabled={
+                                        conversations[selectedId].disabled ||
+                                        (importingDocuments && importingDocuments.length > 0)
+                                    }
+                                >
+                                    Upload
+                                </Button>
+                            </Tooltip>
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem
+                                    data-testid="addNewLocalDoc"
+                                    onClick={() => localDocumentFileRef.current?.click()}
+                                    icon={<Add20 />}
+                                    disabled={
+                                        conversations[selectedId].disabled ||
+                                        (importingDocuments && importingDocuments.length > 0)
+                                    }
+                                >
+                                    New local chat document
+                                </MenuItem>
+                                <MenuItem
+                                    data-testid="addNewLocalDoc"
+                                    onClick={() => globalDocumentFileRef.current?.click()}
+                                    icon={<GlobeAdd20Regular />}
+                                    disabled={
+                                        conversations[selectedId].disabled ||
+                                        (importingDocuments && importingDocuments.length > 0)
+                                    }
+                                >
+                                    New global document
+                                </MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
+                    {importingDocuments && importingDocuments.length > 0 && <Spinner size="tiny" />}
+                    {/* Hardcode vector database as we don't support switching vector store dynamically now. */}
+                    <div className={classes.vectorDatabase}>
+                        <Label size="large">Vector Database:</Label>
+                        <RadioGroup
+                            defaultValue={serviceInfo.memoryStore.selectedType}
+                            layout="horizontal"
+                            disabled={conversations[selectedId].disabled}
+                        >
+                            {serviceInfo.memoryStore.types.map((storeType) => {
+                                return (
+                                    <Radio
+                                        key={storeType}
+                                        value={storeType}
+                                        label={storeType}
+                                        disabled={storeType !== serviceInfo.memoryStore.selectedType}
+                                    />
+                                );
+                            })}
+                        </RadioGroup>
+                    </div>
                 </div>
-            </div>
-            <Table aria-label="External resource table" className={classes.table}>
-                <TableHeader>
-                    <TableRow>{columns.map((column) => column.renderHeaderCell())}</TableRow>
-                </TableHeader>
-                <TableBody>
-                    {rows.map((item) => (
-                        <TableRow key={item.id}>{columns.map((column) => column.renderCell(item))}</TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TabView>
-    );
+                <Table aria-label="External resource table" className={classes.table}>
+                    <TableHeader>
+                        <TableRow>{columns.map((column) => column.renderHeaderCell())}</TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {rows.map((item) => (
+                            <TableRow key={item.id}>{columns.map((column) => column.renderCell(item))}</TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TabView>
+        </>);
 };
 
-function useTable(resources: ChatMemorySource[]) {
+function useTable(resources: ChatMemorySource[], handleDelete: (chatId: string, documentId: string) => Promise<void>) {
+    const { serviceInfo } = useAppSelector((state: RootState) => state.app);
+
     const headerSortProps = (columnId: TableColumnId): TableHeaderCellProps => ({
         onClick: (e: React.MouseEvent) => {
             toggleColumnSort(e, columnId);
@@ -318,29 +333,22 @@ function useTable(resources: ChatMemorySource[]) {
             },
         }),
         createTableColumn<TableItem>({
-            columnId: 'progress',
+            columnId: 'delete',
             renderHeaderCell: () => (
-                <TableHeaderCell key="progress" {...headerSortProps('progress')}>
-                    Progress
+                <TableHeaderCell key="delete">
+                    {(serviceInfo.isDeleteDocumentEnabled ? "Delete" : "")}
                 </TableHeaderCell>
             ),
-            renderCell: (item) => (
-                <TableCell key={`${item.id}-progress`}>
-                    <ProgressBar
-                        max={1}
-                        value={item.id.startsWith('in-progress') ? undefined : 1} // Hack: tokens stores the progress bar percentage.
-                        shape="rounded"
-                        thickness="large"
-                        color={item.id.startsWith('in-progress') ? 'brand' : 'success'}
-                    />
+            renderCell: (item) => 
+                <TableCell key={`${item.id}-delete`}>
+                    <TableCellLayout truncate>
+                        {(
+                            serviceInfo.isDeleteDocumentEnabled ?
+                                <DeleteDocumentDialog chatId={item.chatId} documentId={item.id} documentName={item.name.label} /> :
+                                <></>
+                        )}
+                    </TableCellLayout>
                 </TableCell>
-            ),
-            compare: (a, b) => {
-                const aAccess = getAccessString(a.chatId);
-                const bAccess = getAccessString(b.chatId);
-                const comparison = aAccess.localeCompare(bAccess);
-                return getSortDirection('progress') === 'ascending' ? comparison : comparison * -1;
-            },
         }),
     ];
 
@@ -380,7 +388,7 @@ function useTable(resources: ChatMemorySource[]) {
         });
     }
 
-    return { columns, rows: items };
+    return { columns, rows: items, handleDelete };
 }
 
 function getAccessString(chatId: string) {

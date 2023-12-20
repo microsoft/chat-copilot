@@ -20,9 +20,23 @@ export class DocumentImportService extends BaseService {
 
         return await this.getResponseAsync<IChatMessage>(
             {
-                commandPath: uploadToGlobal ? `documents` : `chats/${chatId}/documents`,
+                commandPath: uploadToGlobal ? 'documents' : `chats/${chatId}/documents`,
                 method: 'POST',
                 body: formData,
+            },
+            accessToken,
+        );
+    };
+
+    public deleteDocumentAsync = async (
+        chatId: string,
+        documentId: string,
+        accessToken: string
+    ) => {
+        return await this.getResponseAsync<string>(
+            {
+                commandPath: chatId ? `documents/${documentId}` : `chats/${chatId}/documents/${documentId}`,
+                method: 'DELETE'
             },
             accessToken,
         );

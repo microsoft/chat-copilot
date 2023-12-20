@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Graph;
 
 namespace CopilotChat.WebApi.Storage;
 
@@ -29,7 +30,7 @@ public class Repository<T> : IRepository<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity ID cannot be null or empty.");
+            throw new ArgumentException("Entity Id cannot be null or empty.", nameof(entity));
         }
 
         return this.StorageContext.CreateAsync(entity);
@@ -39,6 +40,11 @@ public class Repository<T> : IRepository<T> where T : IStorageEntity
     public Task DeleteAsync(T entity)
     {
         return this.StorageContext.DeleteAsync(entity);
+    }
+
+    public Task DeleteAsync(string id, string partition)
+    {
+        return this.StorageContext.DeleteAsync(id, partition);
     }
 
     /// <inheritdoc/>

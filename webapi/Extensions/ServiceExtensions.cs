@@ -253,18 +253,26 @@ public static class CopilotChatServiceExtensions
     /// </summary>
     public static IServiceCollection AddChatCopilotAuthorization(this IServiceCollection services)
     {
-        return services.AddScoped<IAuthorizationHandler, ChatParticipantAuthorizationHandler>()
-            .AddAuthorizationCore(options =>
-            {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-                options.AddPolicy(AuthPolicyName.RequireChatParticipant, builder =>
-                {
-                    builder.RequireAuthenticatedUser()
-                        .AddRequirements(new ChatParticipantRequirement());
-                });
-            });
+        return
+            services
+                .AddScoped<IAuthorizationHandler, ChatParticipantAuthorizationHandler>()
+                .AddAuthorizationCore(
+                    options =>
+                    {
+                        options.DefaultPolicy =
+                            new AuthorizationPolicyBuilder()
+                                .RequireAuthenticatedUser()
+                                .Build();
+
+                        options.AddPolicy(
+                            AuthPolicyName.RequireChatParticipant,
+                            builder => builder.RequireAuthenticatedUser().AddRequirements(new ChatParticipantRequirement()));
+
+                        // $$$ TBD - AUTH
+                        //options.AddPolicy(
+                        //    AuthPolicyName.RequireChatAdmin,
+                        //    builder => builder.RequireAuthenticatedUser()); //.AddRequirements(new ChatParticipantRequirement())) $$$
+                    });
     }
 
     /// <summary>
