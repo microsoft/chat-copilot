@@ -50,7 +50,7 @@ jobs:
           Write-Output "versiontag=$VERSION_TAG" >> $env:GITHUB_OUTPUT
 
       - name: Set .Net Core version
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.0.x
 
@@ -64,7 +64,7 @@ jobs:
             -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format "yyyy-MM-dd")"
 
       - name: Upload packages to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: copilotchat-plugins-${{ steps.versiontag.outputs.versiontag }}
           path: ${{ github.workspace }}\scripts\deploy\out\plugins

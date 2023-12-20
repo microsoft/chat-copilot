@@ -1,23 +1,29 @@
 # Add 'webapp' label to any change within the 'webapp' directory
 webapp:
-  - webapp/**/*
+  - changed-files:
+      - any-glob-to-any-file: ["webapp/**"]
 
 # Add 'webapi' label to any change within the 'webapi' directory
 webapi:
-  - webapi/**/*
+  - changed-files:
+      - any-glob-to-any-file: ["webapi/**"]
 
 # Add 'dependencies' label to any change of the 'webapp/yarn.lock' file
 dependencies:
-  - webapp/yarn.lock
+  - changed-files:
+      - any-glob-to-any-file: ["webapp/yarn.lock"]
 
 # Add 'deployment' label to any change within the 'deploy' directory
 deployment:
-  - scripts/deploy/**/*
+  - changed-files:
+      - any-glob-to-any-file: ["scripts/deploy/**"]
 
 # Add 'documentation' label to any change of '.md' files
 documentation:
-  - "**/*.md"
+  - changed-files:
+      - any-glob-to-any-file: ["**/*.md"]
 
 # Add 'github actions' label to any change within the '.github/workflows' directory
 "github actions":
-  - .github/workflows/**/*
+  - changed-files:
+      - any-glob-to-any-file: [".github/workflows/**"]

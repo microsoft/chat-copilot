@@ -47,7 +47,7 @@ jobs:
           sparse-checkout: |
             scripts
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{inputs.ARTIFACT_NAME}}
           path: "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}"

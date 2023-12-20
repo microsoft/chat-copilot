@@ -23,7 +23,7 @@ jobs:
           cache: "yarn"
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 6.0.x
 
@@ -96,14 +96,14 @@ jobs:
           REACT_APP_TEST_GITHUB_REPOSITORY_NAME: ${{ secrets.COPILOT_CHAT_TEST_GITHUB_REPOSITORY_NAME }}
         run: yarn playwright test
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
           path: webapp/playwright-report/
           retention-days: 30
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: service-log
