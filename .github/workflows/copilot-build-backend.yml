@@ -60,7 +60,7 @@ jobs:
           scripts\deploy\package-webapi.ps1 -Configuration Release -DotnetFramework net6.0 -TargetRuntime win-x64 -OutputDirectory ${{ github.workspace }}\scripts\deploy -Version ${{ steps.versiontag.outputs.versiontag }} -InformationalVersion "Built from commit ${{ steps.gitversion.outputs.ShortSha }} on $(Get-Date -Format 'yyyy-MM-dd')" -SkipFrontendFiles ('${{ github.event_name == 'pull_request' }}' -eq 'true')
 
       - name: Upload package to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: copilotchat-webapi-${{ steps.versiontag.outputs.versiontag }}
           path: ${{ github.workspace }}\scripts\deploy\out\webapi.zip
