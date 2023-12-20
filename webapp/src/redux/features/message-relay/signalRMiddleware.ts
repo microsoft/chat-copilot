@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import { AnyAction, Dispatch } from '@reduxjs/toolkit';
+import { Action, Dispatch, Middleware } from '@reduxjs/toolkit';
 import { AlertType } from '../../../libs/models/AlertType';
 import { addAlert } from '../app/appSlice';
 import { IChatMessage } from './../../../libs/models/ChatMessage';
-import { StoreMiddlewareAPI, getSelectedChatID } from './../../app/store';
+import { RootState, StoreMiddlewareAPI, getSelectedChatID } from './../../app/store';
 import { getOrCreateHubConnection } from './signalRHubConnection';
 
 // The action sent to the SignalR middleware.
-interface SignalRAction extends AnyAction {
+interface SignalRAction extends Action {
     payload: {
         message?: IChatMessage;
         userId?: string;
@@ -17,23 +17,24 @@ interface SignalRAction extends AnyAction {
     };
 }
 
-export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
-    return (next: Dispatch) => (action: SignalRAction) => {
+export const signalRMiddleware: Middleware<any, RootState, Dispatch<SignalRAction>> = (store: StoreMiddlewareAPI) => {
+    return (next) => (action) => {
         // Call the next dispatch method in the middleware chain before performing any async logic
-        const result = next(action);
+        const signalRAction = action as SignalRAction;
+        const result = next(signalRAction);
 
         // Get the SignalR connection instance
         const hubConnection = getOrCreateHubConnection(store);
 
         // The following actions will be captured by the SignalR middleware and broadcasted to all clients.
-        switch (action.type) {
+        switch (signalRAction.type) {
             case 'conversations/addMessageToConversationFromUser':
                 hubConnection
                     .invoke(
                         'SendMessageAsync',
                         getSelectedChatID(),
                         store.getState().app.activeUserInfo?.id,
-                        action.payload.message,
+                        signalRAction.payload.message,
                     )
                     .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
@@ -42,21 +43,21 @@ export const signalRMiddleware = (store: StoreMiddlewareAPI) => {
                     .invoke(
                         'SendUserTypingStateAsync',
                         getSelectedChatID(),
-                        action.payload.userId,
-                        action.payload.isTyping,
+                        signalRAction.payload.userId,
+                        signalRAction.payload.isTyping,
                     )
                     .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
             case 'conversations/setConversations':
                 Promise.all(
-                    Object.keys(action.payload).map(async (id) => {
+                    Object.keys(signalRAction.payload).map(async (id) => {
                         await hubConnection.invoke('AddClientToGroupAsync', id);
                     }),
                 ).catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
             case 'conversations/addConversation':
                 hubConnection
-                    .invoke('AddClientToGroupAsync', action.payload.id)
+                    .invoke('AddClientToGroupAsync', signalRAction.payload.id)
                     .catch((err) => store.dispatch(addAlert({ message: String(err), type: AlertType.Error })));
                 break;
         }
