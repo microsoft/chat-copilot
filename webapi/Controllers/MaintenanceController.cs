@@ -47,7 +47,7 @@ public class MaintenanceController : ControllerBase
     {
         MaintenanceResult? result = null;
 
-        var migrationStatus = await migrationMonitor.GetCurrentStatusAsync(cancellationToken);
+        var migrationStatus = await migrationMonitor.GetCurrentStatusAsync(cancellationToken: cancellationToken);
 
         if (migrationStatus != ChatMigrationStatus.None)
         {

@@ -32,7 +32,7 @@ internal static class ISemanticMemoryClientExtensions
 
         var memoryConfig = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
-        var ocrType = memoryConfig.ImageOcrType;
+        var ocrType = memoryConfig.TextGeneratorType;
         var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
 
         var pipelineType = memoryConfig.DataIngestion.OrchestrationType;
@@ -54,7 +54,7 @@ internal static class ISemanticMemoryClientExtensions
             }
         }
 
-        IKernelMemory memory = memoryBuilder.FromConfiguration(
+        IKernelMemory memory = memoryBuilder.FromIConfiguration(
             memoryConfig,
             appBuilder.Configuration
         ).Build();

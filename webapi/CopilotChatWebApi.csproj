@@ -14,7 +14,7 @@
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <AnalysisLevel>latest</AnalysisLevel>
-    <NoWarn>SKEXP0011, SKEXP0021, SKEXP0026, SKEXP0042, SKEXP0052, SKEXP0053, SKEXP0003</NoWarn>
+    <NoWarn>SKEXP0003, SKEXP0011, SKEXP0021, SKEXP0026, SKEXP0042, SKEXP0050, SKEXP0052, SKEXP0053, SKEXP0060</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,18 +22,20 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.37.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.16.0" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.22.231215.2" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planners.Core" Version="1.0.0-beta8" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planners.OpenAI" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.OpenApi" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-rc4" />
+    <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.23.231221.1" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.23.231221.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planners.OpenAI" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Planners.Handlebars" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.OpenApi" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.0.1-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.1-alpha" />
     <PackageReference Include="SharpToken" Version="1.2.12" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>

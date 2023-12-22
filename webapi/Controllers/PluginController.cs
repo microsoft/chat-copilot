@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.KernelMemory.Diagnostics;
 
 namespace CopilotChat.WebApi.Controllers;
 

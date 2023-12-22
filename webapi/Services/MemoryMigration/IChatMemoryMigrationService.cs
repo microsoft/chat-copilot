@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
 
@@ -14,5 +15,5 @@ public interface IChatMemoryMigrationService
     /// Migrates all non-document memory to the kernel memory index.
     /// Subsequent/redunant migration is non-destructive/no-impact to migrated index.
     /// </summary>
-    Task MigrateAsync(CancellationToken cancellationToken = default);
+    Task MigrateAsync(Kernel kernel, CancellationToken cancellationToken = default);
 }

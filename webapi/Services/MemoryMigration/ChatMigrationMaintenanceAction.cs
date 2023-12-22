@@ -3,6 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
 
@@ -26,15 +27,15 @@ public class ChatMigrationMaintenanceAction : IMaintenanceAction
         this._logger = logger;
     }
 
-    public async Task<bool> InvokeAsync(CancellationToken cancellation = default)
+    public async Task<bool> InvokeAsync(Kernel kernel, CancellationToken cancellation = default)
     {
-        var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(cancellation);
+        var migrationStatus = await this._migrationMonitor.GetCurrentStatusAsync(kernel, cancellation);
 
         switch (migrationStatus)
         {
             case ChatMigrationStatus s when (s == ChatMigrationStatus.RequiresUpgrade):
                 // Migrate all chats to single index (in background)
-                var task = this._migrationService.MigrateAsync(cancellation);
+                var task = this._migrationService.MigrateAsync(kernel, cancellation);
                 return true; // In maintenance
 
             case ChatMigrationStatus s when (s == ChatMigrationStatus.Upgrading):

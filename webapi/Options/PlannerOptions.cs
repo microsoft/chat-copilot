@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 using System.ComponentModel.DataAnnotations;
 using CopilotChat.WebApi.Models.Response;
-using Microsoft.SemanticKernel.Planners;
+using Microsoft.SemanticKernel.Planning.Handlebars;
 
 namespace CopilotChat.WebApi.Options;
 
@@ -75,6 +75,6 @@ public class PlannerOptions
     /// <summary>
     /// The configuration for the stepwise planner.
     /// </summary>
-    [RequiredOnPropertyValue(nameof(Type), PlanType.Stepwise)]
-    public StepwisePlannerConfig StepwisePlannerConfig { get; set; } = new StepwisePlannerConfig();
+    [RequiredOnPropertyValue(nameof(Type), PlanType.Handlebars)]
+    public HandlebarsPlannerOptions HandlebarsPlannerConfig { get; set; } = new HandlebarsPlannerOptions();
 }

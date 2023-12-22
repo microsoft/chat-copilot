@@ -47,7 +47,7 @@ public class MaintenanceMiddleware
         if (this._isInMaintenance == null || this._isInMaintenance.Value)
         {
             // Maintenance never false => true; always true => false or just false;
-            this._isInMaintenance = await this.InspectMaintenanceActionAsync();
+            this._isInMaintenance = await this.InspectMaintenanceActionAsync(kernel);
         }
 
         // In maintenance if actions say so or explicitly configured.
@@ -59,13 +59,13 @@ public class MaintenanceMiddleware
         await this._next(ctx);
     }
 
-    private async Task<bool> InspectMaintenanceActionAsync()
+    private async Task<bool> InspectMaintenanceActionAsync(Kernel kernel)
     {
         bool inMaintenance = false;
 
         foreach (var action in this._actions)
         {
-            inMaintenance |= await action.InvokeAsync();
+            inMaintenance |= await action.InvokeAsync(kernel);
         }
 
         return inMaintenance;

@@ -150,7 +150,7 @@ internal static class SemanticKernelExtensions
     public static Kernel RegisterChatPlugin(this Kernel kernel, IServiceProvider sp)
     {
         // Chat plugin
-        kernel.ImportFunctions(
+        kernel.ImportPluginFromObject(
             new ChatPlugin(
                 kernel,
                 memoryClient: sp.GetRequiredService<IKernelMemory>(),
@@ -181,7 +181,7 @@ internal static class SemanticKernelExtensions
         kernel.RegisterChatPlugin(sp);
 
         // Time plugin
-        kernel.ImportFunctions(new TimePlugin(), nameof(TimePlugin));
+        kernel.ImportPluginFromObject(new TimePlugin(), nameof(TimePlugin));
 
         return Task.CompletedTask;
     }
@@ -201,7 +201,7 @@ internal static class SemanticKernelExtensions
             {
                 try
                 {
-                    kernel.ImportSemanticFunctionsFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
+                    kernel.ImportPluginFromPromptDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
                 catch (KernelException ex)
                 {
@@ -230,7 +230,7 @@ internal static class SemanticKernelExtensions
                     try
                     {
                         var plugin = Activator.CreateInstance(classType);
-                        kernel.ImportFunctions(plugin!, classType.Name!);
+                        kernel.ImportPluginFromObject(plugin!, classType.Name!);
                     }
                     catch (KernelException ex)
                     {

@@ -85,10 +85,10 @@ internal static class SemanticChatMemoryExtractor
             memoryExtractionArguments.Add("format", options.MemoryFormat);
             memoryExtractionArguments.Add("knowledgeCutoff", options.KnowledgeCutoffDate);
 
-            var completionFunction = kernel.CreateSemanticFunction(memoryPrompt);
+            var completionFunction = kernel.CreateFunctionFromPrompt(memoryPrompt, options.ToCompletionSettings());
             var result = await completionFunction.InvokeAsync(
+                kernel,
                 memoryExtractionArguments,
-                options.ToCompletionSettings(),
                 cancellationToken);
 
             // Get token usage from ChatCompletion result and add to context

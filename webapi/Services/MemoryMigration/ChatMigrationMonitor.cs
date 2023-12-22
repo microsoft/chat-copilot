@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Memory;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
@@ -51,7 +52,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
     }
 
     /// <inheritdoc/>
-    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancellationToken = default)
+    public async Task<ChatMigrationStatus> GetCurrentStatusAsync(Kernel? kernel = null, CancellationToken cancellationToken = default)
     {
         if (_cachedStatus == null)
         {
@@ -91,7 +92,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 try
                 {
                     // Cache "found" index state to reduce query count and avoid handling truth mutation.
-                    var collections = await this._memory.GetCollectionsAsync(cancellationToken);
+                    var collections = await this._memory.GetCollectionsAsync(kernel, cancellationToken);
 
                     // Does the new "target" index already exist?
                     _hasCurrentIndex = collections.Any(c => c.Equals(this._indexNameAllMemory, StringComparison.OrdinalIgnoreCase));
@@ -117,6 +118,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                         this._indexNameGlobalDocs,
                         MigrationKey,
                         withEmbedding: false,
+                        kernel,
                         cancellationToken);
 
                 if (result == null)

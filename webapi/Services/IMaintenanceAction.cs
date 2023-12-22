@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -15,5 +16,5 @@ public interface IMaintenanceAction
     /// Calling site to initiate maintenance action.
     /// </summary>
     /// <returns>true if maintenance needed or in progress</returns>
-    Task<bool> InvokeAsync(CancellationToken cancellation = default);
+    Task<bool> InvokeAsync(Kernel kernel, CancellationToken cancellation = default);
 }

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.22.231215.2" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.23.231221.1" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 

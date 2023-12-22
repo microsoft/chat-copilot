@@ -25,6 +25,7 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Planning.Handlebars;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.ChatCompletion.ChatHistory;
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 
@@ -398,7 +399,7 @@ public class ChatPlugin
         {
             await this.SaveNewResponseAsync(
                proposedPlan,
-               deserializedPlan.Plan.Description,
+               deserializedPlan.Plan.Prompt!,
                chatId,
                userId,
                cancellationToken
@@ -567,7 +568,7 @@ public class ChatPlugin
             // Save a new response to the chat history with the proposed plan content
             return await this.SaveNewResponseAsync(
                 JsonSerializer.Serialize<ProposedPlan>(proposedPlan),
-                proposedPlan.Plan.Description,
+                proposedPlan.Plan.Prompt!,
                 chatId,
                 userId,
                 cancellationToken,
@@ -744,12 +745,12 @@ public class ChatPlugin
     /// <param name="userIntent">The user intent.</param>
     /// <param name="tokenLimit">Maximum number of tokens.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task<string> AcquireExternalInformationAsync(KernelArguments kernelArguments, string userIntent, int tokenLimit, CancellationToken cancellationToken, Plan? plan = null)
+    private async Task<string> AcquireExternalInformationAsync(KernelArguments kernelArguments, string userIntent, int tokenLimit, CancellationToken cancellationToken, HandlebarsPlan? plan = null)
     {
         KernelArguments planArguments = new(kernelArguments);
         planArguments.Add("tokenLimit", tokenLimit.ToString(new NumberFormatInfo()));
         return plan is not null
-            ? await this._externalInformationPlugin.ExecutePlanAsync(planArguments, plan, cancellationToken)
+            ? await this._externalInformationPlugin.ExecutePlanAsync(this._kernel, planArguments, plan, cancellationToken)
             : await this._externalInformationPlugin.InvokePlannerAsync(this._kernel, userIntent, planArguments, cancellationToken);
     }
 

@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Services.MemoryMigration;
 
@@ -13,5 +14,5 @@ public interface IChatMigrationMonitor
     /// <summary>
     /// Inspects the current state of affairs to determine the chat migration status.
     /// </summary>
-    Task<ChatMigrationStatus> GetCurrentStatusAsync(CancellationToken cancellationToken = default);
+    Task<ChatMigrationStatus> GetCurrentStatusAsync(Kernel? kernel = null, CancellationToken cancellationToken = default);
 }

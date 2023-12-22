@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using ChatCompletionContextMessages = Microsoft.SemanticKernel.ChatCompletion.ChatHistory;
@@ -78,14 +78,35 @@ public static class TokenUtils
                 return;
             }
 
-            var modelResults = result.GetModelResults();
-            if (modelResults.IsNullOrEmpty())
+            if (result.Metadata is null)
+            {
+                logger.LogError("No metadata provided to capture usage details.");
+                return;
+            }
+
+
+            if (!result.Metadata.TryGetValue("Usage", out object? usageObject) || usageObject is null)
             {
                 logger.LogError("Unable to determine token usage for {0}", functionKey);
                 return;
             }
 
-            var tokenUsage = modelResults!.First().GetResult<ChatModelResult>().Usage.TotalTokens;
+            var tokenUsage = 0;
+            try
+            {
+                var jsonObject = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(usageObject));
+                tokenUsage = jsonObject.GetProperty("TotalTokens").GetInt32();
+            }
+            catch (Exception ex) when (ex is KeyNotFoundException)
+            {
+                logger.LogError("Usage details not found in model result.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while parsing usage details from model result.");
+                throw;
+            }
+
             kernelArguments.Add(functionKey!, tokenUsage.ToString(CultureInfo.InvariantCulture));
         }
         catch (Exception e)
