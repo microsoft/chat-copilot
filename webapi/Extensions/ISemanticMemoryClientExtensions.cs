@@ -10,6 +10,7 @@ using CopilotChat.Shared;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
@@ -54,7 +55,7 @@ internal static class ISemanticMemoryClientExtensions
             }
         }
 
-        IKernelMemory memory = memoryBuilder.FromIConfiguration(
+        IKernelMemory memory = memoryBuilder.FromMemoryConfiguration(
             memoryConfig,
             appBuilder.Configuration
         ).Build();
@@ -187,5 +188,19 @@ internal static class ISemanticMemoryClientExtensions
         var tasks = documentIds.Select(documentId => memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken)).ToArray();
 
         Task.WaitAll(tasks, cancellationToken);
+    }
+
+    /// <summary>
+    /// Configure the builder using settings from the given KernelMemoryConfig and IConfiguration instances.
+    /// </summary>
+    /// <param name="builder">KernelMemory builder instance</param>
+    /// <param name="memoryConfiguration">KM configuration</param>
+    /// <param name="servicesConfiguration">Dependencies configuration, e.g. queue, embedding, storage, etc.</param>
+    public static IKernelMemoryBuilder FromMemoryConfiguration(
+        this IKernelMemoryBuilder builder,
+        KernelMemoryConfig memoryConfiguration,
+        IConfiguration servicesConfiguration)
+    {
+        return new ServiceConfiguration(servicesConfiguration, memoryConfiguration).PrepareBuilder(builder);
     }
 }

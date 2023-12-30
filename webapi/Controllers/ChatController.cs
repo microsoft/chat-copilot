@@ -412,7 +412,7 @@ public class ChatController : ControllerBase, IDisposable
     /// <summary>
     /// Converts <see cref="Ask"/> variables to <see cref="KernelArguments"/>, inserting some system variables along the way.
     /// </summary>
-    public KernelArguments GetKernelArguments(Ask ask, IAuthInfo authInfo, string chatId)
+    private KernelArguments GetKernelArguments(Ask ask, IAuthInfo authInfo, string chatId)
     {
         const string UserIdKey = "userId";
         const string UserNameKey = "userName";
