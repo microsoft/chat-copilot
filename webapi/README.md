@@ -301,6 +301,14 @@ Alternatively,
     </Content>
    ```
 
+   You will also need to include a line for each skprompt.txt file you have for you plugins to ensure they are included in the build output.
+
+   ```xml
+   <None Update="Plugins\SemanticPlugins\{PluginName}\skprompt.txt">
+     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+   </None>
+   ```
+
 3. Change the respective directory option to use an absolute path or a different base path, but make sure that the files are accessible from that location.
 
 ### Add Custom Setup to Chat Copilot's Kernel
