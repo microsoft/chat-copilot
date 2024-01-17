@@ -1,13 +1,13 @@
 import {
-    BrandVariants,
-    GriffelStyle,
-    Theme,
-    createDarkTheme,
-    createLightTheme,
-    makeStyles,
-    shorthands,
-    themeToTokensObject,
-    tokens,
+  BrandVariants,
+  GriffelStyle,
+  Theme,
+  createDarkTheme,
+  createLightTheme,
+  makeStyles,
+  shorthands,
+  themeToTokensObject,
+  tokens,
 } from '@fluentui/react-components';
 
 export const semanticKernelBrandRamp: BrandVariants = {
@@ -17,7 +17,7 @@ export const semanticKernelBrandRamp: BrandVariants = {
     40: '#591732',
     50: '#701A3E',
     60: '#861F4B',
-    70: '#982C57',
+    70: '#ff5a10', //Farbe für Header colorBrandForeground2
     80: '#A53E63',
     90: '#B15070',
     100: '#BC627E',
