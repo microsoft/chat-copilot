@@ -54,4 +54,4 @@ jobs:
           app-name: 'xg-demo'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F1B2992DB18A4137963668D675652FDB }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F129C887723B4B4A82075AA4D1E1B42D }}
