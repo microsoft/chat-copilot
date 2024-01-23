@@ -35,7 +35,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/debug": "^4.1.12",
     "@types/node": "^20.10.5",
-    "@types/react": "^18.2.43",
+    "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.14.0",
