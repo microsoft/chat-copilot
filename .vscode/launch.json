@@ -1,7 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
             "name": "Debug CopilotChatWebApi",
             "type": "coreclr",
@@ -11,7 +10,45 @@
             "cwd": "${workspaceFolder}/webapi",
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
-            },
+            }
+        },
+        {
+            "name": "Attach to .NET Functions",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:azureFunctions.pickProcess}"
+        },
+        {
+            "type": "node-terminal",
+            "name": "Run Script: start",
+            "request": "launch",
+            "command": "yarn start",
+            "cwd": "${workspaceFolder}\\webapp"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "TypeScript",
+            "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
+            "env": {"TS_NODE_COMPILER_OPTIONS": "{\"jsx\": \"react\"}"},
+            "args": ["${workspaceFolder}/webapp/src/index.tsx"], // replace with your entry point
+            "outputCapture": "std",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "cwd": "${workspaceFolder}/webapp"
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Debug TypeScript",
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "args": ["${workspaceFolder}/webapp/src/index.tsx"], // replace with your entry point
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "cwd": "${workspaceFolder}/webapp",
+            "env": {
+                "TS_NODE_PROJECT": "${workspaceFolder}/webapp/tsconfig.json"
+            }
         }
     ]
 }

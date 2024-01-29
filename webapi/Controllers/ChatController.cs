@@ -316,6 +316,20 @@ public class ChatController : ControllerBase, IDisposable
             planner.Kernel.ImportFunctions(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
         }
 
+        // Microsoft API Connector
+        if (authHeaders.TryGetValue("APICONNECTOR", out string? ApiConnectorAuthHeader))
+        {
+            this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
+            // BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GraphAuthHeader));
+            // GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.AuthenticateRequestAsync);
+
+            planner.Kernel.ImportFunctions(new ApiConnectorPlugin(ApiConnectorAuthHeader), "apiConnector");
+            // planner.Kernel.ImportFunctions(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
+            // planner.Kernel.ImportFunctions(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
+            // planner.Kernel.ImportFunctions(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
+        }
+
+
         if (variables.TryGetValue("customPlugins", out string? customPluginsString))
         {
             CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString);
