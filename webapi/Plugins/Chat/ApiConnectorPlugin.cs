@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.SemanticKernel.Functions.OpenAPI.Authentication;
 
 
 //
@@ -133,23 +134,24 @@ public sealed class ApiConnectorPlugin
           
         }
 
-        
-        //use graphserviceclient to get data from the api Url 
-        // var result = new QueryOption("$filter", "startswith(title, 'Task')");
-        // var response = await _graphServiceClient.HttpProvider.SendAsync(new HttpRequestMessage(HttpMethod.Get, apiURL), cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-        // if (response.StatusCode != HttpStatusCode.OK)
-        // {
-        //     throw new InvalidOperationException($"Failed to get tasks from the API. Status code: {response.StatusCode}");
-        // }
 
-        // TaskManagementTaskList taskManagementTaskList = await _connector.GetDefaultTaskListAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-        // if (taskManagementTaskList == null)
-        // {
-        //     throw new InvalidOperationException("No default task list found.");
-        // }
+        //Call a graph api using the accesstoken and return a string with the json response
+        var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiURL);
+        graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+        var graphResponse = await client.SendAsync(graphRequest);
+        var graphResponseContent = string.Empty;
 
-        // return JsonSerializer.Serialize(await _connector.GetTasksAsync(taskManagementTaskList.Id, result, cancellationToken).ConfigureAwait(continueOnCapturedContext: false));
-        //return a fixed string
-        return "This is a fixed string";
+        if (graphResponse.IsSuccessStatusCode)
+        {
+            graphResponseContent = await graphResponse.Content.ReadAsStringAsync();
+        }
+        else
+        {
+            throw new Exception($"Failed to get graph data: {graphResponse.StatusCode}");
+        }
+
+        return graphResponseContent;
+
+
     }
 }
