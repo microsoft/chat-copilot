@@ -88,7 +88,7 @@ export const initialState: PluginsState = {
             enabled: false,
             authRequirements: {
                 Msal: true,
-                scopes: Constants.plugins.msGraphScopes, //TODO: add .default combined scope
+                scopes: Constants.plugins.apiConnectorScopes,
             },
             headerTag: AuthHeaderTags.ApiConnector,
             icon: GraphIcon,
