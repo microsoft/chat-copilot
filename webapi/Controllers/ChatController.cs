@@ -18,6 +18,7 @@ using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Chat;
+using CopilotChat.WebApi.Plugins.APIConnector;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using CopilotChat.WebApi.Utilities;
@@ -46,7 +47,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class ChatController : ControllerBase, IDisposable
 {
     private readonly ILogger<ChatController> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
@@ -314,6 +315,13 @@ public class ChatController : ControllerBase, IDisposable
             planner.Kernel.ImportFunctions(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
             planner.Kernel.ImportFunctions(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
             planner.Kernel.ImportFunctions(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
+        }
+
+        // Microsoft API Connector
+        if (authHeaders.TryGetValue("APICONNECTOR", out string? ApiConnectorAuthHeader))
+        {
+            this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
+            planner.Kernel.ImportFunctions(new ApiConnectorPlugin(ApiConnectorAuthHeader, this._httpClientFactory), "apiConnector");
         }
 
         if (variables.TryGetValue("customPlugins", out string? customPluginsString))

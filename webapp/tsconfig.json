@@ -10,7 +10,7 @@
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
-        "inlineSourceMap": true,
+        // "inlineSourceMap": true,
         "inlineSources": true,
         "removeComments": true,
         "downlevelIteration": true,
@@ -30,7 +30,10 @@
         "noEmit": true,
         "jsx": "react-jsx",
         "types": [],
-        "composite": true
+        "composite": true,
+        "outDir": "bin",
+        "rootDir": "src",
+        "sourceMap": true
     },
     "include": ["src", "src/assets/custom.d.ts"]
 }
