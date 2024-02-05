@@ -5,64 +5,53 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.SemanticKernel.Plugins.MsGraph.Diagnostics;
-using Microsoft.SemanticKernel.Plugins.MsGraph.Models;
-using Microsoft.Graph;
 using Microsoft.SemanticKernel;
-using Microsoft.Identity.Client;
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web;
-using Microsoft.SemanticKernel.Functions.OpenAPI.Authentication;
+using Microsoft.Extensions.Configuration;
 
+namespace CopilotChat.WebApi.Plugins.APIConnector;
 
-//
-// Summary:
-//     Task list plugin (e.g. Microsoft To-Do)
+/// <summary>
+/// This class is a plugin that connects to an API.
+/// </summary>
 public sealed class ApiConnectorPlugin
 {
-    //
-    // Summary:
-    //     Microsoft.SemanticKernel.Orchestration.ContextVariables parameter names.
-    public static class Parameters
-    {
-        //
-        // Summary:
-        //     Task reminder as DateTimeOffset.
-        public const string ApiUrl = "apiUrl";
-
-        //
-        // Summary:
-        //     Whether to include completed tasks.
-        public const string ApiMethod = "Get";
-    }
-
     private readonly string _bearerToken;
 
     private readonly ILogger _logger;
 
+    private readonly IHttpClientFactory _clientFactory;
+
+    private readonly string _clientId;
+
+    private readonly string _clientSecret;
+
+    private readonly string _tenantId;
+
+    private readonly string _authority;
+
+
+
     //
     // Summary:
-    //     Initializes a new instance of the Microsoft.SemanticKernel.Plugins.MsGraph.TaskListPlugin
+    //     Initializes a new instance of the Microsoft.SemanticKernel.Plugins.TaskListPlugin
     //     class.
     //
     // Parameters:
-    //   connector:
-    //     Task list connector.
+    //   bearerToken:
+    //     The bearer token to use for the API call.
+    //
+    //   clientFactory:
+    //     The factory to use to create HttpClient instances.
     //
     //   loggerFactory:
-    //     The Microsoft.Extensions.Logging.ILoggerFactory to use for logging. If null,
-    //     no logging will be performed.
-    public ApiConnectorPlugin(string bearerToken, ILoggerFactory? loggerFactory = null)
+    //     The factory to use to create ILogger instances.
+    public ApiConnectorPlugin(string bearerToken, IHttpClientFactory clientFactory, ILoggerFactory? loggerFactory = null)
     {
-        if (bearerToken == null)
-        {
-            throw new ArgumentNullException("Bearer token not found.");
-        }
+        this._bearerToken = bearerToken ?? throw new ArgumentNullException(bearerToken);
 
-        this._bearerToken = bearerToken;
+        this._clientFactory = clientFactory;
 
         ILogger logger;
         if (loggerFactory == null)
@@ -76,82 +65,129 @@ public sealed class ApiConnectorPlugin
         }
 
         this._logger = logger;
+
+        //read configuration from appsettings file
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var onBehalfOfFlow = configuration.GetSection("OnBehalfOf");
+        this._clientId = onBehalfOfFlow["ClientId"] ?? throw new ArgumentNullException("ClientId");
+        this._clientSecret = onBehalfOfFlow["ClientSecret"] ?? throw new ArgumentNullException("ClientSecret");
+        this._tenantId = onBehalfOfFlow["TenantId"] ?? throw new ArgumentNullException("TenantId");
+        this._authority = onBehalfOfFlow["Authority"] ?? throw new ArgumentNullException("Authority");
     }
 
     //
     // Summary:
-    //     Get tasks from the default task list.
+    //     Call a Graph API with the OData query and the Graph API Scopes based on user input.
+    //
+    // Parameters:
+    //   apiURL:
+    //     The URL of the GRAPH API with the OData query to call.
+    //
+    //   graphScopes:
+    //     The comma separated value string with the Graph API Scopes needed to execute the
+    //     call.
+    //
+    //   cancellationToken:
+    //     The cancellation token.
+    //
+    // Returns:
+    //     The response from the GRAPH API.
+    //
+    // Exceptions:
+    //   T:System.ArgumentNullException:
+    //     apiURL is null or empty.
+    //
+    //   T:System.ArgumentNullException:
+    //     graphScopes is null or empty.
+    //
+    //   T:System.Net.Http.HttpRequestException:
+    //     Failed to get token: {response.StatusCode}.
+    //
+    //   T:System.Net.Http.HttpRequestException:
+    //     Failed to get access token.
+    //
+    //   T:System.Net.Http.HttpRequestException:
+    //     Failed to get graph data: {graphResponse.StatusCode}.
     [SKFunction]
-    [Description("Call Graph API endpoint with odata queries and the graph scopes based on user input")]
-    public async Task<string> CallGraphApiTasksAsync([Description("Url of the API with OData query to call")] string apiURL, [Description("Comma separated value string with the graph scopes needed to call the graph API")] string graphScopes, CancellationToken cancellationToken = default(CancellationToken))
+    [Description("Call a Graph API with the OData query and the Graph API Scopes based on user input")]
+    public async Task<string> CallGraphApiTasksAsync([Description("Url of the GRAPH API with the OData query to call")] string apiURL, [Description("Comma separated value string with the Graph API Scopes needed to execute the call")] string graphScopes, CancellationToken cancellationToken = default(CancellationToken))
     {
         if (string.IsNullOrEmpty(apiURL))
         {
-            throw new ArgumentNullException("apiURL was not provided");
+            throw new ArgumentNullException(apiURL);
         }
 
-        //check if scopes are not null
         if (string.IsNullOrEmpty(graphScopes))
         {
-            throw new ArgumentNullException("graphScopes was not provided");
+            throw new ArgumentNullException(graphScopes);
         }
 
-        //THIS CODE IS FOR THE POC ONLY AND WILL BE REPLACED BY THE GRAPH SERVICE CLIENT  
-        HttpClient client = new HttpClient();
-
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/070c2354-e90f-42bb-a620-185a7cbc8f19/oauth2/v2.0/token");
-
-        var keyValues = new List<KeyValuePair<string, string>>
+        string? accessToken = string.Empty;
+        using (HttpClient client = this._clientFactory.CreateClient())
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Post, this._authority + "/" + this._tenantId + "/oauth2/v2.0/token"))
             {
-                new KeyValuePair<string, string>("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                new KeyValuePair<string, string>("client_id", "384525a6-b975-4add-b74b-a001955c9426"),
-                new KeyValuePair<string, string>("client_secret", "N~s8Q~DcTWLcbDzA35v9Sn2S3SE5IM6fcVfg4aLg"),
-                new KeyValuePair<string, string>("assertion", this._bearerToken),
-                new KeyValuePair<string, string>("scope", graphScopes),
-                new KeyValuePair<string, string>("requested_token_use", "on_behalf_of")
+                var keyValues = new List<KeyValuePair<string, string>>
+            {
+                new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                new("client_id", this._clientId),
+                new("client_secret", this._clientSecret),
+                new("assertion", this._bearerToken),
+                new("scope", graphScopes),
+                new("requested_token_use", "on_behalf_of")
             };
 
-        request.Content = new FormUrlEncodedContent(keyValues);
+                request.Content = new FormUrlEncodedContent(keyValues);
+                var response = await client.SendAsync(request, cancellationToken);
+                var responseContent = string.Empty;
 
-        var response = await client.SendAsync(request);
-        var responseContent = string.Empty;
+                if (response.IsSuccessStatusCode)
+                {
+                    responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                }
+                else
+                {
+                    throw new HttpRequestException($"Failed to get token: {response.StatusCode}");
+                }
 
-        if (response.IsSuccessStatusCode)
-        {
-            responseContent = await response.Content.ReadAsStringAsync();
-
+                using (JsonDocument doc = JsonDocument.Parse(responseContent))
+                {
+                    JsonElement root = doc.RootElement;
+                    if (root.TryGetProperty("access_token", out JsonElement accessTokenElement))
+                    {
+                        accessToken = accessTokenElement.GetString();
+                    }
+                    else
+                    {
+                        throw new HttpRequestException("Failed to get access token");
+                    }
+                }
+            }
         }
-        else
-        {
-            throw new Exception($"Failed to get token: {response.StatusCode}");
-        }
 
-        string accessToken = string.Empty;
-        using (JsonDocument doc = JsonDocument.Parse(responseContent))
-        {
-            JsonElement root = doc.RootElement;
-            accessToken = root.GetProperty("access_token").GetString();
-          
-        }
-
-
-        //Call a graph api using the accesstoken and return a string with the json response
-        var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiURL);
-        graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-        var graphResponse = await client.SendAsync(graphRequest);
         var graphResponseContent = string.Empty;
 
-        if (graphResponse.IsSuccessStatusCode)
+        using (HttpClient client = this._clientFactory.CreateClient())
         {
-            graphResponseContent = await graphResponse.Content.ReadAsStringAsync();
-        }
-        else
-        {
-            throw new Exception($"Failed to get graph data: {graphResponse.StatusCode}");
+            using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiURL))
+            {
+                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
+
+                if (graphResponse.IsSuccessStatusCode)
+                {
+                    graphResponseContent = await graphResponse.Content.ReadAsStringAsync(cancellationToken);
+                }
+                else
+                {
+                    throw new HttpRequestException($"Failed to get graph data: {graphResponse.StatusCode}");
+                }
+            }
         }
 
         return graphResponseContent;
-
-
     }
 }
