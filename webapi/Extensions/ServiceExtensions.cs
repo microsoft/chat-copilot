@@ -10,7 +10,6 @@ using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
-using CopilotChat.WebApi.Services.MemoryMigration;
 using CopilotChat.WebApi.Storage;
 using CopilotChat.WebApi.Utilities;
 using Microsoft.AspNetCore.Authentication;
@@ -125,25 +124,6 @@ public static class CopilotChatServiceExtensions
 
         // Add the plugins
         services.AddSingleton<IDictionary<string, Plugin>>(validatedPlugins);
-
-        return services;
-    }
-
-    internal static IServiceCollection AddMaintenanceServices(this IServiceCollection services)
-    {
-        // Inject migration services
-        services.AddSingleton<IChatMigrationMonitor, ChatMigrationMonitor>();
-        services.AddSingleton<IChatMemoryMigrationService, ChatMemoryMigrationService>();
-
-        // Inject actions so they can be part of the action-list.
-        services.AddSingleton<ChatMigrationMaintenanceAction>();
-        services.AddSingleton<IReadOnlyList<IMaintenanceAction>>(
-            sp =>
-                (IReadOnlyList<IMaintenanceAction>)
-                new[]
-                {
-                    sp.GetRequiredService<ChatMigrationMaintenanceAction>(),
-                });
 
         return services;
     }
