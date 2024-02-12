@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
-using CopilotChat.WebApi.Services.MemoryMigration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -41,24 +39,10 @@ public class MaintenanceController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<MaintenanceResult?>> GetMaintenanceStatusAsync(
-        [FromServices] IChatMigrationMonitor migrationMonitor,
+    public ActionResult<MaintenanceResult?> GetMaintenanceStatusAsync(
         CancellationToken cancellationToken = default)
     {
         MaintenanceResult? result = null;
-
-        var migrationStatus = await migrationMonitor.GetCurrentStatusAsync(cancellationToken);
-
-        if (migrationStatus != ChatMigrationStatus.None)
-        {
-            result =
-                new MaintenanceResult
-                {
-                    Title = "Migrating Chat Memory",
-                    Message = "An upgrade requires that all non-document memories be migrated.  This may take several minutes...",
-                    Note = "Note: All document memories will need to be re-imported.",
-                };
-        }
 
         if (this._serviceOptions.Value.InMaintenance)
         {
