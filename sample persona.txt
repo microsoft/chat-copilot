@@ -1,6 +1,0 @@
-.\Configure.ps1 -AiService OpenAI -APIKey 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 -FrontendClientId bbe4a863-a36c-4243-9259-c54c468389ea -BackendClientId 384525a6-b975-4add-b74b-a001955c9426 -TenantId 070c2354-e90f-42bb-a620-185a7cbc8f19
-
-
-
-This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot. 
-The AI bot must execute a Graph API call generating the graph API url with the propper OData query and the Graph scopes to use according to user intent and then summarize the results.  Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.
