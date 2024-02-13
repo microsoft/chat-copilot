@@ -288,11 +288,14 @@ By default, Chat Copilot runs locally without authentication, using a guest user
    ```
 
 
-## (Optional) Configure the [Graph API Plugin with On-Behalf-Of Flow](./plugins/OBO/README.md)
+## (Optional) Configure the [API Connector Graph API Plugin with On-Behalf-Of Flow](./plugins/OBO/README.md)
 
 This Native Plugin allows the execution of Graph APIs using the OBO flow with delegated permissions. The OBO flow allows the execution of Graph APIs that are not restricted to the "me" endpoint and it does not require the user to consent to other scopes (permissions) upfront - given the plugin more flexibility. The scopes (permissions) still need to have administrator consent but those can change without requiring user consent. 
 
 To enable this plugin, you need to configure the app registrations for the WebAPI and and the WebAPP in a specific way that is described in the readme.md file. 
+
+### Requirements
+Enable backend authentication via Azure AD as described below
 
 ### Limitations
 At the moment the plugin only allows GET operations to be executed. 

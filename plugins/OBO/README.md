@@ -1,4 +1,4 @@
-﻿# On Bhhalf Of OAuth Flow Graph API plugin
+﻿# API Connector plugin with On-Behhalf-Of Flow for Graph API plugin
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
@@ -8,6 +8,7 @@ In this scenario the client app is the chat Web App, the Web Api  is the middle-
 
 Read this to understand more about the [OBO Flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application)
 
+> NOTE: This plugin was implemented as a native function, which means that the implementation was done in the same code base of the WebAPI, for that the configuration neeeds to be done in the appsettings.json of the WebAPi code.  
 
 ## Requirements
 
@@ -49,8 +50,6 @@ Read this to understand more about the [OBO Flow](https://learn.microsoft.com/en
 
 4. Change the WebAPI appsettings.json file 
 
-   - In order to avoid commiting secrets to your repo it is recommended you change the appsettings.Development.json as this file will be ignored by GIT
-
    - create a new section as shown below and replace the information with your tenant id, client id and client secret,
   
   ```json
@@ -62,7 +61,22 @@ Read this to understand more about the [OBO Flow](https://learn.microsoft.com/en
   }
    ```   
 
-5. Configuration changes when App is running 
+5. Change the scope for the API Connector plugin in the WebApp code
+
+   - In order to avoid requesting consent from the user for each scope allowed in the WebAPI app registration you need to use the [.default scope]https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). The scope name is formed by the Application ID of the WebAPI app registration so it must be updated for a new deployment.
+
+   - To add the scope to the Web App API Connector plugin you need to change the Constants.ts file located in the webapp/src folder, add the ApiConnectorScopes entry as shown below:
+
+   ```typescript
+   plugins: {
+      // For a list of Microsoft Graph permissions, see https://learn.microsoft.com/en-us/graph/permissions-reference.
+      // Your application registration will need to be granted these permissions in Azure Active Directory.
+      msGraphScopes: ['Calendars.Read', 'Mail.Read', 'Mail.Send', 'Tasks.ReadWrite', 'User.Read'],
+      apiConnectorScopes: ['api://[ENTER THE WE API APPLICATION ID]/.default'],
+    }
+   ```
+   
+6. Configuration changes when App is running 
 
    - run the application as described in main readme.md file 
 
@@ -75,7 +89,7 @@ Read this to understand more about the [OBO Flow](https://learn.microsoft.com/en
    The AI bot must execute a Graph API call generating the graph API url with the propper OData query and the Graph scopes to use according to user intent and then summarize the results.  Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.
    ```
 
-6. Run sample prompts
+7. Run sample prompts
 
    - Get the first 3 app registrations in my tenant by calling a graph api and then summarize the results using a table 
 
@@ -84,3 +98,8 @@ Read this to understand more about the [OBO Flow](https://learn.microsoft.com/en
    - Get the 3 first groups in my tenant by calling a graph api and then summarize the results using a table     
 
    > NOTE: For this prompt to be executed you need to give the WepAPI app registration permission for the scope "Group.Read.All" and the user must be part of a security group that has this permission
+
+
+   ## Known issues
+
+   - When the Copilot uses GPT3.5 turbo the limit of tokens allowed is 8192. When the answer from the Graph API is longer than that limit and error will be thrown. To avoid this try to limit the queries to the top 3-5 elements.
