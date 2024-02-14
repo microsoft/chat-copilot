@@ -84,7 +84,7 @@ export const initialState: PluginsState = {
         [BuiltInPlugins.APIConnector]: {
             name: BuiltInPlugins.APIConnector,
             publisher: 'Microsoft',
-            description: 'Use your Microsoft Account to access any API using OBO flow.',
+            description: 'Use your Microsoft Account to access Graph API using OBO flow.',
             enabled: false,
             authRequirements: {
                 Msal: true,
