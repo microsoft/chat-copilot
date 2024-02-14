@@ -2,14 +2,23 @@
 
 import {
     AvatarProps,
+    Button,
     Persona,
     Text,
     ToggleButton,
+    Tooltip,
     makeStyles,
     mergeClasses,
     shorthands,
 } from '@fluentui/react-components';
-import { ChevronDown20Regular, ChevronUp20Regular, ThumbDislikeFilled, ThumbLikeFilled } from '@fluentui/react-icons';
+import {
+    ChevronDown20Regular,
+    ChevronUp20Regular,
+    Clipboard20Regular,
+    ClipboardTask20Regular,
+    ThumbDislikeFilled,
+    ThumbLikeFilled,
+} from '@fluentui/react-icons';
 import React, { useState } from 'react';
 import { useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
@@ -116,6 +125,17 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
         : chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
     const fullName = user?.fullName ?? message.userName;
 
+    const [messagedCopied, setMessageCopied] = useState(false);
+
+    const copyOnClick = async () => {
+        await navigator.clipboard.writeText(message.content).then(() => {
+            setMessageCopied(true);
+            setTimeout(() => {
+                setMessageCopied(false);
+            }, 2000);
+        });
+    };
+
     const avatar: AvatarProps = isBot
         ? { image: { src: conversations[selectedId].botProfilePicture } }
         : isDefaultUser
@@ -168,6 +188,17 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                     {!isMe && <Text weight="semibold">{fullName}</Text>}
                     <Text className={classes.time}>{timestampToDateString(message.timestamp, true)}</Text>
                     {isBot && <PromptDialog message={message} />}
+                    {isBot && message.prompt && (
+                        <Tooltip content={messagedCopied ? 'Copied' : 'Copy text'} relationship="label">
+                            <Button
+                                icon={messagedCopied ? <ClipboardTask20Regular /> : <Clipboard20Regular />}
+                                appearance="transparent"
+                                onClick={() => {
+                                    void copyOnClick();
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                 </div>
                 {content}
                 {showExtra && (
