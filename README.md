@@ -288,17 +288,26 @@ By default, Chat Copilot runs locally without authentication, using a guest user
    ```
 
 
-## (Optional) Configure the [API Connector Graph API Plugin with On-Behalf-Of Flow](./plugins/OBO/README.md)
+## Optional Configuration: [API Connector Graph API Plugin with On-Behalf-Of Flow](./plugins/OBO/README.md)
 
-This Native Plugin allows the execution of Graph APIs using the OBO flow with delegated permissions. The OBO flow allows the execution of Graph APIs that are not restricted to the "me" endpoint and it does not require the user to consent to other scopes (permissions) upfront - given the plugin more flexibility. The scopes (permissions) still need to have administrator consent but those can change without requiring user consent. 
+This native plugin enables the execution of Microsoft Graph APIs using the On-Behalf-Of (OBO) flow with delegated permissions. 
 
-To enable this plugin, you need to configure the app registrations for the WebAPI and and the WebAPP in a specific way that is described in the readme.md file. 
+The OBO flows is used to ensure that the backend APIs are consumed with the identity of the user, not the managed identity or service principal of the middle-tier application (in this case the WebApi).
+
+Also, this ensures that consent is given, so that the client app (WebApp) can call the middle-tier app (WebApi), and the middle-tier app has permission to call the back-end resource (MSGraph).
+
+This sample does not implement incremental consent in the UI so all the Graph scopes to be used need to have "Administrator Consent" given in the middle-tier app registration. 
+
+More information in the [OBO readme.md](./plugins/OBO/README.md).
 
 ### Requirements
-Enable backend authentication via Azure AD as described below
+Backend authentication via Azure AD must be enabled. Detailed instructions for enabling backend authentication are provided below.
 
 ### Limitations
-At the moment the plugin only allows GET operations to be executed. 
+   
+   - Currently, the plugin only supports GET operations. Future updates may add support for other types of operations.
+   - Graph queries that return large results, may reach the token limit for the AI model, producing an error.
+   - Incremental consent is not implemented in this sample.
 
 
 # Troubleshooting
