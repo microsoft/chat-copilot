@@ -1,12 +1,12 @@
 ﻿# API Connector sample plugin using On-Behalf-Of Flow for Graph APIs 
 
-This repository contains a sample API Connector Plugin that uses the On-Behalf-Of (OBO) flow to call Microsoft Graph APIs. The OBO flow is used to ensure proper consent is given so that the client app can call the middle-tier app, and the middle-tier app has permission to call the back-end resource. 
+This repository contains a sample API Connector Plugin that uses the On-Behalf-Of (OBO) flow to call Microsoft Graph APIs. 
 
-In this scenario, the client app is the chat Web App, the Web API is the middle-tier app, and the Graph API is the back-end resource.
+In this document we will refer to the client app as the WebApp (src/webapp), the middle-tier app as the WebApi (src/webapi) and the backend resource as the GraphApi.
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
-> **NOTE:** This plugin was implemented as a native Semantic Kernel function, in the WebAPI code. This is NOT an implementation of the OpenAI plugin spec. 
+> **NOTE:** This plugin was implemented as a native Semantic Kernel function, in the WebAPI code. This is not an implementation of the OpenAI plugin spec. 
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ In this scenario, the client app is the chat Web App, the Web API is the middle-
    - Click on "+ Add Permission" option and choose the "Microsoft Graph" option.
    - Select "Delegated permission" and choose all the delegated permissions needed.
    - Click on "Add Permissions".
-   - Make sure you click on "Grant Admin Consent" to the new permissions added.
+   - As the UI does not implement incremental consent, you need to grant "Admin Consent" to the new permissions added.
 
 3. **Create a Client Secret for the WebAPI app registration OBO Configuration.**
    - In the WebAPI app registration click on "Certificates & Secrets".
@@ -49,7 +49,7 @@ In this scenario, the client app is the chat Web App, the Web API is the middle-
 
 5. Change the scope for the API Connector plugin in the WebApp code
 
-   - In order to avoid requesting consent from the user for each scope allowed in the WebAPI app registration you need to use the [.default scope](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). The scope name is formed by the Application ID of the WebAPI app registration so you need to update it with the WebApi Application ID (Client ID).
+   - As the UI does noe implement incremental consent, you need to configure the WebApp to use the [.default scope](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). The scope name is formed by the Application ID of the WebAPI app registration so you need to update it with the WebApi Application ID (Client ID).
 
    - Change the Constants.ts file located in the webapp/src folder, add the ApiConnectorScopes entry with the WebApi Application Id, as shown below:
 
@@ -69,7 +69,7 @@ In this scenario, the client app is the chat Web App, the Web API is the middle-
 
    ```text
    This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot. 
-   The AI bot must execute a Graph API call generating the graph API url with the propper OData query and the Graph scopes to use according to user intent and then summarize the results.  Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.
+   The AI bot must execute a Graph API call generating the graph API url with the correct OData query and the Graph scopes to use according to user intent and then summarize the results.  Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.
    ```
 
 7. Run sample prompts
