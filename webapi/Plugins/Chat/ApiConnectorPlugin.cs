@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel;
 using System.Collections.Generic;
 using System.Net.Http;
-using Microsoft.Extensions.Configuration;
+using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Plugins.APIConnector;
 
@@ -31,8 +31,6 @@ public sealed class ApiConnectorPlugin
 
     private readonly string _authority;
 
-
-
     //
     // Summary:
     //     Initializes a new instance of the Microsoft.SemanticKernel.Plugins.TaskListPlugin
@@ -47,7 +45,7 @@ public sealed class ApiConnectorPlugin
     //
     //   loggerFactory:
     //     The factory to use to create ILogger instances.
-    public ApiConnectorPlugin(string bearerToken, IHttpClientFactory clientFactory, ILoggerFactory? loggerFactory = null)
+    public ApiConnectorPlugin(string bearerToken, IHttpClientFactory clientFactory, PlannerOptions.OboOptions? onBehalfOfAuth, ILoggerFactory? loggerFactory = null)
     {
         this._bearerToken = bearerToken ?? throw new ArgumentNullException(bearerToken);
 
@@ -66,16 +64,10 @@ public sealed class ApiConnectorPlugin
 
         this._logger = logger;
 
-        //read configuration from appsettings file
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
-            .Build();
-
-        var onBehalfOfFlow = configuration.GetSection("OnBehalfOf");
-        this._clientId = onBehalfOfFlow["ClientId"] ?? throw new ArgumentNullException("ClientId");
-        this._clientSecret = onBehalfOfFlow["ClientSecret"] ?? throw new ArgumentNullException("ClientSecret");
-        this._tenantId = onBehalfOfFlow["TenantId"] ?? throw new ArgumentNullException("TenantId");
-        this._authority = onBehalfOfFlow["Authority"] ?? throw new ArgumentNullException("Authority");
+        this._clientId = onBehalfOfAuth?.ClientId ?? throw new ArgumentNullException(onBehalfOfAuth?.ClientId);
+        this._clientSecret = onBehalfOfAuth?.ClientSecret ?? throw new ArgumentNullException(onBehalfOfAuth?.ClientSecret);
+        this._tenantId = onBehalfOfAuth?.TenantId ?? throw new ArgumentNullException(onBehalfOfAuth?.TenantId);
+        this._authority = onBehalfOfAuth?.Authority ?? throw new ArgumentNullException(onBehalfOfAuth?.Authority);
     }
 
     //

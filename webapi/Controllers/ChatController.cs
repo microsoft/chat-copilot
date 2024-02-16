@@ -321,7 +321,9 @@ public class ChatController : ControllerBase, IDisposable
         if (authHeaders.TryGetValue("APICONNECTOR", out string? ApiConnectorAuthHeader))
         {
             this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
-            planner.Kernel.ImportFunctions(new ApiConnectorPlugin(ApiConnectorAuthHeader, this._httpClientFactory), "apiConnector");
+            planner.Kernel.ImportFunctions(
+                new ApiConnectorPlugin(ApiConnectorAuthHeader, this._httpClientFactory, this._plannerOptions.OnBehalfOfAuth), 
+                "apiConnector");
         }
 
         if (variables.TryGetValue("customPlugins", out string? customPluginsString))
@@ -339,12 +341,12 @@ public class ChatController : ControllerBase, IDisposable
 
                         // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
-                        OpenAIAuthenticateRequestAsyncCallback authCallback = (request, _, _) =>
+                        Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __)
                         {
                             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
 
                             return Task.CompletedTask;
-                        };
+                        }
 
                         await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
                             $"{plugin.NameForModel}Plugin",
@@ -393,12 +395,12 @@ public class ChatController : ControllerBase, IDisposable
             {
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
-                OpenAIAuthenticateRequestAsyncCallback authCallback = (request, _, _) =>
+                Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __)
                 {
                     request.Headers.Add("X-Functions-Key", plugin.Key);
 
                     return Task.CompletedTask;
-                };
+                }
 
                 // Register the ChatGPT plugin with the planner's kernel.
                 await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
