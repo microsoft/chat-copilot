@@ -36,15 +36,16 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
    - Copy the Client Secret and the Application Id (Client ID) to use in the WebAPI appsetting configuration.
 
 4. **Change the WebAPI `appsettings.json` file.**
-   - Create a new section as shown below and replace the information with your tenant id, client id and client secret.
+   - Add your OBO configuration values in the OnBehalfOfAuth section as shown below. The ClientId must be the WebAPI Application Id (Client ID).
 
 ```json
-"OnBehalfOf": {
-  "Authority": "https://login.microsoftonline.com",
-  "TenantId": "[Replace with your tenant id]",
-  "ClientId": "[Replace with the Application Id (Client ID) of the WebAPI registration]",
-  "ClientSecret": "[Replace with the Client Secret created for the WebAPI registration]"
-}
+    // OBO Configuration for Plugins
+    "OnBehalfOfAuth": {
+      "Authority": "https://login.microsoftonline.com",
+      "TenantId": "[ENTER YOUR TENANT ID]",
+      "ClientId": "[ENTER YOUR CLIENT ID]", 
+      "ClientSecret": "[ENTER YOUR CLIENT SECRET]"
+    }
 ```
 
 5. Change the scope for the API Connector plugin in the WebApp code
