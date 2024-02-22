@@ -50,7 +50,7 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 
 5. Change the scope for the API Connector plugin in the WebApp code
 
-   - As the UI does noe implement incremental consent, you need to configure the WebApp to use the [.default scope](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). The scope name is formed by the Application ID of the WebAPI app registration so you need to update it with the WebApi Application ID (Client ID).
+   - As the UI does not implement incremental consent, you need to configure the WebApp to use the [.default scope](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). The scope name is formed by the Application ID of the WebAPI app registration so you need to update it with the WebApi Application ID (Client ID).
 
    - Change the Constants.ts file located in the webapp/src folder, add the ApiConnectorScopes entry with the WebApi Application Id, as shown below:
 
