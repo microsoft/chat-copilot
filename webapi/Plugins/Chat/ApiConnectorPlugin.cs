@@ -85,7 +85,7 @@ public sealed class ApiConnectorPlugin
     //     Failed to get graph data: {graphResponse.StatusCode}.
     [SKFunction]
     [Description("Call a Graph API with the OData query and the Graph API Scopes based on user input")]
-    public async Task<string> CallGraphApiTasksAsync([Description("Url of the GRAPH API with the OData query to call")] string apiURL, [Description("Comma separated value string with the Graph API Scopes needed to execute the call")] string graphScopes, CancellationToken cancellationToken = default(CancellationToken))
+    public async Task<string> CallGraphApiTasksAsync([Description("Url of the Graph API with the OData query to call")] string apiURL, [Description("Comma separated value string with the Graph API Scopes needed to execute the call")] string graphScopes, CancellationToken cancellationToken = default(CancellationToken))
     {
         if (string.IsNullOrEmpty(apiURL))
         {
