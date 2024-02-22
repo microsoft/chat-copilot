@@ -1,10 +1,9 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -160,7 +159,6 @@ public sealed class ApiConnectorPlugin
                 }
             }
         }
-
         return graphResponseContent;
     }
 }
