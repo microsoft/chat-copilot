@@ -322,7 +322,7 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
             planner.Kernel.ImportFunctions(
-                new ApiConnectorPlugin(ApiConnectorAuthHeader, this._httpClientFactory, this._plannerOptions.OnBehalfOfAuth), 
+                new ApiConnectorPlugin(ApiConnectorAuthHeader, this._httpClientFactory, this._plannerOptions.OnBehalfOfAuth, this._logger), 
                 "apiConnector");
         }
 
