@@ -1,13 +1,14 @@
-﻿using CopilotChat.WebApi.Options;
+﻿
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using System.Collections.Generic;
-using System.Net.Http;
 
 namespace CopilotChat.WebApi.Plugins.APIConnector;
 
