@@ -46,7 +46,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         this._chatSessionRepository = chatSessionRepository;
         this._memorySourceRepository = memorySourceRepository;
         this._globalIndex = documentMemoryOptions.Value.GlobalDocumentCollectionName;
-        this._memory = provider.GetMigrationMemory();
+        this._memory = provider.MigrationMemory;
     }
 
     ///<inheritdoc/>
@@ -64,7 +64,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
 
     private async Task InternalMigrateAsync(CancellationToken cancellationToken = default)
     {
-        var collectionNames = (await this._memory.GetCollectionsAsync(cancellationToken)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var collectionNames = (await this._memory.GetCollectionsAsync(null, cancellationToken)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var tokenMemory = await GetTokenMemory(cancellationToken);
         if (tokenMemory != null)
@@ -106,7 +106,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
                     var indexName = $"{chat.Id}-{memoryType}";
                     if (collectionNames.Contains(indexName))
                     {
-                        var memories = await this._memory.SearchAsync(indexName, "*", limit: 10000, minRelevanceScore: 0, withEmbeddings: false, cancellationToken).ToArrayAsync(cancellationToken);
+                        var memories = await this._memory.SearchAsync(indexName, "*", limit: 10000, minRelevanceScore: 0, withEmbeddings: false, null, cancellationToken).ToArrayAsync(cancellationToken);
 
                         foreach (var memory in memories)
                         {
@@ -122,7 +122,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         {
             try
             {
-                return await this._memory.GetAsync(this._globalIndex, ChatMigrationMonitor.MigrationKey, withEmbedding: false, cancellationToken);
+                return await this._memory.GetAsync(this._globalIndex, ChatMigrationMonitor.MigrationKey, withEmbedding: false, null, cancellationToken);
             }
             catch (Exception ex) when (!ex.IsCriticalException())
             {
@@ -133,7 +133,7 @@ public class ChatMemoryMigrationService : IChatMemoryMigrationService
         // Inline function to write the token memory
         async Task SetTokenMemory(string token, CancellationToken cancellationToken)
         {
-            await this._memory.SaveInformationAsync(this._globalIndex, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, cancellationToken);
+            await this._memory.SaveInformationAsync(this._globalIndex, token, ChatMigrationMonitor.MigrationKey, description: null, additionalMetadata: null, null, cancellationToken);
         }
 
         async Task RemoveMemorySourcesAsync()

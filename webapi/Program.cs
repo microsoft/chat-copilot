@@ -52,7 +52,6 @@ public sealed class Program
         builder
             .AddBotConfig()
             .AddSemanticKernelServices()
-            .AddPlannerServices()
             .AddSemanticMemoryServices();
 
         // Add SignalR as the real time relay service

@@ -29,7 +29,7 @@ public class Repository<T> : IRepository<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity ID cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity ID cannot be null or empty.");
         }
 
         return this.StorageContext.CreateAsync(entity);

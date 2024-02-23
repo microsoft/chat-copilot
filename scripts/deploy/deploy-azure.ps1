@@ -58,10 +58,10 @@ param(
     # Azure AD cloud instance for authenticating users
     $AzureAdInstance = "https://login.microsoftonline.com",
 
-    [ValidateSet("AzureCognitiveSearch", "Qdrant")]
+    [ValidateSet("AzureAISearch", "Qdrant")]
     [string]
     # What method to use to persist embeddings
-    $MemoryStore = "AzureCognitiveSearch",
+    $MemoryStore = "AzureAISearch",
 
     [switch]
     # Don't deploy Cosmos DB for chat storage - Use volatile memory instead

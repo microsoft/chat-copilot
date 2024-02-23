@@ -186,7 +186,6 @@ public class CopilotChatMessage : IStorageEntity
         switch (this.Type)
         {
             case ChatMessageType.Plan:
-            {
                 var planMessageContent = "proposed a plan.";
                 if (this.Content.Contains("proposedPlan\":", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -201,26 +200,19 @@ public class CopilotChatMessage : IStorageEntity
                 }
 
                 return $"{messagePrefix} {this.UserName} {planMessageContent}";
-            }
 
             case ChatMessageType.Document:
-            {
                 var documentMessage = DocumentMessageContent.FromString(this.Content);
                 var documentMessageContent = (documentMessage != null) ? documentMessage.ToFormattedString() : "documents";
 
                 return $"{messagePrefix} {this.UserName} uploaded: {documentMessageContent}";
-            }
 
             case ChatMessageType.Message:
-            {
                 return $"{messagePrefix} {this.UserName} said: {this.Content}";
-            }
 
             default:
-            {
                 // This should never happen.
                 throw new InvalidOperationException($"Unknown message type: {this.Type}");
-            }
         }
     }
 

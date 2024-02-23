@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
-using Microsoft.SemanticKernel.Planning;
+using Microsoft.SemanticKernel.Planning.Handlebars;
 
 namespace CopilotChat.WebApi.Models.Response;
 
@@ -11,6 +11,7 @@ public enum PlanType
     Action, // single-step
     Sequential, // multi-step
     Stepwise, // MRKL style planning
+    Handlebars
 }
 
 // State of Plan
@@ -31,7 +32,7 @@ public class ProposedPlan
     /// Plan object to be approved, rejected, or executed.
     /// </summary>
     [JsonPropertyName("proposedPlan")]
-    public Plan Plan { get; set; }
+    public HandlebarsPlan Plan { get; set; }
 
     /// <summary>
     /// Indicates whether plan is Action (single-step) or Sequential (multi-step).
@@ -67,7 +68,7 @@ public class ProposedPlan
     /// Create a new proposed plan.
     /// </summary>
     /// <param name="plan">Proposed plan object</param>
-    public ProposedPlan(Plan plan, PlanType type, PlanState state, string userIntent, string originalUserInput, string? generatedPlanMessageId = null)
+    public ProposedPlan(HandlebarsPlan plan, PlanType type, PlanState state, string userIntent, string originalUserInput, string? generatedPlanMessageId = null)
     {
         this.Plan = plan;
         this.Type = type;

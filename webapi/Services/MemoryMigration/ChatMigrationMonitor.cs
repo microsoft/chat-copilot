@@ -47,7 +47,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
         this._logger = logger;
         this._indexNameGlobalDocs = docOptions.Value.GlobalDocumentCollectionName;
         this._indexNameAllMemory = promptOptions.Value.MemoryIndexName;
-        this._memory = provider.GetMigrationMemory();
+        this._memory = provider.MigrationMemory;
     }
 
     /// <inheritdoc/>
@@ -91,7 +91,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                 try
                 {
                     // Cache "found" index state to reduce query count and avoid handling truth mutation.
-                    var collections = await this._memory.GetCollectionsAsync(cancellationToken);
+                    var collections = await this._memory.GetCollectionsAsync(null, cancellationToken);
 
                     // Does the new "target" index already exist?
                     _hasCurrentIndex = collections.Any(c => c.Equals(this._indexNameAllMemory, StringComparison.OrdinalIgnoreCase));
@@ -117,6 +117,7 @@ public class ChatMigrationMonitor : IChatMigrationMonitor
                         this._indexNameGlobalDocs,
                         MigrationKey,
                         withEmbedding: false,
+                        null,
                         cancellationToken);
 
                 if (result == null)

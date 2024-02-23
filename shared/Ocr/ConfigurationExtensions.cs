@@ -4,7 +4,7 @@ using System;
 using CopilotChat.Shared.Ocr.Tesseract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.KernelMemory.Configuration;
-using Microsoft.KernelMemory.DataFormats.Image;
+using Microsoft.KernelMemory.DataFormats;
 
 namespace CopilotChat.Shared.Ocr;
 

@@ -22,7 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.KernelMemory;
-using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.KernelMemory.Diagnostics;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -53,8 +53,6 @@ public static class CopilotChatServiceExtensions
 
         // Chat prompt options
         AddOptions<PromptsOptions>(PromptsOptions.PropertyName);
-
-        AddOptions<PlannerOptions>(PlannerOptions.PropertyName);
 
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
