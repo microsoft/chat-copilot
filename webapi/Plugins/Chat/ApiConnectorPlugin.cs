@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (c) Microsoft. All rights reserved.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,7 +11,7 @@ using CopilotChat.WebApi.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
-namespace CopilotChat.WebApi.Plugins.APIConnector;
+namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
 /// This class is a plugin that connects to an API.
@@ -86,11 +87,11 @@ public sealed class ApiConnectorPlugin
     //     Failed to get graph data: {graphResponse.StatusCode}.
     [SKFunction]
     [Description("Call a Graph API with the OData query and the Graph API Scopes based on user input")]
-    public async Task<string> CallGraphApiTasksAsync([Description("Url of the Graph API with the OData query to call")] string apiURL, [Description("Comma separated value string with the Graph API Scopes needed to execute the call")] string graphScopes, CancellationToken cancellationToken = default(CancellationToken))
+    public async Task<string> CallGraphApiTasksAsync([Description("Url of the Graph API with the OData query to call")] string apiToCall, [Description("Comma separated value string with the Graph API Scopes needed to execute the call")] string graphScopes, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (string.IsNullOrEmpty(apiURL))
+        if (string.IsNullOrEmpty(apiToCall))
         {
-            throw new ArgumentNullException(apiURL);
+            throw new ArgumentNullException(apiToCall);
         }
 
         if (string.IsNullOrEmpty(graphScopes))
@@ -145,7 +146,7 @@ public sealed class ApiConnectorPlugin
 
         using (HttpClient client = this._clientFactory.CreateClient())
         {
-            using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiURL))
+            using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiToCall))
             {
                 graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
                 var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
