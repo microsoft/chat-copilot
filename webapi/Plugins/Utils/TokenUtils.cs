@@ -100,7 +100,7 @@ public static class TokenUtils
                 logger.LogError("Usage details not found in model result.");
             }
 
-            kernelArguments.Add(functionKey!, tokenUsage.ToString(CultureInfo.InvariantCulture));
+            kernelArguments[functionKey!] = tokenUsage.ToString(CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {

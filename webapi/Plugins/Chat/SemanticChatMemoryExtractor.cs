@@ -79,10 +79,10 @@ internal static class SemanticChatMemoryExtractor
                 TokenUtils.TokenCount(memoryPrompt);
 
             var memoryExtractionArguments = new KernelArguments(kernelArguments);
-            memoryExtractionArguments.Add("tokenLimit", remainingToken.ToString(new NumberFormatInfo()));
-            memoryExtractionArguments.Add("memoryName", memoryName);
-            memoryExtractionArguments.Add("format", options.MemoryFormat);
-            memoryExtractionArguments.Add("knowledgeCutoff", options.KnowledgeCutoffDate);
+            memoryExtractionArguments["tokenLimit"] = remainingToken.ToString(new NumberFormatInfo());
+            memoryExtractionArguments["memoryName"] = memoryName;
+            memoryExtractionArguments["format"] = options.MemoryFormat;
+            memoryExtractionArguments["knowledgeCutoff"] = options.KnowledgeCutoffDate;
 
             var completionFunction = kernel.CreateFunctionFromPrompt(memoryPrompt);
             var result = await completionFunction.InvokeAsync(

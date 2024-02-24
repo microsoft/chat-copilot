@@ -134,8 +134,8 @@ public class ChatPlugin
 
         // Clone the context to avoid modifying the original context variables.
         KernelArguments intentExtractionContext = new(kernelArguments);
-        intentExtractionContext.Add("tokenLimit", historyTokenBudget.ToString(new NumberFormatInfo()));
-        intentExtractionContext.Add("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
+        intentExtractionContext["tokenLimit"] = historyTokenBudget.ToString(new NumberFormatInfo());
+        intentExtractionContext["knowledgeCutoff"] = this._promptOptions.KnowledgeCutoffDate;
 
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemIntentExtraction,
@@ -176,7 +176,7 @@ public class ChatPlugin
 
         // Clone the context to avoid modifying the original context variables.
         KernelArguments audienceExtractionContext = new(context);
-        audienceExtractionContext.Add("tokenLimit", historyTokenBudget.ToString(new NumberFormatInfo()));
+        audienceExtractionContext["tokenLimit"] = historyTokenBudget.ToString(new NumberFormatInfo());
 
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemAudienceExtraction,
@@ -317,14 +317,14 @@ public class ChatPlugin
 
         // Clone the context to avoid modifying the original context variables.
         KernelArguments chatContext = new(context);
-        chatContext.Add("knowledgeCutoff", this._promptOptions.KnowledgeCutoffDate);
+        chatContext["knowledgeCutoff"] = this._promptOptions.KnowledgeCutoffDate;
 
         CopilotChatMessage chatMessage = await this.GetChatResponseAsync(chatId, userId, chatContext, newUserMessage, cancellationToken);
-        context.Add("input", chatMessage.Content);
+        context["input"] = chatMessage.Content;
 
         if (chatMessage.TokenUsage != null)
         {
-            context.Add("tokenUsage", JsonSerializer.Serialize(chatMessage.TokenUsage));
+            context["tokenUsage"] = JsonSerializer.Serialize(chatMessage.TokenUsage);
         }
         else
         {
@@ -391,7 +391,7 @@ public class ChatPlugin
         allowedChatHistory = await this.GetAllowedChatHistoryAsync(chatId, allowedChatHistoryTokenBudget, chatHistory, cancellationToken);
 
         // Calculate token usage of prompt template
-        chatContext.Add(TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!, TokenUtils.GetContextMessagesTokenCount(chatHistory).ToString(CultureInfo.CurrentCulture));
+        chatContext[TokenUtils.GetFunctionKey(this._logger, "SystemMetaPrompt")!] = TokenUtils.GetContextMessagesTokenCount(chatHistory).ToString(CultureInfo.CurrentCulture);
 
         // Stream the response to the client
         var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, allowedChatHistory, chatHistory);
@@ -492,7 +492,7 @@ public class ChatPlugin
         var functionKey = TokenUtils.GetFunctionKey(this._logger, "SystemAudienceExtraction")!;
         if (audienceContext.TryGetValue(functionKey, out object? tokenUsage))
         {
-            context.Add(functionKey, tokenUsage);
+            context[functionKey] = tokenUsage;
         }
 
         return audience;
@@ -512,7 +512,7 @@ public class ChatPlugin
         var functionKey = TokenUtils.GetFunctionKey(this._logger, "SystemIntentExtraction")!;
         if (intentContext.TryGetValue(functionKey!, out object? tokenUsage))
         {
-            context.Add(functionKey!, tokenUsage);
+            context[functionKey!] = tokenUsage;
         }
 
         return userIntent;
@@ -625,7 +625,7 @@ public class ChatPlugin
             TopP = this._promptOptions.ResponseTopP,
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty,
-            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+            // ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions TODO: provide mechanism to toggle function-calling
         };
     }
 

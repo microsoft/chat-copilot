@@ -222,7 +222,7 @@ public class ChatController : ControllerBase, IDisposable
 
         AskResult chatAskResult = new()
         {
-            Value = result.GetValue<string>() ?? string.Empty,
+            Value = result.ToString() ?? string.Empty,
             Variables = contextVariables.Select(v => new KeyValuePair<string, object?>(v.Key, v.Value))
         };
 
@@ -408,18 +408,18 @@ public class ChatController : ControllerBase, IDisposable
         const string UserIdKey = "userId";
         const string UserNameKey = "userName";
         const string ChatIdKey = "chatId";
-        const string InputKey = "input";
+        const string MessageKey = "message";
 
         var contextVariables = new KernelArguments();
         foreach (var variable in ask.Variables)
         {
-            contextVariables.Add(variable.Key, variable.Value);
+            contextVariables[variable.Key] = variable.Value;
         }
 
-        contextVariables.Add(UserIdKey, authInfo.UserId);
-        contextVariables.Add(UserNameKey, authInfo.Name);
-        contextVariables.Add(ChatIdKey, chatId);
-        contextVariables.Add(InputKey, ask.Input);
+        contextVariables[UserIdKey] = authInfo.UserId;
+        contextVariables[UserNameKey] = authInfo.Name;
+        contextVariables[ChatIdKey] = chatId;
+        contextVariables[MessageKey] = ask.Input;
 
         return contextVariables;
     }
