@@ -34,6 +34,32 @@ public class PlannerOptions
         public int MaxRetriesAllowed { get; set; } = 3;
     }
 
+    /// <summary>
+    /// Options to authenticate plugins supporting OBO Auth.
+    /// </summary>
+    public class OboOptions
+    {
+        /// <summary>
+        /// The authority to use for OBO Auth.
+        /// </summary>
+        public string? Authority { get; set; }
+
+        /// <summary>
+        /// The Tenant Id to use for OBO Auth.
+        /// </summary>
+        public string? TenantId { get; set; }
+
+        /// <summary>
+        /// The Client Id to use for OBO Auth.
+        /// </summary>
+        public string? ClientId { get; set; }
+
+        /// <summary>
+        /// The Client Secret to use for OBO Auth.
+        /// </summary>
+        public string? ClientSecret { get; set; }
+    }
+
     public const string PropertyName = "Planner";
 
     /// <summary>
@@ -77,4 +103,9 @@ public class PlannerOptions
     /// </summary>
     [RequiredOnPropertyValue(nameof(Type), PlanType.Stepwise)]
     public StepwisePlannerConfig StepwisePlannerConfig { get; set; } = new StepwisePlannerConfig();
+
+    /// <summary>
+    /// The OBO configuration for plugins that support OBO Auth.
+    /// </summary>
+    public OboOptions? OnBehalfOfAuth { get; set; }
 }
