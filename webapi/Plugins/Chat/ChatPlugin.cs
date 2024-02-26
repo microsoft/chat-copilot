@@ -625,7 +625,7 @@ public class ChatPlugin
             TopP = this._promptOptions.ResponseTopP,
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty,
-            // ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions TODO: provide mechanism to toggle function-calling
+            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
         };
     }
 
