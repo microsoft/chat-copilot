@@ -26,6 +26,9 @@
     },
     {
       "pattern": "^https://platform.openai.com"
+    },
+    {
+      "pattern": "^https://stackoverflow.com"
     }
   ],
   "timeout": "20s",
