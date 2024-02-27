@@ -2,12 +2,11 @@
 
 using System;
 using CopilotChat.WebApi.Models.Request;
-using Microsoft.SemanticKernel.Orchestration;
 
 namespace CopilotChat.WebApi.Utilities;
 
 /// <summary>
-/// Converts <see cref="Ask"/> variables to <see cref="ContextVariables"/>, inserting some system variables along the way.
+/// Converts <see cref="Ask"/> variables to <see cref="KernelArguments"/>, inserting some system variables along the way.
 /// </summary>
 internal static class PluginUtils
 {

@@ -20,7 +20,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Plugins.Core;
 
 namespace CopilotChat.WebApi.Extensions;
@@ -33,19 +32,13 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Delegate to register functions with a Semantic Kernel
     /// </summary>
-    public delegate Task RegisterFunctionsWithKernel(IServiceProvider sp, IKernel kernel);
+    public delegate Task RegisterFunctionsWithKernel(IServiceProvider sp, Kernel kernel);
 
     /// <summary>
     /// Delegate for any complimentary setup of the kernel, i.e., registering custom plugins, etc.
     /// See webapi/README.md#Add-Custom-Setup-to-Chat-Copilot's-Kernel for more details.
     /// </summary>
-    public delegate Task KernelSetupHook(IServiceProvider sp, IKernel kernel);
-
-    /// <summary>
-    /// Delegate to register plugins with the planner's kernel (i.e., omits plugins not required to generate bot response).
-    /// See webapi/README.md#Add-Custom-Plugin-Registration-to-the-Planner's-Kernel for more details.
-    /// </summary>
-    public delegate Task RegisterFunctionsWithPlannerHook(IServiceProvider sp, IKernel kernel);
+    public delegate Task KernelSetupHook(IServiceProvider sp, Kernel kernel);
 
     /// <summary>
     /// Add Semantic Kernel services
@@ -55,7 +48,7 @@ internal static class SemanticKernelExtensions
         builder.InitializeKernelProvider();
 
         // Semantic Kernel
-        builder.Services.AddScoped<IKernel>(
+        builder.Services.AddScoped<Kernel>(
             sp =>
             {
                 var provider = sp.GetRequiredService<SemanticKernelProvider>();
@@ -82,34 +75,7 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Add Planner services
-    /// </summary>
-    public static WebApplicationBuilder AddPlannerServices(this WebApplicationBuilder builder)
-    {
-        builder.InitializeKernelProvider();
-
-        builder.Services.AddScoped<CopilotChatPlanner>(sp =>
-        {
-            sp.WithBotConfig(builder.Configuration);
-            var plannerOptions = sp.GetRequiredService<IOptions<PlannerOptions>>();
-
-            var provider = sp.GetRequiredService<SemanticKernelProvider>();
-            var plannerKernel = provider.GetPlannerKernel();
-
-            // Invoke custom plugin registration for planner's kernel.
-            sp.GetService<RegisterFunctionsWithPlannerHook>()?.Invoke(sp, plannerKernel);
-
-            return new CopilotChatPlanner(plannerKernel, plannerOptions?.Value, sp.GetRequiredService<ILogger<CopilotChatPlanner>>());
-        });
-
-        // Register any custom plugins with the planner's kernel.
-        builder.Services.AddPlannerSetupHook();
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Add Planner services
+    /// Add embedding model
     /// </summary>
     public static WebApplicationBuilder AddBotConfig(this WebApplicationBuilder builder)
     {
@@ -130,28 +96,12 @@ internal static class SemanticKernelExtensions
     }
 
     /// <summary>
-    /// Register custom hook for registering plugins with the planner's kernel.
-    /// These plugins will be persistent and available to the planner on every request.
-    /// Transient plugins requiring auth or configured by the webapp should be registered in RegisterPlannerFunctionsAsync of ChatController.
-    /// </summary>
-    /// <param name="registerPluginsHook">The delegate to register plugins with the planner's kernel. If null, defaults to local runtime plugin registration using RegisterPluginsAsync.</param>
-    public static IServiceCollection AddPlannerSetupHook(this IServiceCollection services, RegisterFunctionsWithPlannerHook? registerPluginsHook = null)
-    {
-        // Default to local runtime plugin registration.
-        registerPluginsHook ??= RegisterPluginsAsync;
-
-        // Add the hook to the service collection
-        services.AddScoped<RegisterFunctionsWithPlannerHook>(sp => registerPluginsHook);
-        return services;
-    }
-
-    /// <summary>
     /// Register the chat plugin with the kernel.
     /// </summary>
-    public static IKernel RegisterChatPlugin(this IKernel kernel, IServiceProvider sp)
+    public static Kernel RegisterChatPlugin(this Kernel kernel, IServiceProvider sp)
     {
         // Chat plugin
-        kernel.ImportFunctions(
+        kernel.ImportPluginFromObject(
             new ChatPlugin(
                 kernel,
                 memoryClient: sp.GetRequiredService<IKernelMemory>(),
@@ -161,7 +111,6 @@ internal static class SemanticKernelExtensions
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
                 contentSafety: sp.GetService<AzureContentSafety>(),
-                planner: sp.GetRequiredService<CopilotChatPlanner>(),
                 logger: sp.GetRequiredService<ILogger<ChatPlugin>>()),
             nameof(ChatPlugin));
 
@@ -176,13 +125,13 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register functions with the main kernel responsible for handling Chat Copilot requests.
     /// </summary>
-    private static Task RegisterChatCopilotFunctionsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterChatCopilotFunctionsAsync(IServiceProvider sp, Kernel kernel)
     {
         // Chat Copilot functions
         kernel.RegisterChatPlugin(sp);
 
         // Time plugin
-        kernel.ImportFunctions(new TimePlugin(), nameof(TimePlugin));
+        kernel.ImportPluginFromObject(new TimePlugin(), nameof(TimePlugin));
 
         return Task.CompletedTask;
     }
@@ -190,7 +139,7 @@ internal static class SemanticKernelExtensions
     /// <summary>
     /// Register plugins with a given kernel.
     /// </summary>
-    private static Task RegisterPluginsAsync(IServiceProvider sp, IKernel kernel)
+    private static Task RegisterPluginsAsync(IServiceProvider sp, Kernel kernel)
     {
         var logger = kernel.LoggerFactory.CreateLogger(nameof(Kernel));
 
@@ -202,9 +151,9 @@ internal static class SemanticKernelExtensions
             {
                 try
                 {
-                    kernel.ImportSemanticFunctionsFromDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
+                    kernel.ImportPluginFromPromptDirectory(options.SemanticPluginsDirectory, Path.GetFileName(subDir)!);
                 }
-                catch (SKException ex)
+                catch (KernelException ex)
                 {
                     logger.LogError("Could not load plugin from {Directory}: {Message}", subDir, ex.Message);
                 }
@@ -231,9 +180,9 @@ internal static class SemanticKernelExtensions
                     try
                     {
                         var plugin = Activator.CreateInstance(classType);
-                        kernel.ImportFunctions(plugin!, classType.Name!);
+                        kernel.ImportPluginFromObject(plugin!, classType.Name!);
                     }
-                    catch (SKException ex)
+                    catch (KernelException ex)
                     {
                         logger.LogError("Could not load plugin from file {File}: {Details}", file, ex.Message);
                     }

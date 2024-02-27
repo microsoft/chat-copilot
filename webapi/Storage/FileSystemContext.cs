@@ -37,7 +37,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.TryAdd(entity.Id, entity))
@@ -53,7 +53,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.TryRemove(entity.Id, out _))
@@ -85,7 +85,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity) != null)
