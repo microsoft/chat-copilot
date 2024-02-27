@@ -316,11 +316,11 @@ public class ChatController : ControllerBase, IDisposable
             planner.Kernel.ImportFunctions(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
         }
 
-        // Microsoft API Connector
-        if (authHeaders.TryGetValue("APICONNECTOR", out string? ApiConnectorAuthHeader))
+        // Microsoft Graph OBO
+        if (authHeaders.TryGetValue("MSGRAPHOBO", out string? MsGraphOboAuthHeader))
         {
             this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
-            planner.Kernel.ImportFunctions(new ApiConnectorPlugin(ApiConnectorAuthHeader, this._httpClientFactory, this._plannerOptions.OnBehalfOfAuth, this._logger), "apiConnector");
+            planner.Kernel.ImportFunctions(new MsGraphOboPlugin(MsGraphOboAuthHeader, this._httpClientFactory, this._plannerOptions.OnBehalfOfAuth, this._logger), "msGraphObo");
         }
 
         if (variables.TryGetValue("customPlugins", out string? customPluginsString))

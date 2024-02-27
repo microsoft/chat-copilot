@@ -14,9 +14,9 @@ using Microsoft.SemanticKernel;
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
-/// This class is a plugin that connects to an API.
+/// This class is a plugin that calls Graph API using the On-behalf-of flow.
 /// </summary>
-public sealed class ApiConnectorPlugin
+public sealed class MsGraphOboPlugin
 {
     private readonly string _bearerToken;
     private readonly ILogger _logger;
@@ -28,7 +28,7 @@ public sealed class ApiConnectorPlugin
 
     //
     // Summary:
-    //     Initializes a new instance of the ApiConnectorPlugin to execute the API calls using the OBO Flow.
+    //     Initializes a new instance of the MsGraphOboPlugin to execute the API calls using the OBO Flow.
     //     class.
     //
     // Parameters:
@@ -40,7 +40,7 @@ public sealed class ApiConnectorPlugin
     //
     //   PlannerOptions.OboOptions:
     //     Configuration for the plugin defined in appsettings.json.
-    public ApiConnectorPlugin(string bearerToken, IHttpClientFactory clientFactory, PlannerOptions.OboOptions? onBehalfOfAuth, ILogger logger)
+    public MsGraphOboPlugin(string bearerToken, IHttpClientFactory clientFactory, PlannerOptions.OboOptions? onBehalfOfAuth, ILogger logger)
     {
         this._bearerToken = bearerToken ?? throw new ArgumentNullException(bearerToken);
         this._clientFactory = clientFactory;
@@ -99,7 +99,32 @@ public sealed class ApiConnectorPlugin
             throw new ArgumentNullException(graphScopes);
         }
 
-        string? accessToken = string.Empty;
+        var graphResponseContent = string.Empty;
+        var oboAccessToken = await this.GetOboAccessTokenAsync(graphScopes, cancellationToken);
+        using (HttpClient client = this._clientFactory.CreateClient())
+        {
+            using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiToCall))
+            {
+                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", oboAccessToken);
+                var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
+
+                if (graphResponse.IsSuccessStatusCode)
+                {
+                    graphResponseContent = await graphResponse.Content.ReadAsStringAsync(cancellationToken);
+                }
+                else
+                {
+                    throw new HttpRequestException($"Failed to get graph data: {graphResponse.StatusCode}");
+                }
+            }
+        }
+        return graphResponseContent;
+    }
+
+    private async Task<string> GetOboAccessTokenAsync(string graphScopes, CancellationToken cancellationToken)
+    {
+        var oboToken = string.Empty;
+
         using (HttpClient client = this._clientFactory.CreateClient())
         {
             using (var request = new HttpRequestMessage(HttpMethod.Post, this._authority + "/" + this._tenantId + "/oauth2/v2.0/token"))
@@ -132,7 +157,7 @@ public sealed class ApiConnectorPlugin
                     JsonElement root = doc.RootElement;
                     if (root.TryGetProperty("access_token", out JsonElement accessTokenElement))
                     {
-                        accessToken = accessTokenElement.GetString();
+                        oboToken = accessTokenElement.GetString();
                     }
                     else
                     {
@@ -142,25 +167,11 @@ public sealed class ApiConnectorPlugin
             }
         }
 
-        var graphResponseContent = string.Empty;
-
-        using (HttpClient client = this._clientFactory.CreateClient())
+        if (string.IsNullOrEmpty(oboToken))
         {
-            using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiToCall))
-            {
-                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-                var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
-
-                if (graphResponse.IsSuccessStatusCode)
-                {
-                    graphResponseContent = await graphResponse.Content.ReadAsStringAsync(cancellationToken);
-                }
-                else
-                {
-                    throw new HttpRequestException($"Failed to get graph data: {graphResponse.StatusCode}");
-                }
-            }
+            throw new HttpRequestException("Failed to get access token");
         }
-        return graphResponseContent;
+
+        return oboToken;
     }
 }

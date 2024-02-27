@@ -13,14 +13,14 @@ export const enum BuiltInPlugins {
     MsGraph = 'Microsoft Graph',
     Jira = 'Jira',
     GitHub = 'GitHub',
-    APIConnector = 'API Connector',
+    MsGraphObo = 'MIcrosoft Graph OBO',
 }
 
 export const enum AuthHeaderTags {
     MsGraph = 'graph',
     Jira = 'jira',
     GitHub = 'github',
-    ApiConnector = 'apiconnector',
+    MsGraphObo = 'msgraphobo',
 }
 
 export interface PluginAuthRequirements {
@@ -81,16 +81,16 @@ export const initialState: PluginsState = {
             headerTag: AuthHeaderTags.MsGraph,
             icon: GraphIcon,
         },
-        [BuiltInPlugins.APIConnector]: {
-            name: BuiltInPlugins.APIConnector,
+        [BuiltInPlugins.MsGraphObo]: {
+            name: BuiltInPlugins.MsGraphObo,
             publisher: 'Microsoft',
             description: 'Use your Microsoft Account to access Graph API using OBO flow.',
             enabled: false,
             authRequirements: {
                 Msal: true,
-                scopes: Constants.plugins.apiConnectorScopes,
+                scopes: Constants.plugins.msGraphOboScopes,
             },
-            headerTag: AuthHeaderTags.ApiConnector,
+            headerTag: AuthHeaderTags.MsGraphObo,
             icon: GraphIcon,
         },
         [BuiltInPlugins.Jira]: {
