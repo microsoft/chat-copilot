@@ -28,7 +28,6 @@
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.4.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.4.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Planners.Handlebars" Version="1.4.0-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.4.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.4.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.4.0-alpha" />

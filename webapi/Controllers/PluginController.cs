@@ -56,7 +56,7 @@ public class PluginController : ControllerBase
         // Need to set the user agent to avoid 403s from some sites.
         request.Headers.Add("User-Agent", "Semantic-Kernel");
 
-        using HttpClient client = this._httpClientFactory.CreateClient("Plugin");
+        using HttpClient client = this._httpClientFactory.CreateClient();
         var response = await client.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {

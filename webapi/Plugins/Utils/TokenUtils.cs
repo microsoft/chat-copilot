@@ -24,7 +24,6 @@ public static class TokenUtils
     /// </summary>
     public static readonly Dictionary<string, string> semanticFunctions = new()
     {
-        // TODO: [Issue #2106] Calculate token usage for planner dependencies.
         { "SystemAudienceExtraction", "audienceExtraction" },
         { "SystemIntentExtraction", "userIntentExtraction" },
         { "SystemMetaPrompt", "metaPromptTemplate" },

@@ -51,7 +51,6 @@ public class ChatController : ControllerBase, IDisposable
 
     private const string ChatPluginName = nameof(ChatPlugin);
     private const string ChatFunctionName = "Chat";
-    private const string ProcessPlanFunctionName = "ProcessPlan";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
 
     public ChatController(
@@ -74,8 +73,6 @@ public class ChatController : ControllerBase, IDisposable
     /// </summary>
     /// <param name="kernel">Semantic kernel obtained through dependency injection.</param>
     /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
-    /// <param name="planner">Planner to use to create function sequences.</param>
-    /// <param name="askConverter">Converter to use for converting Asks.</param>
     /// <param name="chatSessionRepository">Repository of chat sessions.</param>
     /// <param name="chatParticipantRepository">Repository of chat participants.</param>
     /// <param name="authInfo">Auth info for the current request.</param>
@@ -100,78 +97,19 @@ public class ChatController : ControllerBase, IDisposable
     {
         this._logger.LogDebug("Chat message received.");
 
-        return await this.HandleRequest(ChatFunctionName, kernel, messageRelayHubContext, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
-    }
+        string chatIdString = chatId.ToString();
 
-    /// <summary>
-    /// Invokes the chat function to process and/or execute plan.
-    /// </summary>
-    /// <param name="kernel">Semantic kernel obtained through dependency injection.</param>
-    /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
-    /// <param name="planner">Planner to use to create function sequences.</param>
-    /// <param name="askConverter">Converter to use for converting Asks.</param>
-    /// <param name="chatSessionRepository">Repository of chat sessions.</param>
-    /// <param name="chatParticipantRepository">Repository of chat participants.</param>
-    /// <param name="authInfo">Auth info for the current request.</param>
-    /// <param name="ask">Prompt along with its parameters.</param>
-    /// <param name="chatId">Chat ID.</param>
-    /// <returns>Results containing the response from the model.</returns>
-    [Route("chats/{chatId:guid}/plan")]
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
-    public async Task<IActionResult> ProcessPlanAsync(
-        [FromServices] Kernel kernel,
-        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
-        [FromServices] ChatSessionRepository chatSessionRepository,
-        [FromServices] ChatParticipantRepository chatParticipantRepository,
-        [FromServices] IAuthInfo authInfo,
-        [FromBody] ExecutePlanParameters ask,
-        [FromRoute] Guid chatId)
-    {
-        this._logger.LogDebug("plan request received.");
-
-        return await this.HandleRequest(ProcessPlanFunctionName, kernel, messageRelayHubContext, chatSessionRepository, chatParticipantRepository, authInfo, ask, chatId.ToString());
-    }
-
-    /// <summary>
-    /// Invokes given function of ChatPlugin.
-    /// </summary>
-    /// <param name="functionName">Name of the ChatPlugin function to invoke.</param>
-    /// <param name="kernel">Semantic kernel obtained through dependency injection.</param>
-    /// <param name="messageRelayHubContext">Message Hub that performs the real time relay service.</param>
-    /// <param name="planner">Planner to use to create function sequences.</param>
-    /// <param name="askConverter">Converter to use for converting Asks.</param>
-    /// <param name="chatSessionRepository">Repository of chat sessions.</param>
-    /// <param name="chatParticipantRepository">Repository of chat participants.</param>
-    /// <param name="authInfo">Auth info for the current request.</param>
-    /// <param name="ask">Prompt along with its parameters.</param>
-    /// <param name="chatId"Chat ID.</>
-    /// <returns>Results containing the response from the model.</returns>
-    private async Task<IActionResult> HandleRequest(
-       string functionName,
-       Kernel kernel,
-       IHubContext<MessageRelayHub> messageRelayHubContext,
-       ChatSessionRepository chatSessionRepository,
-       ChatParticipantRepository chatParticipantRepository,
-       IAuthInfo authInfo,
-       Ask ask,
-       string chatId)
-    {
         // Put ask's variables in the context we will use.
-        var contextVariables = GetContextVariables(ask, authInfo, chatId);
+        var contextVariables = GetContextVariables(ask, authInfo, chatIdString);
 
         // Verify that the chat exists and that the user has access to it.
         ChatSession? chat = null;
-        if (!(await chatSessionRepository.TryFindByIdAsync(chatId, callback: c => chat = c)))
+        if (!(await chatSessionRepository.TryFindByIdAsync(chatIdString, callback: c => chat = c)))
         {
             return this.NotFound("Failed to find chat session for the chatId specified in variables.");
         }
 
-        if (!(await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatId)))
+        if (!(await chatParticipantRepository.IsUserInChatAsync(authInfo.UserId, chatIdString)))
         {
             return this.Forbid("User does not have access to the chatId specified in variables.");
         }
@@ -184,16 +122,7 @@ public class ChatController : ControllerBase, IDisposable
         await this.RegisterHostedFunctionsAsync(kernel, chat!.EnabledPlugins);
 
         // Get the function to invoke
-        KernelFunction? function = null;
-        try
-        {
-            function = kernel.Plugins.GetFunction(ChatPluginName, functionName);
-        }
-        catch (KernelException ex)
-        {
-            this._logger.LogError("Failed to find {PluginName}/{FunctionName} on server: {Exception}", ChatPluginName, functionName, ex);
-            return this.NotFound($"Failed to find {ChatPluginName}/{functionName} on server");
-        }
+        KernelFunction? chatFunction = kernel.Plugins.GetFunction(ChatPluginName, ChatFunctionName);
 
         // Run the function.
         FunctionResult? result = null;
@@ -204,20 +133,21 @@ public class ChatController : ControllerBase, IDisposable
                 ? new CancellationTokenSource(TimeSpan.FromSeconds((double)this._serviceOptions.TimeoutLimitInS))
                 : null;
 
-            result = await kernel.InvokeAsync(function!, contextVariables, cts?.Token ?? default);
-            this._telemetryService.TrackPluginFunction(ChatPluginName, functionName, true);
+            result = await kernel.InvokeAsync(chatFunction!, contextVariables, cts?.Token ?? default);
+            this._telemetryService.TrackPluginFunction(ChatPluginName, ChatFunctionName, true);
         }
         catch (Exception ex)
         {
             if (ex is OperationCanceledException || ex.InnerException is OperationCanceledException)
             {
                 // Log the timeout and return a 504 response
-                this._logger.LogError("The {FunctionName} operation timed out.", functionName);
-                return this.StatusCode(StatusCodes.Status504GatewayTimeout, $"The chat {functionName} timed out.");
+                this._logger.LogError("The {FunctionName} operation timed out.", ChatFunctionName);
+                return this.StatusCode(StatusCodes.Status504GatewayTimeout, $"The chat {ChatFunctionName} timed out.");
             }
 
-            this._telemetryService.TrackPluginFunction(ChatPluginName, functionName, false);
-            throw ex;
+            this._telemetryService.TrackPluginFunction(ChatPluginName, ChatFunctionName, false);
+
+            throw;
         }
 
         AskResult chatAskResult = new()
@@ -227,7 +157,7 @@ public class ChatController : ControllerBase, IDisposable
         };
 
         // Broadcast AskResult to all users
-        await messageRelayHubContext.Clients.Group(chatId).SendAsync(GeneratingResponseClientCall, chatId, null);
+        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(GeneratingResponseClientCall, chatIdString, null);
 
         return this.Ok(chatAskResult);
     }
@@ -317,7 +247,7 @@ public class ChatController : ControllerBase, IDisposable
                 {
                     if (authHeaders.TryGetValue(plugin.AuthHeaderTag.ToUpperInvariant(), out string? PluginAuthValue))
                     {
-                        // Register the ChatGPT plugin with the planner's kernel.
+                        // Register the ChatGPT plugin with the kernel.
                         this._logger.LogInformation("Enabling {0} plugin.", plugin.NameForHuman);
 
                         // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
@@ -334,7 +264,7 @@ public class ChatController : ControllerBase, IDisposable
                             PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                             new OpenAIFunctionExecutionParameters
                             {
-                                HttpClient = this._httpClientFactory.CreateClient("Plugin"),
+                                HttpClient = this._httpClientFactory.CreateClient(),
                                 IgnoreNonCompliantErrors = true,
                                 AuthCallback = requiresAuth ? authCallback : null
                             });
@@ -383,13 +313,13 @@ public class ChatController : ControllerBase, IDisposable
                     return Task.CompletedTask;
                 }
 
-                // Register the ChatGPT plugin with the planner's kernel.
+                // Register the ChatGPT plugin with the kernel.
                 await kernel.ImportPluginFromOpenAIAsync(
                     PluginUtils.SanitizePluginName(plugin.Name),
                     PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                     new OpenAIFunctionExecutionParameters
                     {
-                        HttpClient = this._httpClientFactory.CreateClient("Plugin"),
+                        HttpClient = this._httpClientFactory.CreateClient(),
                         IgnoreNonCompliantErrors = true,
                         AuthCallback = authCallback
                     });

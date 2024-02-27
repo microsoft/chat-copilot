@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
@@ -241,23 +240,6 @@ public class ChatPlugin
                 continue;
             }
 
-            // Plan object is not meaningful content in generating bot response, so shorten to intent only to save on tokens
-            if (chatMessage.Type == CopilotChatMessage.ChatMessageType.Plan)
-            {
-                formattedMessage = "Bot proposed plan";
-
-                // Try to extract the user intent for more context
-                string pattern = @"User intent: (.*)(?=\.""})";
-                Match match = Regex.Match(chatMessage.Content, pattern);
-                if (match.Success)
-                {
-                    string userIntent = match.Groups[1].Value.Trim();
-                    formattedMessage = $"Bot proposed plan to help fulfill goal: {userIntent}.";
-                }
-
-                formattedMessage = $"[{chatMessage.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {formattedMessage}";
-            }
-
             var promptRole = chatMessage.AuthorRole == CopilotChatMessage.AuthorRoles.Bot ? AuthorRole.System : AuthorRole.User;
             var tokenCount = chatHistory is not null ? TokenUtils.GetContextMessageTokenCount(promptRole, formattedMessage) : TokenUtils.TokenCount(formattedMessage);
 
@@ -267,7 +249,7 @@ public class ChatPlugin
                 if (chatMessage.AuthorRole == CopilotChatMessage.AuthorRoles.Bot)
                 {
                     // Message doesn't have to be formatted for bot. This helps with asserting a natural language response from the LLM (no date or author preamble).
-                    var botMessage = chatMessage.Type == CopilotChatMessage.ChatMessageType.Plan ? formattedMessage : chatMessage.Content;
+                    var botMessage = chatMessage.Content;
                     allottedChatHistory.AddAssistantMessage(botMessage.Trim());
                 }
                 else
