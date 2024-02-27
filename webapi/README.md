@@ -58,8 +58,8 @@ Running the memory creation pipeline steps in different processes. This means th
 
 1. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:ContentStorageType` to `AzureBlobs`.
 2. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:DistributedOrchestration:QueueType` to `AzureQueue`.
-3. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:VectorDbTypes:0` to `AzureCognitiveSearch`.
-4. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:Retrieval:VectorDbType` to `AzureCognitiveSearch`.
+3. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:MemoryDbTypes:0` to `AzureAISearch`.
+4. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:Retrieval:MemoryDbType` to `AzureAISearch`.
 5. Run the following to set up the authentication to the resources:
 
    ```bash
@@ -67,8 +67,8 @@ Running the memory creation pipeline steps in different processes. This means th
    dotnet user-secrets set SemanticMemory:Services:AzureBlobs:ConnectionString [your secret]
    dotnet user-secrets set SemanticMemory:Services:AzureQueue:Auth ConnectionString   # Only needed when running distributed processing
    dotnet user-secrets set SemanticMemory:Services:AzureQueue:ConnectionString [your secret]   # Only needed when running distributed processing
-   dotnet user-secrets set SemanticMemory:Services:AzureCognitiveSearch:Endpoint [your secret]
-   dotnet user-secrets set SemanticMemory:Services:AzureCognitiveSearch:APIKey [your secret]
+   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:Endpoint [your secret]
+   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:APIKey [your secret]
    ```
 
 6. For more information and other options, please refer to the [memorypipeline](../memorypipeline/README.md).
@@ -80,27 +80,6 @@ You can also add OpenAI plugins that will be managed by the webapi (as opposed t
 > By default, a third party OpenAI plugin called [Klarna Shopping](https://www.klarna.com/international/press/klarna-brings-smoooth-shopping-to-chatgpt/) is already added.
 
 Please refer to [here](../plugins/README.md) for more details.
-
-## Enabling Sequential Planner
-
-If you want to use SequentialPlanner (multi-step) instead ActionPlanner (single-step), we recommend using `gpt-4` or `gpt-3.5-turbo` as the planner model. **SequentialPlanner works best with `gpt-4`.** Using `gpt-3.5-turbo` will require using a relevancy filter.
-
-To enable sequential planner,
-
-1. In [./webapi/appsettings.json](appsettings.json), set `"Type": "Sequential"` under the `Planner` section.
-1. Then, set your preferred Planner model (`gpt-4` or `gpt-3.5-turbo`) under the `AIService` configuration section.
-1. If using `gpt-4`, no other changes are required.
-1. If using `gpt-3.5-turbo`: change [CopilotChatPlanner.cs](Plugins/Chat/CopilotChatPlanner.cs) to initialize SequentialPlanner with a RelevancyThreshold\*.
-   - Add `using` statement to top of file:
-     ```
-     using Microsoft.SemanticKernel.Planning.Sequential;
-     ```
-   - The `CreatePlanAsync` method should return the following line if `this._plannerOptions?.Type == "Sequential"` is true:
-     ```
-     return new SequentialPlanner(this.Kernel, new SequentialPlannerConfig { RelevancyThreshold = 0.75 }).CreatePlanAsync(goal);
-     ```
-     \* The `RelevancyThreshold` is a number from 0 to 1 that represents how similar a goal is to a function's name/description/inputs. You want to tune that value when using SequentialPlanner to help keep things scoped while not missing on on things that are relevant or including too many things that really aren't. `0.75` is an arbitrary threshold and we recommend developers play around with this number to see what best fits their scenarios.
-1. Restart the `webapi` - Chat Copilot should be now running locally with SequentialPlanner.
 
 ## (Optional) Enabling Cosmos Chat Store.
 
@@ -246,7 +225,7 @@ Then use a Time chart on the Visual tab.
 
 > Though plugins can contain both semantic and native functions, Chat Copilot currently only supports plugins of isolated types due to import limitations, so you must separate your plugins into respective folders for each.
 
-If you wish to load custom plugins into the kernel or planner:
+If you wish to load custom plugins into the kernel:
 
 1. Create two new folders under `./Plugins` directory named `./SemanticPlugins` and `./NativePlugins`. There, you can add your custom plugins (synonymous with plugins).
 2. Then, comment out the respective options in `appsettings.json`:
@@ -261,7 +240,7 @@ If you wish to load custom plugins into the kernel or planner:
    },
    ```
 
-3. By default, custom plugins are only loaded into planner's kernel for discovery at runtime. If you want to load the plugins into the core chat Kernel, you'll have to add the plugin registration into the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`. Uncomment the line with `services.AddKernelSetupHook` and pass in the `RegisterPluginsAsync` hook:
+3. If you want to load the plugins into the core chat Kernel, you'll have to add the plugin registration into the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`. Uncomment the line with `services.AddKernelSetupHook` and pass in the `RegisterPluginsAsync` hook:
 
    ```c#
    internal static IServiceCollection AddSemanticKernelServices(this IServiceCollection services)
@@ -280,11 +259,11 @@ If you wish to load custom plugins into the kernel or planner:
 
 If you want to deploy your custom plugins with the webapi, additional configuration is required. You have the following options:
 
-1. **[Recommended]** Create custom setup hooks to import your plugins into the kernel and planner.
+1. **[Recommended]** Create custom setup hooks to import your plugins into the kernel.
 
    > The default `RegisterPluginsAsync` function uses reflection to import native functions from your custom plugin files. C# reflection is a powerful but slow mechanism that dynamically inspects and invokes types and methods at runtime. It works well for loading a few plugin files, but it can degrade performance and increase memory usage if you have many plugins or complex types. Therefore, we recommend creating your own import function to load your custom plugins manually. This way, you can avoid reflection overhead and have more control over how and when your plugins are loaded.
 
-   Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` or `AddPlannerSetupHook` in `SemanticKernelExtensions.cs`. See the [next two sections](#add-custom-setup-to-chat-copilots-kernel) for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
+   Create a function to load your custom plugins at build and pass that function as a hook to `AddKernelSetupHook` in `SemanticKernelExtensions.cs`. See the [next two sections](#add-custom-setup-to-chat-copilots-kernel) for details on how to do this. This bypasses the need to load the plugins at runtime, and consequently, there's no need to ship the source files for your custom plugins. Remember to comment out the `NativePluginsDirectory` or `SemanticPluginsDirectory` options in `appsettings.json` to prevent any potential pathing errors.
 
 Alternatively,
 
@@ -301,26 +280,18 @@ Alternatively,
     </Content>
    ```
 
-   You will also need to include a line for each skprompt.txt file you have for you plugins to ensure they are included in the build output.
-
-   ```xml
-   <None Update="Plugins\SemanticPlugins\{PluginName}\skprompt.txt">
-     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-   </None>
-   ```
-
 3. Change the respective directory option to use an absolute path or a different base path, but make sure that the files are accessible from that location.
 
 ### Add Custom Setup to Chat Copilot's Kernel
 
-Chat Copilot's Semantic Kernel can be customized with additional plugins or settings by using a custom hook that performs any complimentary setup of the kernel. A custom hook is a delegate that takes an `IServiceProvider` and an `IKernel` as parameters and performs any desired actions on the kernel, such as registering additional plugins, setting kernel options, adding dependency injections, importing data, etc. To use a custom hook, you can pass it as an argument to the `AddKernelSetupHook` call in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`.
+Chat Copilot's Semantic Kernel can be customized with additional plugins or settings by using a custom hook that performs any complimentary setup of the kernel. A custom hook is a delegate that takes an `IServiceProvider` and an `Kernel` as parameters and performs any desired actions on the kernel, such as registering additional plugins, setting kernel options, adding dependency injections, importing data, etc. To use a custom hook, you can pass it as an argument to the `AddKernelSetupHook` call in the `AddSemanticKernelServices` method of `SemanticKernelExtensions.cs`.
 
 For example, the following code snippet shows how to create a custom hook that registers a plugin called MyPlugin and passes it to `AddKernelSetupHook`:
 
 ```c#
 
 // Define a custom hook that registers MyPlugin with the kernel
-private static Task MyCustomSetupHook(IServiceProvider sp, IKernel kernel)
+private static Task MyCustomSetupHook(IServiceProvider sp, Kernel kernel)
 {
    // Import your plugin into the kernel with the name "MyPlugin"
    kernel.ImportFunctions(new MyPlugin(), nameof(MyPlugin));
@@ -342,32 +313,6 @@ internal static IServiceCollection AddSemanticKernelServices(this IServiceCollec
    // Add any additional setup needed for the kernel.
    // Uncomment the following line and pass in your custom hook.
    builder.Services.AddKernelSetupHook(MyCustomSetupHook);
-
-   return services;
-}
-
-```
-
-### Add Custom Plugin Registration to the Planner's Kernel
-
-The planner uses a separate kernel instance that can be configured with plugins that are specific to the planning process. Note that these plugins will be persistent across all chat requests.
-
-To customize the planner's kernel, you can use a custom hook that registers plugins at build time. A custom hook is a delegate that takes an `IServiceProvider` and an `IKernel` as parameters and performs any desired actions on the kernel. By default, the planner will register plugins using `SemanticKernelExtensions.RegisterPluginsAsync` to load files from the `Service.SemanticPluginsDirectory` and `Service.NativePluginsDirectory` option values in `appsettings.json`.
-
-To use a custom hook, you can pass it as an argument to the `AddPlannerSetupHook` call in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, which will invoke the hook after the planner's kernel is created. See section above for an example of a custom hook function.
-
-> Note: This will override the call to `RegisterPluginsAsync`.
-
-Then in the `AddPlannerServices` method of `SemanticKernelExtensions.cs`, pass your hook into the `services.AddPlannerSetupHook` call:
-
-```c#
-
-internal static IServiceCollection AddPlannerServices(this IServiceCollection services)
-{
-   ...
-
-   // Register any custom plugins with the planner's kernel.
-   builder.Services.AddPlannerSetupHook(MyCustomSetupHook);
 
    return services;
 }

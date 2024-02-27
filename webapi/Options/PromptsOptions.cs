@@ -32,12 +32,6 @@ public class PromptsOptions
     internal double MemoriesResponseContextWeight { get; } = 0.6;
 
     /// <summary>
-    /// Weight of information returned from planner (i.e., responses from OpenAPI functions).
-    /// Contextual prompt excludes all the system commands and user intent.
-    /// </summary>
-    internal double ExternalInformationContextWeight { get; } = 0.3;
-
-    /// <summary>
     /// Upper bound of the relevancy score of a kernel memory to be included in the final prompt.
     /// The actual relevancy score is determined by the memory balance.
     /// </summary>
@@ -60,21 +54,6 @@ public class PromptsOptions
     [Required, NotEmptyOrWhitespace] public string InitialBotMessage { get; set; } = string.Empty;
     [Required, NotEmptyOrWhitespace] public string SystemDescription { get; set; } = string.Empty;
     [Required, NotEmptyOrWhitespace] public string SystemResponse { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Context bot message for meta prompt when using external information acquired from a plan.
-    /// </summary>
-    [Required, NotEmptyOrWhitespace] public string ProposedPlanBotMessage { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Supplement to help guide model in using data.
-    /// </summary>
-    [Required, NotEmptyOrWhitespace] public string PlanResultsDescription { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Supplement to help guide model in using a response from StepwisePlanner.
-    /// </summary>
-    [Required, NotEmptyOrWhitespace] public string StepwisePlannerSupplement { get; set; } = string.Empty;
 
     internal string[] SystemAudiencePromptComponents => new string[]
     {

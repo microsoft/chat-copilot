@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.Diagnostics;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -55,9 +54,9 @@ public class PluginController : ControllerBase
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, PluginUtils.GetPluginManifestUri(manifestDomain));
         // Need to set the user agent to avoid 403s from some sites.
-        request.Headers.Add("User-Agent", Telemetry.HttpUserAgent);
+        request.Headers.Add("User-Agent", "Semantic-Kernel");
 
-        using HttpClient client = this._httpClientFactory.CreateClient("Plugin");
+        using HttpClient client = this._httpClientFactory.CreateClient();
         var response = await client.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {

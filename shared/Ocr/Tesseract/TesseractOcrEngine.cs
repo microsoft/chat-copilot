@@ -3,7 +3,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.KernelMemory.DataFormats.Image;
+using Microsoft.KernelMemory.DataFormats;
 using Tesseract;
 
 namespace CopilotChat.Shared.Ocr.Tesseract;

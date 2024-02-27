@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Storage;
 
@@ -161,7 +160,7 @@ public class CopilotChatMessage : IStorageEntity
     /// <param name="tokenUsage">Total token usage of response completion</param>
     public static CopilotChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
     {
-        return new CopilotChatMessage("Bot", "Bot", chatId, content, prompt, citations, AuthorRoles.Bot, IsPlan(content) ? ChatMessageType.Plan : ChatMessageType.Message, tokenUsage);
+        return new CopilotChatMessage("Bot", "Bot", chatId, content, prompt, citations, AuthorRoles.Bot, ChatMessageType.Message, tokenUsage);
     }
 
     /// <summary>
@@ -185,42 +184,19 @@ public class CopilotChatMessage : IStorageEntity
         var messagePrefix = $"[{this.Timestamp.ToString("G", CultureInfo.CurrentCulture)}]";
         switch (this.Type)
         {
-            case ChatMessageType.Plan:
-            {
-                var planMessageContent = "proposed a plan.";
-                if (this.Content.Contains("proposedPlan\":", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // Try to extract user intent from the plan proposal.
-                    string pattern = ".*User Intent:User intent: (.*)(?=\"})";
-                    Match match = Regex.Match(this.Content, pattern);
-                    if (match.Success)
-                    {
-                        string userIntent = match.Groups[1].Value.Trim();
-                        planMessageContent = $"proposed a plan to fulfill user intent: {userIntent}";
-                    }
-                }
-
-                return $"{messagePrefix} {this.UserName} {planMessageContent}";
-            }
-
             case ChatMessageType.Document:
-            {
                 var documentMessage = DocumentMessageContent.FromString(this.Content);
                 var documentMessageContent = (documentMessage != null) ? documentMessage.ToFormattedString() : "documents";
 
                 return $"{messagePrefix} {this.UserName} uploaded: {documentMessageContent}";
-            }
 
+            case ChatMessageType.Plan:    // Fall through
             case ChatMessageType.Message:
-            {
                 return $"{messagePrefix} {this.UserName} said: {this.Content}";
-            }
 
             default:
-            {
                 // This should never happen.
                 throw new InvalidOperationException($"Unknown message type: {this.Type}");
-            }
         }
     }
 
@@ -241,17 +217,5 @@ public class CopilotChatMessage : IStorageEntity
     public static CopilotChatMessage? FromString(string json)
     {
         return JsonSerializer.Deserialize<CopilotChatMessage>(json, SerializerSettings);
-    }
-
-    /// <summary>
-    /// Check if the response is a Plan.
-    /// This is a copy of the `isPlan` function on the frontend.
-    /// </summary>
-    /// <param name="response">The response from the bot.</param>
-    /// <returns>True if the response represents  Plan, false otherwise.</returns>
-    private static bool IsPlan(string response)
-    {
-        var planPrefix = "proposedPlan\":";
-        return response.Contains(planPrefix, StringComparison.InvariantCulture);
     }
 }

@@ -28,9 +28,9 @@ public enum MemoryStoreType
     Qdrant,
 
     /// <summary>
-    /// Azure Cognitive Search persistent memory store.
+    /// Azure AI Search persistent memory store.
     /// </summary>
-    AzureCognitiveSearch,
+    AzureAISearch,
 }
 
 public static class MemoryStoreTypeExtensions
@@ -44,10 +44,10 @@ public static class MemoryStoreTypeExtensions
     /// <returns>The memory store type.</returns>
     public static MemoryStoreType GetMemoryStoreType(this KernelMemoryConfig memoryOptions, IConfiguration configuration)
     {
-        var type = memoryOptions.Retrieval.VectorDbType;
-        if (type.Equals("AzureCognitiveSearch", StringComparison.OrdinalIgnoreCase))
+        var type = memoryOptions.Retrieval.MemoryDbType;
+        if (type.Equals("AzureAISearch", StringComparison.OrdinalIgnoreCase))
         {
-            return MemoryStoreType.AzureCognitiveSearch;
+            return MemoryStoreType.AzureAISearch;
         }
         else if (type.Equals("Qdrant", StringComparison.OrdinalIgnoreCase))
         {
