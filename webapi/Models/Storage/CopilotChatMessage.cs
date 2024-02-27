@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Storage;
 
