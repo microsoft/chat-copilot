@@ -18,18 +18,6 @@ public class DocumentMemoryOptions
     internal static readonly Guid GlobalDocumentChatId = Guid.Empty;
 
     /// <summary>
-    /// Gets or sets the name of the global document collection.
-    /// </summary>
-    [Required, NotEmptyOrWhitespace]
-    public string GlobalDocumentCollectionName { get; set; } = "global-documents";
-
-    /// <summary>
-    /// Gets or sets the prefix for the chat document collection name.
-    /// </summary>
-    [Required, NotEmptyOrWhitespace]
-    public string ChatDocumentCollectionNamePrefix { get; set; } = "chat-documents-";
-
-    /// <summary>
     /// Gets or sets the maximum number of tokens to use when splitting a document into "lines".
     /// For more details on tokens and how to count them, see:
     /// https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them

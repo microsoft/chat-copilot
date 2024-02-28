@@ -276,7 +276,7 @@ public class ChatPlugin
 
     /// <summary>
     /// This is the entry point for getting a chat response. It manages the token limit, saves
-    /// messages to memory, and fill in the necessary context variables for completing the
+    /// messages to memory, and fills in the necessary context variables for completing the
     /// prompt that will be rendered by the template engine.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
