@@ -637,7 +637,10 @@ public class ChatPlugin
     /// <returns>The remaining token limit.</returns>
     private int GetChatContextTokenLimit(ChatHistory promptTemplate, string userInput = "")
     {
-        const int ExtraOpenAiMessageTokens = 20; // OpenAI inserts a message under the hood that consumes some tokens
+        // OpenAI inserts a message under the hood:
+        // "content": "Assistant is a large language model.","role": "system"
+        // This burns just under 20 tokens which need to be accounted for.
+        const int ExtraOpenAiMessageTokens = 20;
 
         return this._promptOptions.CompletionTokenLimit
             - ExtraOpenAiMessageTokens
