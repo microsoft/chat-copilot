@@ -241,7 +241,7 @@ public class ChatPlugin
             }
 
             var promptRole = chatMessage.AuthorRole == CopilotChatMessage.AuthorRoles.Bot ? AuthorRole.System : AuthorRole.User;
-            var tokenCount = chatHistory is not null ? TokenUtils.GetContextMessageTokenCount(promptRole, formattedMessage) : TokenUtils.TokenCount(formattedMessage);
+            int tokenCount = chatHistory is not null ? TokenUtils.GetContextMessageTokenCount(promptRole, formattedMessage) : TokenUtils.TokenCount(formattedMessage);
 
             if (remainingToken - tokenCount >= 0)
             {
@@ -249,8 +249,7 @@ public class ChatPlugin
                 if (chatMessage.AuthorRole == CopilotChatMessage.AuthorRoles.Bot)
                 {
                     // Message doesn't have to be formatted for bot. This helps with asserting a natural language response from the LLM (no date or author preamble).
-                    var botMessage = chatMessage.Content;
-                    allottedChatHistory.AddAssistantMessage(botMessage.Trim());
+                    allottedChatHistory.AddAssistantMessage(chatMessage.Content.Trim());
                 }
                 else
                 {
@@ -330,7 +329,6 @@ public class ChatPlugin
         // Render system instruction components and create the meta-prompt template
         var systemInstructions = await AsyncUtils.SafeInvokeAsync(
             () => this.RenderSystemInstructions(chatId, chatContext, cancellationToken), nameof(RenderSystemInstructions));
-        var chatCompletion = this._kernel.GetRequiredService<IChatCompletionService>();
         ChatHistory chatHistory = new(systemInstructions);
 
         // Bypass audience extraction if Auth is disabled
@@ -351,7 +349,6 @@ public class ChatPlugin
         chatHistory.AddSystemMessage(userIntent);
 
         // Calculate the remaining token budget.
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating remaining token budget", cancellationToken);
         var remainingTokenBudget = this.GetChatContextTokenLimit(chatHistory, userMessage.ToFormattedString());
 
         // Query relevant semantic and document memories
@@ -397,7 +394,8 @@ public class ChatPlugin
     }
 
     /// <summary>
-    /// Helper function to handle final steps of bot response generation, including streaming to client, generating semantic text memory, calculating final token usages, and saving to chat history.
+    /// Helper function to handle final steps of bot response generation, including streaming to client,
+    /// generating semantic text memory, calculating final token usages, and saving to chat history.
     /// </summary>
     /// <param name="chatId">The chat ID</param>
     /// <param name="userId">The user ID</param>
@@ -461,12 +459,14 @@ public class ChatPlugin
     }
 
     /// <summary>
-    /// Helper function that creates the correct context variables to
-    /// extract the audience from a conversation history.
+    /// Extract the list of participants from the conversation history.
+    /// Note that only those who have spoken will be included.
     /// </summary>
+    /// <param name="context">Kernel context variables.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     private async Task<string> GetAudienceAsync(KernelArguments context, CancellationToken cancellationToken)
     {
+        // Clone the context to avoid modifying the original context variables
         KernelArguments audienceContext = new(context);
         var audience = await this.ExtractAudienceAsync(audienceContext, cancellationToken);
 
@@ -481,12 +481,13 @@ public class ChatPlugin
     }
 
     /// <summary>
-    /// Helper function that creates the correct context variables to
-    /// extract the user intent from the conversation history.
+    /// Extract user intent from the conversation history.
     /// </summary>
+    /// <param name="context">Kernel context.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     private async Task<string> GetUserIntentAsync(KernelArguments context, CancellationToken cancellationToken)
     {
+        // Clone the context to avoid modifying the original context variables
         KernelArguments intentContext = new(context);
         string userIntent = await this.ExtractUserIntentAsync(intentContext, cancellationToken);
 
@@ -636,7 +637,13 @@ public class ChatPlugin
     /// <returns>The remaining token limit.</returns>
     private int GetChatContextTokenLimit(ChatHistory promptTemplate, string userInput = "")
     {
+        // OpenAI inserts a message under the hood:
+        // "content": "Assistant is a large language model.","role": "system"
+        // This burns just under 20 tokens which need to be accounted for.
+        const int ExtraOpenAiMessageTokens = 20;
+
         return this._promptOptions.CompletionTokenLimit
+            - ExtraOpenAiMessageTokens
             - TokenUtils.GetContextMessagesTokenCount(promptTemplate)
             - TokenUtils.GetContextMessageTokenCount(AuthorRole.User, userInput) // User message has to be included in chat history allowance
             - this._promptOptions.ResponseTokenLimit;
