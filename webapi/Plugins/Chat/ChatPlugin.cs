@@ -19,7 +19,6 @@ using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -103,11 +102,7 @@ public class ChatPlugin
         // Clone the prompt options to avoid modifying the original prompt options.
         this._promptOptions = promptOptions.Value.Copy();
 
-        this._semanticMemoryRetriever = new SemanticMemoryRetriever(
-            promptOptions,
-            chatSessionRepository,
-            memoryClient,
-            logger);
+        this._semanticMemoryRetriever = new SemanticMemoryRetriever(promptOptions, chatSessionRepository, memoryClient, logger);
 
         this._contentSafety = contentSafety;
     }
@@ -374,7 +369,8 @@ public class ChatPlugin
 
         // Stream the response to the client
         var promptView = new BotResponsePrompt(systemInstructions, audience, userIntent, memoryText, allowedChatHistory, chatHistory);
-        return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, cancellationToken, citationMap.Values.AsEnumerable());
+
+        return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, citationMap.Values.AsEnumerable(), cancellationToken);
     }
 
     /// <summary>
@@ -401,39 +397,24 @@ public class ChatPlugin
     /// <param name="userId">The user ID</param>
     /// <param name="chatContext">Chat context.</param>
     /// <param name="promptView">The prompt view.</param>
+    /// <param name="citations">Citation sources.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     private async Task<CopilotChatMessage> HandleBotResponseAsync(
         string chatId,
         string userId,
         KernelArguments chatContext,
         BotResponsePrompt promptView,
-        CancellationToken cancellationToken,
-        IEnumerable<CitationSource>? citations = null,
-        string? responseContent = null)
+        IEnumerable<CitationSource>? citations,
+        CancellationToken cancellationToken)
     {
-        CopilotChatMessage chatMessage;
-        if (responseContent.IsNullOrEmpty())
-        {
-            // Get bot response and stream to client
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
-            chatMessage = await AsyncUtils.SafeInvokeAsync(
-                () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
-        }
-        else
-        {
-            chatMessage = await this.CreateBotMessageOnClient(
-                chatId,
-                userId,
-                JsonSerializer.Serialize(promptView),
-                responseContent!,
-                cancellationToken,
-                citations
-            );
-        }
+        // Get bot response and stream to client
+        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
+        CopilotChatMessage chatMessage = await AsyncUtils.SafeInvokeAsync(
+            () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
 
         // Save the message into chat history
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
-        await this._chatMessageRepository.UpsertAsync(chatMessage!);
+        await this._chatMessageRepository.UpsertAsync(chatMessage);
 
         // Extract semantic chat memory
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating semantic chat memory", cancellationToken);
@@ -449,7 +430,7 @@ public class ChatPlugin
 
         // Calculate total token usage for dependency functions and prompt template
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Calculating token usage", cancellationToken);
-        chatMessage!.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
+        chatMessage.TokenUsage = this.GetTokenUsages(chatContext, chatMessage.Content);
 
         // Update the message on client and in chat history with final completion token usage
         await this.UpdateMessageOnClient(chatMessage, cancellationToken);
