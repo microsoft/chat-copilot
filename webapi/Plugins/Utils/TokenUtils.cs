@@ -110,14 +110,13 @@ public static class TokenUtils
     /// <summary>
     /// Rough token costing of ChatHistory's message object.
     /// Follows the syntax defined by Azure OpenAI's ChatMessage object: https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chatmessage
-    /// e.g., "message": {"role":"assistant","content":"Yes }
+    /// e.g., "message": {"role":"assistant","content":"Yes" }
     /// </summary>
     /// <param name="authorRole">Author role of the message.</param>
     /// <param name="content">Content of the message.</param>
     internal static int GetContextMessageTokenCount(AuthorRole authorRole, string content)
     {
-        var tokenCount = authorRole == AuthorRole.System ? TokenCount("\n") : 0;
-        return tokenCount + TokenCount($"role:{authorRole.Label}") + TokenCount($"content:{content}");
+        return TokenCount($"role:{authorRole.Label}") + TokenCount($"content:{content}\n");
     }
 
     /// <summary>
