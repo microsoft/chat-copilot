@@ -21,7 +21,7 @@
     "@fluentui/react-icons": "^2.0.230",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^8.0.0",
-    "@playwright/test": "^1.41.2",
+    "@playwright/test": "^1.42.1",
     "@reduxjs/toolkit": "^2.2.1",
     "debug": "^4.3.4",
     "microsoft-cognitiveservices-speech-sdk": "^1.35.0",
