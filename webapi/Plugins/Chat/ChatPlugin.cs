@@ -626,7 +626,6 @@ public class ChatPlugin
         return this._promptOptions.CompletionTokenLimit
             - ExtraOpenAiMessageTokens
             - TokenUtils.GetContextMessagesTokenCount(promptTemplate)
-            - TokenUtils.GetContextMessageTokenCount(AuthorRole.User, userInput) // User message has to be included in chat history allowance
             - this._promptOptions.ResponseTokenLimit;
     }
 
