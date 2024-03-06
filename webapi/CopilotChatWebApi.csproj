@@ -22,17 +22,17 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.38.1" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.17.1" />
-    <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.29.240219.3" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.29.240219.2" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.4.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.4.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.OpenApi" Version="1.4.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.4.0-alpha" />
+    <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.30.240227.1" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.30.240227.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.5.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.5.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.5.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.5.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.5.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.5.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.MsGraph" Version="1.5.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.OpenApi" Version="1.5.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.5.0-alpha" />
     <PackageReference Include="SharpToken" Version="1.2.17" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
