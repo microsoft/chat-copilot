@@ -2,9 +2,7 @@
 
 # Default values
 $varCompletionModelOpenAI = "gpt-3.5-turbo"
-$varPlannerModelOpenAI = "gpt-3.5-turbo"
 $varCompletionModelAzureOpenAI = "gpt-35-turbo"
-$varPlannerModelAzureOpenAI = "gpt-35-turbo"
 $varEmbeddingModel = "text-embedding-ada-002"
 $varASPNetCore = "Development"
 $varInstance = "https://login.microsoftonline.com"
