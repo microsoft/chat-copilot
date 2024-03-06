@@ -262,6 +262,7 @@ public class ChatPlugin
 
         // Calculate max amount of tokens to use for memories
         int maxRequestTokenBudget = this.GetMaxRequestTokenBudget();
+        // Calculate tokens used so far: system instructions, audience extraction and user intent
         int tokensUsed = TokenUtils.GetContextMessagesTokenCount(metaPrompt);
         int chatMemoryTokenBudget = maxRequestTokenBudget
             - tokensUsed
@@ -387,7 +388,7 @@ public class ChatPlugin
         var result = await completionFunction.InvokeAsync(this._kernel, audienceContext, cancellationToken);
 
         // Get token usage from ChatCompletion result and add to original context
-        string? tokenUsage = TokenUtils.GetFunctionTokenUsage(result);
+        string? tokenUsage = TokenUtils.GetFunctionTokenUsage(result, this._logger);
         if (tokenUsage is not null)
         {
             context[TokenUtils.GetFunctionKey("SystemAudienceExtraction")] = tokenUsage;
@@ -433,7 +434,7 @@ public class ChatPlugin
         var result = await completionFunction.InvokeAsync(this._kernel, intentContext, cancellationToken);
 
         // Get token usage from ChatCompletion result and add to original context
-        string? tokenUsage = TokenUtils.GetFunctionTokenUsage(result);
+        string? tokenUsage = TokenUtils.GetFunctionTokenUsage(result, this._logger);
         if (tokenUsage is not null)
         {
             context[TokenUtils.GetFunctionKey("SystemIntentExtraction")] = tokenUsage;

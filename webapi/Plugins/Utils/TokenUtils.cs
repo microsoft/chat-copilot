@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
@@ -58,12 +59,15 @@ public static class TokenUtils
     /// Gets the total token usage from a Chat or Text Completion result context and adds it as a variable to response context.
     /// </summary>
     /// <param name="result">Result context from chat model</param>
+    /// <param name="logger">The logger instance to use for logging errors.</param></param>
     /// <returns>String representation of number of tokens used by function (or null on error)</returns>
-    internal static string? GetFunctionTokenUsage(FunctionResult result)
+    internal static string? GetFunctionTokenUsage(FunctionResult result, ILogger logger)
     {
         if (result.Metadata is null ||
             !result.Metadata.TryGetValue("Usage", out object? usageObject) || usageObject is null)
         {
+            logger.LogError("No usage metadata provided");
+
             return null;
         }
 
@@ -75,6 +79,8 @@ public static class TokenUtils
         }
         catch (KeyNotFoundException)
         {
+            logger.LogError("Usage details not found in model result.");
+
             return null;
         }
 
