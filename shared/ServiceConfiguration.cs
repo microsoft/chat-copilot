@@ -130,14 +130,12 @@ internal sealed class ServiceConfiguration
                 case string y1 when y1.Equals("AzureQueue", StringComparison.OrdinalIgnoreCase):
                 case string y2 when y2.Equals("AzureQueues", StringComparison.OrdinalIgnoreCase):
                     // Check 2 keys for backward compatibility
-                    builder.Services.AddAzureQueuesOrchestration(this.GetServiceConfig<AzureQueuesConfig>("AzureQueues")
-                                                                 ?? this.GetServiceConfig<AzureQueuesConfig>("AzureQueue"));
+                    builder.Services.AddAzureQueuesOrchestration(this.GetServiceConfig<AzureQueuesConfig>("AzureQueue"));
                     break;
 
                 case string y when y.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase):
                     // Check 2 keys for backward compatibility
-                    builder.Services.AddRabbitMQOrchestration(this.GetServiceConfig<RabbitMqConfig>("RabbitMQ")
-                                                              ?? this.GetServiceConfig<RabbitMqConfig>("RabbitMq"));
+                    builder.Services.AddRabbitMQOrchestration(this.GetServiceConfig<RabbitMqConfig>("RabbitMq"));
                     break;
 
                 case string y when y.Equals("SimpleQueues", StringComparison.OrdinalIgnoreCase):
