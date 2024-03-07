@@ -37,6 +37,7 @@ jobs:
     needs: int
     with:
       BACKEND_HOST: ${{needs.int.outputs.backend-host}}
+      ENVIRONMENT: int
 
   stable:
     needs: [int-tests, build-webapi, build-memorypipeline, build-plugins]
