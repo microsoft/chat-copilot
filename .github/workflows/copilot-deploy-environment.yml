@@ -15,15 +15,6 @@ on:
       PLUGINS_ARTIFACT_NAME:
         required: true
         type: string
-    secrets:
-      AZURE_CLIENT_ID:
-        required: true
-      AZURE_TENANT_ID:
-        required: true
-      AZURE_SUBSCRIPTION_ID:
-        required: true
-      AZURE_OPENAI_ENDPOINT:
-        required: true
     outputs:
       backend-host:
         description: "Host on which backend runs"
@@ -38,11 +29,6 @@ jobs:
     uses: ./.github/workflows/copilot-deploy-infra.yml
     with:
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
-    secrets:
-      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      AZURE_OPENAI_ENDPOINT: ${{secrets.AZURE_OPENAI_ENDPOINT}}
 
   deploy-backend:
     needs: [deploy-infra]
@@ -51,10 +37,6 @@ jobs:
       ARTIFACT_NAME: ${{inputs.WEBAPI_ARTIFACT_NAME}}
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
-    secrets:
-      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
 
   deploy-memorypipeline:
     needs: [deploy-infra]
@@ -63,10 +45,6 @@ jobs:
       ARTIFACT_NAME: ${{inputs.MEMORYPIPELINE_ARTIFACT_NAME}}
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
-    secrets:
-      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
 
   deploy-plugins:
     needs: [deploy-infra]
@@ -75,7 +53,3 @@ jobs:
       ARTIFACT_NAME: ${{inputs.PLUGINS_ARTIFACT_NAME}}
       DEPLOYMENT_NAME: ${{needs.deploy-infra.outputs.deployment-id}}
       ENVIRONMENT: ${{inputs.ENVIRONMENT}}
-    secrets:
-      AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-      AZURE_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}

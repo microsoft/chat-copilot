@@ -1,6 +1,10 @@
 name: Copilot Chat Tests
 on:
   workflow_dispatch:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
   merge_group:
     types: [checks_requested]
 
@@ -9,6 +13,7 @@ permissions:
 
 jobs:
   e2e:
+    environment: ${{inputs.ENVIRONMENT}}
     defaults:
       run:
         working-directory: webapp
@@ -37,20 +42,16 @@ jobs:
         working-directory: webapi
         env:
           AzureOpenAI__ApiKey: ${{ secrets.AZUREOPENAI__APIKEY }}
-          AzureOpenAI__Endpoint: ${{ secrets.AZUREOPENAI__ENDPOINT }}
-          TenantId: ${{ secrets.COPILOT_CHAT_TEST_TENANT_ID }}
-          WebApi_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}
-          WebApp_ClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID }}
         run: |
           dotnet dev-certs https
           dotnet user-secrets set "KernelMemory:Services:AzureOpenAIText:APIKey" "$AzureOpenAI__ApiKey"
-          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIText:Endpoint" "$AzureOpenAI__Endpoint"
+          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIText:Endpoint" ${{vars.AZURE_OPENAI_ENDPOINT}}
           dotnet user-secrets set "KernelMemory:Services:AzureOpenAIEmbedding:APIKey" "$AzureOpenAI__ApiKey"
-          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIEmbedding:Endpoint" "$AzureOpenAI__Endpoint"
+          dotnet user-secrets set "KernelMemory:Services:AzureOpenAIEmbedding:Endpoint" ${{vars.AZURE_OPENAI_ENDPOINT}}
           dotnet user-secrets set "Authentication:Type" "AzureAd"
-          dotnet user-secrets set "Authentication:AzureAd:TenantId" "$TenantId"
-          dotnet user-secrets set "Authentication:AzureAd:ClientId" "$WebApi_ClientId"
-          dotnet user-secrets set "Frontend:AadClientId" "$WebApp_ClientId"
+          dotnet user-secrets set "Authentication:AzureAd:TenantId" ${{vars.APPLICATION_TENANT_ID}}
+          dotnet user-secrets set "Authentication:AzureAd:ClientId" ${{vars.BACKEND_CLIENT_ID}}
+          dotnet user-secrets set "Frontend:AadClientId" ${{vars.APPLICATION_CLIENT_ID}}
 
       - name: Start service in background
         working-directory: webapi
