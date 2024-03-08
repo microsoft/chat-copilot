@@ -38,9 +38,9 @@ jobs:
       - name: Azure login
         uses: azure/login@v2
         with:
-          client-id: ${{vars.APPLICATION_CLIENT_ID}}
-          tenant-id: ${{vars.APPLICATION_TENANT_ID}}
-          subscription-id: ${{vars.AZURE_SUBSCRIPTION_ID}}
+          client-id: ${{vars.AZURE_GITHUB_ACCESS_APP_ID}}
+          tenant-id: ${{vars.AZURE_GITHUB_ACCESS_TENANT_ID}}
+          subscription-id: ${{vars.AZURE_GITHUB_ACCESS_SUB_ID}}
           enable-AzPSSession: false
 
       - name: deploy-infra
