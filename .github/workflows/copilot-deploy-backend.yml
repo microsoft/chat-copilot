@@ -65,7 +65,7 @@ jobs:
           echo "backend-host=$WEB_APP_NAME" >> $GITHUB_OUTPUT
 
       - name: Enable Run From Package
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.30.0
           inlineScript: |

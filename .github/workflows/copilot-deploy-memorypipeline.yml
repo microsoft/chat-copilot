@@ -55,7 +55,7 @@ jobs:
           echo "AZURE_WEBAPP_NAME=$WEB_APP_NAME" >> $GITHUB_ENV
 
       - name: Enable Run From Package
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.30.0
           inlineScript: |
