@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 
 using System;
 using System.Collections.Generic;
@@ -52,6 +52,7 @@ public class ChatController : ControllerBase, IDisposable
     private const string ChatPluginName = nameof(ChatPlugin);
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
+    private readonly string _pluginDirectoryPath;
 
     public ChatController(
         ILogger<ChatController> logger,
@@ -66,6 +67,7 @@ public class ChatController : ControllerBase, IDisposable
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
         this._plugins = plugins;
+        this._pluginDirectoryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi");
     }
 
     /// <summary>
@@ -194,87 +196,112 @@ public class ChatController : ControllerBase, IDisposable
     {
         // Register authenticated functions with the kernel only if the request includes an auth header for the plugin.
 
+        var tasks = new List<Task>();
+
         // GitHub
         if (authHeaders.TryGetValue("GITHUB", out string? GithubAuthHeader))
         {
-            this._logger.LogInformation("Enabling GitHub plugin.");
-            BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
-            await kernel.ImportPluginFromOpenApiAsync(
-                pluginName: "GitHubPlugin",
-                filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/GitHubPlugin/openapi.json"),
-                new OpenApiFunctionExecutionParameters
-                {
-                    AuthCallback = authenticationProvider.AuthenticateRequestAsync,
-                });
+            tasks.Add(this.RegisterGithubPlugin(kernel, GithubAuthHeader));
         }
 
         // Jira
         if (authHeaders.TryGetValue("JIRA", out string? JiraAuthHeader))
         {
-            this._logger.LogInformation("Registering Jira plugin");
-            var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
-            var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out object? serverUrlOverride);
-
-            await kernel.ImportPluginFromOpenApiAsync(
-                pluginName: "JiraPlugin",
-                filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/JiraPlugin/openapi.json"),
-                new OpenApiFunctionExecutionParameters
-                {
-                    AuthCallback = authenticationProvider.AuthenticateRequestAsync,
-                    ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!.ToString()!) : null,
-                });
+            tasks.Add(this.RegisterJiraPlugin(kernel, JiraAuthHeader, variables));
         }
 
         // Microsoft Graph
         if (authHeaders.TryGetValue("GRAPH", out string? GraphAuthHeader))
         {
-            this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
-            BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GraphAuthHeader));
-            GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.GraphClientAuthenticateRequestAsync);
-
-            kernel.ImportPluginFromObject(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
-            kernel.ImportPluginFromObject(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
-            kernel.ImportPluginFromObject(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
+            tasks.Add(this.RegisterMicrosoftGraphPlugins(kernel, GraphAuthHeader));
         }
 
         if (variables.TryGetValue("customPlugins", out object? customPluginsString))
         {
-            CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString!.ToString()!);
+            tasks.Add(this.RegisterCustomPlugins(kernel, customPluginsString, authHeaders));
+        }
 
-            if (customPlugins != null)
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task RegisterGithubPlugin(Kernel kernel, string GithubAuthHeader)
+    {
+        this._logger.LogInformation("Enabling GitHub plugin.");
+        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
+        await kernel.ImportPluginFromOpenApiAsync(
+            pluginName: "GitHubPlugin",
+            filePath: Path.Combine(this._pluginDirectoryPath, "GitHubPlugin/openapi.json"),
+            new OpenApiFunctionExecutionParameters
             {
-                foreach (CustomPlugin plugin in customPlugins)
+                AuthCallback = authenticationProvider.AuthenticateRequestAsync,
+            });
+    }
+
+    private async Task RegisterJiraPlugin(Kernel kernel, string JiraAuthHeader, KernelArguments variables)
+    {
+        this._logger.LogInformation("Registering Jira plugin");
+        var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
+        var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out object? serverUrlOverride);
+
+        await kernel.ImportPluginFromOpenApiAsync(
+            pluginName: "JiraPlugin",
+            filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/JiraPlugin/openapi.json"),
+            new OpenApiFunctionExecutionParameters
+            {
+                AuthCallback = authenticationProvider.AuthenticateRequestAsync,
+                ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!.ToString()!) : null,
+            });
+    }
+
+    private Task RegisterMicrosoftGraphPlugins(Kernel kernel, string GraphAuthHeader)
+    {
+        this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
+        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GraphAuthHeader));
+        GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.GraphClientAuthenticateRequestAsync);
+
+        kernel.ImportPluginFromObject(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
+        kernel.ImportPluginFromObject(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
+        kernel.ImportPluginFromObject(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
+        return Task.CompletedTask;
+    }
+
+    private async Task RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
+    {
+        CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString!.ToString()!);
+
+        if (customPlugins != null)
+        {
+            foreach (CustomPlugin plugin in customPlugins)
+            {
+                if (authHeaders.TryGetValue(plugin.AuthHeaderTag.ToUpperInvariant(), out string? PluginAuthValue))
                 {
-                    if (authHeaders.TryGetValue(plugin.AuthHeaderTag.ToUpperInvariant(), out string? PluginAuthValue))
+                    // Register the ChatGPT plugin with the kernel.
+                    this._logger.LogInformation("Enabling {0} plugin.", plugin.NameForHuman);
+
+                    // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
+                    var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
+                    Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
                     {
-                        // Register the ChatGPT plugin with the kernel.
-                        this._logger.LogInformation("Enabling {0} plugin.", plugin.NameForHuman);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
 
-                        // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
-                        var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
-                        Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
-                        {
-                            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
-
-                            return Task.CompletedTask;
-                        }
-
-                        await kernel.ImportPluginFromOpenAIAsync(
-                            $"{plugin.NameForModel}Plugin",
-                            PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
-                            new OpenAIFunctionExecutionParameters
-                            {
-                                HttpClient = this._httpClientFactory.CreateClient(),
-                                IgnoreNonCompliantErrors = true,
-                                AuthCallback = requiresAuth ? authCallback : null
-                            });
+                        return Task.CompletedTask;
                     }
+
+                    await kernel.ImportPluginFromOpenAIAsync(
+                        $"{plugin.NameForModel}Plugin",
+                        PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
+                        new OpenAIFunctionExecutionParameters
+                        {
+                            HttpClient = this._httpClientFactory.CreateClient(),
+                            IgnoreNonCompliantErrors = true,
+                            AuthCallback = requiresAuth ? authCallback : null
+                        });
                 }
             }
-            else
-            {
-                this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
-            }
+        }
+        else
+        {
+            this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
         }
     }
 
