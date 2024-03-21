@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -22,7 +21,7 @@ public static class TokenUtils
     /// Semantic dependencies of ChatPlugin.
     ///  If you add a new semantic dependency, please add it here.
     /// </summary>
-    public static readonly Dictionary<string, string> semanticFunctions = new()
+    internal static readonly Dictionary<string, string> semanticFunctions = new()
     {
         { "SystemAudienceExtraction", "audienceExtraction" },
         { "SystemIntentExtraction", "userIntentExtraction" },
@@ -38,21 +37,19 @@ public static class TokenUtils
     /// </summary>
     internal static Dictionary<string, int> EmptyTokenUsages()
     {
-        return semanticFunctions.Values.ToDictionary(v => v, v => 0, StringComparer.OrdinalIgnoreCase);
+        return semanticFunctions.Values.ToDictionary(v => v, v => 0);
     }
 
     /// <summary>
     /// Gets key used to identify function token usage in context variables.
     /// </summary>
-    /// <param name="logger">The logger instance to use for logging errors.</param>
     /// <param name="functionName">Name of semantic function.</param>
     /// <returns>The key corresponding to the semantic function name, or null if the function name is unknown.</returns>
-    internal static string? GetFunctionKey(ILogger logger, string? functionName)
+    internal static string GetFunctionKey(string? functionName)
     {
         if (functionName == null || !semanticFunctions.TryGetValue(functionName, out string? key))
         {
-            logger.LogError("Unknown token dependency {0}. Please define function as semanticFunctions entry in TokenUtils.cs", functionName);
-            return null;
+            throw new KeyNotFoundException($"Unknown token dependency {functionName}. Please define function as semanticFunctions entry in TokenUtils.cs");
         };
 
         return $"{key}TokenUsage";
@@ -62,50 +59,32 @@ public static class TokenUtils
     /// Gets the total token usage from a Chat or Text Completion result context and adds it as a variable to response context.
     /// </summary>
     /// <param name="result">Result context from chat model</param>
-    /// <param name="kernelArguments">Context maintained during response generation.</param>
-    /// <param name="logger">The logger instance to use for logging errors.</param>
-    /// <param name="functionName">Name of the function that invoked the chat completion.</param>
-    /// <returns> true if token usage is found in result context; otherwise, false.</returns>
-    internal static void GetFunctionTokenUsage(FunctionResult result, KernelArguments kernelArguments, ILogger logger, string? functionName = null)
+    /// <param name="logger">The logger instance to use for logging errors.</param></param>
+    /// <returns>String representation of number of tokens used by function (or null on error)</returns>
+    internal static string? GetFunctionTokenUsage(FunctionResult result, ILogger logger)
     {
+        if (result.Metadata is null ||
+            !result.Metadata.TryGetValue("Usage", out object? usageObject) || usageObject is null)
+        {
+            logger.LogError("No usage metadata provided");
+
+            return null;
+        }
+
+        var tokenUsage = 0;
         try
         {
-            var functionKey = GetFunctionKey(logger, functionName);
-            if (functionKey == null)
-            {
-                return;
-            }
-
-            if (result.Metadata is null)
-            {
-                logger.LogError("No metadata provided to capture usage details.");
-                return;
-            }
-
-            if (!result.Metadata.TryGetValue("Usage", out object? usageObject) || usageObject is null)
-            {
-                logger.LogError("Unable to determine token usage for {0}", functionKey);
-                return;
-            }
-
-            var tokenUsage = 0;
-            try
-            {
-                var jsonObject = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(usageObject));
-                tokenUsage = jsonObject.GetProperty("TotalTokens").GetInt32();
-            }
-            catch (KeyNotFoundException)
-            {
-                logger.LogError("Usage details not found in model result.");
-            }
-
-            kernelArguments[functionKey!] = tokenUsage.ToString(CultureInfo.InvariantCulture);
+            var jsonObject = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(usageObject));
+            tokenUsage = jsonObject.GetProperty("TotalTokens").GetInt32();
         }
-        catch (Exception e)
+        catch (KeyNotFoundException)
         {
-            logger.LogError(e, "Unable to determine token usage for {0}", functionName);
-            throw e;
+            logger.LogError("Usage details not found in model result.");
+
+            return null;
         }
+
+        return tokenUsage.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
