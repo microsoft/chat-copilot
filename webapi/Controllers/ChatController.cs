@@ -216,7 +216,7 @@ public class ChatController : ControllerBase, IDisposable
 
         if (variables.TryGetValue("customPlugins", out object? customPluginsString))
         {
-            tasks.Add(this.RegisterCustomPlugins(kernel, customPluginsString, authHeaders));
+            tasks.AddRange(this.RegisterCustomPlugins(kernel, customPluginsString, authHeaders));
         }
 
         await Task.WhenAll(tasks);
@@ -263,7 +263,7 @@ public class ChatController : ControllerBase, IDisposable
         return Task.CompletedTask;
     }
 
-    private async Task RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
+    private IEnumerable<Task> RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
     {
         CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString!.ToString()!);
 
@@ -285,7 +285,7 @@ public class ChatController : ControllerBase, IDisposable
                         return Task.CompletedTask;
                     }
 
-                    await kernel.ImportPluginFromOpenAIAsync(
+                    yield return kernel.ImportPluginFromOpenAIAsync(
                         $"{plugin.NameForModel}Plugin",
                         PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
                         new OpenAIFunctionExecutionParameters
