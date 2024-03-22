@@ -81,8 +81,8 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
 
                     // Backend can be configured to return the raw response from Stepwise Planner. In this case, no meta prompt was generated or completed
                     // and we should show the Stepwise thought process as the raw content view.
-                    if ((prompt as BotResponsePrompt).metaPromptTemplate.length <= 0) {
-                        (prompt as BotResponsePrompt).rawView = (
+                    if (prompt.metaPromptTemplate.length <= 0) {
+                        prompt.rawView = (
                             <pre className={mergeClasses(dialogClasses.text, classes.text)}>
                                 {JSON.stringify(JSON.parse(details.stepsTaken), null, 2)}
                             </pre>
