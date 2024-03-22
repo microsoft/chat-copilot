@@ -20,8 +20,8 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
     protected const string BaseUrlSettingName = "BaseServerUrl";
     protected const string ClientIdSettingName = "ClientID";
     protected const string AuthoritySettingName = "Authority";
-    protected const string UsernameSettingName = "Username";
-    protected const string PasswordSettingName = "Password";
+    protected const string UsernameSettingName = "TestUsername";
+    protected const string PasswordSettingName = "TestPassword";
     protected const string ScopesSettingName = "Scopes";
 
     protected readonly HttpClient _httpClient;

@@ -17,8 +17,8 @@
   "dependencies": {
     "@azure/msal-browser": "^2.38.3",
     "@azure/msal-react": "^1.5.11",
-    "@fluentui/react-components": "^9.46.7",
-    "@fluentui/react-icons": "^2.0.230",
+    "@fluentui/react-components": "^9.47.1",
+    "@fluentui/react-icons": "^2.0.232",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^8.0.0",
     "@playwright/test": "^1.42.1",
@@ -36,14 +36,14 @@
     "@types/debug": "^4.1.12",
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.56",
-    "@types/react-dom": "^18.2.19",
+    "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "react-scripts": "^5.0.1",
     "serve": "^14.2.1",
-    "typescript": "5.3.3"
+    "typescript": "5.4.3"
   },
   "browserslist": {
     "production": [
