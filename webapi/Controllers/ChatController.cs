@@ -381,7 +381,7 @@ public class ChatController : ControllerBase, IDisposable
 
     private static string GetPluginFullPath(string pluginPath)
     {
-        return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi");
+        return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", pluginPath);
     }
 
     /// <summary>
