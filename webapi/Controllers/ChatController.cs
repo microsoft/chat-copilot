@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
 using System.Collections.Generic;
@@ -52,7 +52,6 @@ public class ChatController : ControllerBase, IDisposable
     private const string ChatPluginName = nameof(ChatPlugin);
     private const string ChatFunctionName = "Chat";
     private const string GeneratingResponseClientCall = "ReceiveBotResponseStatus";
-    private readonly string _pluginDirectoryPath;
 
     public ChatController(
         ILogger<ChatController> logger,
@@ -67,7 +66,6 @@ public class ChatController : ControllerBase, IDisposable
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
         this._plugins = plugins;
-        this._pluginDirectoryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi");
     }
 
     /// <summary>
@@ -230,7 +228,7 @@ public class ChatController : ControllerBase, IDisposable
         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
         await kernel.ImportPluginFromOpenApiAsync(
             pluginName: "GitHubPlugin",
-            filePath: Path.Combine(this._pluginDirectoryPath, "GitHubPlugin/openapi.json"),
+            filePath: GetPluginFullPath("GitHubPlugin/openapi.json"),
             new OpenApiFunctionExecutionParameters
             {
                 AuthCallback = authenticationProvider.AuthenticateRequestAsync,
@@ -245,12 +243,12 @@ public class ChatController : ControllerBase, IDisposable
 
         await kernel.ImportPluginFromOpenApiAsync(
             pluginName: "JiraPlugin",
-            filePath: Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi/JiraPlugin/openapi.json"),
+            filePath: GetPluginFullPath("OpenApi/JiraPlugin/openapi.json"),
             new OpenApiFunctionExecutionParameters
             {
                 AuthCallback = authenticationProvider.AuthenticateRequestAsync,
                 ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!.ToString()!) : null,
-            });
+            }); ; ;
     }
 
     private Task RegisterMicrosoftGraphPlugins(Kernel kernel, string GraphAuthHeader)
@@ -379,6 +377,11 @@ public class ChatController : ControllerBase, IDisposable
         contextVariables[MessageKey] = ask.Input;
 
         return contextVariables;
+    }
+
+    private static string GetPluginFullPath(string pluginPath)
+    {
+        return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Plugins", "OpenApi");
     }
 
     /// <summary>
