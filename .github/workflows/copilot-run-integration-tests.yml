@@ -40,8 +40,8 @@ jobs:
           dotnet user-secrets set "Authority" "https://login.microsoftonline.com/${{vars.APPLICATION_TENANT_ID}}"
           dotnet user-secrets set "ClientID" ${{vars.APPLICATION_CLIENT_ID}}
           dotnet user-secrets set "Scopes" "openid, offline_access, profile, api://${{vars.BACKEND_CLIENT_ID}}/access_as_user"
-          dotnet user-secrets set "Username" "$env:Username"
-          dotnet user-secrets set "Password" "$env:Password"
+          # dotnet user-secrets set "Username" "$env:Username"
+          # dotnet user-secrets set "Password" "$env:Password"
 
       - name: Run integration tests
         run: dotnet test --logger trx
