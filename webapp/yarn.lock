@@ -1715,10 +1715,10 @@
     "@fluentui/styles" "^0.66.5"
     classnames "^2.2.6"
 
-"@fluentui/react-icons@^2.0.224", "@fluentui/react-icons@^2.0.232":
-  version "2.0.232"
-  resolved "https://registry.yarnpkg.com/@fluentui/react-icons/-/react-icons-2.0.232.tgz#b0499e4fde427f6dc6eee8ab2d0d6683e555a2a5"
-  integrity sha512-v2KKdRx68Pkz8FPQsOxvD8X7u7cCZ9/dodP/KdycaGY2FKEjAdiSzPboHfTLqkKhvrLr8Zgfs3gSDWDOf7au3A==
+"@fluentui/react-icons@^2.0.224", "@fluentui/react-icons@^2.0.233":
+  version "2.0.233"
+  resolved "https://registry.yarnpkg.com/@fluentui/react-icons/-/react-icons-2.0.233.tgz#c3bcdee070680bea7739b1b6579f84eac987da36"
+  integrity sha512-gt3efrmlJFz3LiJknPpnFtGDF4ah+w+D/0klZit6izOwmb3KGnfqVDtSgupApYW717T9vhwgZKWETGipghiOTw==
   dependencies:
     "@griffel/react" "^1.0.0"
     tslib "^2.1.0"
@@ -2750,10 +2750,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.4.4.tgz#11d5db19bd178936ec89cd84519c4de439574398"
   integrity sha512-1oO6+dN5kdIA3sKPZhRGJTfGVP4SWV6KqlMOwry4J3HfyD68sl/3KmG7DeYUzvN+RbhXDnv/D8vNNB8168tAMg==
 
-"@reduxjs/toolkit@^2.2.1":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-2.2.1.tgz#3dce4906fb33da9e0122468ef21438dd7f2277a9"
-  integrity sha512-8CREoqJovQW/5I4yvvijm/emUiCCmcs4Ev4XPWd4mizSO+dD3g5G6w34QK5AGeNrSH7qM8Fl66j4vuV7dpOdkw==
+"@reduxjs/toolkit@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@reduxjs/toolkit/-/toolkit-2.2.2.tgz#952fc8f8315d7274e28f6e4608b7ec66fce7e94e"
+  integrity sha512-454GZrEx3G6QSYwIx9ROaso1HR6sTH8qyZBe3KEsdWVGU3ayV8jYCwdaEJV3vl9V6+pi3GRl+7Xl7AeDna6qwQ==
   dependencies:
     immer "^10.0.3"
     redux "^5.0.1"
@@ -3156,10 +3156,10 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
-"@types/node@*", "@types/node@^20.11.24":
-  version "20.11.24"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.24.tgz#cc207511104694e84e9fb17f9a0c4c42d4517792"
-  integrity sha512-Kza43ewS3xoLgCEpQrsT+xRo/EJej1y0kVYGiLFE1NEODXGzTfwiC6tXTLMQskn1X4/Rjlh0MQUvx9W+L9long==
+"@types/node@*", "@types/node@^20.11.30":
+  version "20.11.30"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.30.tgz#9c33467fc23167a347e73834f788f4b9f399d66f"
+  integrity sha512-dHM6ZxwlmuZaRmUPfv1p+KrdD1Dci04FbdEm/9wEMouFqxYoFl5aMkt0VMAUtYRQDyYvD41WJLukhq/ha3YuTw==
   dependencies:
     undici-types "~5.26.4"
 
@@ -8229,10 +8229,10 @@ micromatch@^4.0.2, micromatch@^4.0.4, micromatch@^4.0.5:
     braces "^3.0.2"
     picomatch "^2.3.1"
 
-microsoft-cognitiveservices-speech-sdk@^1.35.0:
-  version "1.35.0"
-  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.35.0.tgz#b548f86a2c5674c7ce95e98291570c940fde977c"
-  integrity sha512-useWm6DsbcTCjlqCwXaChMvU1NyDZyeq1PgV0oGZutNNQ6ID2FuZyaxWt2RuVmmqGko6Cbk7gSyZsMs5fxrXzw==
+microsoft-cognitiveservices-speech-sdk@^1.36.0:
+  version "1.36.0"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.36.0.tgz#c47ac95c2bd8c67585105eb1159b15f9c4ca2a3b"
+  integrity sha512-wPxuEXgjLdqMMIrdBtl8jquGahLV19LQE0ie8MI/PcBcNLG5buVzwS2rQEyHMsRGx+C/4OdBo1ROdNIUzCm4Lg==
   dependencies:
     "@types/webrtc" "^0.0.37"
     agent-base "^6.0.1"
