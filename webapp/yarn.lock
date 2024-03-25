@@ -8229,10 +8229,10 @@ micromatch@^4.0.2, micromatch@^4.0.4, micromatch@^4.0.5:
     braces "^3.0.2"
     picomatch "^2.3.1"
 
-microsoft-cognitiveservices-speech-sdk@^1.35.0:
-  version "1.35.0"
-  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.35.0.tgz#b548f86a2c5674c7ce95e98291570c940fde977c"
-  integrity sha512-useWm6DsbcTCjlqCwXaChMvU1NyDZyeq1PgV0oGZutNNQ6ID2FuZyaxWt2RuVmmqGko6Cbk7gSyZsMs5fxrXzw==
+microsoft-cognitiveservices-speech-sdk@^1.36.0:
+  version "1.36.0"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.36.0.tgz#c47ac95c2bd8c67585105eb1159b15f9c4ca2a3b"
+  integrity sha512-wPxuEXgjLdqMMIrdBtl8jquGahLV19LQE0ie8MI/PcBcNLG5buVzwS2rQEyHMsRGx+C/4OdBo1ROdNIUzCm4Lg==
   dependencies:
     "@types/webrtc" "^0.0.37"
     agent-base "^6.0.1"
