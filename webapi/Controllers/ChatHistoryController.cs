@@ -169,12 +169,12 @@ public class ChatHistoryController : ControllerBase
     }
 
     /// <summary>
-    /// Get all chat messages for a chat session.
-    /// The list will be ordered with the first entry being the most recent message.
+    /// Get chat messages for a chat session.
+    /// Messages are returned ordered from most recent to oldest.
     /// </summary>
     /// <param name="chatId">The chat id.</param>
-    /// <param name="startIdx">The start index at which the first message will be returned.</param>
-    /// <param name="count">The number of messages to return. -1 will return all messages starting from startIdx.</param>
+    /// <param name="skip">Number of messages to skip before starting to return messages.</param>
+    /// <param name="count">The number of messages to return. -1 returns all messages.</param>
     [HttpGet]
     [Route("chats/{chatId:guid}/messages")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -183,18 +183,14 @@ public class ChatHistoryController : ControllerBase
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
     public async Task<IActionResult> GetChatMessagesAsync(
         [FromRoute] Guid chatId,
-        [FromQuery] int startIdx = 0,
+        [FromQuery] int skip = 0,
         [FromQuery] int count = -1)
     {
-        // TODO:  [Issue #48] the code mixes strings and Guid without being explicit about the serialization format
-        var chatMessages = await this._messageRepository.FindByChatIdAsync(chatId.ToString());
+        var chatMessages = await this._messageRepository.FindByChatIdAsync(chatId.ToString(), skip, count);
         if (!chatMessages.Any())
         {
             return this.NotFound($"No messages found for chat id '{chatId}'.");
         }
-
-        chatMessages = chatMessages.OrderByDescending(m => m.Timestamp).Skip(startIdx);
-        if (count >= 0) { chatMessages = chatMessages.Take(count); }
 
         return this.Ok(chatMessages);
     }
