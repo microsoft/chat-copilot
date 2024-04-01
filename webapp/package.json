@@ -36,7 +36,7 @@
     "@types/debug": "^4.1.12",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.56",
-    "@types/react-dom": "^18.2.22",
+    "@types/react-dom": "^18.2.23",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.0",
