@@ -46,7 +46,7 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
             <div
                 style={{
                     display: 'flex',
-                    flexDirection: `${setting.stackVertically ? 'column' : 'row'}`,
+                    flexDirection: setting.stackVertically ? 'column' : 'row',
                     flexWrap: 'wrap',
                 }}
             >

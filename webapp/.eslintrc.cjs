@@ -40,6 +40,9 @@ module.exports = {
         'react/react-in-jsx-scope': 'off',
         'react/prop-types': 'off',
         'react/jsx-props-no-spreading': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'off',
+        '@typescript-eslint/use-unknown-in-catch-callback-variable': 'off',
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
     },
     settings: {
         react: {

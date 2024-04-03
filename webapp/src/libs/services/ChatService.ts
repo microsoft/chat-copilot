@@ -149,7 +149,7 @@ export class ChatService extends BaseService {
 
                         if (propertyDetails.value) {
                             openApiVariables.push({
-                                key: `${property}`,
+                                key: property,
                                 value: propertyDetails.value,
                             });
                         }
