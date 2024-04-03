@@ -15,9 +15,9 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.38.4",
-    "@azure/msal-react": "^1.5.11",
-    "@fluentui/react-components": "^9.47.2",
+    "@azure/msal-browser": "^3.11.1",
+    "@azure/msal-react": "^2.0.14",
+    "@fluentui/react-components": "^9.47.3",
     "@fluentui/react-icons": "^2.0.233",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^8.0.0",
@@ -34,11 +34,11 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/debug": "^4.1.12",
-    "@types/node": "^20.11.30",
-    "@types/react": "^18.2.56",
+    "@types/node": "^20.12.3",
+    "@types/react": "^18.2.74",
     "@types/react-dom": "^18.2.23",
-    "@typescript-eslint/eslint-plugin": "^6.13.2",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "react-scripts": "^5.0.1",

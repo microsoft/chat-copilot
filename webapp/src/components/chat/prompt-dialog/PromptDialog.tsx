@@ -100,7 +100,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
                 value &&
                 !(value as string).includes('User has also shared some document snippets:')
             ) {
-                value += '\nNo relevant document memories.';
+                value = (value as string) + '\nNo relevant document memories.';
             }
 
             return value && key !== 'metaPromptTemplate' ? (
