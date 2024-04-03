@@ -40,7 +40,7 @@ export const PluginCard: React.FC<PluginCardProps> = ({ plugin, isHosted }) => {
     return (
         <BaseCard
             image={icon}
-            header={`${name}`}
+            header={name}
             secondaryText={publisher}
             description={description}
             action={
