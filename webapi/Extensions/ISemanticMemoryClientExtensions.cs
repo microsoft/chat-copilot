@@ -99,7 +99,7 @@ internal static class ISemanticMemoryClientExtensions
                 indexName,
                 filter,
                 null,
-                0,
+                relevanceThreshold, // minRelevance param
                 resultCount,
                 cancellationToken);
 
