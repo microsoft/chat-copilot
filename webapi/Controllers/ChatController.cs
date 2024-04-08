@@ -47,6 +47,7 @@ public class ChatController : ControllerBase, IDisposable
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
+    private readonly MsGraphOboPluginOptions _msGraphOboPluginOptions;
     private readonly IDictionary<string, Plugin> _plugins;
 
     private const string ChatPluginName = nameof(ChatPlugin);
@@ -58,6 +59,7 @@ public class ChatController : ControllerBase, IDisposable
         IHttpClientFactory httpClientFactory,
         ITelemetryService telemetryService,
         IOptions<ServiceOptions> serviceOptions,
+        IOptions<MsGraphOboPluginOptions> msGraphOboPluginOptions,
         IDictionary<string, Plugin> plugins)
     {
         this._logger = logger;
@@ -65,6 +67,7 @@ public class ChatController : ControllerBase, IDisposable
         this._telemetryService = telemetryService;
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
+        this._msGraphOboPluginOptions = msGraphOboPluginOptions.Value;
         this._plugins = plugins;
     }
 
@@ -216,9 +219,9 @@ public class ChatController : ControllerBase, IDisposable
 
         //TODO: create a RegisterMicrosoftGraphOboPlugins method
         // Microsoft Graph OBO
-        if (authHeaders.TryGetValue("MSGRAPHOBO", out string? MsGraphOboAuthHeader))
+        if (authHeaders.TryGetValue("MSGRAPHOBO", out string? GraphOboAuthHeader))
         {
-            tasks.Add(this.RegisterMicrosoftGraphPlugins(kernel, GraphAuthHeader));
+            tasks.Add(this.RegisterMicrosoftGraphOBOPlugins(kernel, GraphOboAuthHeader));
         }
 
         if (variables.TryGetValue("customPlugins", out object? customPluginsString))
@@ -269,6 +272,15 @@ public class ChatController : ControllerBase, IDisposable
         kernel.ImportPluginFromObject(new EmailPlugin(new OutlookMailConnector(graphServiceClient)), "email");
         return Task.CompletedTask;
     }
+
+    private Task RegisterMicrosoftGraphOBOPlugins(Kernel kernel, string GraphOboAuthHeader)
+    {
+        this._logger.LogInformation("Enabling Microsoft Graph OBO plugin(s).");
+        kernel.ImportPluginFromObject(new MsGraphOboPlugin(GraphOboAuthHeader, this._httpClientFactory, this._msGraphOboPluginOptions, this._logger), "msGraphObo");
+        return Task.CompletedTask;
+    }
+
+
 
     private IEnumerable<Task> RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
     {

@@ -6,7 +6,7 @@
     "[csharp]": {
       "editor.defaultFormatter": "ms-dotnettools.csharp",
       "editor.codeActionsOnSave": {
-        "source.fixAll": true
+        "source.fixAll": "explicit"
       }
     },
     "editor.bracketPairColorization.enabled": true,
@@ -19,15 +19,15 @@
     "[typescript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode",
       "editor.codeActionsOnSave": {
-        "source.organizeImports": true,
-        "source.fixAll": true
+        "source.organizeImports": "explicit",
+        "source.fixAll": "explicit"
       }
     },
     "[typescriptreact]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode",
       "editor.codeActionsOnSave": {
-        "source.organizeImports": true,
-        "source.fixAll": true
+        "source.organizeImports": "explicit",
+        "source.fixAll": "explicit"
       }
     },
     "typescript.updateImportsOnFileMove.enabled": "always",

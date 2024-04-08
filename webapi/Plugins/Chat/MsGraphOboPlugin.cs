@@ -40,7 +40,7 @@ public sealed class MsGraphOboPlugin
     //
     //   PlannerOptions.OboOptions:
     //     Configuration for the plugin defined in appsettings.json.
-    public MsGraphOboPlugin(string bearerToken, IHttpClientFactory clientFactory, PlannerOptions.OboOptions? onBehalfOfAuth, ILogger logger)
+    public MsGraphOboPlugin(string bearerToken, IHttpClientFactory clientFactory, MsGraphOboPluginOptions? onBehalfOfAuth, ILogger logger)
     {
         this._bearerToken = bearerToken ?? throw new ArgumentNullException(bearerToken);
         this._clientFactory = clientFactory;
@@ -85,7 +85,7 @@ public sealed class MsGraphOboPlugin
     //
     //   T:System.Net.Http.HttpRequestException:
     //     Failed to get graph data: {graphResponse.StatusCode}.
-    [SKFunction]
+    [KernelFunction]
     [Description("Call a Graph API with the OData query and the Graph API Scopes based on user input")]
     public async Task<string> CallGraphApiTasksAsync([Description("Url of the Graph API with the OData query to call")] string apiToCall, [Description("Comma separated value string with the Graph API Scopes needed to execute the call")] string graphScopes, CancellationToken cancellationToken = default)
     {
