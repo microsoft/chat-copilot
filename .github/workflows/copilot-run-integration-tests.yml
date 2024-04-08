@@ -6,9 +6,15 @@ on:
       BACKEND_HOST:
         required: true
         type: string
+      ENVIRONMENT:
+        required: true
+        type: string
   workflow_call:
     inputs:
       BACKEND_HOST:
+        required: true
+        type: string
+      ENVIRONMENT:
         required: true
         type: string
 
@@ -17,6 +23,7 @@ permissions:
 
 jobs:
   tests:
+    environment: ${{inputs.ENVIRONMENT}}
     name: Integration Testing
     runs-on: windows-latest
 
@@ -26,18 +33,15 @@ jobs:
       - name: Configure test environment
         working-directory: integration-tests
         env:
-          TenantId: ${{ secrets.COPILOT_CHAT_TEST_TENANT_ID }}
-          WebApiClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPI_CLIENT_ID }}
-          WebAppClientId: ${{ secrets.COPILOT_CHAT_TEST_APP_AAD_WEBAPP_CLIENT_ID }}
-          Username: ${{secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1}}
-          Password: ${{secrets.COPILOT_CHAT_TEST_USER_PASSWORD1}}
+          TestUsername: ${{secrets.COPILOT_CHAT_TEST_USER_ACCOUNT1}}
+          TestPassword: ${{secrets.COPILOT_CHAT_TEST_USER_PASSWORD1}}
         run: |
           dotnet user-secrets set "BaseServerUrl" "https://${{inputs.BACKEND_HOST}}.azurewebsites.net/"
-          dotnet user-secrets set "Authority" "https://login.microsoftonline.com/$env:TenantID"
-          dotnet user-secrets set "ClientID" "$env:WebAppClientId"
-          dotnet user-secrets set "Scopes" "openid, offline_access, profile, api://$env:WebApiClientId/access_as_user"
-          dotnet user-secrets set "Username" "$env:Username"
-          dotnet user-secrets set "Password" "$env:Password"
+          dotnet user-secrets set "Authority" "https://login.microsoftonline.com/${{vars.APPLICATION_TENANT_ID}}"
+          dotnet user-secrets set "ClientID" ${{vars.APPLICATION_CLIENT_ID}}
+          dotnet user-secrets set "Scopes" "openid, offline_access, profile, api://${{vars.BACKEND_CLIENT_ID}}/access_as_user"
+          # dotnet user-secrets set "TestUsername" "$env:TestUsername"
+          # dotnet user-secrets set "TestPassword" "$env:TestPassword"
 
       - name: Run integration tests
         run: dotnet test --logger trx

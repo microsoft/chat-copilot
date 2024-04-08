@@ -84,8 +84,8 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
             className={classes.root}
             style={{
                 display: 'flex',
-                flexDirection: `${textButtons ? 'column' : 'row'}`,
-                gap: `${textButtons ? tokens.spacingVerticalS : tokens.spacingVerticalNone}`,
+                flexDirection: textButtons ? 'column' : 'row',
+                gap: textButtons ? tokens.spacingVerticalS : tokens.spacingVerticalNone,
             }}
             title={'Edit chat name'}
             aria-label={`Edit chat name for "${name}"`}

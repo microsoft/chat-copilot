@@ -37,11 +37,6 @@ while [[ $# -gt 0 ]]; do
     shift
     shift
     ;;
-  --plannermodel)
-    PLANNER_MODEL="$2"
-    shift
-    shift
-    ;;
   -fc | --frontend-clientid)
     FRONTEND_CLIENT_ID="$2"
     shift
@@ -111,16 +106,10 @@ if [ "$AI_SERVICE" = "$ENV_OPEN_AI" ]; then
   if [ -z "$COMPLETION_MODEL" ]; then
     COMPLETION_MODEL="$ENV_COMPLETION_MODEL_OPEN_AI"
   fi
-  if [ -z "$PLANNER_MODEL" ]; then
-    PLANNER_MODEL="$ENV_PLANNER_MODEL_OPEN_AI"
-  fi
   # TO DO: Validate model values if set by command line.
 else # elif [ "$AI_SERVICE" = "$ENV_AZURE_OPEN_AI" ]; then
   if [ -z "$COMPLETION_MODEL" ]; then
     COMPLETION_MODEL="$ENV_COMPLETION_MODEL_AZURE_OPEN_AI"
-  fi
-  if [ -z "$PLANNER_MODEL" ]; then
-    PLANNER_MODEL="$ENV_PLANNER_MODEL_AZURE_OPEN_AI"
   fi
   # TO DO: Validate model values if set by command line.
 fi
@@ -193,9 +182,6 @@ APPSETTINGS_OVERRIDES="{
       \"ClientId\": \"${BACKEND_CLIENT_ID}\",
       \"Scopes\": \"${ENV_SCOPES}\"
     }
-  },
-  \"Planner\": {
-    \"Model\": \"${PLANNER_MODEL}\"
   },
   \"KernelMemory\": {
     \"TextGeneratorType\": \"${AI_SERVICE}\",

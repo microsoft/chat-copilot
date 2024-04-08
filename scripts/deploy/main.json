@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.23.1.45101",
-      "templateHash": "10280441124249350356"
+      "version": "0.25.53.49325",
+      "templateHash": "1335279082624698663"
     }
   },
   "parameters": {
@@ -79,13 +79,6 @@
         "description": "Model to use for text embeddings"
       }
     },
-    "plannerModel": {
-      "type": "string",
-      "defaultValue": "gpt-35-turbo",
-      "metadata": {
-        "description": "Completion model the task planner should use"
-      }
-    },
     "aiEndpoint": {
       "type": "string",
       "defaultValue": "",
@@ -140,9 +133,9 @@
     },
     "memoryStore": {
       "type": "string",
-      "defaultValue": "AzureCognitiveSearch",
+      "defaultValue": "AzureAISearch",
       "allowedValues": [
-        "AzureCognitiveSearch",
+        "AzureAISearch",
         "Qdrant"
       ],
       "metadata": {
@@ -306,7 +299,7 @@
         "use32BitWorkerProcess": false,
         "vnetRouteAllEnabled": true,
         "webSocketsEnabled": true,
-        "appSettings": "[concat(createArray(createObject('name', 'Authentication:Type', 'value', 'AzureAd'), createObject('name', 'Authentication:AzureAd:Instance', 'value', parameters('azureAdInstance')), createObject('name', 'Authentication:AzureAd:TenantId', 'value', parameters('azureAdTenantId')), createObject('name', 'Authentication:AzureAd:ClientId', 'value', parameters('webApiClientId')), createObject('name', 'Authentication:AzureAd:Scopes', 'value', 'access_as_user'), createObject('name', 'Planner:Model', 'value', parameters('plannerModel')), createObject('name', 'ChatStore:Type', 'value', if(parameters('deployCosmosDB'), 'cosmos', 'volatile')), createObject('name', 'ChatStore:Cosmos:Database', 'value', 'CopilotChat'), createObject('name', 'ChatStore:Cosmos:ChatSessionsContainer', 'value', 'chatsessions'), createObject('name', 'ChatStore:Cosmos:ChatMessagesContainer', 'value', 'chatmessages'), createObject('name', 'ChatStore:Cosmos:ChatMemorySourcesContainer', 'value', 'chatmemorysources'), createObject('name', 'ChatStore:Cosmos:ChatParticipantsContainer', 'value', 'chatparticipants'), createObject('name', 'ChatStore:Cosmos:ConnectionString', 'value', if(parameters('deployCosmosDB'), listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName')))), '2023-04-15').connectionStrings[0].connectionString, '')), createObject('name', 'AzureSpeech:Region', 'value', parameters('location')), createObject('name', 'AzureSpeech:Key', 'value', if(parameters('deploySpeechServices'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName'))), '2022-12-01').key1, '')), createObject('name', 'AllowedOrigins', 'value', '[*]'), createObject('name', 'Kestrel:Endpoints:Https:Url', 'value', 'https://localhost:443'), createObject('name', 'Frontend:AadClientId', 'value', parameters('frontendClientId')), createObject('name', 'Logging:LogLevel:Default', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:CopilotChat.WebApi', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.SemanticKernel', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.AspNetCore.Hosting', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.Hosting.Lifetimel', 'value', 'Warning'), createObject('name', 'Logging:ApplicationInsights:LogLevel:Default', 'value', 'Warning'), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString), createObject('name', 'ApplicationInsightsAgent_EXTENSION_VERSION', 'value', '~2'), createObject('name', 'KernelMemory:ContentStorageType', 'value', 'AzureBlobs'), createObject('name', 'KernelMemory:TextGeneratorType', 'value', parameters('aiService')), createObject('name', 'KernelMemory:DataIngestion:OrchestrationType', 'value', 'Distributed'), createObject('name', 'KernelMemory:DataIngestion:DistributedOrchestration:QueueType', 'value', 'AzureQueue'), createObject('name', 'KernelMemory:DataIngestion:EmbeddingGeneratorTypes:0', 'value', parameters('aiService')), createObject('name', 'KernelMemory:DataIngestion:VectorDbTypes:0', 'value', parameters('memoryStore')), createObject('name', 'KernelMemory:Retrieval:VectorDbType', 'value', parameters('memoryStore')), createObject('name', 'KernelMemory:Retrieval:EmbeddingGeneratorType', 'value', parameters('aiService')), createObject('name', 'KernelMemory:Services:AzureBlobs:Auth', 'value', 'ConnectionString'), createObject('name', 'KernelMemory:Services:AzureBlobs:ConnectionString', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)), createObject('name', 'KernelMemory:Services:AzureBlobs:Container', 'value', 'chatmemory'), createObject('name', 'KernelMemory:Services:AzureQueue:Auth', 'value', 'ConnectionString'), createObject('name', 'KernelMemory:Services:AzureQueue:ConnectionString', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)), createObject('name', 'KernelMemory:Services:AzureCognitiveSearch:Auth', 'value', 'ApiKey'), createObject('name', 'KernelMemory:Services:AzureCognitiveSearch:Endpoint', 'value', if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')), createObject('name', 'KernelMemory:Services:AzureCognitiveSearch:APIKey', 'value', if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')), createObject('name', 'KernelMemory:Services:Qdrant:Endpoint', 'value', if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')), createObject('name', 'KernelMemory:Services:AzureOpenAIText:Auth', 'value', 'ApiKey'), createObject('name', 'KernelMemory:Services:AzureOpenAIText:Endpoint', 'value', if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').endpoint, parameters('aiEndpoint'))), createObject('name', 'KernelMemory:Services:AzureOpenAIText:APIKey', 'value', if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').key1, parameters('aiApiKey'))), createObject('name', 'KernelMemory:Services:AzureOpenAIText:Deployment', 'value', parameters('completionModel')), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:Auth', 'value', 'ApiKey'), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:Endpoint', 'value', if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').endpoint, parameters('aiEndpoint'))), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:APIKey', 'value', if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').key1, parameters('aiApiKey'))), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:Deployment', 'value', parameters('embeddingModel')), createObject('name', 'KernelMemory:Services:OpenAI:TextModel', 'value', parameters('completionModel')), createObject('name', 'KernelMemory:Services:OpenAI:EmbeddingModel', 'value', parameters('embeddingModel')), createObject('name', 'KernelMemory:Services:OpenAI:APIKey', 'value', parameters('aiApiKey')), createObject('name', 'Plugins:0:Name', 'value', 'Klarna Shopping'), createObject('name', 'Plugins:0:ManifestDomain', 'value', 'https://www.klarna.com')), if(parameters('deployWebSearcherPlugin'), createArray(createObject('name', 'Plugins:1:Name', 'value', 'WebSearcher'), createObject('name', 'Plugins:1:ManifestDomain', 'value', format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName'))), '2022-09-01').defaultHostName)), createObject('name', 'Plugins:1:Key', 'value', listkeys(format('{0}/host/default/', resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))), '2022-09-01').functionKeys.default)), createArray()))]"
+        "appSettings": "[concat(createArray(createObject('name', 'Authentication:Type', 'value', 'AzureAd'), createObject('name', 'Authentication:AzureAd:Instance', 'value', parameters('azureAdInstance')), createObject('name', 'Authentication:AzureAd:TenantId', 'value', parameters('azureAdTenantId')), createObject('name', 'Authentication:AzureAd:ClientId', 'value', parameters('webApiClientId')), createObject('name', 'Authentication:AzureAd:Scopes', 'value', 'access_as_user'), createObject('name', 'ChatStore:Type', 'value', if(parameters('deployCosmosDB'), 'cosmos', 'volatile')), createObject('name', 'ChatStore:Cosmos:Database', 'value', 'CopilotChat'), createObject('name', 'ChatStore:Cosmos:ChatSessionsContainer', 'value', 'chatsessions'), createObject('name', 'ChatStore:Cosmos:ChatMessagesContainer', 'value', 'chatmessages'), createObject('name', 'ChatStore:Cosmos:ChatMemorySourcesContainer', 'value', 'chatmemorysources'), createObject('name', 'ChatStore:Cosmos:ChatParticipantsContainer', 'value', 'chatparticipants'), createObject('name', 'ChatStore:Cosmos:ConnectionString', 'value', if(parameters('deployCosmosDB'), listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(format('cosmos-{0}', variables('uniqueName')))), '2023-04-15').connectionStrings[0].connectionString, '')), createObject('name', 'AzureSpeech:Region', 'value', parameters('location')), createObject('name', 'AzureSpeech:Key', 'value', if(parameters('deploySpeechServices'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('cog-speech-{0}', variables('uniqueName'))), '2022-12-01').key1, '')), createObject('name', 'AllowedOrigins', 'value', '[*]'), createObject('name', 'Kestrel:Endpoints:Https:Url', 'value', 'https://localhost:443'), createObject('name', 'Frontend:AadClientId', 'value', parameters('frontendClientId')), createObject('name', 'Logging:LogLevel:Default', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:CopilotChat.WebApi', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.SemanticKernel', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.AspNetCore.Hosting', 'value', 'Warning'), createObject('name', 'Logging:LogLevel:Microsoft.Hosting.Lifetimel', 'value', 'Warning'), createObject('name', 'Logging:ApplicationInsights:LogLevel:Default', 'value', 'Warning'), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName'))), '2020-02-02').ConnectionString), createObject('name', 'ApplicationInsightsAgent_EXTENSION_VERSION', 'value', '~2'), createObject('name', 'KernelMemory:ContentStorageType', 'value', 'AzureBlobs'), createObject('name', 'KernelMemory:TextGeneratorType', 'value', parameters('aiService')), createObject('name', 'KernelMemory:DataIngestion:OrchestrationType', 'value', 'Distributed'), createObject('name', 'KernelMemory:DataIngestion:DistributedOrchestration:QueueType', 'value', 'AzureQueue'), createObject('name', 'KernelMemory:DataIngestion:EmbeddingGeneratorTypes:0', 'value', parameters('aiService')), createObject('name', 'KernelMemory:DataIngestion:MemoryDbTypes:0', 'value', parameters('memoryStore')), createObject('name', 'KernelMemory:Retrieval:MemoryDbType', 'value', parameters('memoryStore')), createObject('name', 'KernelMemory:Retrieval:EmbeddingGeneratorType', 'value', parameters('aiService')), createObject('name', 'KernelMemory:Services:AzureBlobs:Auth', 'value', 'ConnectionString'), createObject('name', 'KernelMemory:Services:AzureBlobs:ConnectionString', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)), createObject('name', 'KernelMemory:Services:AzureBlobs:Container', 'value', 'chatmemory'), createObject('name', 'KernelMemory:Services:AzureQueue:Auth', 'value', 'ConnectionString'), createObject('name', 'KernelMemory:Services:AzureQueue:ConnectionString', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)), createObject('name', 'KernelMemory:Services:AzureAISearch:Auth', 'value', 'ApiKey'), createObject('name', 'KernelMemory:Services:AzureAISearch:Endpoint', 'value', if(equals(parameters('memoryStore'), 'AzureAISearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')), createObject('name', 'KernelMemory:Services:AzureAISearch:APIKey', 'value', if(equals(parameters('memoryStore'), 'AzureAISearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')), createObject('name', 'KernelMemory:Services:Qdrant:Endpoint', 'value', if(equals(parameters('memoryStore'), 'Qdrant'), format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('app-{0}-qdrant', variables('uniqueName'))), '2022-09-01').defaultHostName), '')), createObject('name', 'KernelMemory:Services:AzureOpenAIText:Auth', 'value', 'ApiKey'), createObject('name', 'KernelMemory:Services:AzureOpenAIText:Endpoint', 'value', if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').endpoint, parameters('aiEndpoint'))), createObject('name', 'KernelMemory:Services:AzureOpenAIText:APIKey', 'value', if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').key1, parameters('aiApiKey'))), createObject('name', 'KernelMemory:Services:AzureOpenAIText:Deployment', 'value', parameters('completionModel')), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:Auth', 'value', 'ApiKey'), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:Endpoint', 'value', if(parameters('deployNewAzureOpenAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').endpoint, parameters('aiEndpoint'))), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:APIKey', 'value', if(parameters('deployNewAzureOpenAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', format('ai-{0}', variables('uniqueName'))), '2023-05-01').key1, parameters('aiApiKey'))), createObject('name', 'KernelMemory:Services:AzureOpenAIEmbedding:Deployment', 'value', parameters('embeddingModel')), createObject('name', 'KernelMemory:Services:OpenAI:TextModel', 'value', parameters('completionModel')), createObject('name', 'KernelMemory:Services:OpenAI:EmbeddingModel', 'value', parameters('embeddingModel')), createObject('name', 'KernelMemory:Services:OpenAI:APIKey', 'value', parameters('aiApiKey')), createObject('name', 'Plugins:0:Name', 'value', 'Klarna Shopping'), createObject('name', 'Plugins:0:ManifestDomain', 'value', 'https://www.klarna.com')), if(parameters('deployWebSearcherPlugin'), createArray(createObject('name', 'Plugins:1:Name', 'value', 'WebSearcher'), createObject('name', 'Plugins:1:ManifestDomain', 'value', format('https://{0}', reference(resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName'))), '2022-09-01').defaultHostName)), createObject('name', 'Plugins:1:Key', 'value', listkeys(format('{0}/host/default/', resourceId('Microsoft.Web/sites', format('function-{0}-websearcher-plugin', variables('uniqueName')))), '2022-09-01').functionKeys.default)), createArray()))]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('appins-{0}', variables('uniqueName')))]",
@@ -377,7 +370,7 @@
             "value": "[parameters('aiService')]"
           },
           {
-            "name": "KernelMemory:ImageOcrType",
+            "name": "KernelMemory:DataIngestion:ImageOcrType",
             "value": "AzureFormRecognizer"
           },
           {
@@ -393,11 +386,11 @@
             "value": "[parameters('aiService')]"
           },
           {
-            "name": "KernelMemory:DataIngestion:VectorDbTypes:0",
+            "name": "KernelMemory:DataIngestion:MemoryDbTypes:0",
             "value": "[parameters('memoryStore')]"
           },
           {
-            "name": "KernelMemory:Retrieval:VectorDbType",
+            "name": "KernelMemory:Retrieval:MemoryDbType",
             "value": "[parameters('memoryStore')]"
           },
           {
@@ -425,16 +418,16 @@
             "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}', format('st{0}', variables('rgIdHash')), listKeys(resourceId('Microsoft.Storage/storageAccounts', format('st{0}', variables('rgIdHash'))), '2022-09-01').keys[1].value)]"
           },
           {
-            "name": "KernelMemory:Services:AzureCognitiveSearch:Auth",
+            "name": "KernelMemory:Services:AzureAISearch:Auth",
             "value": "ApiKey"
           },
           {
-            "name": "KernelMemory:Services:AzureCognitiveSearch:Endpoint",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
+            "name": "KernelMemory:Services:AzureAISearch:Endpoint",
+            "value": "[if(equals(parameters('memoryStore'), 'AzureAISearch'), format('https://{0}.search.windows.net', format('acs-{0}', variables('uniqueName'))), '')]"
           },
           {
-            "name": "KernelMemory:Services:AzureCognitiveSearch:APIKey",
-            "value": "[if(equals(parameters('memoryStore'), 'AzureCognitiveSearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
+            "name": "KernelMemory:Services:AzureAISearch:APIKey",
+            "value": "[if(equals(parameters('memoryStore'), 'AzureAISearch'), listAdminKeys(resourceId('Microsoft.Search/searchServices', format('acs-{0}', variables('uniqueName'))), '2022-09-01').primaryKey, '')]"
           },
           {
             "name": "KernelMemory:Services:Qdrant:Endpoint",
@@ -754,7 +747,7 @@
       ]
     },
     {
-      "condition": "[equals(parameters('memoryStore'), 'AzureCognitiveSearch')]",
+      "condition": "[equals(parameters('memoryStore'), 'AzureAISearch')]",
       "type": "Microsoft.Search/searchServices",
       "apiVersion": "2022-09-01",
       "name": "[format('acs-{0}', variables('uniqueName'))]",

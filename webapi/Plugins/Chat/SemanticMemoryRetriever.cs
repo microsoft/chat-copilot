@@ -174,7 +174,7 @@ public class SemanticMemoryRetriever
                 var tokenCount = TokenUtils.TokenCount(result.Memory.Text);
                 if (remainingToken - tokenCount > 0)
                 {
-                    if (result.Citation.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
+                    if (result.Memory.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
                         var citationSource = CitationSource.FromSemanticMemoryCitation(

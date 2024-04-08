@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Storage;
 
@@ -37,7 +38,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.TryAdd(entity.Id, entity))
@@ -53,7 +54,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.TryRemove(entity.Id, out _))
@@ -85,7 +86,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         if (string.IsNullOrWhiteSpace(entity.Id))
         {
-            throw new ArgumentOutOfRangeException(nameof(entity.Id), "Entity Id cannot be null or empty.");
+            throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
         if (this._entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity) != null)
@@ -99,14 +100,16 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     /// <summary>
     /// A concurrent dictionary to store entities in memory.
     /// </summary>
-    private sealed class EntityDictionary : ConcurrentDictionary<string, T>
+    protected sealed class EntityDictionary : ConcurrentDictionary<string, T>
     {
     }
 
     /// <summary>
     /// Using a concurrent dictionary to store entities in memory.
     /// </summary>
-    private readonly EntityDictionary _entities;
+#pragma warning disable CA1051 // Do not declare visible instance fields
+    protected readonly EntityDictionary _entities;
+#pragma warning restore CA1051 // Do not declare visible instance fields
 
     /// <summary>
     /// The file path to store entities on disk.
@@ -162,5 +165,30 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
 
             return JsonSerializer.Deserialize<EntityDictionary>(fileStream) ?? new EntityDictionary();
         }
+    }
+}
+
+/// <summary>
+/// Specialization of FileSystemContext<T> for CopilotChatMessage.
+/// </summary>
+public class FileSystemCopilotChatMessageContext : FileSystemContext<CopilotChatMessage>, ICopilotChatMessageStorageContext
+{
+    /// <summary>
+    /// Initializes a new instance of the CosmosDbContext class.
+    /// </summary>
+    /// <param name="connectionString">The CosmosDB connection string.</param>
+    /// <param name="database">The CosmosDB database name.</param>
+    /// <param name="container">The CosmosDB container name.</param>
+    public FileSystemCopilotChatMessageContext(FileInfo filePath) :
+        base(filePath)
+    {
+    }
+
+    /// <inheritdoc/>
+    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
+    {
+        return Task.Run<IEnumerable<CopilotChatMessage>>(
+                () => this._entities.Values
+                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
     }
 }

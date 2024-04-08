@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Plugins.Utils;
 
@@ -27,7 +27,7 @@ public static class AsyncUtils
         }
         catch (Exception ex)
         {
-            throw new SKException($"{functionName} failed.", ex);
+            throw new KernelException($"{functionName} failed.", ex);
         }
     }
 
@@ -47,7 +47,7 @@ public static class AsyncUtils
         }
         catch (Exception ex)
         {
-            throw new SKException($"{functionName} failed.", ex);
+            throw new KernelException($"{functionName} failed.", ex);
         }
     }
 }

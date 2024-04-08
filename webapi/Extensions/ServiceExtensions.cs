@@ -21,7 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.KernelMemory;
-using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.KernelMemory.Diagnostics;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -52,8 +52,6 @@ public static class CopilotChatServiceExtensions
 
         // Chat prompt options
         AddOptions<PromptsOptions>(PromptsOptions.PropertyName);
-
-        AddOptions<PlannerOptions>(PlannerOptions.PropertyName);
 
         AddOptions<ContentSafetyOptions>(ContentSafetyOptions.PropertyName);
 
@@ -166,7 +164,7 @@ public static class CopilotChatServiceExtensions
     public static IServiceCollection AddPersistentChatStore(this IServiceCollection services)
     {
         IStorageContext<ChatSession> chatSessionStorageContext;
-        IStorageContext<CopilotChatMessage> chatMessageStorageContext;
+        ICopilotChatMessageStorageContext chatMessageStorageContext;
         IStorageContext<MemorySource> chatMemorySourceStorageContext;
         IStorageContext<ChatParticipant> chatParticipantStorageContext;
 
@@ -177,7 +175,7 @@ public static class CopilotChatServiceExtensions
             case ChatStoreOptions.ChatStoreType.Volatile:
             {
                 chatSessionStorageContext = new VolatileContext<ChatSession>();
-                chatMessageStorageContext = new VolatileContext<CopilotChatMessage>();
+                chatMessageStorageContext = new VolatileCopilotChatMessageContext();
                 chatMemorySourceStorageContext = new VolatileContext<MemorySource>();
                 chatParticipantStorageContext = new VolatileContext<ChatParticipant>();
                 break;
@@ -194,7 +192,7 @@ public static class CopilotChatServiceExtensions
                 string directory = Path.GetDirectoryName(fullPath) ?? string.Empty;
                 chatSessionStorageContext = new FileSystemContext<ChatSession>(
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
-                chatMessageStorageContext = new FileSystemContext<CopilotChatMessage>(
+                chatMessageStorageContext = new FileSystemCopilotChatMessageContext(
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_messages{Path.GetExtension(fullPath)}")));
                 chatMemorySourceStorageContext = new FileSystemContext<MemorySource>(
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}")));
@@ -212,7 +210,7 @@ public static class CopilotChatServiceExtensions
 #pragma warning disable CA2000 // Dispose objects before losing scope - objects are singletons for the duration of the process and disposed when the process exits.
                 chatSessionStorageContext = new CosmosDbContext<ChatSession>(
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatSessionsContainer);
-                chatMessageStorageContext = new CosmosDbContext<CopilotChatMessage>(
+                chatMessageStorageContext = new CosmosDbCopilotChatMessageContext(
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMessagesContainer);
                 chatMemorySourceStorageContext = new CosmosDbContext<MemorySource>(
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMemorySourcesContainer);
