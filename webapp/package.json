@@ -18,10 +18,10 @@
     "@azure/msal-browser": "^3.11.1",
     "@azure/msal-react": "^2.0.14",
     "@fluentui/react-components": "^9.47.3",
-    "@fluentui/react-icons": "^2.0.233",
+    "@fluentui/react-icons": "^2.0.234",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^8.0.0",
-    "@playwright/test": "^1.42.1",
+    "@playwright/test": "^1.43.0",
     "@reduxjs/toolkit": "^2.2.3",
     "debug": "^4.3.4",
     "microsoft-cognitiveservices-speech-sdk": "^1.36.0",
@@ -34,16 +34,16 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/debug": "^4.1.12",
-    "@types/node": "^20.12.3",
+    "@types/node": "^20.12.5",
     "@types/react": "^18.2.74",
-    "@types/react-dom": "^18.2.23",
+    "@types/react-dom": "^18.2.24",
     "@typescript-eslint/eslint-plugin": "^7.5.0",
     "@typescript-eslint/parser": "^7.5.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "react-scripts": "^5.0.1",
     "serve": "^14.2.1",
-    "typescript": "5.4.3"
+    "typescript": "5.4.4"
   },
   "browserslist": {
     "production": [
