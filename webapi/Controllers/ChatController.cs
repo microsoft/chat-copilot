@@ -217,7 +217,6 @@ public class ChatController : ControllerBase, IDisposable
             tasks.Add(this.RegisterMicrosoftGraphPlugins(kernel, GraphAuthHeader));
         }
 
-        //TODO: create a RegisterMicrosoftGraphOboPlugins method
         // Microsoft Graph OBO
         if (authHeaders.TryGetValue("MSGRAPHOBO", out string? GraphOboAuthHeader))
         {
