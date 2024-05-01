@@ -87,7 +87,7 @@ public sealed class MsGraphOboPlugin
     //     Failed to get graph data: {graphResponse.StatusCode}.
 
 
-    [KernelFunction, Description("Call a Graph API with the OData query and the Graph API Scopes based on user input and summarize the results as requested")]
+    [KernelFunction, Description("Call a Graph API with the OData query and the Graph API Scopes based on user input")]
     public async Task<string> CallGraphApiTasksAsync([Description("The URI of the Graph API with the OData query to call")] string apiToCall, [Description("A Comma separated value string with the Graph API Scopes needed to execute the Graph API call")] string graphScopes, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(apiToCall))
