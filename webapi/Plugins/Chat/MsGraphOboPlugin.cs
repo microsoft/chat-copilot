@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
@@ -26,6 +27,8 @@ public sealed class MsGraphOboPlugin
     private readonly string _tenantId;
     private readonly string _authority;
 
+    private readonly int _responseTokenLimit = 2048;
+
     //
     // Summary:
     //     Initializes a new instance of the MsGraphOboPlugin to execute the API calls using the OBO Flow.
@@ -40,7 +43,7 @@ public sealed class MsGraphOboPlugin
     //
     //   PlannerOptions.OboOptions:
     //     Configuration for the plugin defined in appsettings.json.
-    public MsGraphOboPlugin(string bearerToken, IHttpClientFactory clientFactory, MsGraphOboPluginOptions? onBehalfOfAuth, ILogger logger)
+    public MsGraphOboPlugin(string bearerToken, IHttpClientFactory clientFactory, MsGraphOboPluginOptions? onBehalfOfAuth, int responseTokenLimit, ILogger logger)
     {
         this._bearerToken = bearerToken ?? throw new ArgumentNullException(bearerToken);
         this._clientFactory = clientFactory;
@@ -50,6 +53,7 @@ public sealed class MsGraphOboPlugin
         this._clientSecret = onBehalfOfAuth?.ClientSecret ?? throw new ArgumentNullException(onBehalfOfAuth?.ClientSecret);
         this._tenantId = onBehalfOfAuth?.TenantId ?? throw new ArgumentNullException(onBehalfOfAuth?.TenantId);
         this._authority = onBehalfOfAuth?.Authority ?? throw new ArgumentNullException(onBehalfOfAuth?.Authority);
+        this._responseTokenLimit = responseTokenLimit;
     }
 
     //
@@ -86,8 +90,7 @@ public sealed class MsGraphOboPlugin
     //   T:System.Net.Http.HttpRequestException:
     //     Failed to get graph data: {graphResponse.StatusCode}.
 
-
-    [KernelFunction, Description("Call a Graph API with the OData query and the Graph API Scopes based on user input")]
+    [KernelFunction, Description("Call a Graph API using the provided OData query and the Graph API Scopes based on user input")]
     public async Task<string> CallGraphApiTasksAsync([Description("The URI of the Graph API with the OData query to call")] string apiToCall, [Description("A Comma separated value string with the Graph API Scopes needed to execute the Graph API call")] string graphScopes, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(apiToCall))
@@ -119,7 +122,9 @@ public sealed class MsGraphOboPlugin
                 }
             }
         }
-        return graphResponseContent;
+
+        // TODO: Dynamically determine token limit
+        return JsonUtils.OptimizeOdataResponseJson(graphResponseContent, this._responseTokenLimit);
     }
 
     private async Task<string> GetOboAccessTokenAsync(string graphScopes, CancellationToken cancellationToken)

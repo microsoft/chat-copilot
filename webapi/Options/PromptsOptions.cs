@@ -26,6 +26,11 @@ public class PromptsOptions
     [Required, Range(0, int.MaxValue)] public int ResponseTokenLimit { get; set; }
 
     /// <summary>
+    /// The token count allowed for function calling responses.
+    /// </summary>
+    [Required, Range(0, int.MaxValue)] public int FunctionCallingTokenLimit { get; set; }
+
+    /// <summary>
     /// Weight of memories in the contextual part of the final prompt.
     /// Contextual prompt excludes all the system commands and user intent.
     /// </summary>

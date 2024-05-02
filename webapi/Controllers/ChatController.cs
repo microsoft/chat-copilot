@@ -48,6 +48,7 @@ public class ChatController : ControllerBase, IDisposable
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
     private readonly MsGraphOboPluginOptions _msGraphOboPluginOptions;
+    private readonly PromptsOptions _promptsOptions;
     private readonly IDictionary<string, Plugin> _plugins;
 
     private const string ChatPluginName = nameof(ChatPlugin);
@@ -60,6 +61,7 @@ public class ChatController : ControllerBase, IDisposable
         ITelemetryService telemetryService,
         IOptions<ServiceOptions> serviceOptions,
         IOptions<MsGraphOboPluginOptions> msGraphOboPluginOptions,
+        IOptions<PromptsOptions> promptsOptions,
         IDictionary<string, Plugin> plugins)
     {
         this._logger = logger;
@@ -68,6 +70,7 @@ public class ChatController : ControllerBase, IDisposable
         this._disposables = new List<IDisposable>();
         this._serviceOptions = serviceOptions.Value;
         this._msGraphOboPluginOptions = msGraphOboPluginOptions.Value;
+        this._promptsOptions = promptsOptions.Value;
         this._plugins = plugins;
     }
 
@@ -275,11 +278,11 @@ public class ChatController : ControllerBase, IDisposable
     private Task RegisterMicrosoftGraphOBOPlugins(Kernel kernel, string GraphOboAuthHeader)
     {
         this._logger.LogInformation("Enabling Microsoft Graph OBO plugin(s).");
-        kernel.ImportPluginFromObject(new MsGraphOboPlugin(GraphOboAuthHeader, this._httpClientFactory, this._msGraphOboPluginOptions, this._logger), "msGraphObo");
+        kernel.ImportPluginFromObject(
+            new MsGraphOboPlugin(GraphOboAuthHeader, this._httpClientFactory, this._msGraphOboPluginOptions, this._promptsOptions.FunctionCallingTokenLimit, this._logger),
+            "msGraphObo");
         return Task.CompletedTask;
     }
-
-
 
     private IEnumerable<Task> RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
     {

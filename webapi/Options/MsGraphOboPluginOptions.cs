@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-
 namespace CopilotChat.WebApi.Options;
 
 public class MsGraphOboPluginOptions
