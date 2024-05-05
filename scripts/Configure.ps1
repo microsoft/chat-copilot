@@ -3,7 +3,7 @@
 Configure user secrets, appsettings.Development.json, and webapp/.env for Chat Copilot.
 
 .PARAMETER AIService
-The service type used: OpenAI or Azure OpenAI.
+The service type used: OpenAI or AzureOpenAI.
 
 .PARAMETER APIKey
 The API key for the AI service.
@@ -16,9 +16,6 @@ The chat completion model to use (e.g., gpt-3.5-turbo or gpt-4).
 
 .PARAMETER EmbeddingModel
 The embedding model to use (e.g., text-embedding-ada-002).
-
-.PARAMETER PlannerModel
-The chat completion model to use for planning (e.g., gpt-3.5-turbo or gpt-4).
 
 .PARAMETER FrontendClientId
 The client (application) ID associated with your frontend's AAD app registration.
@@ -52,9 +49,6 @@ param(
     [string]$EmbeddingModel, 
 
     [Parameter(Mandatory = $false)]
-    [string]$PlannerModel,
-
-    [Parameter(Mandatory = $false)]
     [string] $FrontendClientId,
 
     [Parameter(Mandatory = $false)]
@@ -74,20 +68,16 @@ $varScriptFilePath = Join-Path "$PSScriptRoot" 'Variables.ps1'
 # Set remaining values from Variables.ps1
 if ($AIService -eq $varOpenAI) {
     if (!$CompletionModel) {
+        Write-Host "No completion model provided - Defaulting to $varCompletionModelOpenAI"
         $CompletionModel = $varCompletionModelOpenAI
-    }
-    if (!$PlannerModel) {
-        $PlannerModel = $varPlannerModelOpenAI
     }
 
     # TO DO: Validate model values if set by command line.
 }
 elseif ($AIService -eq $varAzureOpenAI) {
     if (!$CompletionModel) {
+        Write-Host "No completion model provided - Defaulting to $varCompletionModelAzureOpenAI"
         $CompletionModel = $varCompletionModelAzureOpenAI
-    }
-    if (!$PlannerModel) {
-        $PlannerModel = $varPlannerModelAzureOpenAI
     }
    
     # TO DO: Validate model values if set by command line.
@@ -176,9 +166,6 @@ $appsettingsOverrides = @{
             ClientId = $BackendClientId;
             Scopes   = $varScopes
         }
-    };
-    Planner = @{
-        Model = $PlannerModel
     };
     KernelMemory = @{
         TextGeneratorType = $AIService;

@@ -55,13 +55,13 @@ export class ChatService extends BaseService {
 
     public getChatMessagesAsync = async (
         chatId: string,
-        startIdx: number,
+        skip: number,
         count: number,
         accessToken: string,
     ): Promise<IChatMessage[]> => {
         const result = await this.getResponseAsync<IChatMessage[]>(
             {
-                commandPath: `chats/${chatId}/messages?startIdx=${startIdx}&count=${count}`,
+                commandPath: `chats/${chatId}/messages?skip=${skip}&count=${count}`,
                 method: 'GET',
             },
             accessToken,
@@ -149,7 +149,7 @@ export class ChatService extends BaseService {
 
                         if (propertyDetails.value) {
                             openApiVariables.push({
-                                key: `${property}`,
+                                key: property,
                                 value: propertyDetails.value,
                             });
                         }

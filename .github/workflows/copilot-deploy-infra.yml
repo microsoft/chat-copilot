@@ -6,15 +6,6 @@ on:
       ENVIRONMENT:
         required: true
         type: string
-    secrets:
-      AZURE_CLIENT_ID:
-        required: true
-      AZURE_TENANT_ID:
-        required: true
-      AZURE_SUBSCRIPTION_ID:
-        required: true
-      AZURE_OPENAI_ENDPOINT:
-        required: true
     outputs:
       deployment-id:
         description: "The Id of the current deployment."
@@ -45,20 +36,19 @@ jobs:
           clean: true
 
       - name: Azure login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          client-id: ${{secrets.AZURE_CLIENT_ID}}
-          tenant-id: ${{secrets.AZURE_TENANT_ID}}
-          subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+          client-id: ${{vars.AZURE_GITHUB_ACCESS_APP_ID}}
+          tenant-id: ${{vars.AZURE_GITHUB_ACCESS_TENANT_ID}}
+          subscription-id: ${{vars.AZURE_GITHUB_ACCESS_SUB_ID}}
           enable-AzPSSession: false
 
       - name: deploy-infra
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.30.0
           inlineScript: |
-            AI_SERVICE_KEY=$(az cognitiveservices account keys list --name ${{vars.AZUREOPENAI__NAME}} --resource-group ${{vars.AZUREOPENAI_DEPLOYMENT_GROUP_NAME}} | jq -r '.key1')
+            AI_SERVICE_KEY=$(az cognitiveservices account keys list --name ${{vars.AZURE_OPENAI_NAME}} --resource-group ${{vars.AZUREOPENAI_DEPLOYMENT_GROUP_NAME}} | jq -r '.key1')
             echo "::add-mask::$AI_SERVICE_KEY"
             APP_TENANT_ID=${{vars.APPLICATION_TENANT_ID}}
-            [  -z "$APP_TENANT_ID" ] && APP_TENANT_ID=${{secrets.AZURE_TENANT_ID}} # Use secrets.AZURE_TENANT_ID if vars.APPLICATION_TENANT_ID is not set
-            scripts/deploy/deploy-azure.sh --subscription ${{secrets.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{steps.deployment-id.outputs.deployment_name}} --region ${{vars.CC_DEPLOYMENT_REGION}} --client-id ${{vars.BACKEND_CLIENT_ID}} --frontend-client-id ${{vars.APPLICATION_CLIENT_ID}} --tenant-id $APP_TENANT_ID --instance ${{vars.AZURE_INSTANCE}} --ai-service AzureOpenAI --ai-endpoint ${{secrets.AZURE_OPENAI_ENDPOINT}} --ai-service-key $AI_SERVICE_KEY --app-service-sku ${{vars.WEBAPP_API_SKU}} --no-deploy-package --debug-deployment --deploy-web-searcher-plugin
+            scripts/deploy/deploy-azure.sh --subscription ${{vars.AZURE_SUBSCRIPTION_ID}} --resource-group ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --deployment-name ${{steps.deployment-id.outputs.deployment_name}} --region ${{vars.CC_DEPLOYMENT_REGION}} --client-id ${{vars.BACKEND_CLIENT_ID}} --frontend-client-id ${{vars.APPLICATION_CLIENT_ID}} --tenant-id $APP_TENANT_ID --instance ${{vars.AZURE_INSTANCE}} --ai-service AzureOpenAI --ai-endpoint ${{vars.AZURE_OPENAI_ENDPOINT}} --ai-service-key $AI_SERVICE_KEY --app-service-sku ${{vars.WEBAPP_API_SKU}} --no-deploy-package --debug-deployment --deploy-web-searcher-plugin

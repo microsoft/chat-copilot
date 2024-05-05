@@ -12,13 +12,6 @@ on:
       DEPLOYMENT_NAME:
         required: true
         type: string
-    secrets:
-      AZURE_CLIENT_ID:
-        required: true
-      AZURE_TENANT_ID:
-        required: true
-      AZURE_SUBSCRIPTION_ID:
-        required: true
 
 permissions:
   contents: read
@@ -49,11 +42,11 @@ jobs:
         working-directory: "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}"
 
       - name: Azure login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          client-id: ${{secrets.AZURE_CLIENT_ID}}
-          tenant-id: ${{secrets.AZURE_TENANT_ID}}
-          subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+          client-id: ${{vars.AZURE_GITHUB_ACCESS_APP_ID}}
+          tenant-id: ${{vars.AZURE_GITHUB_ACCESS_TENANT_ID}}
+          subscription-id: ${{vars.AZURE_GITHUB_ACCESS_SUB_ID}}
           enable-AzPSSession: false
 
       - name: Get app name
@@ -62,7 +55,7 @@ jobs:
           echo "AZURE_WEBAPP_NAME=$WEB_APP_NAME" >> $GITHUB_ENV
 
       - name: Enable Run From Package
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.30.0
           inlineScript: |

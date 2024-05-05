@@ -11,8 +11,6 @@ using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
-using Microsoft.SemanticKernel.Orchestration;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
@@ -26,15 +24,15 @@ internal static class SemanticChatMemoryExtractor
     /// </summary>
     /// <param name="chatId">The Chat ID.</param>
     /// <param name="kernel">The semantic kernel.</param>
-    /// <param name="context">The Semantic Kernel context.</param>
+    /// <param name="kernelArguments">The Semantic Kernel context.</param>
     /// <param name="options">The prompts options.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     public static async Task ExtractSemanticChatMemoryAsync(
         string chatId,
         IKernelMemory memoryClient,
-        IKernel kernel,
-        SKContext context,
+        Kernel kernel,
+        KernelArguments kernelArguments,
         PromptsOptions options,
         ILogger logger,
         CancellationToken cancellationToken)
@@ -80,23 +78,32 @@ internal static class SemanticChatMemoryExtractor
                 options.ResponseTokenLimit -
                 TokenUtils.TokenCount(memoryPrompt);
 
-            var memoryExtractionContext = context.Clone();
-            memoryExtractionContext.Variables.Set("tokenLimit", remainingToken.ToString(new NumberFormatInfo()));
-            memoryExtractionContext.Variables.Set("memoryName", memoryName);
-            memoryExtractionContext.Variables.Set("format", options.MemoryFormat);
-            memoryExtractionContext.Variables.Set("knowledgeCutoff", options.KnowledgeCutoffDate);
+            var memoryExtractionArguments = new KernelArguments(kernelArguments);
+            memoryExtractionArguments["tokenLimit"] = remainingToken.ToString(new NumberFormatInfo());
+            memoryExtractionArguments["memoryName"] = memoryName;
+            memoryExtractionArguments["format"] = options.MemoryFormat;
+            memoryExtractionArguments["knowledgeCutoff"] = options.KnowledgeCutoffDate;
 
-            var completionFunction = kernel.CreateSemanticFunction(memoryPrompt);
+            var completionFunction = kernel.CreateFunctionFromPrompt(memoryPrompt);
             var result = await completionFunction.InvokeAsync(
-                memoryExtractionContext,
-                options.ToCompletionSettings(),
+                kernel,
+                memoryExtractionArguments,
                 cancellationToken);
 
             // Get token usage from ChatCompletion result and add to context
-            // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
-            TokenUtils.GetFunctionTokenUsage(result, context, logger, $"SystemCognitive_{memoryType}");
+            string? tokenUsage = TokenUtils.GetFunctionTokenUsage(result, logger);
+            if (tokenUsage is not null)
+            {
+                // Since there are multiple memory types, total token usage is calculated by cumulating the token usage of each memory type.
+                kernelArguments[TokenUtils.GetFunctionKey($"SystemCognitive_{memoryType}")] = tokenUsage;
+            }
+            else
+            {
+                logger.LogError("Unable to determine token usage for {0}", $"SystemCognitive_{memoryType}");
+            }
 
             SemanticChatMemory memory = SemanticChatMemory.FromJson(result.ToString());
+
             return memory;
         }
 
@@ -130,22 +137,5 @@ internal static class SemanticChatMemoryExtractor
                 logger.LogError(exception, "Unexpected failure searching {0}", options.MemoryIndexName);
             }
         }
-    }
-
-    /// <summary>
-    /// Create a completion settings object for chat response. Parameters are read from the PromptSettings class.
-    /// </summary>
-    private static OpenAIRequestSettings ToCompletionSettings(this PromptsOptions options)
-    {
-        var completionSettings = new OpenAIRequestSettings
-        {
-            MaxTokens = options.ResponseTokenLimit,
-            Temperature = options.ResponseTemperature,
-            TopP = options.ResponseTopP,
-            FrequencyPenalty = options.ResponseFrequencyPenalty,
-            PresencePenalty = options.ResponsePresencePenalty
-        };
-
-        return completionSettings;
     }
 }

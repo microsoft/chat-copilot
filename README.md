@@ -69,10 +69,8 @@ You will need the following items to run the sample:
    - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of the default names), also use the parameters:
 
      ```powershell
-     -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME} -PlannerModel {DEPLOYMENT_NAME}
+     -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME}
      ```
-
-     > -PlannerModel name will be the same as -CompletionModel
 
      Open the `.\Configure.ps1` script to see all of the available parameters.
 
@@ -153,11 +151,8 @@ You will need the following items to run the sample:
                      --endpoint        {AZURE_OPENAI_ENDPOINT} \
                      --apikey          {API_KEY} \
                      --completionmodel {DEPLOYMENT_NAME} \
-                     --plannermodel    {DEPLOYMENT_NAME} \
                      --embeddingmodel  {DEPLOYMENT_NAME}
       ```
-
-      `--plannermodel` will be the same name as `--completionmodel`
 
 1. Run Chat Copilot locally. This step starts both the backend API and frontend application.
 

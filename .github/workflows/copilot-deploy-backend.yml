@@ -12,13 +12,6 @@ on:
       DEPLOYMENT_NAME:
         required: true
         type: string
-    secrets:
-      AZURE_CLIENT_ID:
-        required: true
-      AZURE_TENANT_ID:
-        required: true
-      AZURE_SUBSCRIPTION_ID:
-        required: true
     outputs:
       backend-host:
         description: "Host to which backend is deployed"
@@ -57,11 +50,11 @@ jobs:
         working-directory: "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}"
 
       - name: Azure login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          client-id: ${{secrets.AZURE_CLIENT_ID}}
-          tenant-id: ${{secrets.AZURE_TENANT_ID}}
-          subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+          client-id: ${{vars.AZURE_GITHUB_ACCESS_APP_ID}}
+          tenant-id: ${{vars.AZURE_GITHUB_ACCESS_TENANT_ID}}
+          subscription-id: ${{vars.AZURE_GITHUB_ACCESS_SUB_ID}}
           enable-AzPSSession: false
 
       - name: Get app name
@@ -72,7 +65,7 @@ jobs:
           echo "backend-host=$WEB_APP_NAME" >> $GITHUB_OUTPUT
 
       - name: Enable Run From Package
-        uses: azure/CLI@v1
+        uses: azure/CLI@v2
         with:
           azcliversion: 2.30.0
           inlineScript: |
@@ -80,4 +73,4 @@ jobs:
 
       - name: "Deploy"
         run: |
-          scripts/deploy/deploy-webapi.sh -p "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}/webapi.zip" -d ${{inputs.DEPLOYMENT_NAME}} -s ${{secrets.AZURE_SUBSCRIPTION_ID}} -rg ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --skip-app-registration
+          scripts/deploy/deploy-webapi.sh -p "${{ github.workspace }}/${{inputs.ARTIFACT_NAME}}/webapi.zip" -d ${{inputs.DEPLOYMENT_NAME}} -s ${{vars.AZURE_SUBSCRIPTION_ID}} -rg ${{vars.CC_DEPLOYMENT_GROUP_NAME}} --skip-app-registration

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System.Text.Json.Serialization;
-using ChatCompletionContextMessages = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace CopilotChat.WebApi.Models.Response;
 
 /// <summary>
-/// The fianl prompt sent to generate bot response.
+/// The final prompt sent to generate bot response.
 /// </summary>
 public class BotResponsePrompt
 {
@@ -41,26 +41,19 @@ public class BotResponsePrompt
     public string ChatHistory { get; set; } = string.Empty;
 
     /// <summary>
-    /// Relevant additional knowledge extracted using a planner.
-    /// </summary>
-    [JsonPropertyName("externalInformation")]
-    public SemanticDependency<PlanExecutionMetadata> ExternalInformation { get; set; }
-
-    /// <summary>
     /// The collection of context messages associated with this chat completions request.
     /// See https://learn.microsoft.com/en-us/dotnet/api/azure.ai.openai.chatcompletionsoptions.messages?view=azure-dotnet-preview#azure-ai-openai-chatcompletionsoptions-messages.
     /// </summary>
     [JsonPropertyName("metaPromptTemplate")]
-    public ChatCompletionContextMessages MetaPromptTemplate { get; set; } = new();
+    public ChatHistory MetaPromptTemplate { get; set; } = new();
 
     public BotResponsePrompt(
         string systemInstructions,
         string audience,
         string userIntent,
         string chatMemories,
-        SemanticDependency<PlanExecutionMetadata> externalInformation,
         string chatHistory,
-        ChatCompletionContextMessages metaPromptTemplate
+        ChatHistory metaPromptTemplate
     )
     {
         this.SystemPersona = systemInstructions;
@@ -68,7 +61,6 @@ public class BotResponsePrompt
         this.UserIntent = userIntent;
         this.PastMemories = chatMemories;
         this.ChatHistory = chatHistory;
-        this.ExternalInformation = externalInformation;
         this.MetaPromptTemplate = metaPromptTemplate;
     }
 }

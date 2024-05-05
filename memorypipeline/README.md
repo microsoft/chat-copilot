@@ -43,7 +43,7 @@ The memorypipeline is only needed when `SemanticMemory:DataIngestion:Orchestrati
   - RabbitMQ
   - SimpleQueues: stores messages on your local file system.
 - [Vector database](https://learn.microsoft.com/en-us/semantic-kernel/memories/vector-db): storage solution for high-dimensional vectors, aka [embeddings](https://github.com/microsoft/semantic-kernel/blob/main/docs/EMBEDDINGS.md). Available options:
-  - [AzureCognitiveSearch](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
+  - [AzureAISearch](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
   - [Qdrant](https://github.com/qdrant/qdrant)
   - SimpleVectorDb
     - TextFile: stores vectors on your local file system.
@@ -72,8 +72,8 @@ The memorypipeline is only needed when `SemanticMemory:DataIngestion:Orchestrati
 2. Find the **Url** under **Overview** and the **key** under **Keys** on the portal.
 3. Run the following to set up the authentication to the resources:
    ```bash
-   dotnet user-secrets set SemanticMemory:Services:AzureCognitiveSearch:Endpoint [your secret]
-   dotnet user-secrets set SemanticMemory:Services:AzureCognitiveSearch:APIKey [your secret]
+   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:Endpoint [your secret]
+   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:APIKey [your secret]
    ```
 
 ##### RabbitMQ
