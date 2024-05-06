@@ -6,7 +6,7 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 
 > **IMPORTANT:** This sample is for educational purposes only and is not recommended for production deployments.
 
-> **NOTE:** This plugin was implemented as a native Semantic Kernel function, in the WebAPI code. This is not an implementation of the OpenAI plugin spec.
+> **NOTE:** This plugin was implemented as a native Kernel function, in the WebAPI code. This is not an implementation of the OpenAI plugin spec.
 
 > **NOTE:** This plugin works better GTP-4 or GTP-4-Turbo as these models works better with the function model.
 
