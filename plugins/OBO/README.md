@@ -79,10 +79,14 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 ## Test Instructions
 
 1. Run a prompt to validate that the model knows that can call Grapi APIs
+
    - Hi!, Are you able to call Graph APIs?
+
 2. Run a prompt to provide a sample call
 
-   - Please get the list of applications in my tenant. You can call the Graph API: https://graph.microsoft.com/v1.0/applications$select=appId,identifierUris,displayName,publisherDomain,signInAudience. Required scope: Application.Read.All
+   - Please get the list of applications in my tenant.
+     You can call the Graph API: [PROVIDE A VALID MS GRAPH API AND ODATA QUERY]
+     Required scope: [PROVIDE A VALID SCOPE]
 
 3. Run any prompt that retrieves information from the tenant
 
