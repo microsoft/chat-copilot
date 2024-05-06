@@ -71,27 +71,19 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
    - Change the persona to include calls to the Ms Graph OBO plugin in the planner
 
    ```text
-   This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot.
-   The AI bot must execute a Graph API call generating the graph API url with the correct OData query and the Graph scopes to use according to user intent and then summarize the results.  Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.
-   ```
+This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot. The AI was trained on data through 2021 and is not aware of events that have occurred since then. The bot has the ability to call Graph APIs using the MS Graph OBO tool to fetch real-time data. The user must first enable the plugin. To call a Graph API, the bot would call the \\"CallGraphApiTasksAsync\\" function, and provide the Graph API URL witht the ODATA query and its required scopes as a list as arguments. The plugin will automatically handle authentication. Otherwise, the bot has no ability to access data on the Internet, so it should not claim that it can or say that it will go and look things up. Try to be concise with your answers, though it is not required. Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.```
 
-7. Run sample prompts
 
-   - List app registrations prompt:
+## Test Instructions
 
-     ```text
-     Get the first 3 app registrations in my tenant by calling a graph api and then summarize the results using a table
-     ```
+1.Run a prompt to validate that the model knows that can call Grapi APIs
 
-     > NOTE: For this prompt to be executed you need to give the WepAPI app registration permission for the scope "Application.Read.All" and the user must be part of a security group that has this permission
+   - Hi!, Are you able to call Graph APIs?
+   
+2. Run a prompt to provide a sample call 
+   - Please get the list of applications in my tenant. You can call the Graph API: https://graph.microsoft.com/v1.0/applications$select=appId,identifierUris,displayName,publisherDomain,signInAudience. Required scope: Application.Read.All
 
-   - List security groups prompt:
-     ```text
-     Get the 3 first groups in my tenant by calling a graph api and then summarize the results using a table
-     ```
+3. Run any prompt that retrieves information from the tenant 
 
-   > NOTE: For this prompt to be executed you need to give the WepAPI app registration permission for the scope "Group.Read.All" and the user must be part of a security group that has this permission
+   - Can you list the users in my tenant grouped by initial letter?
 
-   ## Known issues
-
-   - Some times Graph API responses are too large and consume all the available tokens required to call the AI model and an error is thrown. Use a reduced query like "Give the first 10 results of ..." to avoid large responses.
