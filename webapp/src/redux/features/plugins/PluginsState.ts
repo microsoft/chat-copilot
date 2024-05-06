@@ -13,7 +13,7 @@ export const enum BuiltInPlugins {
     MsGraph = 'Microsoft Graph',
     Jira = 'Jira',
     GitHub = 'GitHub',
-    MsGraphObo = 'MIcrosoft Graph OBO',
+    MsGraphObo = 'Microsoft Graph OBO',
 }
 
 export const enum AuthHeaderTags {
