@@ -8,6 +8,8 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 
 > **NOTE:** This plugin was implemented as a native Semantic Kernel function, in the WebAPI code. This is not an implementation of the OpenAI plugin spec.
 
+> **NOTE:** This plugin works better GTP-4 or GTP-4-Turbo as these models works better with the function model.
+
 ## Prerequisites
 
 - Enable backend authentication via Azure AD as described in the main `README.md` file.
@@ -76,8 +78,7 @@ This is a chat between an intelligent AI bot named Copilot and one or more parti
 
 ## Test Instructions
 
-1.Run a prompt to validate that the model knows that can call Grapi APIs
-
+1. Run a prompt to validate that the model knows that can call Grapi APIs
    - Hi!, Are you able to call Graph APIs?
    
 2. Run a prompt to provide a sample call 
