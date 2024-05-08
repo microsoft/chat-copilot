@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
@@ -122,7 +123,9 @@ public sealed class MsGraphOboPlugin
             }
         }
 
-        return graphResponseContent;
+        var optimizedResponse = JsonUtils.OptimizeOdataResponseJson(graphResponseContent, this._responseTokenLimit);
+        return optimizedResponse.Length > 0 ? optimizedResponse : graphResponseContent;
+
     }
 
     private async Task<string> GetOboAccessTokenAsync(string graphScopes, CancellationToken cancellationToken)
