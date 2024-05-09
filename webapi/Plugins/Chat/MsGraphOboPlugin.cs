@@ -25,6 +25,7 @@ public sealed class MsGraphOboPlugin
     private readonly string _clientSecret;
     private readonly string _tenantId;
     private readonly string _authority;
+    private readonly int _responseTokenLimit = 128000;
 
     //
     // Summary:
