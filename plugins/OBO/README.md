@@ -64,30 +64,36 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
     }
    ```
 
-6. Configuration changes when App is running
-
-   - Run the application using the instructions from the main readme.md file
-
-   - Enable the Ms Graph OBO plugin in the plugins configuration option
-
-   - Change the persona to include calls to the Ms Graph OBO plugin in the planner
-
-   ````text
-   This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot. The AI was trained on data through 2021 and is not aware of events that have occurred since then. The bot has the ability to call Graph APIs using the MS Graph OBO tool to fetch real-time data. The user must first enable the plugin. To call a Graph API, the bot would call the \\"CallGraphApiTasksAsync\\" function, and provide the Graph API URL with the ODATA query and its required scopes as a list as arguments. The plugin will automatically handle authentication. Otherwise, the bot has no ability to access data on the Internet, so it should not claim that it can or say that it will go and look things up. Try to be concise with your answers, though it is not required. Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.```
-   ````
-
 ## Test Instructions
 
-1. Run a prompt to validate that the model knows that can call Grapi APIs
+1. Login to the app
 
-   - Hi!, Are you able to call Graph APIs?
+![Login Step](./test-step-1.png)
 
-2. Run a prompt to provide a sample call
+2. Enable Ms Graph OBO Plugin
 
-   - Please get the list of applications in my tenant.
-     You can call the Graph API: [PROVIDE A VALID MS GRAPH API AND ODATA QUERY]
-     Required scope: [PROVIDE A VALID SCOPE]
+![Plugin Step](./test-step-2.png)
 
-3. Run any prompt that retrieves information from the tenant
+![Plugin Step 2](./test-step-3.png)
 
-   - Can you list the users in my tenant grouped by initial letter?
+![Plugin Step 3](./test-step-4.png)
+
+3. Update the Persona Meta Prompt with the following text:
+
+   ```text
+   This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot. The AI was trained on data through 2021 and is not aware of events that have occurred since then. The bot has the ability to call Graph APIs using the MS Graph OBO tool to fetch real-time data. The user must first enable the plugin. To call a Graph API, the bot would call the \\"CallGraphApiTasksAsync\\" function, and provide the Graph API URL with the ODATA query and its required scopes as a list as arguments. The plugin will automatically handle authentication. Otherwise, the bot has no ability to access data on the Internet, so it should not claim that it can or say that it will go and look things up. Try to be concise with your answers, though it is not required. Knowledge cutoff: {{$knowledgeCutoff}} / Current date: {{TimePlugin.Now}}.
+   ```
+
+![Persona Step 1](./test-step-5.png)
+
+4. Run a prompt to check if the bot understands that can can a graph API and then ask to run a query by providing a sample
+
+- Please get the list of applications in my tenant.
+  You can call the Graph API: "https://graph.microsoft.com/v1.0/applications$select=appId,identifierUris,displayName,publisherDomain,signInAudience"
+  Required scope: Application.Read.All
+
+![Check Step 1](./test-step-6.png)
+
+6. After the sample prompt the bot will execute any graph api query without the need of indicating the graph api, odata query or scopes
+
+![Check Step 2](./test-step-7.png)
