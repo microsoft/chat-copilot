@@ -41,11 +41,27 @@ export function renderApp() {
             if (AuthHelper.isAuthAAD()) {
                 if (!msalInstance) {
                     msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
-                    void msalInstance.handleRedirectPromise().then((response) => {
-                        if (response) {
-                            msalInstance?.setActiveAccount(response.account);
-                        }
-                    });
+                    msalInstance
+                        .initialize()
+                        .then(() => {
+                            if (!msalInstance) {
+                                store.dispatch(setAuthConfig(undefined));
+                                return;
+                            }
+                            msalInstance
+                                .handleRedirectPromise()
+                                .then((response) => {
+                                    if (response) {
+                                        msalInstance?.setActiveAccount(response.account);
+                                    }
+                                })
+                                .catch(() => {
+                                    store.dispatch(setAuthConfig(undefined));
+                                });
+                        })
+                        .catch(() => {
+                            store.dispatch(setAuthConfig(undefined));
+                        });
                 }
 
                 // render with the MsalProvider if AAD is enabled
