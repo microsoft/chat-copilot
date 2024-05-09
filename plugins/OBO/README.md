@@ -89,7 +89,7 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 4. Run a prompt to check if the bot understands that can can a graph API and then ask to run a query by providing a sample
 
 - Please get the list of applications in my tenant.
-  You can call the Graph API: "https://graph.microsoft.com/v1.0/applications$select=appId,identifierUris,displayName,publisherDomain,signInAudience"
+  You can call the Graph API: `https://graph.microsoft.com/v1.0/applications$select=appId,identifierUris,displayName,publisherDomain,signInAudience`
   Required scope: Application.Read.All
 
 ![Check Step 1](./test-step-6.png)
