@@ -12,7 +12,7 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 
 ## Prerequisites
 
-- Enable backend authentication via Azure AD as described in the main `README.md` file.
+- Enable backend authentication via Azure AD as described in the main [`README.md`](../../README.md) file.
 
 ## Setup Instructions
 
