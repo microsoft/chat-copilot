@@ -88,12 +88,16 @@ In this document we will refer to the client app as the WebApp (src/webapp), the
 
 4. Run a prompt to check if the bot understands that can can a graph API and then ask to run a query by providing a sample
 
+- Hi! Can you call a graph API for me?
+
 - Please get the list of applications in my tenant.
   You can call the Graph API: `https://graph.microsoft.com/v1.0/applications$select=appId,identifierUris,displayName,publisherDomain,signInAudience`
   Required scope: Application.Read.All
 
 ![Check Step 1](./test-step-6.png)
 
-6. After the sample prompt the bot will execute any graph api query without the need of indicating the graph api, odata query or scopes
+5. After the sample prompt the bot will execute any graph api query without the need of indicating the graph api, odata query or scopes
+
+- Please get the ObjectID of my user
 
 ![Check Step 2](./test-step-7.png)
