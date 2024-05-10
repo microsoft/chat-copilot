@@ -587,7 +587,7 @@ public class ChatPlugin
             // Token count reserved for model to generate a response
             - this._promptOptions.ResponseTokenLimit
             // Buffer for Tool Calls
-            - 1000;
+            - this._promptOptions.FunctionCallingTokenLimit;
     }
 
     /// <summary>
