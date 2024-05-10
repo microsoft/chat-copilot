@@ -43,7 +43,7 @@ namespace CopilotChat.WebApi.Controllers;
 public class ChatController : ControllerBase, IDisposable
 {
     private readonly ILogger<ChatController> _logger;
-    private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly List<IDisposable> _disposables;
     private readonly ITelemetryService _telemetryService;
     private readonly ServiceOptions _serviceOptions;
