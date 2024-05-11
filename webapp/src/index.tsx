@@ -39,30 +39,15 @@ export function renderApp() {
             store.dispatch(setAuthConfig(authConfig));
 
             if (AuthHelper.isAuthAAD()) {
-                if (!msalInstance) {
-                    msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
-                    msalInstance
-                        .initialize()
-                        .then(() => {
-                            if (!msalInstance) {
-                                store.dispatch(setAuthConfig(undefined));
-                                return;
-                            }
-                            msalInstance
-                                .handleRedirectPromise()
-                                .then((response) => {
-                                    if (response) {
-                                        msalInstance?.setActiveAccount(response.account);
-                                    }
-                                })
-                                .catch(() => {
-                                    store.dispatch(setAuthConfig(undefined));
-                                });
-                        })
-                        .catch(() => {
-                            store.dispatch(setAuthConfig(undefined));
-                        });
-                }
+                msalInstance = new PublicClientApplication(AuthHelper.getMsalConfig(authConfig));
+                await msalInstance.initialize();
+
+                void msalInstance.handleRedirectPromise().then((response) => {
+                    if (response) {
+                        msalInstance.setActiveAccount(response.account);
+                    }
+                });
+            }
 
             // render with the MsalProvider if AAD is enabled
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
