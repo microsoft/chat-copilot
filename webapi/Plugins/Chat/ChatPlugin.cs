@@ -582,10 +582,12 @@ public class ChatPlugin
         // "content": "Assistant is a large language model.","role": "system"
         // This burns just under 20 tokens which need to be accounted for.
         const int ExtraOpenAiMessageTokens = 20;
-
         return this._promptOptions.CompletionTokenLimit // Total token limit
             - ExtraOpenAiMessageTokens
-            - this._promptOptions.ResponseTokenLimit;   // Token count reserved for model to generate a response
+            // Token count reserved for model to generate a response
+            - this._promptOptions.ResponseTokenLimit
+            // Buffer for Tool Calls
+            - this._promptOptions.FunctionCallingTokenLimit;
     }
 
     /// <summary>

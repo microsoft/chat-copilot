@@ -282,6 +282,28 @@ By default, Chat Copilot runs locally without authentication, using a guest user
    ./start.sh
    ```
 
+## Optional Configuration: [Ms Graph API Plugin with On-Behalf-Of Flow](./plugins/OBO/README.md)
+
+This native plugin enables the execution of Microsoft Graph APIs using the On-Behalf-Of (OBO) flow with delegated permissions.
+
+The OBO flows is used to ensure that the backend APIs are consumed with the identity of the user, not the managed identity or service principal of the middle-tier application (in this case the WebApi).
+
+Also, this ensures that consent is given, so that the client app (WebApp) can call the middle-tier app (WebApi), and the middle-tier app has permission to call the back-end resource (MSGraph).
+
+This sample does not implement incremental consent in the UI so all the Graph scopes to be used need to have "Administrator Consent" given in the middle-tier app registration.
+
+More information in the [OBO readme.md](./plugins/OBO/README.md).
+
+### Requirements
+
+Backend authentication via Azure AD must be enabled. Detailed instructions for enabling backend authentication are provided below.
+
+### Limitations
+
+- Currently, the plugin only supports GET operations. Future updates may add support for other types of operations.
+- Graph queries that return large results, may reach the token limit for the AI model, producing an error.
+- Incremental consent is not implemented in this sample.
+
 # Troubleshooting
 
 1. **_Issue:_** Unable to load chats.
