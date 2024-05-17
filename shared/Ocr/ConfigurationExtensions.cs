@@ -3,7 +3,6 @@
 using System;
 using CopilotChat.Shared.Ocr.Tesseract;
 using Microsoft.Extensions.Configuration;
-using Microsoft.KernelMemory.Configuration;
 using Microsoft.KernelMemory.DataFormats;
 
 namespace CopilotChat.Shared.Ocr;
@@ -28,7 +27,7 @@ public static class ConfigurationExtensions
 
                 if (tesseractOptions == null)
                 {
-                    throw new ConfigurationException($"Missing configuration for {ConfigOcrType}: {ocrType}");
+                    throw new ArgumentNullException($"Missing configuration for {ConfigOcrType}: {ocrType}");
                 }
 
                 return new TesseractOcrEngine(tesseractOptions);
