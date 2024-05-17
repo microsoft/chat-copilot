@@ -136,8 +136,7 @@ public class ChatPlugin
         ChatHistory? chatHistory = null,
         CancellationToken cancellationToken = default)
     {
-        var messages = await this._chatMessageRepository.FindByChatIdAsync(chatId);
-        var sortedMessages = messages.OrderByDescending(m => m.Timestamp);
+        var sortedMessages = await this._chatMessageRepository.FindByChatIdAsync(chatId, 0, 100);
 
         ChatHistory allottedChatHistory = new();
         var remainingToken = tokenLimit;
@@ -583,10 +582,12 @@ public class ChatPlugin
         // "content": "Assistant is a large language model.","role": "system"
         // This burns just under 20 tokens which need to be accounted for.
         const int ExtraOpenAiMessageTokens = 20;
-
         return this._promptOptions.CompletionTokenLimit // Total token limit
             - ExtraOpenAiMessageTokens
-            - this._promptOptions.ResponseTokenLimit;   // Token count reserved for model to generate a response
+            // Token count reserved for model to generate a response
+            - this._promptOptions.ResponseTokenLimit
+            // Buffer for Tool Calls
+            - this._promptOptions.FunctionCallingTokenLimit;
     }
 
     /// <summary>

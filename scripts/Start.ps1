@@ -9,8 +9,8 @@ $cmd = get-command 'pwsh'
 $ErrorActionPreference = 'Continue'
 
 if (!$cmd) {
-    Write-Warning "Please update your powershell installation: https://aka.ms/powershell"
-    return;
+  Write-Warning "Please update your powershell installation: https://aka.ms/powershell"
+  return;
 }
 
 $BackendScript = Join-Path "$PSScriptRoot" 'Start-Backend.ps1'
@@ -41,7 +41,8 @@ while ($backendRunning -eq $false -and $retryCount -lt $maxRetries) {
 if ($backendRunning -eq $true) {
   # Start frontend (in current PS process)
   & $FrontendScript
-} else { 
+}
+else { 
   # otherwise, write to the console that the backend is not running and we have exceeded the number of retries and we are exiting
   Write-Host "*************************************************"
   Write-Host "Backend is not running and we have exceeded "

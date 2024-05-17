@@ -32,7 +32,9 @@ const useClasses = makeStyles({
 // (?:.+\s*) is a noncapturing group that matches the start of static string (matches any character followed by whitespace)
 // Matches: "Interpolated $variable_name", "$variable_name Interpolated", "Interpolated $variable_name Interpolated"
 // Doesn't match: standalone variables (e.g. "$variable_name") or dollar amounts (e.g. "$1.00", "$100")
-const INTERPOLATED_VARIABLE_REGEX = /((\$[A-Za-z]+[_-]*[\w]+)(?=([^-_\d\w])+))|((?:.+\s*)(\$[A-Za-z]+[_-]*[\w]+))/g;
+// const INTERPOLATED_VARIABLE_REGEX = /((\$[A-Za-z]+[_-]*[\w]+)(?=([^-_\d\w])+))|((?:.+\s*)(\$[A-Za-z]+[_-]*[\w]+))/g;
+const INTERPOLATED_VARIABLE_REGEX =
+    /\$(?!top|filter|select|expand|orderby|skip|count|search)([A-Za-z0-9_]+|[A-Za-z0-9_]+\([^\)]*\))/g;
 
 interface PlanStepInputProps {
     input: IPlanInput;

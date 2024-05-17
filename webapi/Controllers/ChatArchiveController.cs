@@ -176,7 +176,6 @@ public class ChatArchiveController : ControllerBase
     /// <returns>The list of chat messages in descending order of the timestamp</returns>
     private async Task<List<CopilotChatMessage>> GetAllChatMessagesAsync(string chatId)
     {
-        return (await this._chatMessageRepository.FindByChatIdAsync(chatId))
-            .OrderByDescending(m => m.Timestamp).ToList();
+        return (await this._chatMessageRepository.FindByChatIdAsync(chatId)).ToList();
     }
 }
