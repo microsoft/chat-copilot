@@ -25,8 +25,7 @@ public class PassThroughAuthenticationHandler : AuthenticationHandler<Authentica
     public PassThroughAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory loggerFactory,
-        UrlEncoder encoder,
-        ISystemClock clock) : base(options, loggerFactory, encoder, clock)
+        UrlEncoder encoder) : base(options, loggerFactory, encoder)
     {
     }
 

@@ -23,7 +23,6 @@
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.1" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.18.1" />
     <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.51.240513.2" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.51.240513.2" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.12.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.12.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.5.0-alpha" />
