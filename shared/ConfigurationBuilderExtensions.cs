@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.KernelMemory.Configuration;
 
 namespace CopilotChat.Shared;
 
@@ -35,7 +34,7 @@ internal static class ConfigurationBuilderExtensions
             var main = Path.Join(settingsDirectory, "appsettings.json");
             if (!File.Exists(main))
             {
-                throw new ConfigurationException($"appsettings.json not found. Directory: {settingsDirectory}");
+                throw new FileNotFoundException($"appsettings.json not found. Directory: {settingsDirectory}");
             }
 
             builder.AddJsonFile(main, optional: false);
