@@ -1,7 +1,7 @@
 # docker build -f docker/plugins/web-searcher/Dockerfile -t web-searcher .
 
 # builder
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS installer-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS installer-env
 ARG AZURE_FUNCTION_MASTER_KEY
 WORKDIR /source
 COPY plugins/shared shared
@@ -13,7 +13,7 @@ RUN cd /source/web-searcher && \
   echo "{\"masterKey\":{\"name\":\"master\",\"value\":\"$AZURE_FUNCTION_MASTER_KEY\",\"encrypted\":false},\"functionKeys\":[]}" > /azure-functions-host/Secrets/host.json
 
 # final stage/image
-FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4.0-dotnet-isolated6.0-appservice
+FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4.0-dotnet-isolated8.0-appservice
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
   AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
   AzureWebJobsSecretStorageType=files

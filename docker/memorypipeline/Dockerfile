@@ -1,7 +1,7 @@
 # docker build -f docker/webapi/Dockerfile -t chat-copilot-memorypipeline .
 
 # builder
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS builder
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
 WORKDIR /source
 # generate dev-certs for https
 RUN dotnet dev-certs https
@@ -17,7 +17,7 @@ RUN cd memorypipeline && \
 
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=builder /app .
 COPY --from=builder /root/.dotnet/corefx/cryptography/x509stores/my/* /root/.dotnet/corefx/cryptography/x509stores/my/

@@ -154,7 +154,7 @@ internal static class ISemanticMemoryClientExtensions
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         await writer.WriteAsync(memory);
-        await writer.FlushAsync();
+        await writer.FlushAsync(cancellationToken);
         stream.Position = 0;
 
         var uploadRequest = new DocumentUploadRequest

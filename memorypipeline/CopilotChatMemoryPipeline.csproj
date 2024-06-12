@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>CopilotChat.MemoryPipeline</RootNamespace>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -15,8 +15,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.30.240227.1" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.5.0" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.62.240605.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.14.1" />
   </ItemGroup>
 
 </Project>

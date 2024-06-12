@@ -6,12 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.AI;
-using Microsoft.KernelMemory.Configuration;
-using Microsoft.KernelMemory.ContentStorage.DevTools;
+using Microsoft.KernelMemory.DocumentStorage.DevTools;
 using Microsoft.KernelMemory.MemoryStorage;
 using Microsoft.KernelMemory.MemoryStorage.DevTools;
 using Microsoft.KernelMemory.Pipeline.Queue.DevTools;
-using Microsoft.KernelMemory.Postgres;
 
 namespace CopilotChat.Shared;
 
@@ -151,17 +149,17 @@ internal sealed class ServiceConfiguration
 
     private void ConfigureStorageDependency(IKernelMemoryBuilder builder)
     {
-        switch (this._memoryConfiguration.ContentStorageType)
+        switch (this._memoryConfiguration.DocumentStorageType)
         {
             case string x1 when x1.Equals("AzureBlob", StringComparison.OrdinalIgnoreCase):
             case string x2 when x2.Equals("AzureBlobs", StringComparison.OrdinalIgnoreCase):
                 // Check 2 keys for backward compatibility
-                builder.Services.AddAzureBlobsAsContentStorage(this.GetServiceConfig<AzureBlobsConfig>("AzureBlobs")
-                                                               ?? this.GetServiceConfig<AzureBlobsConfig>("AzureBlob"));
+                builder.WithAzureBlobsDocumentStorage(this.GetServiceConfig<AzureBlobsConfig>("AzureBlobs")
+                                                      ?? this.GetServiceConfig<AzureBlobsConfig>("AzureBlob"));
                 break;
 
             case string x when x.Equals("SimpleFileStorage", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddSimpleFileStorageAsContentStorage(this.GetServiceConfig<SimpleFileStorageConfig>("SimpleFileStorage"));
+                builder.WithSimpleFileStorage(this.GetServiceConfig<SimpleFileStorageConfig>("SimpleFileStorage"));
                 break;
 
             default:
