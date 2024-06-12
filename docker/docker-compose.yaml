@@ -54,7 +54,7 @@ services:
       - KernelMemory__Services__RabbitMq__Port=5672
       - KernelMemory__Services__RabbitMq__Username=chat-copilot
       - KernelMemory__Services__RabbitMq__Password=chat-copilot
-      - KernelMemory__ContentStorageType=AzureBlobs
+      - KernelMemory__DocumentStorageType=AzureBlobs
       - KernelMemory__ImageOcrType=Tesseract
       - KernelMemory__TextGeneratorType=AzureOpenAI
       - KernelMemory__DataIngestion__OrchestrationType=Distributed
@@ -123,7 +123,7 @@ services:
       - KernelMemory__Services__RabbitMq__Port=5672
       - KernelMemory__Services__RabbitMq__Username=chat-copilot
       - KernelMemory__Services__RabbitMq__Password=chat-copilot
-      - KernelMemory__ContentStorageType=AzureBlobs
+      - KernelMemory__DocumentStorageType=AzureBlobs
       - KernelMemory__ImageOcrType=Tesseract
       - KernelMemory__TextGeneratorType=AzureOpenAI
       - KernelMemory__DataIngestion__OrchestrationType=Distributed

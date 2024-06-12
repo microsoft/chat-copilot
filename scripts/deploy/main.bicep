@@ -284,7 +284,7 @@ resource appServiceWebConfig 'Microsoft.Web/sites/config@2022-09-01' = {
           value: '~2'
         }
         {
-          name: 'KernelMemory:ContentStorageType'
+          name: 'KernelMemory:DocumentStorageType'
           value: 'AzureBlobs'
         }
         {
@@ -442,6 +442,7 @@ resource appServiceMemoryPipeline 'Microsoft.Web/sites@2022-09-01' = {
     skweb: '1'
   }
   properties: {
+    httpsOnly: true
     serverFarmId: appServicePlan.id
     virtualNetworkSubnetId: memoryStore == 'Qdrant' ? virtualNetwork.properties.subnets[0].id : null
     siteConfig: {
@@ -465,7 +466,7 @@ resource appServiceMemoryPipelineConfig 'Microsoft.Web/sites/config@2022-09-01' 
     vnetRouteAllEnabled: true
     appSettings: [
       {
-        name: 'KernelMemory:ContentStorageType'
+        name: 'KernelMemory:DocumentStorageType'
         value: 'AzureBlobs'
       }
       {
