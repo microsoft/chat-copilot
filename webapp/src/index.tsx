@@ -47,6 +47,7 @@ export function renderApp() {
                         msalInstance.setActiveAccount(response.account);
                     }
                 });
+
                 // render with the MsalProvider if AAD is enabled
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 root!.render(
@@ -58,7 +59,7 @@ export function renderApp() {
                         </ReduxProvider>
                     </React.StrictMode>,
                 );
-            };
+            }
         })
         .catch(() => {
             store.dispatch(setAuthConfig(undefined));
