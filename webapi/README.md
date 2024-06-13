@@ -26,8 +26,8 @@ The following material is under development and may not be complete or accurate.
    - **Tesseract** we have included the [Tesseract](https://www.nuget.org/packages/Tesseract) nuget package.
      - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `SemanticMemory:Services:Tesseract:FilePath` location in `./appsettings.json`.
      - Set the `Copy to Output Directory` value to `Copy if newer`.
-   - **Azure Form Recognizer** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
-     - You will need to obtain an [Azure Form Recognizer](https://azure.microsoft.com/en-us/services/form-recognizer/) resource and add the `SemanticMemory:Services:AzureFormRecognizer:Endpoint` and `SemanticMemory:Services:AzureFormRecognizer:Key` values to the `./appsettings.json` file.
+   - **Azure AI Doc Intel** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
+     - You will need to obtain an [Azure AI Doc Intel](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence) resource and add the `SemanticMemory:Services:AzureAIDocIntel:Endpoint` and `SemanticMemory:Services:AzureAIDocIntel:Key` values to the `./appsettings.json` file.
 
 ## Running [Memory Service](https://github.com/microsoft/kernel-memory)
 
