@@ -10,45 +10,47 @@ const useClasses = makeStyles({
 interface FileUploaderProps {
     acceptedExtensions: string[] | undefined;
     onSelectedFile: (file: File) => void;
-    ref?: React.Ref<HTMLInputElement> | string;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = forwardRef<HTMLInputElement, FileUploaderProps>(
-    ({ acceptedExtensions, onSelectedFile }, ref) => {
-        const classes = useClasses();
+const FileUploaderComponent = (
+    { acceptedExtensions, onSelectedFile }: FileUploaderProps,
+    ref: React.ForwardedRef<HTMLInputElement>
+) => {
+    const classes = useClasses();
 
-        const onChange = React.useCallback(
-            (event: React.SyntheticEvent) => {
-                const target = event.target as HTMLInputElement;
-                const selectedFiles = target.files;
-                event.stopPropagation();
-                event.preventDefault();
-                if (!selectedFiles || selectedFiles.length !== 1) {
-                    console.error('There are none or multiple selected files.');
-                    return;
-                }
-                const file = selectedFiles.item(0);
-                if (file) {
-                    onSelectedFile(file);
-                } else {
-                    console.error('The selected file contains no file object.');
-                }
-            },
-            [onSelectedFile],
-        );
+    const onChange = React.useCallback(
+        (event: React.SyntheticEvent) => {
+            const target = event.target as HTMLInputElement;
+            const selectedFiles = target.files;
+            event.stopPropagation();
+            event.preventDefault();
+            if (!selectedFiles || selectedFiles.length !== 1) {
+                console.error('There are none or multiple selected files.');
+                return;
+            }
+            const file = selectedFiles.item(0);
+            if (file) {
+                onSelectedFile(file);
+            } else {
+                console.error('The selected file contains no file object.');
+            }
+        },
+        [onSelectedFile],
+    );
 
-        return (
-            <input
-                ref={ref}
-                type="file"
-                id="fileInput"
-                className={classes.root}
-                accept={acceptedExtensions?.join(',')}
-                onChange={onChange}
-                title="Upload a .pdf, .txt, .jpg, .png or .tiff file"
-            />
-        );
-    },
-);
+    return (
+        <input
+            ref={ref}
+            type="file"
+            id="fileInput"
+            className={classes.root}
+            accept={acceptedExtensions?.join(',')}
+            onChange={onChange}
+            title="Upload a .pdf, .txt, .jpg, .png or .tiff file"
+        />
+    );
+};
+
+export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(FileUploaderComponent);
 
 FileUploader.displayName = 'FileUploader';
