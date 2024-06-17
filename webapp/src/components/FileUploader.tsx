@@ -14,7 +14,7 @@ interface FileUploaderProps {
 
 const FileUploaderComponent = (
     { acceptedExtensions, onSelectedFile }: FileUploaderProps,
-    ref: React.ForwardedRef<HTMLInputElement>
+    ref: React.ForwardedRef<HTMLInputElement>,
 ) => {
     const classes = useClasses();
 
