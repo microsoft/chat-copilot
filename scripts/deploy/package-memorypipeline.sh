@@ -12,7 +12,7 @@ usage() {
     echo ""
     echo "Arguments:"
     echo "  -c, --configuration CONFIGURATION      Build configuration (default: Release)"
-    echo "  -d, --dotnet DOTNET_FRAMEWORK_VERSION  Target dotnet framework (default: net6.0)"
+    echo "  -d, --dotnet DOTNET_FRAMEWORK_VERSION  Target dotnet framework (default: net8.0)"
     echo "  -r, --runtime TARGET_RUNTIME           Runtime identifier (default: win-x64)"
     echo "  -o, --output OUTPUT_DIRECTORY          Output directory (default: $SCRIPT_ROOT)"
     echo "  -v  --version VERSION                  Version to set files to (default: 1.0.0)"
@@ -68,7 +68,7 @@ done
 
 # Set defaults
 : "${CONFIGURATION:="Release"}"
-: "${DOTNET:="net6.0"}"
+: "${DOTNET:="net8.0"}"
 : "${RUNTIME:="win-x64"}"
 : "${VERSION:="1.0.0"}"
 : "${INFO:=""}"
