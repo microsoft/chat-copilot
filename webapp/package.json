@@ -23,7 +23,7 @@
     "@microsoft/signalr": "^8.0.0",
     "@playwright/test": "^1.43.1",
     "@reduxjs/toolkit": "^2.2.5",
-    "debug": "^4.3.4",
+    "debug": "^4.3.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.2.0",
