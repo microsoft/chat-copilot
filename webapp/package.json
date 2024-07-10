@@ -43,7 +43,7 @@
     "prettier": "^3.3.2",
     "react-scripts": "^5.0.1",
     "serve": "^14.2.3",
-    "typescript": "5.4.5"
+    "typescript": "5.5.3"
   },
   "browserslist": {
     "production": [
