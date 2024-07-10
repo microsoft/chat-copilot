@@ -183,7 +183,7 @@ internal static class ISemanticMemoryClientExtensions
         CancellationToken cancellationToken = default)
     {
         var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancellationToken);
-        var documentIds = memories.Results.Select(memory => memory.Link.Split('/').First()).Distinct().ToArray();
+        var documentIds = memories.Results.Select(memory => memory.DocumentId).Distinct().ToArray();
         var tasks = documentIds.Select(documentId => memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken)).ToArray();
 
         Task.WaitAll(tasks, cancellationToken);
