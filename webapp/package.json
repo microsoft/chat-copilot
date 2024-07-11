@@ -26,7 +26,7 @@
     "debug": "^4.3.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "react": "^18.3.1",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
     "react-redux": "^9.1.2",
     "remark-gfm": "^4.0.0"
@@ -36,7 +36,7 @@
     "@types/debug": "^4.1.12",
     "@types/node": "^20.14.9",
     "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.2.24",
+    "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.13.1",
     "eslint": "^8.57.0",
