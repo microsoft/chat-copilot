@@ -101,7 +101,7 @@ internal static class ISemanticMemoryClientExtensions
                 null,
                 relevanceThreshold, // minRelevance param
                 resultCount,
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
         return searchResult;
     }
@@ -128,7 +128,7 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
-        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
+        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken: cancellationToken);
     }
 
     public static Task StoreMemoryAsync(
@@ -173,7 +173,7 @@ internal static class ISemanticMemoryClientExtensions
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
 
-        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken);
+        await memoryClient.ImportDocumentAsync(uploadRequest, cancellationToken: cancellationToken);
     }
 
     public static async Task RemoveChatMemoriesAsync(

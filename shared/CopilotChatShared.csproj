@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.62.240605.1" />
-    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.62.240605.1" />
-    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Redis" Version="0.62.240605.1" />
-    <PackageReference Include="Microsoft.KernelMemory.Orchestration.RabbitMQ" Version="0.62.240605.1" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.66.240709.1" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.66.240709.1" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Redis" Version="0.66.240709.1" />
+    <PackageReference Include="Microsoft.KernelMemory.Orchestration.RabbitMQ" Version="0.66.240709.1" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 
