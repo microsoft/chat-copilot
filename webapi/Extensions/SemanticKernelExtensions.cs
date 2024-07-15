@@ -10,6 +10,7 @@ using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Chat;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -111,7 +112,8 @@ internal static class SemanticKernelExtensions
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
                 contentSafety: sp.GetService<AzureContentSafety>(),
-                logger: sp.GetRequiredService<ILogger<ChatPlugin>>()),
+                logger: sp.GetRequiredService<ILogger<ChatPlugin>>(),
+                qAzureOpenAIChatExtension: GetQAzureOpenAIChatExtension(sp)),
             nameof(ChatPlugin));
 
         return kernel;
@@ -238,5 +240,16 @@ internal static class SemanticKernelExtensions
             default:
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'SemanticMemory' settings.");
         }
+    }
+
+    public static QAzureOpenAIChatExtension GetQAzureOpenAIChatExtension(IServiceProvider sp)
+    {
+        IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+        QAzureOpenAIChatOptions _qAzureOpenAIChatOptions = configuration.GetSection(QAzureOpenAIChatOptions.PropertyName)?.Get<QAzureOpenAIChatOptions>() ?? new QAzureOpenAIChatOptions ();
+
+        return new QAzureOpenAIChatExtension(
+            logger: sp.GetRequiredService<ILogger<QAzureOpenAIChatExtension>>(),
+            qAzureOpenAIChatOptions: _qAzureOpenAIChatOptions
+        );
     }
 }

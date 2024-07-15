@@ -23,6 +23,8 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
+
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
@@ -79,6 +81,10 @@ public class ChatPlugin
     /// </summary>
     private readonly AzureContentSafety? _contentSafety = null;
 
+
+    private QAzureOpenAIChatExtension? _qAzureOpenAIChatExtension = null;
+
+
     /// <summary>
     /// Create a new instance of <see cref="ChatPlugin"/>.
     /// </summary>
@@ -90,8 +96,9 @@ public class ChatPlugin
         IHubContext<MessageRelayHub> messageRelayHubContext,
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
-        ILogger logger,
-        AzureContentSafety? contentSafety = null)
+        ILogger logger,        
+        AzureContentSafety? contentSafety = null,
+        QAzureOpenAIChatExtension? qAzureOpenAIChatExtension = null)
     {
         this._logger = logger;
         this._kernel = kernel;
@@ -105,6 +112,9 @@ public class ChatPlugin
         this._semanticMemoryRetriever = new SemanticMemoryRetriever(promptOptions, chatSessionRepository, memoryClient, logger);
 
         this._contentSafety = contentSafety;
+
+        this._qAzureOpenAIChatExtension = qAzureOpenAIChatExtension;
+
     }
 
     /// <summary>
@@ -546,6 +556,8 @@ public class ChatPlugin
     /// </summary>
     private OpenAIPromptExecutionSettings CreateChatRequestSettings()
     {
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
         return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
@@ -553,8 +565,11 @@ public class ChatPlugin
             TopP = this._promptOptions.ResponseTopP,
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty,
-            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+            ToolCallBehavior = this._qAzureOpenAIChatExtension.isEnabled() == true ? null : ToolCallBehavior.AutoInvokeKernelFunctions,
+            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled() == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions() : null
         };
+#pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
     }
 
     /// <summary>
@@ -562,6 +577,8 @@ public class ChatPlugin
     /// </summary>
     private OpenAIPromptExecutionSettings CreateIntentCompletionSettings()
     {
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
         return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
@@ -569,8 +586,11 @@ public class ChatPlugin
             TopP = this._promptOptions.IntentTopP,
             FrequencyPenalty = this._promptOptions.IntentFrequencyPenalty,
             PresencePenalty = this._promptOptions.IntentPresencePenalty,
-            StopSequences = new string[] { "] bot:" }
+            StopSequences = new string[] { "] bot:" },
+            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled() == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions() : null
+
         };
+#pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 
     /// <summary>
