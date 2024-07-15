@@ -1,11 +1,12 @@
 name: copilot-build-frontend
 
 on:
-  workflow_dispatch:
-  pull_request:
-    branches: ["main"]
-    paths:
-      - "webapp/**"
+  {}
+  # workflow_dispatch:
+  # pull_request:
+  #   branches: ["main"]
+  #   paths:
+  #     - "webapp/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

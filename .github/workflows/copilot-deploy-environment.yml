@@ -1,24 +1,25 @@
 name: copilot-deploy-environment
 
 on:
-  workflow_call:
-    inputs:
-      ENVIRONMENT:
-        required: true
-        type: string
-      WEBAPI_ARTIFACT_NAME:
-        required: true
-        type: string
-      MEMORYPIPELINE_ARTIFACT_NAME:
-        required: true
-        type: string
-      PLUGINS_ARTIFACT_NAME:
-        required: true
-        type: string
-    outputs:
-      backend-host:
-        description: "Host on which backend runs"
-        value: ${{jobs.deploy-backend.outputs.backend-host}}
+  {}
+  # workflow_call:
+  #   inputs:
+  #     ENVIRONMENT:
+  #       required: true
+  #       type: string
+  #     WEBAPI_ARTIFACT_NAME:
+  #       required: true
+  #       type: string
+  #     MEMORYPIPELINE_ARTIFACT_NAME:
+  #       required: true
+  #       type: string
+  #     PLUGINS_ARTIFACT_NAME:
+  #       required: true
+  #       type: string
+  #   outputs:
+  #     backend-host:
+  #       description: "Host on which backend runs"
+  #       value: ${{jobs.deploy-backend.outputs.backend-host}}
 
 permissions:
   contents: read

@@ -1,12 +1,13 @@
 name: Copilot Chat Tests
 on:
-  workflow_dispatch:
-    inputs:
-      ENVIRONMENT:
-        required: true
-        type: string
-  merge_group:
-    types: [checks_requested]
+  {}
+  # workflow_dispatch:
+  #   inputs:
+  #     ENVIRONMENT:
+  #       required: true
+  #       type: string
+  # merge_group:
+  #   types: [checks_requested]
 
 permissions:
   contents: read
