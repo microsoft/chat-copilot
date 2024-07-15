@@ -1,16 +1,15 @@
 name: copilot-deploy-infra
 
 on:
-  {}
-  # workflow_call:
-  #   inputs:
-  #     ENVIRONMENT:
-  #       required: true
-  #       type: string
-  #   outputs:
-  #     deployment-id:
-  #       description: "The Id of the current deployment."
-  #       value: ${{jobs.deploy.outputs.deployment-id}}
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
+    outputs:
+      deployment-id:
+        description: "The Id of the current deployment."
+        value: ${{jobs.deploy.outputs.deployment-id}}
 
 jobs:
   deploy:

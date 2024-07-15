@@ -1,8 +1,7 @@
 name: copilot-build-frontend
 
 on:
-  {}
-  # workflow_dispatch:
+  workflow_dispatch:
   # pull_request:
   #   branches: ["main"]
   #   paths:

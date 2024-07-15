@@ -1,17 +1,16 @@
 name: copilot-build-memorypipeline
 
 on:
-  {}
-  # workflow_dispatch:
+  workflow_dispatch:
   # pull_request:
   #   branches: ["main"]
   #   paths:
   #     - "memorypipeline/**"
-  # workflow_call:
-  #   outputs:
-  #     artifact:
-  #       description: "The name of the uploaded memory pipeline artifact."
-  #       value: ${{jobs.memory-pipeline.outputs.artifact}}
+  workflow_call:
+    outputs:
+      artifact:
+        description: "The name of the uploaded memory pipeline artifact."
+        value: ${{jobs.memory-pipeline.outputs.artifact}}
 
 permissions:
   contents: read

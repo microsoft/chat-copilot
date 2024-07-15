@@ -1,17 +1,16 @@
 name: copilot-build-backend
 
 on:
-  {}
   # workflow_dispatch:
   # pull_request:
   #   branches: ["main"]
   #   paths:
   #     - "webapi/**"
-  # workflow_call:
-  #   outputs:
-  #     artifact:
-  #       description: "The name of the uploaded web api artifact."
-  #       value: ${{jobs.webapi.outputs.artifact}}
+  workflow_call:
+    outputs:
+      artifact:
+        description: "The name of the uploaded web api artifact."
+        value: ${{jobs.webapi.outputs.artifact}}
 
 permissions:
   contents: read

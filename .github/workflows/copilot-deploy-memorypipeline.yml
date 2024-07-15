@@ -1,18 +1,17 @@
 name: copilot-deploy-memorypipeline
 
 on:
-  {}
-  # workflow_call:
-  #   inputs:
-  #     ARTIFACT_NAME:
-  #       required: true
-  #       type: string
-  #     ENVIRONMENT:
-  #       required: true
-  #       type: string
-  #     DEPLOYMENT_NAME:
-  #       required: true
-  #       type: string
+  workflow_call:
+    inputs:
+      ARTIFACT_NAME:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      DEPLOYMENT_NAME:
+        required: true
+        type: string
 
 permissions:
   contents: read

@@ -1,18 +1,16 @@
 name: copilot-build-plugins
 
 on:
-  {}
-
-  # workflow_dispatch:
+  workflow_dispatch:
   # pull_request:
   #   branches: ["main"]
   #   paths:
   #     - "plugins/**"
-  # workflow_call:
-  #   outputs:
-  #     artifact:
-  #       description: "The name of the uploaded plugin artifacts."
-  #       value: ${{jobs.plugins.outputs.artifact}}
+  workflow_call:
+    outputs:
+      artifact:
+        description: "The name of the uploaded plugin artifacts."
+        value: ${{jobs.plugins.outputs.artifact}}
 
 permissions:
   contents: read

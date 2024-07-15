@@ -1,22 +1,21 @@
 name: copilot-deploy-backend
 
 on:
-  {}
-  # workflow_call:
-  #   inputs:
-  #     ARTIFACT_NAME:
-  #       required: true
-  #       type: string
-  #     ENVIRONMENT:
-  #       required: true
-  #       type: string
-  #     DEPLOYMENT_NAME:
-  #       required: true
-  #       type: string
-  #   outputs:
-  #     backend-host:
-  #       description: "Host to which backend is deployed"
-  #       value: ${{jobs.webapi.outputs.backend-host}}
+  workflow_call:
+    inputs:
+      ARTIFACT_NAME:
+        required: true
+        type: string
+      ENVIRONMENT:
+        required: true
+        type: string
+      DEPLOYMENT_NAME:
+        required: true
+        type: string
+    outputs:
+      backend-host:
+        description: "Host to which backend is deployed"
+        value: ${{jobs.webapi.outputs.backend-host}}
 
 permissions:
   contents: read

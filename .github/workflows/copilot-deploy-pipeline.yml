@@ -1,8 +1,7 @@
 name: copilot-deploy-pipeline
 
 on:
-  {}
-  # workflow_dispatch:
+  workflow_dispatch:
   # push:
   #   branches: ["main"]
 
