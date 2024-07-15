@@ -17,21 +17,24 @@ jobs:
             image: ${{ github.repository }}-webapi
             build-args: |
 
-          - file: ./docker/webapp/Dockerfile
-            image: ${{ github.repository }}-webapp
-            build-args: |
+          # Only build nginx image
+          # - file: ./docker/webapp/Dockerfile
+          #   image: ${{ github.repository }}-webapp
+          #   build-args: |
 
           - file: ./docker/webapp/Dockerfile.nginx
             image: ${{ github.repository }}-webapp-nginx
             build-args: |
 
-          - file: ./docker/plugins/web-searcher/Dockerfile
-            image: ${{ github.repository }}-web-searcher
-            build-args: |
+          # Excluded for now
+          # - file: ./docker/plugins/web-searcher/Dockerfile
+          #   image: ${{ github.repository }}-web-searcher
+          #   build-args: |
 
-          - file: ./docker/memorypipeline/Dockerfile
-            image: ${{ github.repository }}-memorypipeline
-            build-args: |
+          # Excluded for now
+          # - file: ./docker/memorypipeline/Dockerfile
+          #   image: ${{ github.repository }}-memorypipeline
+          #   build-args: |
 
     permissions:
       contents: read
