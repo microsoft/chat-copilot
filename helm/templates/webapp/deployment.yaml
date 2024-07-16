@@ -1,0 +1,80 @@
+{{- if .Values.webapp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "q-copilot.webapp.fullname" . }}
+  labels:
+    {{- include "q-copilot.webapp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "q-copilot.webapp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "q-copilot.webapp.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "q-copilot.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "q-copilot.webapp.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ default .Values.image.repository (default .Values.fe.image.repository .Values.webapp.image.repository) }}:{{ default .Values.image.tag (default .Values.fe.image.tag .Values.webapp.image.tag) }}"
+          imagePullPolicy: {{ default .Values.image.pullPolicy (default .Values.fe.image.pullPolicy .Values.webapp.image.pullPolicy) }}
+          env:
+            {{- if .Values.env }}
+            {{- toYaml .Values.env | nindent 12 }}
+            {{- end }}
+            {{- if .Values.fe.env }}
+            {{- toYaml .Values.fe.env | nindent 12 }}
+            {{- end }}
+            {{- if .Values.webapp.env }}
+            {{- toYaml .Values.webapp.env | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ default .Values.service.port (default .Values.fe.service.port .Values.webapp.service.port )}}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml  (mergeOverwrite (deepCopy .Values.livenessProbe) (deepCopy .Values.fe.livenessProbe) .Values.webapp.livenessProbe) | nindent 12 }}
+          readinessProbe:
+            {{- toYaml (mergeOverwrite (deepCopy .Values.readinessProbe) (deepCopy .Values.fe.readinessProbe) .Values.webapp.readinessProbe) | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with (concat .Values.webapp.volumeMounts .Values.fe.volumeMounts .Values.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with  (concat .Values.webapp.volumes .Values.fe.volumes .Values.volumes) }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

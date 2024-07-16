@@ -1,0 +1,19 @@
+{{- if .Values.cert.enabled -}}
+{{- range .Values.cert.hosts }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "{{ .host }}"
+spec:
+  dnsNames:
+    - {{ .host | quote }}
+  privateKey:
+    algorithm: ECDSA # NB Ed25519 is not yet supported by chrome 93 or firefox 91.
+    size: 256
+  secretName: {{ .host }}-certificate
+  issuerRef:
+    kind: ClusterIssuer
+    name: ingress
+{{- end }}
+{{- end }}

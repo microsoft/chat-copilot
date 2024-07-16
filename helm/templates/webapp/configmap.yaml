@@ -1,0 +1,9 @@
+{{- if .Values.webapp.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "q-copilot.webapp.fullname" . }}
+  labels:
+    {{- include "q-copilot.webapp.labels" . | nindent 4 }}
+{{ include "q-copilot.webapp.configs" . }}
+{{- end }}
