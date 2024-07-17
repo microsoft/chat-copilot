@@ -14,11 +14,12 @@ extend-exclude = [
     "vocab.bpe",
     "GPT3TokenizerTests.cs",
     "CodeTokenizerTests.cs",
-    "test_code_tokenizer.py",
+    "test_code_tokenizer.py"
 ]
 
 [default.extend-words]
 ACI = "ACI" # Azure Container Instance
+AKS = "AKS" # Azure K8s Service
 
 [default.extend-identifiers]
 ags = "ags" # Azure Graph Service

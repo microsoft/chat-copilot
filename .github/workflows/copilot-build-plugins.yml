@@ -2,10 +2,10 @@ name: copilot-build-plugins
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: ["main"]
-    paths:
-      - "plugins/**"
+  # pull_request:
+  #   branches: ["main"]
+  #   paths:
+  #     - "plugins/**"
   workflow_call:
     outputs:
       artifact:

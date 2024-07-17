@@ -2,13 +2,6 @@ name: copilot-build-images
 
 on:
   workflow_call:
-    inputs:
-      REACT_APP_BACKEND_URI:
-        required: true
-        type: string
-      AZURE_FUNCTION_MASTER_KEY:
-        required: true
-        type: string
 env:
   REGISTRY: ghcr.io
 
@@ -24,23 +17,24 @@ jobs:
             image: ${{ github.repository }}-webapi
             build-args: |
 
-          - file: ./docker/webapp/Dockerfile
-            image: ${{ github.repository }}-webapp
-            build-args: |
+          # Only build nginx image
+          # - file: ./docker/webapp/Dockerfile
+          #   image: ${{ github.repository }}-webapp
+          #   build-args: |
 
           - file: ./docker/webapp/Dockerfile.nginx
             image: ${{ github.repository }}-webapp-nginx
             build-args: |
-              REACT_APP_BACKEND_URI=${{ inputs.REACT_APP_BACKEND_URI }}
 
-          - file: ./docker/plugins/web-searcher/Dockerfile
-            image: ${{ github.repository }}-web-searcher
-            build-args: |
-              AZURE_FUNCTION_MASTER_KEY=${{ inputs.AZURE_FUNCTION_MASTER_KEY }}
+          # Excluded for now
+          # - file: ./docker/plugins/web-searcher/Dockerfile
+          #   image: ${{ github.repository }}-web-searcher
+          #   build-args: |
 
-          - file: ./docker/memorypipeline/Dockerfile
-            image: ${{ github.repository }}-memorypipeline
-            build-args: |
+          # Excluded for now
+          # - file: ./docker/memorypipeline/Dockerfile
+          #   image: ${{ github.repository }}-memorypipeline
+          #   build-args: |
 
     permissions:
       contents: read
@@ -54,8 +48,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: Extract metadata (tags, labels)
         id: meta

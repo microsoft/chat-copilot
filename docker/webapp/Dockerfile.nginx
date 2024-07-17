@@ -1,9 +1,8 @@
 # source webapp/.env
-# docker build --build-arg REACT_APP_BACKEND_URI=$REACT_APP_BACKEND_URI -f docker/webapp/Dockerfile.nginx -t chat-copilot-webapp-nginx .
+# docker build -f docker/webapp/Dockerfile.nginx -t chat-copilot-webapp-nginx .
 
 # builder
 FROM node:lts-alpine as builder
-ARG REACT_APP_BACKEND_URI
 WORKDIR /app
 COPY webapp/ .
 RUN yarn install \

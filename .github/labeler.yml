@@ -1,3 +1,8 @@
+# Add 'azure' label to any change within the 'azure' directory
+azure:
+  - changed-files:
+      - any-glob-to-any-file: ["azure/**"]
+
 # Add 'webapp' label to any change within the 'webapp' directory
 webapp:
   - changed-files:
