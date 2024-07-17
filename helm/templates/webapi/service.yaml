@@ -1,0 +1,17 @@
+{{- if .Values.webapi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "q-copilot.webapi.fullname" . }}
+  labels:
+    {{- include "q-copilot.webapi.labels" . | nindent 4 }}
+spec:
+  type: {{ (default .Values.service.type (default .Values.be.service.type .Values.webapi.service.type)) }}
+  ports:
+    - port: {{ (default .Values.service.port (default .Values.be.service.port .Values.webapi.service.port)) }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "q-copilot.webapi.selectorLabels" . | nindent 4 }}
+{{- end }}

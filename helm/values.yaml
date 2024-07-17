@@ -1,0 +1,354 @@
+nameOverride: ""
+fullnameOverride: ""
+
+cert:
+  enabled: true
+  hosts:
+    - host: q-copilot-dev.pegasus.quartechlab.com
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "default"
+
+###################
+# Shared Variables
+###################
+name: q-copilot
+
+enabled: true
+
+service: {}
+
+image:
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+livenessProbe: {}
+readinessProbe: {}
+nodeSelector: {}
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+env: {}
+volumeMounts: []
+volumes: []
+configs: {}
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+replicaCount: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+secretProviderClass:
+  enabled: false
+  # Retrieved from Terraform Output
+  tenantId: ""
+  # Retrieved from Terraform Output
+  vaultName: ""
+  # Retrieved from Terraform Output
+  clientId: ""
+
+ingress:
+  className: ""
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+
+tolerations: []
+affinity: {}
+
+###############
+# FE Common values
+###############
+
+fe:
+  service:
+    type: ClusterIP
+    port: 3000
+  image: {}
+
+  livenessProbe: {}
+  #   httpGet:
+  #     path: /healthz
+  #     port: 3000
+  #   initialDelaySeconds: 5
+  #   periodSeconds: 10
+  readinessProbe: {}
+  #   httpGet:
+  #     path: /healthz
+  #     port: 3000
+  #   initialDelaySeconds: 10
+  #   periodSeconds: 15
+
+  nodeSelector: {}
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  env:
+    - name: "REACT_APP_BACKEND_URI"
+      value: "https://q-copilot-dev.pegasus.quartechlab.com/api"
+
+  volumeMounts: []
+  #   - name: caddyfile-volume
+  #     mountPath: /etc/caddy/Caddyfile
+  #     subPath: Caddyfile
+  volumes: []
+  # configs:
+  #   - config/dev/Caddyfile
+  resources: {}
+  replicaCount: null
+  autoscaling: {}
+  secretProviderClass: {}
+  ingress: {}
+  tolerations: []
+  affinity: {}
+
+###############
+# BE Common values
+###############
+
+be:
+  service:
+    type: ClusterIP
+    port: 8080
+
+  image: {}
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 15
+
+  env:
+    - name: "ASPNETCORE_URLS"
+      value: "http://+:8080"
+    - name: "ASPNETCORE_ENVIRONMENT"
+      value: "Development"
+
+  volumeMounts:
+    - name: appsettings-volume
+      mountPath: /app/appsettings.json
+      subPath: appsettings.json
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+
+  volumes: []
+
+  configs: []
+
+  resources: {}
+  replicaCount: null
+  autoscaling: {}
+
+  secretProviderClass:
+    enabled: true
+    secrets: []
+
+  ingress: {}
+
+  tolerations: []
+  affinity: {}
+
+###############
+# webapp specific values
+###############
+
+webapp:
+  name: webapp
+  enabled: true
+  service: {}
+  image:
+    repository: crpegasusshared.azurecr.io/chat-copilot-webapp
+    tag: "latest"
+  livenessProbe: {}
+  readinessProbe: {}
+  nodeSelector: {}
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext: {}
+  env: []
+  volumeMounts: []
+  #   - name: manifest-volume
+  #     mountPath: /srv/assets/manifests/federation.manifest.json
+  #     subPath: federation.manifest.json
+
+  volumes: []
+  #   - name: manifest-volume
+  #     configMap:
+  #       name: q-copilot-webapp
+  #       items:
+  #         - key: federation.manifest.json
+  #           path: federation.manifest.json
+  #   - name: caddyfile-volume
+  #     configMap:
+  #       name: q-copilot-webapp
+  #       items:
+  #         - key: Caddyfile
+  #           path: Caddyfile
+  configs: []
+  #   - config/dev/federation.manifest.json
+  resources: {}
+  replicaCount: null
+  autoscaling: {}
+  secretProviderClass: {}
+  ingress:
+    enabled: true
+    hosts:
+      - host: q-copilot-dev.pegasus.quartechlab.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - q-copilot-dev.pegasus.quartechlab.com
+  tolerations: []
+  affinity: {}
+
+###############
+# webapi specific values
+###############
+
+webapi:
+  name: webapi
+
+  enabled: true
+
+  service: {}
+
+  image:
+    repository: crpegasusshared.azurecr.io/chat-copilot-webapi
+    tag: "latest"
+
+  livenessProbe: {}
+  readinessProbe: {}
+
+  nodeSelector: {}
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  env:
+    - name: "KernelMemory__Services__AzureOpenAIEmbedding__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: KernelMemory-Services-AzureOpenAIEmbedding-APIKey
+    - name: "KernelMemory__Services__AzureOpenAIText__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: KernelMemory-Services-AzureOpenAIText-APIKey
+    - name: "KernelMemory__Services__AzureOpenAI__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: KernelMemory-Services-AzureOpenAI-APIKey
+    - name: "KernelMemory__Services__AzureAISearch__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: KernelMemory-Services-AzureAISearch-APIKey
+    - name: "KernelMemory__Services__AzureBlobs__ConnectionString"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: KernelMemory-Services-AzureBlobs-ConnectionString
+    - name: "APP_NAME"
+      value: "webapi"
+
+  volumeMounts: []
+
+  volumes:
+    - name: appsettings-volume
+      configMap:
+        name: q-copilot-webapi
+        items:
+          - key: appsettings.json
+            path: appsettings.json
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "q-copilot-webapi"
+
+  configs:
+    - config/dev/appsettings.json
+    - config/dev/appsettings.Development.json
+
+  resources: {}
+  replicaCount: null
+  autoscaling: {}
+
+  secretProviderClass:
+    enabled: true
+    secrets:
+      [
+        KernelMemory-Services-AzureOpenAIEmbedding-APIKey,
+        KernelMemory-Services-AzureOpenAIText-APIKey,
+        KernelMemory-Services-AzureOpenAI-APIKey,
+        KernelMemory-Services-AzureAISearch-APIKey,
+        KernelMemory-Services-AzureBlobs-ConnectionString,
+      ]
+
+  ingress:
+    enabled: true
+    hosts:
+      - host: q-copilot-dev.pegasus.quartechlab.com
+        paths:
+          - path: /api
+            pathType: Prefix
+    tls:
+      - hosts:
+          - q-copilot-dev.pegasus.quartechlab.com
+
+  tolerations: []
+  affinity: {}
