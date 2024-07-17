@@ -77,11 +77,11 @@ autoscaling:
 secretProviderClass:
   enabled: false
   # Retrieved from Terraform Output
-  tenantId: ""
+  tenantId: "898fdc18-1bd2-4a3b-84a7-2efb988e3b90"
   # Retrieved from Terraform Output
-  vaultName: ""
+  vaultName: "kvt-copilot-cnc-app-dev"
   # Retrieved from Terraform Output
-  clientId: ""
+  clientId: "c866d6a7-798e-4cfe-aafe-95ab5c43e190"
 
 ingress:
   className: ""

@@ -1,7 +1,9 @@
 name: copilot-build-images
 
 on:
-  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
 env:
   REGISTRY: ghcr.io
 

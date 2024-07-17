@@ -57,10 +57,10 @@ variable "location" {
 ###################
 # SQL Server #
 ###################
-variable "database_names" {
-  type        = list(string)
-  description = "The names of the Azure SQL Database to be created for each environment"
-}
+# variable "database_names" {
+#   type        = list(string)
+#   description = "The names of the Azure SQL Database to be created for each environment"
+# }
 
 variable "sku_name" {
   type    = string
