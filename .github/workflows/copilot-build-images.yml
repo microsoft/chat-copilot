@@ -23,7 +23,7 @@ jobs:
           #   build-args: |
 
           - file: ./docker/webapp/Dockerfile.nginx
-            image: ${{ github.repository }}-webapp-nginx
+            image: ${{ github.repository }}-webapp
             build-args: |
 
           # Excluded for now
