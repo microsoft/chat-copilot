@@ -109,9 +109,7 @@ public class ChatPlugin
         this._semanticMemoryRetriever = new SemanticMemoryRetriever(promptOptions, chatSessionRepository, memoryClient, logger);
 
         this._contentSafety = contentSafety;
-
         this._qAzureOpenAIChatExtension = qAzureOpenAIChatExtension;
-
     }
 
     /// <summary>
@@ -554,7 +552,6 @@ public class ChatPlugin
     private OpenAIPromptExecutionSettings CreateChatRequestSettings()
     {
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
         return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
@@ -566,7 +563,6 @@ public class ChatPlugin
             AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled() == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions() : null
         };
 #pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
     }
 
     /// <summary>
@@ -575,7 +571,6 @@ public class ChatPlugin
     private OpenAIPromptExecutionSettings CreateIntentCompletionSettings()
     {
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
         return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
@@ -585,7 +580,6 @@ public class ChatPlugin
             PresencePenalty = this._promptOptions.IntentPresencePenalty,
             StopSequences = new string[] { "] bot:" },
             AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled() == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions() : null
-
         };
 #pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
