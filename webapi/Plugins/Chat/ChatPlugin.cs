@@ -565,7 +565,7 @@ public class ChatPlugin
             TopP = this._promptOptions.ResponseTopP,
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty,
-            ToolCallBehavior = this._qAzureOpenAIChatExtension.isEnabled() == true ? null : ToolCallBehavior.AutoInvokeKernelFunctions,
+            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
             AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled() == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions() : null
         };
 #pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
