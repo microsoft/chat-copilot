@@ -30,8 +30,7 @@ public class FieldMappingOption
 {
     public string UrlFieldName { get; set; } = string.Empty;
     public string TitleFieldName { get; set; } = string.Empty;
-    public string FilepathFieldName { get; set; } = string.Empty;    
-
+    public string FilepathFieldName { get; set; } = string.Empty;
 }
 
 public class VectorizationSourceOption
