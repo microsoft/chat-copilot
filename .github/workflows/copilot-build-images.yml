@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
-env:
-  REGISTRY: ghcr.io
 
 jobs:
   build-and-push-image:
@@ -49,7 +47,7 @@ jobs:
       - name: Login container registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ vars.REGISTRY }}
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
