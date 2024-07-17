@@ -1,12 +1,10 @@
 ﻿using Azure.AI.OpenAI;
 using Microsoft.Extensions.Logging;
 
-
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
 public class QAzureOpenAIChatExtension
 {
-
     /// <summary>
     /// A logger instance to log events.
     /// </summary>
@@ -30,7 +28,6 @@ public class QAzureOpenAIChatExtension
     /// </summary>
     public AzureChatExtensionsOptions GetAzureChatExtensionsOptions()
     {
-
         this._logger.LogDebug("Enabling QAzureChatExtensionsOptions.");
         AISearchChatCompletionOption? qsearchCompletionOption = this._qAzureOpenAIChatOptions.AISearchChatCompletion;
         return new AzureChatExtensionsOptions()
@@ -59,7 +56,6 @@ public class QAzureOpenAIChatExtension
                            new OnYourDataApiKeyAuthenticationOptions (qsearchCompletionOption?.VectorizationSource?.APIKey))
                     }
                 }
-
         };
     }
 }

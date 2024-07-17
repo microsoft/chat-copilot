@@ -24,7 +24,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
-
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
@@ -81,9 +80,7 @@ public class ChatPlugin
     /// </summary>
     private readonly AzureContentSafety? _contentSafety = null;
 
-
     private QAzureOpenAIChatExtension? _qAzureOpenAIChatExtension = null;
-
 
     /// <summary>
     /// Create a new instance of <see cref="ChatPlugin"/>.
@@ -96,7 +93,7 @@ public class ChatPlugin
         IHubContext<MessageRelayHub> messageRelayHubContext,
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
-        ILogger logger,        
+        ILogger logger,
         AzureContentSafety? contentSafety = null,
         QAzureOpenAIChatExtension? qAzureOpenAIChatExtension = null)
     {
