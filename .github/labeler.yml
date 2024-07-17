@@ -3,6 +3,16 @@ azure:
   - changed-files:
       - any-glob-to-any-file: ["azure/**"]
 
+# Add 'helm' label to any change within the 'helm' directory
+helm:
+  - changed-files:
+      - any-glob-to-any-file: ["helm/**"]
+
+# Add 'docker' label to any change within the 'docker' directory
+docker:
+  - changed-files:
+      - any-glob-to-any-file: ["docker/**"]
+
 # Add 'webapp' label to any change within the 'webapp' directory
 webapp:
   - changed-files:
