@@ -1,4 +1,7 @@
-﻿using Azure.AI.OpenAI;
+﻿///<summary>
+/// This class is reserved for customizing the default behavior of chatplugin
+///<summary>
+using Azure.AI.OpenAI;
 using Microsoft.Extensions.Logging;
 
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;

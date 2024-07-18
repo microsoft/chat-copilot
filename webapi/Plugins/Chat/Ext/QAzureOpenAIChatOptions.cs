@@ -1,4 +1,7 @@
-﻿using System;
+﻿///<summary>
+/// Option for OpenAI control parameters
+///<summary>
+using System;
 
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
