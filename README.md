@@ -308,6 +308,7 @@ Backend authentication via Azure AD must be enabled. Detailed instructions for e
 
 ## Manual by Developer
 
+1. az cloud set --name AzureCloud
 1. az acr login --name crpegasusshared
 1. docker build -f docker/webapi/Dockerfile -t chat-copilot-webapi .
 1. docker tag chat-copilot-webapi:latest crpegasusshared.azurecr.io/chat-copilot-webapi:latest

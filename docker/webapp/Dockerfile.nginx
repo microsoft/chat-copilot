@@ -3,6 +3,7 @@
 
 # builder
 FROM node:lts-alpine as builder
+# ENV REACT_APP_BACKEND_URI=https://q-copilot-dev.api.pegasus.quartechlab.com/
 WORKDIR /app
 COPY webapp/ .
 RUN yarn install \
