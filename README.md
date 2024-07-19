@@ -304,6 +304,20 @@ Backend authentication via Azure AD must be enabled. Detailed instructions for e
 - Graph queries that return large results, may reach the token limit for the AI model, producing an error.
 - Incremental consent is not implemented in this sample.
 
+# Quartech Deployment to Azure K8s
+
+## Manual by Developer
+
+1. az acr login --name crpegasusshared
+1. docker build -f docker/webapi/Dockerfile -t chat-copilot-webapi .
+1. docker tag chat-copilot-webapi:latest crpegasusshared.azurecr.io/chat-copilot-webapi:latest
+1. docker push crpegasusshared.azurecr.io/chat-copilot-webapi
+1. docker build -f docker/webapp/Dockerfile.nginx -t chat-copilot-webapp .
+1. docker tag chat-copilot-webapp:latest crpegasusshared.azurecr.io/chat-copilot-webapp:latest
+1. docker push crpegasusshared.azurecr.io/chat-copilot-webapp
+1. cd helm/
+1. helm upgrade -n copilot-dev --install dev .
+
 # Troubleshooting
 
 1. **_Issue:_** Unable to load chats.
