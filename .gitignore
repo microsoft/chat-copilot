@@ -498,3 +498,7 @@ tmp/*
 # Custom plugins in default directories
 */Skills/NativePlugins
 */Skills/SemanticPlugins
+
+# Temporary env files
+webapp/public/env-config.js
+webapp/env-config.js
