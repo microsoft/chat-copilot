@@ -2,6 +2,8 @@ name: Deploy to Azure Kubernetes Service
 
 on:
   push:
+    branches:
+      - main
   workflow_dispatch: # deploy on demand
     inputs:
       environment:
