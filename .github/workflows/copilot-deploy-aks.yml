@@ -4,20 +4,15 @@ on:
   push:
   workflow_dispatch: # deploy on demand
     inputs:
-      environment_name:
+      environment:
         description: "Which environment to deploy to?"
-        type: choice # drop-down menus are fantastic!
+        type: environment
         required: true
-        options: # change these to your own names or change :point_up: to a `string` for freeform entry.
-          - "dev"
-          - "test"
-          - "prod"
-        default: "dev"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment_name }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -39,8 +34,8 @@ jobs:
 
       - name: Update Helm deployment
         run: |
-          helm upgrade --install ${{ github.event.inputs.environment_name }} \
-          --namespace "copilot-${{ github.event.inputs.environment_name }}" \
-          -f helm/values-${{ github.event.inputs.environment_name}}.yaml \
+          helm upgrade --install ${{ inputs.environment }} \
+          --namespace "copilot-${{ inputs.environment }}" \
+          -f helm/values-${{ inputs.environment}}.yaml \
           -f helm/values.yaml \
           helm/
