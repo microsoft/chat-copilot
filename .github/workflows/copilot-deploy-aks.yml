@@ -17,6 +17,9 @@ on:
         required: true
         default: "dev"
 
+env:
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -51,8 +54,8 @@ jobs:
 
       - name: Update Helm deployment
         run: |
-          helm upgrade --install ${{ inputs.environment }} \
-          --namespace "copilot-${{ inputs.environment }}" \
-          -f helm/values-${{ inputs.environment}}.yaml \
+          helm upgrade --install ${{ env.ENVIRONMENT }} \
+          --namespace "copilot-${{ env.ENVIRONMENT }}" \
+          -f helm/values-${{ env.ENVIRONMENT }}.yaml \
           -f helm/values.yaml \
           helm/
