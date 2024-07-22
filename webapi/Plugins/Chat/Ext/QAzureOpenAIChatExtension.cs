@@ -1,64 +1,95 @@
 ﻿///<summary>
-/// This class is reserved for customizing the default behavior of chatplugin
-///<summary>
+/// This class is reserved for extending the Azure OpenAI Bot responses.
+///</summary>
 using Azure.AI.OpenAI;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
 public class QAzureOpenAIChatExtension
 {
-    /// <summary>
-    /// A logger instance to log events.
-    /// </summary>
-    private ILogger _logger;
+    private readonly QAzureOpenAIChatOptions _qAzureOpenAIChatOptions;
 
-    private QAzureOpenAIChatOptions _qAzureOpenAIChatOptions;
-
-    public QAzureOpenAIChatExtension(ILogger logger, QAzureOpenAIChatOptions qAzureOpenAIChatOptions)
+    public QAzureOpenAIChatExtension()
     {
-        this._logger = logger;
-        this._qAzureOpenAIChatOptions = qAzureOpenAIChatOptions;
+        var config = new ConfigurationBuilder()
+                 .SetBasePath(Directory.GetCurrentDirectory())
+                 .AddJsonFile("appsettings.json")
+                 .Build();
+        this._qAzureOpenAIChatOptions = config.GetSection(QAzureOpenAIChatOptions.PropertyName).Get<QAzureOpenAIChatOptions>() ?? new QAzureOpenAIChatOptions { Enabled = false };
     }
-
-    public bool isEnabled()
+    public bool isEnabled(string specializationKey)
     {
-        return this._qAzureOpenAIChatOptions.Enabled;
+        if (this._qAzureOpenAIChatOptions.Enabled && specializationKey != "general")
+        {
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
     /// Extension method to support passing Azure Search options for chatCompletions.
     /// </summary>
-    public AzureChatExtensionsOptions GetAzureChatExtensionsOptions()
+    public AzureChatExtensionsOptions? GetAzureChatExtensionsOptions(string specializationKey)
     {
-        this._logger.LogDebug("Enabling QAzureChatExtensionsOptions.");
-        AISearchChatCompletionOption? qsearchCompletionOption = this._qAzureOpenAIChatOptions.AISearchChatCompletion;
-        return new AzureChatExtensionsOptions()
+        QSpecialization? qsearchCompletionOption = this.getSpecialization(specializationKey);
+        if (qsearchCompletionOption != null)
         {
-            Extensions =
+            return new AzureChatExtensionsOptions()
+            {
+                Extensions =
                 {
                     new AzureSearchChatExtensionConfiguration()
                     {
                         Filter = null,
-                        IndexName  = qsearchCompletionOption?.IndexName,
-                        SearchEndpoint=qsearchCompletionOption?.Endpoint,
-                        Strictness = qsearchCompletionOption?.Strictness,
+                        IndexName  = qsearchCompletionOption!.IndexName,
+                        SearchEndpoint=qsearchCompletionOption!.Endpoint,
+                        Strictness = qsearchCompletionOption!.Strictness,
                         FieldMappingOptions = new AzureSearchIndexFieldMappingOptions {
-                            UrlFieldName = qsearchCompletionOption?.FieldMapping?.UrlFieldName,
-                            TitleFieldName = qsearchCompletionOption?.FieldMapping?.TitleFieldName,
-                            FilepathFieldName = qsearchCompletionOption?.FieldMapping?.FilepathFieldName,
+                            UrlFieldName = qsearchCompletionOption!.FieldMapping?.UrlFieldName,
+                            TitleFieldName = qsearchCompletionOption!.FieldMapping?.TitleFieldName,
+                            FilepathFieldName = qsearchCompletionOption!.FieldMapping?.FilepathFieldName,
                         },
-                        SemanticConfiguration = qsearchCompletionOption?.SemanticConfiguration,
-                        QueryType = new AzureSearchQueryType(qsearchCompletionOption?.QueryType),
-                        ShouldRestrictResultScope = qsearchCompletionOption?.RestrictResultScope,
-                        RoleInformation = qsearchCompletionOption?.RoleInformation,
-                        DocumentCount = qsearchCompletionOption?.DocumentCount,
-                        Authentication = new OnYourDataApiKeyAuthenticationOptions (qsearchCompletionOption?.APIKey),
+                        SemanticConfiguration = qsearchCompletionOption!.SemanticConfiguration,
+                        QueryType = new AzureSearchQueryType(qsearchCompletionOption!.QueryType),
+                        ShouldRestrictResultScope = qsearchCompletionOption!.RestrictResultScope,
+                        RoleInformation = qsearchCompletionOption!.RoleInformation,
+                        DocumentCount = qsearchCompletionOption!.DocumentCount,
+                        Authentication = new OnYourDataApiKeyAuthenticationOptions (qsearchCompletionOption!.APIKey),
                         VectorizationSource = new OnYourDataEndpointVectorizationSource (
-                           qsearchCompletionOption?.VectorizationSource?.Endpoint,
-                           new OnYourDataApiKeyAuthenticationOptions (qsearchCompletionOption?.VectorizationSource?.APIKey))
+                           qsearchCompletionOption!.VectorizationSource!.Endpoint,
+                           new OnYourDataApiKeyAuthenticationOptions (qsearchCompletionOption!.VectorizationSource!.APIKey))
                     }
                 }
-        };
+            };
+        }
+        return null;
+    }
+    public string? getRoleInformation(string specializationKey)
+    {
+        if (this.isEnabled(specializationKey))
+        {
+            foreach (QSpecialization _qSpecialization in this._qAzureOpenAIChatOptions.Specializations)
+            {
+                if (_qSpecialization.Key == specializationKey)
+                {
+                    return _qSpecialization.RoleInformation;
+                }
+            }
+        }
+        return null;
+    }
+
+    private QSpecialization? getSpecialization(string specializationKey)
+    {
+        foreach (QSpecialization _qSpecialization in this._qAzureOpenAIChatOptions.Specializations)
+        {
+            if (_qSpecialization.Key == specializationKey)
+            {
+                return _qSpecialization;
+            }
+        }
+        return null;
     }
 }

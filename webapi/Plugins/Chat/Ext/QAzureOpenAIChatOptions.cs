@@ -1,7 +1,9 @@
 ﻿///<summary>
-/// Option for OpenAI control parameters
-///<summary>
+/// Configuration settings for specialization
+///</summary>
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
@@ -9,12 +11,19 @@ public class QAzureOpenAIChatOptions
 {
     public const string PropertyName = "QAzureOpenAIChatConfig";
 
-    public AISearchChatCompletionOption? AISearchChatCompletion { get; set; }
+    [Required]
+    public IList<QSpecialization> Specializations { get; set; } = new List<QSpecialization>();
 
     public bool Enabled { get; set; } = false;
 }
-public class AISearchChatCompletionOption
+
+public class QSpecialization
 {
+    public string Key { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string ImageFilepath { get; set; } = string.Empty;
+    public string RoleInformation { get; set; } = string.Empty;
     public string IndexName { get; set; } = string.Empty;
     public Uri? Endpoint { get; set; } = null;
     public string APIKey { get; set; } = string.Empty;
@@ -24,8 +33,6 @@ public class AISearchChatCompletionOption
     public FieldMappingOption? FieldMapping { get; set; } = new FieldMappingOption();
     public int Strictness { get; set; }
     public int DocumentCount { get; set; }
-    public string RoleInformation { get; set; } = string.Empty;
-
     public VectorizationSourceOption? VectorizationSource { get; set; }
 }
 
