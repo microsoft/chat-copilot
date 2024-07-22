@@ -13,6 +13,8 @@ while read -r line || [[ -n "$line" ]];
 do
   # Skip comments
   [[ "$line" =~ ^#.*$ ]] && continue
+  # skip  empty lines
+  [[ -z "$line" ]] && continue
   # Split env variables by character `=`
   if printf '%s\n' "$line" | grep -q -e '='; then
     varname=$(printf '%s\n' "$line" | sed -e 's/=.*//')
