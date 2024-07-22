@@ -8,6 +8,7 @@ on:
         description: "Which environment to deploy to?"
         type: environment
         required: true
+        default: "dev"
 
 jobs:
   deploy:
