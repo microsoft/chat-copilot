@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "environment variable : $environment"
           echo "RESOURCE_GROUP variable : $RESOURCE_GROUP"
-          echo "overridden variable : $CLUSTER_NAME"
+          echo "CLUSTER_NAME variable : $CLUSTER_NAME"
         env:
           environment: ${{ inputs.environment }}
           RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
