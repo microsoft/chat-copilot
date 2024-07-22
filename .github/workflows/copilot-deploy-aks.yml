@@ -15,6 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
+      - name: Use variables
+        run: |
+          echo "environment variable : $environment"
+          echo "RESOURCE_GROUP variable : $RESOURCE_GROUP"
+          echo "overridden variable : $CLUSTER_NAME"
+        env:
+          environment: ${{ inputs.environment }}
+          RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
+          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
       - uses: actions/checkout@v4
 
       - name: Azure Login
