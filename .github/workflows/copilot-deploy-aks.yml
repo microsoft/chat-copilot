@@ -9,19 +9,26 @@ on:
         type: environment
         required: true
         default: "dev"
+  workflow_call:
+    inputs:
+      environment:
+        description: "Which environment to deploy to?"
+        type: string
+        required: true
+        default: "dev"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'dev' }}
     steps:
-      - name: Use variables
+      - name: debug variables
         run: |
           echo "environment variable : $environment"
           echo "RESOURCE_GROUP variable : $RESOURCE_GROUP"
           echo "CLUSTER_NAME variable : $CLUSTER_NAME"
         env:
-          environment: ${{ inputs.environment }}
+          environment: ${{ inputs.environment}}
           RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
       - uses: actions/checkout@v4
