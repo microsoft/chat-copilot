@@ -70,8 +70,6 @@ jobs:
           context: .
           file: ${{ matrix.file }}
           push: true
-          tags: |
-            ${{ steps.meta.outputs.tags }}
-            latest
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ matrix.build-args }}
