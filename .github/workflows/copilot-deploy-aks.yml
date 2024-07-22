@@ -27,11 +27,12 @@ jobs:
     steps:
       - name: debug variables
         run: |
-          echo "environment variable : $environment"
+          echo "environment input variable : $environmentinput"
+          echo "environment env variable : $ENVIRONMENT"
           echo "RESOURCE_GROUP variable : $RESOURCE_GROUP"
           echo "CLUSTER_NAME variable : $CLUSTER_NAME"
         env:
-          environment: ${{ inputs.environment}}
+          environmentinput: ${{ inputs.environment}}
           RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
       - uses: actions/checkout@v4
