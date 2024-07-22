@@ -6,7 +6,6 @@ env:
 
 on:
   push:
-    branches: ["main"]
   workflow_dispatch: # deploy on demand
     inputs:
       environment_name:
