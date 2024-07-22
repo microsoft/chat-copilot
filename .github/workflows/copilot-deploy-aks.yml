@@ -1,9 +1,5 @@
 name: Deploy to Azure Kubernetes Service
 
-env:
-  RESOURCE_GROUP: ${{vars.RESOURCE_GROUP}} # set this to the resource group containing your AKS cluster
-  CLUSTER_NAME: ${{vars.CLUSTER_NAME}} # set this to the name of your AKS cluster
-
 on:
   push:
   workflow_dispatch: # deploy on demand
@@ -34,8 +30,8 @@ jobs:
       - name: Gets K8s context
         uses: azure/aks-set-context@v4
         with:
-          resource-group: ${{ env.RESOURCE_GROUP }}
-          cluster-name: ${{ env.CLUSTER_NAME }}
+          resource-group: ${{ vars.RESOURCE_GROUP }}
+          cluster-name: ${{ vars.CLUSTER_NAME }}
         id: login
 
       - name: Install Helm
