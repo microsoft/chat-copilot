@@ -1,10 +1,8 @@
-name: Build and deploy to Azure Kubernetes Service
+name: Deploy to Azure Kubernetes Service
 
 env:
-  RESOURCE_GROUP: MY_RESOURCE_GROUP # set this to the resource group containing your AKS cluster
-  CLUSTER_NAME: MY_CLUSTER_NAME # set this to the name of your AKS cluster
-  CHART_PATH: MY_HELM_FILE # set this to the path to your helm file
-  CHART_OVERRIDE_PATH: MY_OVERRIDE_FILES # set this to an array of override file paths
+  RESOURCE_GROUP: ${{vars.RESOURCE_GROUP}} # set this to the resource group containing your AKS cluster
+  CLUSTER_NAME: ${{vars.CLUSTER_NAME}} # set this to the name of your AKS cluster
 
 on:
   push:
@@ -24,6 +22,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment_name }}
     steps:
       - uses: actions/checkout@v4
 
