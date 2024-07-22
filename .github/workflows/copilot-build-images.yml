@@ -1,9 +1,9 @@
 name: copilot-build-images
 
 on:
-  workflow_call:
-env:
-  REGISTRY: ghcr.io
+  workflow_dispatch:
+  push:
+    branches: ["main"]
 
 jobs:
   build-and-push-image:
@@ -23,7 +23,7 @@ jobs:
           #   build-args: |
 
           - file: ./docker/webapp/Dockerfile.nginx
-            image: ${{ github.repository }}-webapp-nginx
+            image: ${{ github.repository }}-webapp
             build-args: |
 
           # Excluded for now
@@ -47,7 +47,7 @@ jobs:
       - name: Login container registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ vars.REGISTRY }}
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
@@ -55,7 +55,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ matrix.image }}
+          images: ${{ vars.REGISTRY }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr

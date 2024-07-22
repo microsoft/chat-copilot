@@ -27,3 +27,10 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+
+  # Maintain dependencies for terraform
+  - package-ecosystem: "terraform" # See documentation for possible values
+    directory: "azure" # Location of package manifests
+    schedule:
+      interval: "weekly"
+      day: "monday"

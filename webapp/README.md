@@ -5,6 +5,17 @@ This directory contains the source code for Chat Copilot's frontend web applicat
 ## Running the Chat Copilot sample
 To configure and run the full Chat Copilot application, please view the [main instructions](../README.md#instructions).
 
+## Run time variables
+https://www.freecodecamp.org/news/how-to-implement-runtime-environment-variables-with-create-react-app-docker-and-nginx-7f9d42a91d70/
+
+example use:
+```typescript
+export const BackendServiceUrl =
+    window._env_.REACT_APP_BACKEND_URI.trim() === ''
+        ? window.origin
+        : window._env_.REACT_APP_BACKEND_URI;
+```
+
 # (Under Development)
 The following material is under development and may not be complete or accurate.
 

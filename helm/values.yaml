@@ -5,6 +5,7 @@ cert:
   enabled: true
   hosts:
     - host: q-copilot-dev.pegasus.quartechlab.com
+    - host: q-copilot-dev.api.pegasus.quartechlab.com
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -77,11 +78,11 @@ autoscaling:
 secretProviderClass:
   enabled: false
   # Retrieved from Terraform Output
-  tenantId: ""
+  tenantId: "898fdc18-1bd2-4a3b-84a7-2efb988e3b90"
   # Retrieved from Terraform Output
-  vaultName: ""
+  vaultName: "kvt-copilot-cnc-app-dev"
   # Retrieved from Terraform Output
-  clientId: ""
+  clientId: "c866d6a7-798e-4cfe-aafe-95ab5c43e190"
 
 ingress:
   className: ""
@@ -102,18 +103,18 @@ fe:
     port: 3000
   image: {}
 
-  livenessProbe: {}
-  #   httpGet:
-  #     path: /healthz
-  #     port: 3000
-  #   initialDelaySeconds: 5
-  #   periodSeconds: 10
-  readinessProbe: {}
-  #   httpGet:
-  #     path: /healthz
-  #     port: 3000
-  #   initialDelaySeconds: 10
-  #   periodSeconds: 15
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 15
 
   nodeSelector: {}
   podAnnotations: {}
@@ -123,7 +124,7 @@ fe:
 
   env:
     - name: "REACT_APP_BACKEND_URI"
-      value: "https://q-copilot-dev.pegasus.quartechlab.com/api"
+      value: "https://q-copilot-dev.api.pegasus.quartechlab.com/"
 
   volumeMounts: []
   #   - name: caddyfile-volume
@@ -170,13 +171,7 @@ be:
     - name: "ASPNETCORE_ENVIRONMENT"
       value: "Development"
 
-  volumeMounts:
-    - name: appsettings-volume
-      mountPath: /app/appsettings.json
-      subPath: appsettings.json
-    - name: secrets-store
-      mountPath: "/mnt/secrets-store"
-      readOnly: true
+  volumeMounts: []
 
   volumes: []
 
@@ -304,7 +299,16 @@ webapi:
     - name: "APP_NAME"
       value: "webapi"
 
-  volumeMounts: []
+  volumeMounts:
+    - name: appsettings-volume
+      mountPath: /app/appsettings.json
+      subPath: appsettings.json
+    - name: appsettings-development-volume
+      mountPath: /app/appsettings.Development.json
+      subPath: appsettings.Development.json
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
 
   volumes:
     - name: appsettings-volume
@@ -313,6 +317,12 @@ webapi:
         items:
           - key: appsettings.json
             path: appsettings.json
+    - name: appsettings-development-volume
+      configMap:
+        name: q-copilot-webapi
+        items:
+          - key: appsettings.Development.json
+            path: appsettings.Development.json
     - name: secrets-store
       csi:
         driver: secrets-store.csi.k8s.io
@@ -342,13 +352,13 @@ webapi:
   ingress:
     enabled: true
     hosts:
-      - host: q-copilot-dev.pegasus.quartechlab.com
+      - host: q-copilot-dev.api.pegasus.quartechlab.com
         paths:
-          - path: /api
+          - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - q-copilot-dev.pegasus.quartechlab.com
+          - q-copilot-dev.api.pegasus.quartechlab.com
 
   tolerations: []
   affinity: {}
