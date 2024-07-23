@@ -27,6 +27,7 @@ namespace CopilotChat.WebApi.Extensions;
 
 /// <summary>
 /// Extension methods for registering Semantic Kernel related services.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 internal static class SemanticKernelExtensions
 {

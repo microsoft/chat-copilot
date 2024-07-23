@@ -9,6 +9,7 @@ namespace CopilotChat.WebApi.Models.Storage;
 
 /// <summary>
 /// A chat session
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public class ChatSession : IStorageEntity
 {
