@@ -6,8 +6,7 @@ namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
 public class QAzureOpenAIChatExtension
 {
-    private readonly string defaultKey = "general";
-
+    public string defaultKey { get; } = "general";
     private readonly QAzureOpenAIChatOptions _qAzureOpenAIChatOptions;
 
     public QAzureOpenAIChatExtension(QAzureOpenAIChatOptions qAzureOpenAIChatOptions)
@@ -21,10 +20,6 @@ public class QAzureOpenAIChatExtension
             return true;
         }
         return false;
-    }
-    public string getDefault()
-    {
-        return this.defaultKey;
     }
 
     /// <summary>
