@@ -29,6 +29,7 @@ namespace CopilotChat.WebApi.Controllers;
 /// Controller for chat history.
 /// This controller is responsible for creating new chat sessions, retrieving chat sessions,
 /// retrieving chat messages, and editing chat sessions.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 [ApiController]
 public class ChatHistoryController : ControllerBase

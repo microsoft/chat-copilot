@@ -5,6 +5,7 @@ namespace CopilotChat.WebApi.Models.Request;
 
 /// <summary>
 /// Parameters for creating a new chat session.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public class CreateChatParameters
 {

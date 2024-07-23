@@ -31,6 +31,7 @@ namespace CopilotChat.WebApi.Plugins.Chat;
 /// <summary>
 /// ChatPlugin offers a more coherent chat experience by using memories
 /// to extract conversation history and user intentions.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public class ChatPlugin
 {
