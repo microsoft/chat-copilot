@@ -40,7 +40,9 @@ public class QSpecialization
 
 public class FieldMappingOption
 {
+#pragma warning disable CA1056 // URI-like properties should not be strings
     public string UrlFieldName { get; set; } = string.Empty;
+#pragma warning restore CA1056 // URI-like properties should not be strings
     public string TitleFieldName { get; set; } = string.Empty;
     public string FilepathFieldName { get; set; } = string.Empty;
 }
