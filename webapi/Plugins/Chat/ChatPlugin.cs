@@ -384,7 +384,7 @@ public class ChatPlugin
             );
 
         audienceContext["tokenLimit"] = historyTokenBudget.ToString(new NumberFormatInfo());
-        var specializationKey = context["specialization"] ?? this._qAzureOpenAIChatExtension.getDefault();
+        var specializationKey = context["specialization"] ?? this._qAzureOpenAIChatExtension.defaultKey;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemAudienceExtraction,
             this.CreateIntentCompletionSettings((string)specializationKey),
@@ -430,7 +430,7 @@ public class ChatPlugin
 
         intentContext["tokenLimit"] = tokenBudget.ToString(new NumberFormatInfo());
         intentContext["knowledgeCutoff"] = this._promptOptions.KnowledgeCutoffDate;
-        var specializationKey = context["specialization"] ?? this._qAzureOpenAIChatExtension.getDefault();
+        var specializationKey = context["specialization"] ?? this._qAzureOpenAIChatExtension.defaultKey;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemIntentExtraction,
             this.CreateIntentCompletionSettings((string)specializationKey),
