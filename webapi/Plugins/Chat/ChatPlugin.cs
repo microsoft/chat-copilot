@@ -22,12 +22,12 @@ using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
-using CopilotChat.WebApi.Plugins.Chat.Ext;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
