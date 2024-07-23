@@ -2,30 +2,29 @@
 /// This class is reserved for extending the Azure OpenAI Bot responses.
 ///</summary>
 using Azure.AI.OpenAI;
-using Microsoft.Extensions.Configuration;
-using System.IO;
-
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
 public class QAzureOpenAIChatExtension
 {
+    private readonly string defaultKey = "general";
+
     private readonly QAzureOpenAIChatOptions _qAzureOpenAIChatOptions;
 
-    public QAzureOpenAIChatExtension()
+    public QAzureOpenAIChatExtension(QAzureOpenAIChatOptions qAzureOpenAIChatOptions)
     {
-        var config = new ConfigurationBuilder()
-                 .SetBasePath(Directory.GetCurrentDirectory())
-                 .AddJsonFile("appsettings.json")
-                 .Build();
-        this._qAzureOpenAIChatOptions = config.GetSection(QAzureOpenAIChatOptions.PropertyName).Get<QAzureOpenAIChatOptions>() ?? new QAzureOpenAIChatOptions { Enabled = false };
+        this._qAzureOpenAIChatOptions = qAzureOpenAIChatOptions;
     }
-    public bool isEnabled(string specializationKey)
+    public bool isEnabled(string? specializationKey)
     {
-        if (this._qAzureOpenAIChatOptions.Enabled && specializationKey != "general")
+        if (this._qAzureOpenAIChatOptions.Enabled && specializationKey != this.defaultKey)
         {
             return true;
         }
         return false;
+    }
+    public string getDefault()
+    {
+        return this.defaultKey;
     }
 
     /// <summary>
