@@ -23,8 +23,8 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
