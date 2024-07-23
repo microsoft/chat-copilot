@@ -12,10 +12,14 @@ import { IAskResult } from '../semantic-kernel/model/AskResult';
 import { ICustomPlugin } from '../semantic-kernel/model/CustomPlugin';
 import { BaseService } from './BaseService';
 
+/**
+ * Changes to take specialization key in chat creation.
+ */
 export class ChatService extends BaseService {
-    public createChatAsync = async (title: string, accessToken: string): Promise<ICreateChatSessionResponse> => {
+    public createChatAsync = async (title: string, specializationKey: string, accessToken: string): Promise<ICreateChatSessionResponse> => {
         const body = {
             title,
+            specializationKey
         };
 
         const result = await this.getResponseAsync<ICreateChatSessionResponse>(
