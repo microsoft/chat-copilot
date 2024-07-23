@@ -13,4 +13,10 @@ public class CreateChatParameters
     /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
+
+    /// <summary>
+    /// Specilization of the chat.
+    /// </summary>
+    [JsonPropertyName("specializationKey")]
+    public string specialization { get; set; } = string.Empty;
 }

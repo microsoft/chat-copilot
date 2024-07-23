@@ -63,16 +63,23 @@ public class ChatSession : IStorageEntity
     public string Partition => this.Id;
 
     /// <summary>
+    /// One to one relationship with specialization.
+    /// </summary>
+    public ChatSpecializationSession specialization { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ChatSession"/> class.
     /// </summary>
     /// <param name="title">The title of the chat.</param>
     /// <param name="systemDescription">The system description of the chat.</param>
-    public ChatSession(string title, string systemDescription)
+    /// <param name="specialization">The specialization key associated with the chat.</param>
+    public ChatSession(string title, string systemDescription, string specializationKey)
     {
         this.Id = Guid.NewGuid().ToString();
         this.Title = title;
         this.CreatedOn = DateTimeOffset.Now;
         this.SystemDescription = systemDescription;
         this.Version = CurrentVersion;
+        this.specialization = new ChatSpecializationSession(this.Id, specializationKey);
     }
 }
