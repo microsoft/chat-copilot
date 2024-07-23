@@ -149,8 +149,8 @@ export const Specializations = [
     },
 ];
 /**
- * The initialstate of app has been modified to spport specializations.
- * All specializations suppored by system will be pre-populated.
+ * The initialstate of app has been modified to support specializations.
+ * All specializations supported by system will be pre-populated.
  */
 export const initialState: AppState = {
     alerts: [],

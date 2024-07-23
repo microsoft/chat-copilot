@@ -1,6 +1,8 @@
-﻿/// <summary>
+﻿#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
+/// <summary>
 /// Controller responsible for handling specializations.
 /// </summary>
+#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
 using System.Collections.Generic;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
