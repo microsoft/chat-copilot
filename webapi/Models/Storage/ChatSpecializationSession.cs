@@ -1,6 +1,8 @@
-﻿///<summary>
+﻿#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
+///<summary>
 /// This class is reserved for extending the default Azure OpenAI Bot responses.
 ///</summary>
+#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
 using System;
 using System.Text.Json.Serialization;
 using CopilotChat.WebApi.Storage;

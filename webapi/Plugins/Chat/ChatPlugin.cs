@@ -335,7 +335,7 @@ public class ChatPlugin
         // Get bot response and stream to client
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
         CopilotChatMessage chatMessage = await AsyncUtils.SafeInvokeAsync(
-            () => this.StreamResponseToClientAsync(chatId, userId, (string)chatContext["specialization"]!, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
+            () => this.StreamResponseToClientAsync(chatId, userId, (string)chatContext[this._qAzureOpenAIChatExtension.contextKey]!, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
 
         // Save the message into chat history
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
@@ -385,7 +385,7 @@ public class ChatPlugin
             );
 
         audienceContext["tokenLimit"] = historyTokenBudget.ToString(new NumberFormatInfo());
-        var specializationKey = context["specialization"] ?? this._qAzureOpenAIChatExtension.defaultKey;
+        var specializationKey = context[this._qAzureOpenAIChatExtension.contextKey] ?? this._qAzureOpenAIChatExtension.defaultSpecialization;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemAudienceExtraction,
             this.CreateIntentCompletionSettings((string)specializationKey),
@@ -431,7 +431,7 @@ public class ChatPlugin
 
         intentContext["tokenLimit"] = tokenBudget.ToString(new NumberFormatInfo());
         intentContext["knowledgeCutoff"] = this._promptOptions.KnowledgeCutoffDate;
-        var specializationKey = context["specialization"] ?? this._qAzureOpenAIChatExtension.defaultKey;
+        var specializationKey = context[this._qAzureOpenAIChatExtension.contextKey] ?? this._qAzureOpenAIChatExtension.defaultSpecialization;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemIntentExtraction,
             this.CreateIntentCompletionSettings((string)specializationKey),
