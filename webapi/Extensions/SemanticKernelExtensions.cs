@@ -111,9 +111,9 @@ internal static class SemanticKernelExtensions
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
+                qAzureOpenAIChatOptions: sp.GetRequiredService<IOptions<QAzureOpenAIChatOptions>>(),
                 contentSafety: sp.GetService<AzureContentSafety>(),
-                logger: sp.GetRequiredService<ILogger<ChatPlugin>>(),
-                qAzureOpenAIChatExtension: GetQAzureOpenAIChatExtension(sp)),
+                logger: sp.GetRequiredService<ILogger<ChatPlugin>>()),
             nameof(ChatPlugin));
 
         return kernel;
@@ -240,16 +240,5 @@ internal static class SemanticKernelExtensions
             default:
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.Retrieval.EmbeddingGeneratorType)} value in 'SemanticMemory' settings.");
         }
-    }
-
-    public static QAzureOpenAIChatExtension GetQAzureOpenAIChatExtension(IServiceProvider sp)
-    {
-        IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
-        QAzureOpenAIChatOptions _qAzureOpenAIChatOptions = configuration.GetSection(QAzureOpenAIChatOptions.PropertyName)?.Get<QAzureOpenAIChatOptions>() ?? new QAzureOpenAIChatOptions ();
-
-        return new QAzureOpenAIChatExtension(
-            logger: sp.GetRequiredService<ILogger<QAzureOpenAIChatExtension>>(),
-            qAzureOpenAIChatOptions: _qAzureOpenAIChatOptions
-        );
     }
 }
