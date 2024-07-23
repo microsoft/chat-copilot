@@ -24,7 +24,7 @@ using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
+//using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
