@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
-
+/**
+ * This component has been modified to support specialization.
+ */
 import { FC, useState } from 'react';
 
 import {
-    Button,
+    //Button,
     Divider,
     Menu,
     MenuItem,
@@ -16,8 +18,9 @@ import { useChat } from '../../../../libs/hooks';
 import { useAppSelector } from '../../../../redux/app/hooks';
 import { RootState } from '../../../../redux/app/store';
 import { FeatureKeys } from '../../../../redux/features/app/AppState';
-import { Add20 } from '../../../shared/BundledIcons';
+//import { Add20 } from '../../../shared/BundledIcons';
 import { InvitationJoinDialog } from '../../invitation-dialog/InvitationJoinDialog';
+import { SpecializationDialog } from '../dialogs/SpecializationDialog';
 
 interface SimplifiedNewBotMenuProps {
     onFileUpload: () => void;
@@ -47,7 +50,7 @@ export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = () => {
             <Menu>
                 <MenuTrigger disableButtonEnhancement>
                     <Tooltip content="Add a chat" relationship="label">
-                        <Button data-testid="createNewConversationButton" icon={<Add20 />} appearance="transparent" />
+                        <SpecializationDialog />
                     </Tooltip>
                 </MenuTrigger>
                 <MenuPopover>
@@ -66,6 +69,7 @@ export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = () => {
                     </MenuList>
                 </MenuPopover>
             </Menu>
+
             {isJoiningBot && <InvitationJoinDialog onCloseDialog={onCloseDialog} />}
         </div>
     );

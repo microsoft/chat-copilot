@@ -5,7 +5,9 @@ import { Constants } from '../../../Constants';
 import { ServiceInfo } from '../../../libs/models/ServiceInfo';
 import { TokenUsage, TokenUsageFunctionNameMap } from '../../../libs/models/TokenUsage';
 import { ActiveUserInfo, Alert, AppState, FeatureKeys, initialState } from './AppState';
-
+/**
+ * Modified to support specialization.
+ */
 export const appSlice = createSlice({
     name: 'app',
     initialState,
@@ -74,6 +76,9 @@ export const appSlice = createSlice({
         setAuthConfig: (state: AppState, action: PayloadAction<AppState['authConfig']>) => {
             state.authConfig = action.payload;
         },
+        setSpecialization: (state: AppState, action: PayloadAction<AppState['specializations']>) => {
+            state.specializations = action.payload;
+        },
     },
 });
 
@@ -88,6 +93,7 @@ export const {
     setServiceInfo,
     setMaintenance,
     setAuthConfig,
+    setSpecialization,
 } = appSlice.actions;
 
 export default appSlice.reducer;
