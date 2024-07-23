@@ -2,7 +2,9 @@
 
 import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
-
+/**
+ * The interface has been modified to support specialization.
+ */
 export interface ChatState {
     id: string;
     title: string;
@@ -19,4 +21,5 @@ export interface ChatState {
     importingDocuments?: string[];
     disabled: boolean; // For labeling a chat has been deleted
     hidden: boolean; // For hiding a chat from the list
+    specializationKey: string;
 }
