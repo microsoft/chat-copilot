@@ -8,14 +8,17 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
+
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,13 +26,13 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using CopilotChatMessage = CopilotChat.WebApi.Models.Storage.CopilotChatMessage;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
 /// ChatPlugin offers a more coherent chat experience by using memories
 /// to extract conversation history and user intentions.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public class ChatPlugin
 {
@@ -80,6 +83,11 @@ public class ChatPlugin
     private readonly AzureContentSafety? _contentSafety = null;
 
     /// <summary>
+    /// Extension: AzureOpenAI Extension handler
+    /// </summary>
+    private QAzureOpenAIChatExtension _qAzureOpenAIChatExtension;
+
+    /// <summary>
     /// Create a new instance of <see cref="ChatPlugin"/>.
     /// </summary>
     public ChatPlugin(
@@ -90,6 +98,7 @@ public class ChatPlugin
         IHubContext<MessageRelayHub> messageRelayHubContext,
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
+        IOptions<QAzureOpenAIChatOptions> qAzureOpenAIChatOptions,
         ILogger logger,
         AzureContentSafety? contentSafety = null)
     {
@@ -103,7 +112,7 @@ public class ChatPlugin
         this._promptOptions = promptOptions.Value.Copy();
 
         this._semanticMemoryRetriever = new SemanticMemoryRetriever(promptOptions, chatSessionRepository, memoryClient, logger);
-
+        this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(qAzureOpenAIChatOptions.Value);
         this._contentSafety = contentSafety;
     }
 
@@ -327,7 +336,7 @@ public class ChatPlugin
         // Get bot response and stream to client
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
         CopilotChatMessage chatMessage = await AsyncUtils.SafeInvokeAsync(
-            () => this.StreamResponseToClientAsync(chatId, userId, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
+            () => this.StreamResponseToClientAsync(chatId, userId, (string)chatContext[this._qAzureOpenAIChatExtension.contextKey]!, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
 
         // Save the message into chat history
         await this.UpdateBotResponseStatusOnClientAsync(chatId, "Saving message to chat history", cancellationToken);
@@ -377,10 +386,10 @@ public class ChatPlugin
             );
 
         audienceContext["tokenLimit"] = historyTokenBudget.ToString(new NumberFormatInfo());
-
+        var specializationKey = context[this._qAzureOpenAIChatExtension.contextKey] ?? this._qAzureOpenAIChatExtension.defaultSpecialization;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemAudienceExtraction,
-            this.CreateIntentCompletionSettings(),
+            this.CreateIntentCompletionSettings((string)specializationKey),
             functionName: "SystemAudienceExtraction",
             description: "Extract audience");
 
@@ -423,10 +432,10 @@ public class ChatPlugin
 
         intentContext["tokenLimit"] = tokenBudget.ToString(new NumberFormatInfo());
         intentContext["knowledgeCutoff"] = this._promptOptions.KnowledgeCutoffDate;
-
+        var specializationKey = context[this._qAzureOpenAIChatExtension.contextKey] ?? this._qAzureOpenAIChatExtension.defaultSpecialization;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemIntentExtraction,
-            this.CreateIntentCompletionSettings(),
+            this.CreateIntentCompletionSettings((string)specializationKey),
             functionName: "UserIntentExtraction",
             description: "Extract user intent");
 
@@ -544,8 +553,9 @@ public class ChatPlugin
     /// <summary>
     /// Create `OpenAIPromptExecutionSettings` for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private OpenAIPromptExecutionSettings CreateChatRequestSettings()
+    private OpenAIPromptExecutionSettings CreateChatRequestSettings(string specializationKey)
     {
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
@@ -553,15 +563,18 @@ public class ChatPlugin
             TopP = this._promptOptions.ResponseTopP,
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty,
-            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
+            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled(specializationKey) == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions(specializationKey) : null
         };
+#pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 
     /// <summary>
     /// Create `OpenAIPromptExecutionSettings` for intent response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private OpenAIPromptExecutionSettings CreateIntentCompletionSettings()
+    private OpenAIPromptExecutionSettings CreateIntentCompletionSettings(string specializationKey)
     {
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         return new OpenAIPromptExecutionSettings
         {
             MaxTokens = this._promptOptions.ResponseTokenLimit,
@@ -569,8 +582,10 @@ public class ChatPlugin
             TopP = this._promptOptions.IntentTopP,
             FrequencyPenalty = this._promptOptions.IntentFrequencyPenalty,
             PresencePenalty = this._promptOptions.IntentPresencePenalty,
-            StopSequences = new string[] { "] bot:" }
+            StopSequences = new string[] { "] bot:" },
+            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled(specializationKey) == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions(specializationKey) : null
         };
+#pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 
     /// <summary>
@@ -632,6 +647,7 @@ public class ChatPlugin
     private async Task<CopilotChatMessage> StreamResponseToClientAsync(
         string chatId,
         string userId,
+        string specializationkey,
         BotResponsePrompt prompt,
         CancellationToken cancellationToken,
         IEnumerable<CitationSource>? citations = null)
@@ -641,7 +657,7 @@ public class ChatPlugin
         var stream =
             chatCompletion.GetStreamingChatMessageContentsAsync(
                 prompt.MetaPromptTemplate,
-                this.CreateChatRequestSettings(),
+                this.CreateChatRequestSettings(specializationkey),
                 this._kernel,
                 cancellationToken);
 
