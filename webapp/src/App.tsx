@@ -8,14 +8,16 @@ import { useEffect } from 'react';
 import Chat from './components/chat/Chat';
 import { Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
-import { useChat, useFile } from './libs/hooks';
+import { useChat, useFile, useSpecialization } from './libs/hooks';
 import { AlertType } from './libs/models/AlertType';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
-import { addAlert, setActiveUserInfo, setServiceInfo } from './redux/features/app/appSlice';
+import { addAlert, setActiveUserInfo, setServiceInfo, setSpecialization } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
-
+/** 
+ * Changes to support specialization 
+*/
 export const useClasses = makeStyles({
     container: {
         display: 'flex',
@@ -68,6 +70,7 @@ const App = () => {
 
     const chat = useChat();
     const file = useFile();
+    const specialization = useSpecialization();
 
     useEffect(() => {
         if (isMaintenance && appState !== AppState.ProbeForBackend) {
@@ -122,6 +125,12 @@ const App = () => {
                 chat.getServiceInfo().then((serviceInfo) => {
                     if (serviceInfo) {
                         dispatch(setServiceInfo(serviceInfo));
+                    }
+                }),
+                //Get all specializations
+                specialization.getSpecializations().then((specializations) => {
+                    if (specializations) {
+                        dispatch(setSpecialization(specializations));
                     }
                 }),
             ]);
