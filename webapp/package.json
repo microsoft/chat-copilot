@@ -15,14 +15,14 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@azure/msal-browser": "^3.17.0",
+    "@azure/msal-browser": "^3.19.1",
     "@azure/msal-react": "^2.0.19",
-    "@fluentui/react-components": "^9.54.2",
-    "@fluentui/react-icons": "^2.0.247",
+    "@fluentui/react-components": "^9.54.5",
+    "@fluentui/react-icons": "^2.0.249",
     "@fluentui/react-northstar": "^0.66.4",
-    "@microsoft/signalr": "^8.0.0",
-    "@playwright/test": "^1.43.1",
-    "@reduxjs/toolkit": "^2.2.5",
+    "@microsoft/signalr": "^8.0.7",
+    "@playwright/test": "^1.45.2",
+    "@reduxjs/toolkit": "^2.2.6",
     "debug": "^4.3.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "react": "^18.3.1",
@@ -37,13 +37,13 @@
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^7.16.0",
-    "@typescript-eslint/parser": "^7.13.1",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.16.1",
     "eslint": "^8.57.0",
     "prettier": "^3.3.2",
     "react-scripts": "^5.0.1",
     "serve": "^14.2.3",
-    "typescript": "5.4.5"
+    "typescript": "5.5.3"
   },
   "browserslist": {
     "production": [
