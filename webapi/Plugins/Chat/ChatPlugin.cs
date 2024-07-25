@@ -26,7 +26,7 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-
+using Azure.AI.OpenAI;
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
@@ -671,11 +671,29 @@ public class ChatPlugin
             citations
         );
 
+        var responseCitations = new List<CitationSource>();
         // Stream the message to the client
         await foreach (var contentPiece in stream)
         {
             chatMessage.Content += contentPiece;
             await this.UpdateMessageOnClient(chatMessage, cancellationToken);
+            if (contentPiece.InnerContent is not null)
+            {
+                Azure.AI.OpenAI.StreamingChatCompletionsUpdate actx = (Azure.AI.OpenAI.StreamingChatCompletionsUpdate)contentPiece.InnerContent;
+                if (actx.AzureExtensionsContext != null && actx.AzureExtensionsContext.Citations != null)
+                {
+                    foreach (AzureChatExtensionDataSourceResponseCitation citation in actx.AzureExtensionsContext.Citations)
+                    {
+                        // Collect citation here
+                        responseCitations.Add(new CitationSource
+                        {
+                            SourceName = citation.Filepath
+                        });
+                        chatMessage.Citations = responseCitations;
+                        await this.UpdateMessageOnClient(chatMessage, cancellationToken);
+                    }
+                }
+            }
         }
 
         return chatMessage;
