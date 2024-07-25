@@ -6,6 +6,7 @@ namespace CopilotChat.WebApi.Options;
 
 /// <summary>
 /// Configuration settings for connecting to Azure CosmosDB.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public class CosmosOptions
 {
@@ -44,4 +45,10 @@ public class CosmosOptions
     /// </summary>
     [Required, NotEmptyOrWhitespace]
     public string ChatParticipantsContainer { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the Cosmos container for chat participants.
+    /// </summary>
+    [Required, NotEmptyOrWhitespace]
+    public string ChatSpecializationSessionsContainer { get; set; } = string.Empty;
 }

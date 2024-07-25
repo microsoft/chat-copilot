@@ -5,6 +5,7 @@ namespace CopilotChat.WebApi.Models.Request;
 
 /// <summary>
 /// Parameters for creating a new chat session.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public class CreateChatParameters
 {
@@ -13,4 +14,10 @@ public class CreateChatParameters
     /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
+
+    /// <summary>
+    /// Specialization of the chat.
+    /// </summary>
+    [JsonPropertyName("specializationKey")]
+    public string specialization { get; set; } = string.Empty;
 }
