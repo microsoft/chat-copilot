@@ -6,9 +6,10 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Azure.AI.OpenAI;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
@@ -18,7 +19,6 @@ using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,7 +26,6 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Azure.AI.OpenAI;
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
@@ -717,7 +716,7 @@ public class ChatPlugin
                 }
                 return $"^{citationIndexMap[citationKey]}^";
             });
-            contentPieces.Add(processedContentPiece.ToString());
+            contentPieces.Add(processedContentPiece);
         }
 
         // Filter citations to include only those referenced in the response content
