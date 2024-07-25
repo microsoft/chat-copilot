@@ -296,6 +296,46 @@ webapi:
         secretKeyRef:
           name: q-copilot-webapi-secret
           key: KernelMemory-Services-AzureBlobs-ConnectionString
+    - name: "QAzureOpenAIChatConfig__Specializations__0__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-0-ApiKey
+    - name: "QAzureOpenAIChatConfig__Specializations__0__VectorizationSource__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-0-VectorizationSource-APIKey
+    - name: "QAzureOpenAIChatConfig__Specializations__1__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-1-ApiKey
+    - name: "QAzureOpenAIChatConfig__Specializations__1__VectorizationSource__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-1-VectorizationSource-APIKey
+    - name: "QAzureOpenAIChatConfig__Specializations__2__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-2-ApiKey
+    - name: "QAzureOpenAIChatConfig__Specializations__2__VectorizationSource__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-2-VectorizationSource-APIKey
+    - name: "QAzureOpenAIChatConfig__Specializations__3__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-3-ApiKey
+    - name: "QAzureOpenAIChatConfig__Specializations__3__VectorizationSource__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-3-VectorizationSource-APIKey
     - name: "APP_NAME"
       value: "webapi"
 
@@ -347,6 +387,14 @@ webapi:
         KernelMemory-Services-AzureOpenAI-APIKey,
         KernelMemory-Services-AzureAISearch-APIKey,
         KernelMemory-Services-AzureBlobs-ConnectionString,
+        QAzureOpenAIChatConfig-Specializations-0-ApiKey,
+        QAzureOpenAIChatConfig-Specializations-0-VectorizationSource-APIKey,
+        QAzureOpenAIChatConfig-Specializations-1-ApiKey,
+        QAzureOpenAIChatConfig-Specializations-1-VectorizationSource-APIKey,
+        QAzureOpenAIChatConfig-Specializations-2-ApiKey,
+        QAzureOpenAIChatConfig-Specializations-2-VectorizationSource-APIKey,
+        QAzureOpenAIChatConfig-Specializations-3-ApiKey,
+        QAzureOpenAIChatConfig-Specializations-3-VectorizationSource-APIKey,
       ]
 
   ingress:
