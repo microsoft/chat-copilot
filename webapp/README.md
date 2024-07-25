@@ -6,7 +6,15 @@ This directory contains the source code for Chat Copilot's frontend web applicat
 To configure and run the full Chat Copilot application, please view the [main instructions](../README.md#instructions).
 
 ## Run time variables
+
+Tweaks to the application so the runtime variables are available when the application is served as static files.
+
+For detailed information on setup:
 https://www.freecodecamp.org/news/how-to-implement-runtime-environment-variables-with-create-react-app-docker-and-nginx-7f9d42a91d70/
+
+Update the following when adding new runtime environment variables:
+1. webapp\src\libs\models\Global.ts
+1. webapp\.env
 
 example use:
 ```typescript

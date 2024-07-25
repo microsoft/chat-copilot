@@ -76,12 +76,12 @@ export const useChat = () => {
         if (id === `${chatId}-bot` || id.toLocaleLowerCase() === 'bot') return Constants.bot.profile;
         return users.find((user) => user.id === id);
     };
-
-    const createChat = async () => {
+    const defaultSpecialization = 'general';
+    const createChat = async (specializationKey = defaultSpecialization) => {
         const chatTitle = `Copilot @ ${new Date().toLocaleString()}`;
         try {
             await chatService
-                .createChatAsync(chatTitle, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
+                .createChatAsync(chatTitle, specializationKey, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
                 .then((result: ICreateChatSessionResponse) => {
                     const newChat: ChatState = {
                         id: result.chatSession.id,
@@ -97,6 +97,7 @@ export const useChat = () => {
                         userDataLoaded: false,
                         disabled: false,
                         hidden: false,
+                        specializationKey: specializationKey,
                     };
 
                     dispatch(addConversation(newChat));
@@ -109,6 +110,9 @@ export const useChat = () => {
     };
 
     const getResponse = async ({ messageType, value, chatId, kernelArguments, processPlan }: GetResponseOptions) => {
+        /* eslint-disable 
+        @typescript-eslint/no-unsafe-assignment
+        */
         const chatInput: IChatMessage = {
             chatId: chatId,
             timestamp: new Date().getTime(),
@@ -132,6 +136,10 @@ export const useChat = () => {
                     key: 'messageType',
                     value: messageType.toString(),
                 },
+                {
+                    key: 'specialization',
+                    value: conversations[chatId].specializationKey,
+                }
             ],
         };
 
@@ -194,6 +202,7 @@ export const useChat = () => {
                         userDataLoaded: false,
                         disabled: false,
                         hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
+                        specializationKey:chatSession.specialization? chatSession.specialization.specializationKey: "general"
                     };
                 }
 
@@ -208,7 +217,7 @@ export const useChat = () => {
                 }
             } else {
                 // No chats exist, create first chat window
-                await createChat();
+                //await createChat();
             }
 
             return true;
@@ -251,6 +260,7 @@ export const useChat = () => {
                     userDataLoaded: false,
                     disabled: false,
                     hidden: false,
+                    specializationKey: chatSession.specialization ? chatSession.specialization.specializationKey : 'general'
                 };
 
                 dispatch(addConversation(newChat));
@@ -357,6 +367,7 @@ export const useChat = () => {
                     userDataLoaded: false,
                     disabled: false,
                     hidden: false,
+                    specializationKey: result.specialization ? result.specialization.specializationKey : defaultSpecialization,
                 };
 
                 dispatch(addConversation(newChat));
@@ -404,7 +415,7 @@ export const useChat = () => {
 
                 if (Object.values(conversations).filter((c) => !c.hidden && c.id !== chatId).length === 0) {
                     // If there are no non-hidden chats, create a new chat
-                    void createChat();
+                    //void createChat();
                 }
             })
             .catch((e: any) => {
