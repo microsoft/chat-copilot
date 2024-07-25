@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "chmod +x ./env.sh && ./env.sh && cp env-config.js ./public/ && react-scripts start",
+    "dev": "chmod +x ./env.sh && bash ./env.sh && cp env-config.js ./public/ && react-scripts start",
     "format": "prettier src --check",
     "format:fix": "prettier src --write",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "serve": "serve -s build",
-    "start": "react-scripts start",
+    "serve": "chmod +x ./env.sh && bash ./env.sh && cp env-config.js ./public/ && serve -s build",
+    "start": "chmod +x ./env.sh && bash ./env.sh && cp env-config.js ./public/ && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

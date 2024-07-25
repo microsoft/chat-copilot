@@ -1,0 +1,65 @@
+name: Deploy to Azure Kubernetes Service
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # deploy on demand
+    inputs:
+      environment:
+        description: "Which environment to deploy to?"
+        type: environment
+        required: true
+        default: "dev"
+  workflow_call:
+    inputs:
+      environment:
+        description: "Which environment to deploy to?"
+        type: string
+        required: true
+        default: "dev"
+
+env:
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      # - name: debug variables
+      #   run: |
+      #     echo "environment input variable : $environmentinput"
+      #     echo "environment env variable : $ENVIRONMENT"
+      #     echo "RESOURCE_GROUP variable : $RESOURCE_GROUP"
+      #     echo "CLUSTER_NAME variable : $CLUSTER_NAME"
+      #   env:
+      #     environmentinput: ${{ inputs.environment}}
+      #     RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
+      #     CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+          enable-AzPSSession: true
+
+      - name: Gets K8s context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ vars.RESOURCE_GROUP }}
+          cluster-name: ${{ vars.CLUSTER_NAME }}
+        id: login
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Helm deployment
+        run: |
+          helm upgrade --install ${{ env.ENVIRONMENT }} \
+          --namespace "copilot-${{ env.ENVIRONMENT }}" \
+          -f helm/values-${{ env.ENVIRONMENT }}.yaml \
+          -f helm/values.yaml \
+          helm/
