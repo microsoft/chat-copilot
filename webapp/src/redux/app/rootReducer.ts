@@ -5,6 +5,7 @@ import appReducer from '../features/app/appSlice';
 import conversationsReducer from '../features/conversations/conversationsSlice';
 import pluginsReducer from '../features/plugins/pluginsSlice';
 import usersReducer from '../features/users/usersSlice';
+import searchReducer from '../features/search/searchSlice'
 import { RootState } from './store';
 
 // Define a top-level root state reset action
@@ -16,6 +17,7 @@ const rootReducer: Reducer<RootState> = combineReducers({
     conversations: conversationsReducer,
     plugins: pluginsReducer,
     users: usersReducer,
+    search: searchReducer,
 });
 
 // Define a special resetApp reducer that handles resetting the entire state
@@ -28,6 +30,7 @@ export const resetAppReducer = (state: RootState | undefined, action: AnyAction)
             conversations: conversationsReducer(undefined, action),
             plugins: pluginsReducer(undefined, action),
             users: usersReducer(undefined, action),
+            search: searchReducer(undefined, action),
         };
     }
 

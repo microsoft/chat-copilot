@@ -9,3 +9,7 @@ export interface IAskVariables {
     key: string;
     value: string;
 }
+
+export interface IAskSearch{
+    input: string;
+}
