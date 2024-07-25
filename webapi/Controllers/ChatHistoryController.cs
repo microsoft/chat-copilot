@@ -12,6 +12,7 @@ using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,7 @@ namespace CopilotChat.WebApi.Controllers;
 /// Controller for chat history.
 /// This controller is responsible for creating new chat sessions, retrieving chat sessions,
 /// retrieving chat messages, and editing chat sessions.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 [ApiController]
 public class ChatHistoryController : ControllerBase
@@ -43,6 +45,7 @@ public class ChatHistoryController : ControllerBase
     private readonly ChatParticipantRepository _participantRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly PromptsOptions _promptOptions;
+    private readonly QAzureOpenAIChatExtension _qAzureOpenAIChatExtension;
     private readonly IAuthInfo _authInfo;
 
     /// <summary>
@@ -64,6 +67,7 @@ public class ChatHistoryController : ControllerBase
         ChatParticipantRepository participantRepository,
         ChatMemorySourceRepository sourceRepository,
         IOptions<PromptsOptions> promptsOptions,
+        IOptions<QAzureOpenAIChatOptions> specializationOptions,
         IAuthInfo authInfo)
     {
         this._logger = logger;
@@ -73,6 +77,7 @@ public class ChatHistoryController : ControllerBase
         this._participantRepository = participantRepository;
         this._sourceRepository = sourceRepository;
         this._promptOptions = promptsOptions.Value;
+        this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(specializationOptions.Value);
         this._authInfo = authInfo;
     }
 
@@ -88,15 +93,23 @@ public class ChatHistoryController : ControllerBase
     public async Task<IActionResult> CreateChatSessionAsync(
         [FromBody] CreateChatParameters chatParameters)
     {
-        if (chatParameters.Title == null)
+        if (chatParameters.Title == null || chatParameters.specialization == null)
         {
             return this.BadRequest("Chat session parameters cannot be null.");
         }
-
-        // Create a new chat session
-        var newChat = new ChatSession(chatParameters.Title, this._promptOptions.SystemDescription);
+        // Create a new chat session 
+        var specializationDescription = this._qAzureOpenAIChatExtension.getRoleInformation(chatParameters.specialization);
+        var systemDescription = specializationDescription != null ? specializationDescription : this._promptOptions.SystemDescription;
+        var newChat = new ChatSession(chatParameters.Title, systemDescription, chatParameters.specialization);
         await this._sessionRepository.CreateAsync(newChat);
-
+        ChatSession? chat = null;
+        if (await this._sessionRepository.TryFindByIdAsync(newChat.Id, callback: v => chat = v))
+        {
+            chat!.Title = chatParameters.Title;
+            chat!.SystemDescription = systemDescription;
+            await this._sessionRepository.UpsertAsync(chat);
+        }
+        //Save prompt - End
         // Create initial bot message
         var chatMessage = CopilotChatMessage.CreateBotResponseMessage(
             newChat.Id,

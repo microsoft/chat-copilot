@@ -9,6 +9,7 @@ using CopilotChat.Shared;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using CopilotChat.WebApi.Utilities;
@@ -28,6 +29,7 @@ namespace CopilotChat.WebApi.Extensions;
 /// <summary>
 /// Extension methods for <see cref="IServiceCollection"/>.
 /// Add options and services for Chat Copilot.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 public static class CopilotChatServiceExtensions
 {
@@ -60,6 +62,8 @@ public static class CopilotChatServiceExtensions
         AddOptions<FrontendOptions>(FrontendOptions.PropertyName);
 
         AddOptions<MsGraphOboPluginOptions>(MsGraphOboPluginOptions.PropertyName);
+
+        AddOptions<QAzureOpenAIChatOptions>(QAzureOpenAIChatOptions.PropertyName);
 
         return services;
 
@@ -169,6 +173,7 @@ public static class CopilotChatServiceExtensions
         ICopilotChatMessageStorageContext chatMessageStorageContext;
         IStorageContext<MemorySource> chatMemorySourceStorageContext;
         IStorageContext<ChatParticipant> chatParticipantStorageContext;
+        IStorageContext<ChatSpecializationSession> chatSpecializationSessionStorageContext;
 
         ChatStoreOptions chatStoreConfig = services.BuildServiceProvider().GetRequiredService<IOptions<ChatStoreOptions>>().Value;
 
@@ -180,6 +185,7 @@ public static class CopilotChatServiceExtensions
                 chatMessageStorageContext = new VolatileCopilotChatMessageContext();
                 chatMemorySourceStorageContext = new VolatileContext<MemorySource>();
                 chatParticipantStorageContext = new VolatileContext<ChatParticipant>();
+                chatSpecializationSessionStorageContext = new VolatileContext<ChatSpecializationSession>();
                 break;
             }
 
@@ -200,6 +206,8 @@ public static class CopilotChatServiceExtensions
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}")));
                 chatParticipantStorageContext = new FileSystemContext<ChatParticipant>(
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_participants{Path.GetExtension(fullPath)}")));
+                chatSpecializationSessionStorageContext = new FileSystemContext<ChatSpecializationSession>(
+                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
                 break;
             }
 
@@ -218,6 +226,8 @@ public static class CopilotChatServiceExtensions
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMemorySourcesContainer);
                 chatParticipantStorageContext = new CosmosDbContext<ChatParticipant>(
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatParticipantsContainer);
+                chatSpecializationSessionStorageContext = new CosmosDbContext<ChatSpecializationSession>(
+                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatSpecializationSessionsContainer);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 break;
             }
@@ -233,6 +243,7 @@ public static class CopilotChatServiceExtensions
         services.AddSingleton<ChatMessageRepository>(new ChatMessageRepository(chatMessageStorageContext));
         services.AddSingleton<ChatMemorySourceRepository>(new ChatMemorySourceRepository(chatMemorySourceStorageContext));
         services.AddSingleton<ChatParticipantRepository>(new ChatParticipantRepository(chatParticipantStorageContext));
+        services.AddSingleton<ChatSpecializationSessionRepository>(new ChatSpecializationSessionRepository(chatSpecializationSessionStorageContext));
 
         return services;
     }

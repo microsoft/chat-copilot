@@ -16,21 +16,22 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@azure/msal-browser": "^3.17.0",
+    "@azure/msal-browser": "^3.19.1",
     "@azure/msal-react": "^2.0.19",
     "@fluentui/react-components": "^9.54.5",
     "@fluentui/react-icons": "^2.0.249",
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^8.0.7",
     "@playwright/test": "^1.45.2",
-    "@reduxjs/toolkit": "^2.2.5",
+    "@reduxjs/toolkit": "^2.2.6",
     "debug": "^4.3.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
     "react-redux": "^9.1.2",
-    "remark-gfm": "^4.0.0"
+    "remark-gfm": "^4.0.0",
+    "react-multi-carousel": "2.8.5"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
@@ -38,8 +39,8 @@
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^7.16.0",
-    "@typescript-eslint/parser": "^7.16.0",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.16.1",
     "eslint": "^8.57.0",
     "prettier": "^3.3.2",
     "react-scripts": "^5.0.1",

@@ -10,6 +10,7 @@ using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Chat;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -26,6 +27,7 @@ namespace CopilotChat.WebApi.Extensions;
 
 /// <summary>
 /// Extension methods for registering Semantic Kernel related services.
+/// Note: This class has been modified to support chat specialization.
 /// </summary>
 internal static class SemanticKernelExtensions
 {
@@ -110,6 +112,7 @@ internal static class SemanticKernelExtensions
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),
+                qAzureOpenAIChatOptions: sp.GetRequiredService<IOptions<QAzureOpenAIChatOptions>>(),
                 contentSafety: sp.GetService<AzureContentSafety>(),
                 logger: sp.GetRequiredService<ILogger<ChatPlugin>>()),
             nameof(ChatPlugin));
