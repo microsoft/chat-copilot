@@ -17,6 +17,12 @@ extend-exclude = [
     "test_code_tokenizer.py"
 ]
 
+[default]
+default.extend-ignore-re = [
+    # Line ignore with trailing (# | //) spellchecker:disable-line
+    "(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+]
+
 [default.extend-words]
 ACI = "ACI" # Azure Container Instance
 AKS = "AKS" # Azure K8s Service
