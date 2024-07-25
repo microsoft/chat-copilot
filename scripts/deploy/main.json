@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.28.1.47646",
-      "templateHash": "7267170677416144946"
+      "templateHash": "18195377528136882013"
     }
   },
   "parameters": {
@@ -67,7 +67,7 @@
     },
     "completionModel": {
       "type": "string",
-      "defaultValue": "gpt-35-turbo",
+      "defaultValue": "gpt-4o",
       "metadata": {
         "description": "Model to use for chat completions"
       }
