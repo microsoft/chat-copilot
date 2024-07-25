@@ -700,9 +700,9 @@ public class ChatPlugin
                             Snippet = citation.Content,
                             SourceContentType = "pdf",
                         });
+                    }
                 }
             }
-        }
 
             // Combine all content pieces into a single response content
             responseContent += contentPiece.ToString();
