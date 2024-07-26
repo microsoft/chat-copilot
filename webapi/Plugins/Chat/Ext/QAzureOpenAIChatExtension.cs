@@ -80,7 +80,7 @@ public class QAzureOpenAIChatExtension
         return null;
     }
 
-    private QSpecialization? getSpecialization(string specializationKey)
+    public QSpecialization? getSpecialization(string specializationKey)
     {
         foreach (QSpecialization _qSpecialization in this._qAzureOpenAIChatOptions.Specializations)
         {
