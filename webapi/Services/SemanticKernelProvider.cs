@@ -15,19 +15,19 @@ namespace CopilotChat.WebApi.Services;
 /// </summary>
 public sealed class SemanticKernelProvider
 {
-    private readonly IKernelBuilder _builderChat;
+    private readonly Kernel _kernel;
 
     public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
-        this._builderChat = InitializeCompletionKernel(serviceProvider, configuration, httpClientFactory);
+        this._kernel = InitializeCompletionKernel(serviceProvider, configuration, httpClientFactory);
     }
 
     /// <summary>
     /// Produce semantic-kernel with only completion services for chat.
     /// </summary>
-    public Kernel GetCompletionKernel() => this._builderChat.Build();
+    public Kernel GetCompletionKernel() => this._kernel.Clone();
 
-    private static IKernelBuilder InitializeCompletionKernel(
+    private static Kernel InitializeCompletionKernel(
         IServiceProvider serviceProvider,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
@@ -64,6 +64,6 @@ public sealed class SemanticKernelProvider
                 throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'KernelMemory' settings.");
         }
 
-        return builder;
+        return builder.Build();
     }
 }
