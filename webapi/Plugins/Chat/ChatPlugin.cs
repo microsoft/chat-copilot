@@ -6,9 +6,10 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Azure.AI.OpenAI;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
@@ -18,7 +19,6 @@ using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,7 +26,6 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
@@ -661,6 +660,84 @@ public class ChatPlugin
                 this._kernel,
                 cancellationToken);
 
+        var responseCitations = new List<CitationSource>();
+        var contentPieces = new List<string>();
+        var citationCountMap = new Dictionary<string, int>();
+        var citationIndexMap = new Dictionary<string, int>();
+        var responseContent = string.Empty;
+        var citationPattern = new Regex(@"\[(doc\d+)\](,)?");
+        // Stream the message to the client
+        await foreach (var contentPiece in stream)
+        {
+            if (contentPiece.InnerContent is not null)
+            {
+                Azure.AI.OpenAI.StreamingChatCompletionsUpdate actx = (Azure.AI.OpenAI.StreamingChatCompletionsUpdate)contentPiece.InnerContent;
+                if (actx.AzureExtensionsContext != null && actx.AzureExtensionsContext.Citations != null)
+                {
+                    foreach (AzureChatExtensionDataSourceResponseCitation citation in actx.AzureExtensionsContext.Citations)
+                    {
+                        var sourceName = citation.Filepath;
+                        if (citationCountMap.TryGetValue(sourceName, out int count))
+                        {
+                            citationCountMap[sourceName]++;
+                            sourceName = $"{sourceName} - Part {citationCountMap[sourceName]}";
+                        }
+                        else
+                        {
+                            citationCountMap[sourceName] = 1;
+                            // Check if this is the only occurrence
+                            if (actx.AzureExtensionsContext.Citations.Count(c => c.Filepath == citation.Filepath) > 1)
+                            {
+                                sourceName = $"{sourceName} - Part 1";
+                            }
+                        }
+                        // Collect citation here
+                        responseCitations.Add(new CitationSource
+                        {
+                            Link = citation.Filepath,
+                            SourceName = sourceName,
+                            Snippet = citation.Content,
+                            SourceContentType = "pdf",
+                        });
+                    }
+                }
+            }
+
+            // Combine all content pieces into a single response content
+            responseContent += contentPiece.ToString();
+
+            // Replace citations with superscript numbers in the current content piece
+            var processedContentPiece = citationPattern.Replace(contentPiece.ToString(), match =>
+            {
+                var citationKey = match.Groups[1].Value;
+                if (!citationIndexMap.ContainsKey(citationKey))
+                {
+                    citationIndexMap[citationKey] = citationIndexMap.Count + 1;
+                }
+                return $"^{citationIndexMap[citationKey]}^";
+            });
+            contentPieces.Add(processedContentPiece);
+        }
+
+        // Filter citations to include only those referenced in the response content
+        var referencedCitations = new HashSet<string>();
+        var matches = citationPattern.Matches(responseContent);
+        foreach (Match match in matches)
+        {
+            if (match.Groups.Count > 1)
+            {
+                var referenceIndex = int.Parse(match.Groups[1].Value.Substring(3), CultureInfo.InvariantCulture) - 1; // Extract the index from "docX"
+                if (referenceIndex >= 0 && referenceIndex < responseCitations.Count)
+                {
+                    referencedCitations.Add(responseCitations[referenceIndex].SourceName);
+                }
+            }
+        }
+
+        var filteredCitations = responseCitations
+            .Where(citation => referencedCitations.Contains(citation.SourceName))
+            .ToList();
+
         // Create message on client
         var chatMessage = await this.CreateBotMessageOnClient(
             chatId,
@@ -668,16 +745,14 @@ public class ChatPlugin
             JsonSerializer.Serialize(prompt),
             string.Empty,
             cancellationToken,
-            citations
+            filteredCitations
         );
-
         // Stream the message to the client
-        await foreach (var contentPiece in stream)
+        foreach (var contentPiece in contentPieces)
         {
             chatMessage.Content += contentPiece;
             await this.UpdateMessageOnClient(chatMessage, cancellationToken);
         }
-
         return chatMessage;
     }
 

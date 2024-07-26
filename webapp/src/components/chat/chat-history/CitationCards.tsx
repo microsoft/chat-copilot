@@ -2,7 +2,6 @@
 
 import {
     Badge,
-    Caption1,
     Card,
     CardHeader,
     makeStyles,
@@ -76,7 +75,6 @@ export const CitationCards: React.FC<ICitationCardsProps> = ({ message }) => {
                                 </Badge>
                             }
                             header={<Text weight="semibold">{citation.sourceName}</Text>}
-                            description={<Caption1>Relevance score: {citation.relevanceScore.toFixed(3)}</Caption1>}
                             action={
                                 <ToggleButton
                                     appearance="transparent"
