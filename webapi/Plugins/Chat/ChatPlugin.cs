@@ -745,7 +745,6 @@ public class ChatPlugin
                 return $"^{citationIndexMap[citationKey]}^";
             });
 
-
             // Update the message content and citations on the client
             chatMessage.Content += processedContentPiece;
             chatMessage.Citations = filteredCitations;
