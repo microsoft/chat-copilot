@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-import { Button, Dropdown, makeStyles, shorthands, tokens, Option, Input } from '@fluentui/react-components';
+import { Button, Dropdown, makeStyles, Option, Input } from '@fluentui/react-components';
 import { SendRegular, Dismiss20Regular } from '@fluentui/react-icons';
 import React, { useId, useState } from 'react';
 import { AlertType } from '../../libs/models/AlertType';
@@ -11,27 +11,15 @@ import { Flex } from '@fluentui/react-northstar';
 const useClasses = makeStyles({
     root: {
         paddingTop: '2%',
+    },   
+    keyWidth: {
+        width: '20%',
+        '& .ui-box::after': {
+            transformOrigin: 'left top',
+        },
     },
-    typingIndicator: {
-        maxHeight: '28px',
-    },
-    content: {
-        ...shorthands.gap(tokens.spacingHorizontalM),
-        display: 'flex',
-        flexDirection: 'row',
-        width: '300px',
-    },    
-    controls: {
-        display: 'flex',
-        flexDirection: 'row',
-    },
-    essentials: {
-        display: 'flex',
-        flexDirection: 'row',
-        marginLeft: 'auto', // align to right
-    },
-    stylesWidth: {
-        width: '75%',
+    inputWidth: {
+        width: '70%',
         '& .ui-box::after': {
             transformOrigin: 'left top',
         },
@@ -57,7 +45,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
     const dropdownId = useId();
 
     const clearSearchInputState = () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         setSpecialization({ key: '', name: '' });
         setValue('');
     };
@@ -82,7 +69,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
         <>
             <div className={classes.root}>
                 <Flex>
-                    <Dropdown
+                    <Dropdown className={classes.keyWidth}
                         aria-labelledby={dropdownId}
                         placeholder="Select specialization"
                         value={specialization.name} selectedOptions={[specialization.name]}
@@ -103,10 +90,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
                     </Dropdown>
                     <Input
                         placeholder="Search..."
-                        className={classes.stylesWidth}
+                        className={classes.inputWidth}
                         value={value}
                         onChange={(_event, data) => {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             setValue(data.value);
                         }}
                     />
