@@ -134,7 +134,7 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
     );
 
     hubConnection.on(SignalRCallbackMethods.ReceiveMessageUpdate, (message: IChatMessage) => {
-        const { chatId, id: messageId, content } = message;
+        const { chatId, id: messageId, content, citations } = message;
         // If tokenUsage is defined, that means full message content has already been streamed and updated from server. No need to update content again.
         store.dispatch({
             type: 'conversations/updateMessageProperty',
@@ -146,6 +146,20 @@ const registerSignalREvents = (hubConnection: signalR.HubConnection, store: Stor
                 frontLoad: true,
             },
         });
+
+        // Ensure citations are updated
+        if (citations) {
+            store.dispatch({
+                type: 'conversations/updateMessageProperty',
+                payload: {
+                    chatId,
+                    messageIdOrIndex: messageId,
+                    property: 'citations',
+                    value: citations,
+                    frontLoad: true,
+                },
+            });
+        }
     });
 
     hubConnection.on(SignalRCallbackMethods.UserJoined, (chatId: string, userId: string) => {
