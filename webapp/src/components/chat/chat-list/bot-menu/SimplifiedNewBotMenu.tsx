@@ -11,8 +11,8 @@ import {
     MenuItem,
     MenuList,
     MenuPopover,
-    MenuTrigger,
-    Tooltip,
+    //MenuTrigger,
+    //Tooltip,
 } from '@fluentui/react-components';
 import { useChat } from '../../../../libs/hooks';
 import { useAppSelector } from '../../../../redux/app/hooks';
@@ -48,11 +48,7 @@ export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = () => {
     return (
         <div>
             <Menu>
-                <MenuTrigger disableButtonEnhancement>
-                    <Tooltip content="Add a chat" relationship="label">
-                        <SpecializationDialog />
-                    </Tooltip>
-                </MenuTrigger>
+                <SpecializationDialog />
                 <MenuPopover>
                     <MenuList>
                         <MenuItem data-testid="addNewBotMenuItem" onClick={onAddChat}>

@@ -9,3 +9,8 @@ export interface IAskVariables {
     key: string;
     value: string;
 }
+
+export interface IAskSearch{
+    specializationKey: string;
+    search: string;
+}

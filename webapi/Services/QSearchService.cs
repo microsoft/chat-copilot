@@ -20,7 +20,6 @@ namespace CopilotChat.WebApi.Services;
 /// </summary>
 public class QSearchService : IQSearchService
 {
-    private const string HttpUserAgent = "Chat Copilot";
     private readonly HttpClient _httpClient;
     private readonly HttpClientHandler? _httpClientHandler;
     private QAzureOpenAIChatExtension _qAzureOpenAIChatExtension;
@@ -30,7 +29,6 @@ public class QSearchService : IQSearchService
         this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(qAzureOpenAIChatOptions);
         this._httpClientHandler = new() { CheckCertificateRevocationList = true };
         this._httpClient = new(this._httpClientHandler);
-        this._httpClient.DefaultRequestHeaders.Add("User-Agent", HttpUserAgent);
     }
 
     /// <summary>
@@ -39,15 +37,14 @@ public class QSearchService : IQSearchService
     public async Task<QSearchResult> GetMatchesAsync(QSearchParameters qsearchParameters)
     {
         string specializationKey = qsearchParameters.SpecializationKey;
-        this._httpClient.DefaultRequestHeaders.Add("Api-Key", this.GetApiKey(specializationKey));
         QAzureSearchRequest requestBody = new(qsearchParameters.Search);
-
         using var httpRequestMessage = new HttpRequestMessage()
         {
             Method = HttpMethod.Post,
             RequestUri = new Uri($"{this.GetEndpoint(specializationKey)}indexes/{this.GetIndexName(specializationKey)}/docs/search?api-version=2020-06-30"),
             Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"),
         };
+        httpRequestMessage.Headers.Add("api-Key", this.GetApiKey(specializationKey));
         var response = await this._httpClient.SendAsync(httpRequestMessage);
         var body = await response.Content.ReadAsStringAsync();
         var searchResponse = JsonSerializer.Deserialize<QAzureSearchResponse>(body!);

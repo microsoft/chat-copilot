@@ -3,7 +3,8 @@ import { FC } from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { ChatWindow } from '../chat/ChatWindow';
-import { ChatList } from '../chat/chat-list/ChatList';
+import { ChatType } from '../chat/chat-list/ChatType';
+import { SearchWindow } from '../search/SearchWindow';
 
 const useClasses = makeStyles({
     container: {
@@ -18,11 +19,13 @@ const useClasses = makeStyles({
 export const ChatView: FC = () => {
     const classes = useClasses();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
-
+    const { selected } = useAppSelector((state: RootState) => state.search);
+    
     return (
         <div className={classes.container}>
-            <ChatList />
-            {selectedId !== '' && <ChatWindow />}
+            <ChatType/>
+            {selectedId !== '' && !selected && <ChatWindow />}
+            {selected && <SearchWindow/>}
         </div>
     );
 };

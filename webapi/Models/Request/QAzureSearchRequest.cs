@@ -12,7 +12,7 @@ namespace CopilotChat.WebApi.Models.Request;
 /// Request definition for AzureAIsearch
 /// This model is built by bearing the MVP requirement of supporting simple text based search.
 /// </summary>
-public class QAzureSearchRequest
+public record QAzureSearchRequest
 {
     [JsonPropertyName("search")]
     public string? Search { get; set; }
