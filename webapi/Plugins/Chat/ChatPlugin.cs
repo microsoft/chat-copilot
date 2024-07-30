@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -27,6 +28,7 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
@@ -704,12 +706,32 @@ public class ChatPlugin
                             }
                         }
                         // Collect citation here
+                        string fileExtension = Path.GetExtension(sourceName).TrimStart('.').ToLower(); // Extract and normalize the file extension
+                        string contentType = fileExtension switch
+                        {
+                            "pdf" => "application/pdf", // PDF files
+                            "doc" => "application/msword", // Microsoft Word documents
+                            "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Microsoft Word (OpenXML)
+                            "xls" => "application/vnd.ms-excel", // Microsoft Excel spreadsheets
+                            "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Microsoft Excel (OpenXML)
+                            "ppt" => "application/vnd.ms-powerpoint", // Microsoft PowerPoint presentations
+                            "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation", // Microsoft PowerPoint (OpenXML)
+                            "txt" => "text/plain", // Plain text files
+                            "html" => "text/html", // HTML files
+                            "jpg" => "image/jpeg", // JPEG images
+                            "jpeg" => "image/jpeg", // JPEG images
+                            "png" => "image/png", // PNG images
+                            "gif" => "image/gif", // GIF images
+                            "csv" => "text/csv", // CSV files
+                            _ => "application/octet-stream" // Default content type for unknown extensions
+                        };
+
                         responseCitations.Add(new CitationSource
                         {
                             Link = citation.Filepath,
                             SourceName = sourceName,
                             Snippet = citation.Content,
-                            SourceContentType = "pdf",
+                            SourceContentType = contentType, // Use the dynamically determined content type
                         });
                     }
                 }
