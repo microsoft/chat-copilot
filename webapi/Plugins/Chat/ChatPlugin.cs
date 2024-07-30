@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -26,6 +28,7 @@ using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+
 namespace CopilotChat.WebApi.Plugins.Chat;
 
 /// <summary>
@@ -661,14 +664,25 @@ public class ChatPlugin
                 cancellationToken);
 
         var responseCitations = new List<CitationSource>();
-        var contentPieces = new List<string>();
         var citationCountMap = new Dictionary<string, int>();
         var citationIndexMap = new Dictionary<string, int>();
-        var responseContent = string.Empty;
         var citationPattern = new Regex(@"\[(doc\d+)\](,)?");
+        var accumulatedContent = new StringBuilder();
+
+        // Create message on client
+        var chatMessage = await this.CreateBotMessageOnClient(
+            chatId,
+            userId,
+            JsonSerializer.Serialize(prompt),
+            string.Empty,
+            cancellationToken,
+            new List<CitationSource>()
+        );
+
         // Stream the message to the client
         await foreach (var contentPiece in stream)
         {
+            accumulatedContent.Append(contentPiece.ToString());
             if (contentPiece.InnerContent is not null)
             {
                 Azure.AI.OpenAI.StreamingChatCompletionsUpdate actx = (Azure.AI.OpenAI.StreamingChatCompletionsUpdate)contentPiece.InnerContent;
@@ -677,6 +691,7 @@ public class ChatPlugin
                     foreach (AzureChatExtensionDataSourceResponseCitation citation in actx.AzureExtensionsContext.Citations)
                     {
                         var sourceName = citation.Filepath;
+                        var link = citation.Filepath;
                         if (citationCountMap.TryGetValue(sourceName, out int count))
                         {
                             citationCountMap[sourceName]++;
@@ -692,19 +707,49 @@ public class ChatPlugin
                             }
                         }
                         // Collect citation here
+                        string fileExtension = Path.GetExtension(link).TrimStart('.').ToLower(); // Extract and normalize the file extension
+                        string contentType = fileExtension switch
+                        {
+                            "pdf" => "application/pdf", // PDF files
+                            "doc" => "application/msword", // Microsoft Word documents
+                            "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Microsoft Word (OpenXML)
+                            "jpg" => "image/jpeg", // JPEG images
+                            "jpeg" => "image/jpeg", // JPEG images
+                            "png" => "image/png", // PNG images
+                            "gif" => "image/gif", // GIF images
+                            "csv" => "text/csv", // CSV files
+                            _ => "application/octet-stream" // Default content type for unknown extensions
+                        };
+
                         responseCitations.Add(new CitationSource
                         {
-                            Link = citation.Filepath,
+                            Link = link,
                             SourceName = sourceName,
                             Snippet = citation.Content,
-                            SourceContentType = "pdf",
+                            SourceContentType = contentType, // Use the dynamically determined content type
                         });
                     }
                 }
             }
 
-            // Combine all content pieces into a single response content
-            responseContent += contentPiece.ToString();
+            // Filter citations to include only those referenced in the current content piece
+            var referencedCitations = new HashSet<string>();
+            var matches = citationPattern.Matches(accumulatedContent.ToString());
+            foreach (Match match in matches)
+            {
+                if (match.Groups.Count > 1)
+                {
+                    var referenceIndex = int.Parse(match.Groups[1].Value.Substring(3), CultureInfo.InvariantCulture) - 1; // Extract the index from "docX"
+                    if (referenceIndex >= 0 && referenceIndex < responseCitations.Count)
+                    {
+                        referencedCitations.Add(responseCitations[referenceIndex].SourceName);
+                    }
+                }
+            }
+
+            var filteredCitations = responseCitations
+                .Where(citation => referencedCitations.Contains(citation.SourceName))
+                .ToList();
 
             // Replace citations with superscript numbers in the current content piece
             var processedContentPiece = citationPattern.Replace(contentPiece.ToString(), match =>
@@ -716,43 +761,13 @@ public class ChatPlugin
                 }
                 return $"^{citationIndexMap[citationKey]}^";
             });
-            contentPieces.Add(processedContentPiece);
-        }
 
-        // Filter citations to include only those referenced in the response content
-        var referencedCitations = new HashSet<string>();
-        var matches = citationPattern.Matches(responseContent);
-        foreach (Match match in matches)
-        {
-            if (match.Groups.Count > 1)
-            {
-                var referenceIndex = int.Parse(match.Groups[1].Value.Substring(3), CultureInfo.InvariantCulture) - 1; // Extract the index from "docX"
-                if (referenceIndex >= 0 && referenceIndex < responseCitations.Count)
-                {
-                    referencedCitations.Add(responseCitations[referenceIndex].SourceName);
-                }
-            }
-        }
-
-        var filteredCitations = responseCitations
-            .Where(citation => referencedCitations.Contains(citation.SourceName))
-            .ToList();
-
-        // Create message on client
-        var chatMessage = await this.CreateBotMessageOnClient(
-            chatId,
-            userId,
-            JsonSerializer.Serialize(prompt),
-            string.Empty,
-            cancellationToken,
-            filteredCitations
-        );
-        // Stream the message to the client
-        foreach (var contentPiece in contentPieces)
-        {
-            chatMessage.Content += contentPiece;
+            // Update the message content and citations on the client
+            chatMessage.Content += processedContentPiece;
+            chatMessage.Citations = filteredCitations;
             await this.UpdateMessageOnClient(chatMessage, cancellationToken);
         }
+
         return chatMessage;
     }
 
