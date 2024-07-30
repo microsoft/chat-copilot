@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
-import { Button, Dropdown, makeStyles, Option, Input } from '@fluentui/react-components';
+import { Button, Dropdown, makeStyles, Option, SearchBox } from '@fluentui/react-components';
 import { SendRegular, Dismiss20Regular } from '@fluentui/react-icons';
 import React, { useId, useState } from 'react';
 import { AlertType } from '../../libs/models/AlertType';
@@ -20,6 +20,7 @@ const useClasses = makeStyles({
         },
     },
     inputWidth: {
+        maxWidth: '70%',
         width: '70%',
         '& .ui-box::after': {
             transformOrigin: 'left top',
@@ -46,7 +47,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
     const dropdownId = useId();
 
     const clearSearchInputState = () => {
-        setSpecialization({ key: '', name: '' });
+        // setSpecialization({ key: '', name: '' });
         setValue('');
         dispatch(setSearch({ count: 0, value: [] }));
     };
@@ -92,14 +93,44 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
                                 ),
                         )}
                     </Dropdown>
-                    <Input
-                        placeholder="Search..."
+                    <SearchBox 
+                        placeholder="Search..." 
+                        className={classes.inputWidth}
+                        value={value}
+                        appearance="outline"
+                        onChange={(_event, data) => {
+                            setValue(data.value);
+                        }}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' && !event.shiftKey) {
+                                event.preventDefault();
+                                handleSubmit();
+                            }
+                        }}
+                        dismiss={<Button
+                            title="Reset"
+                            aria-label="Reset Search"
+                            appearance="transparent"
+                            icon={<Dismiss20Regular />}
+                            onClick={() => {
+                                clearSearchInputState();
+                            }}
+                        />}
+                         />
+                    {/* <Input
+                        
                         className={classes.inputWidth}
                         value={value}
                         onChange={(_event, data) => {
                             setValue(data.value);
                         }}
-                    />
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' && !event.shiftKey) {
+                                event.preventDefault();
+                                handleSubmit();
+                            }
+                        }}
+                    /> */}
                     <Button
                         title="Submit"
                         aria-label="Search"
@@ -109,15 +140,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
                             handleSubmit();
                         }}
                     />
-                    <Button
-                        title="Reset"
-                        aria-label="Reset Search"
-                        appearance="transparent"
-                        icon={<Dismiss20Regular />}
-                        onClick={() => {
-                            clearSearchInputState();
-                        }}
-                    />
+                    
                 </Flex>
             </div>
         </>
