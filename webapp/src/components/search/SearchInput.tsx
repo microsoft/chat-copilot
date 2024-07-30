@@ -7,11 +7,12 @@ import { RootState } from '../../redux/app/store';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { addAlert } from '../../redux/features/app/appSlice';
 import { Flex } from '@fluentui/react-northstar';
+import { setSearch } from '../../redux/features/search/searchSlice';
 
 const useClasses = makeStyles({
     root: {
         paddingTop: '2%',
-    },   
+    },
     keyWidth: {
         width: '20%',
         '& .ui-box::after': {
@@ -47,6 +48,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
     const clearSearchInputState = () => {
         setSpecialization({ key: '', name: '' });
         setValue('');
+        dispatch(setSearch({ count: 0, value: [] }));
     };
 
     const handleSubmit = () => {
@@ -69,10 +71,12 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
         <>
             <div className={classes.root}>
                 <Flex>
-                    <Dropdown className={classes.keyWidth}
+                    <Dropdown
+                        className={classes.keyWidth}
                         aria-labelledby={dropdownId}
                         placeholder="Select specialization"
-                        value={specialization.name} selectedOptions={[specialization.name]}
+                        value={specialization.name}
+                        selectedOptions={[specialization.name]}
                     >
                         {specializations.map(
                             (specialization) =>
@@ -97,21 +101,21 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
                         }}
                     />
                     <Button
-                        title="Reset"
-                        aria-label="Reset Search"
-                        appearance="transparent"
-                        icon={<Dismiss20Regular />}
-                        onClick={() => {
-                            clearSearchInputState();
-                        }}
-                    />
-                    <Button
                         title="Submit"
                         aria-label="Search"
                         appearance="transparent"
                         icon={<SendRegular />}
                         onClick={() => {
                             handleSubmit();
+                        }}
+                    />
+                    <Button
+                        title="Reset"
+                        aria-label="Reset Search"
+                        appearance="transparent"
+                        icon={<Dismiss20Regular />}
+                        onClick={() => {
+                            clearSearchInputState();
                         }}
                     />
                 </Flex>

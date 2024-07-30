@@ -27,6 +27,10 @@ public record QAzureSearchRequest
 
     public string select { get; } = "content, filepath, url, meta_json_string, id";
 
+    public string highlightPreTag { get; } = "<mark>";
+
+    public string highlightPostTag { get; } = "</mark>";
+
     public QAzureSearchRequest(string searchby)
     {
         this.Search = searchby;
