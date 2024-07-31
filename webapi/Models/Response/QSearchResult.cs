@@ -51,10 +51,10 @@ public class QSearchMetadata
     public int pageCount { get; set; } = 0;
 
     [JsonPropertyName("source")]
-    public QSearchMetadaSource source { get; set; } = new QSearchMetadaSource();
+    public QSearchMetadataSource source { get; set; } = new QSearchMetadataSource();
 }
 
-public class QSearchMetadaSource
+public class QSearchMetadataSource
 {
     [JsonPropertyName("filename")]
     public string filename { get; set; } = string.Empty;

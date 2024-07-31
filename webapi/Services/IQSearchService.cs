@@ -18,7 +18,7 @@ public interface IQSearchService : IDisposable
     /// <summary>
     /// Retrieve search results from AzureAISearch endpoint.
     /// </summary>
-    /// <param name="qsearchParameters">Search Paramters(Specialization, searchBy)</param>
+    /// <param name="qsearchParameters">Search Parameters(Specialization, searchBy)</param>
     /// <returns>Results containing the response from search endpoint.</returns>
     Task<QSearchResult> GetMatchesAsync(QSearchParameters qsearchParameters);
 }
