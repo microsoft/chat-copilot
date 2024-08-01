@@ -1,8 +1,5 @@
-﻿#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
-/// <summary>
-/// Search Service. Using httpclient, the Azure AI Search endpoint is invoked.
-/// </summary>
-#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
+﻿// Copyright (c) Quartech. All rights reserved.
+
 using System;
 using System.Linq;
 using System.Net.Http;

@@ -40,7 +40,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 tab_width = 4
 indent_size = 4
-file_header_template = Copyright (c) Microsoft. All rights reserved.
+# file_header_template = Copyright (c) Microsoft. All rights reserved.
 
 # Stylesheet files
 [*.{css,scss,sass,less}]
@@ -56,7 +56,7 @@ indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8-bom
-file_header_template = Copyright (c) Microsoft. All rights reserved.
+# file_header_template = Copyright (c) Microsoft. All rights reserved.
 
 ###############################
 # .NET Coding Conventions     #

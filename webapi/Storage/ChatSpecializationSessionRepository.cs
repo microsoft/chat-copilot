@@ -1,8 +1,5 @@
-﻿#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
-///<summary>
-/// Repository class for chat specialization
-///</summary>
-#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
+﻿// Copyright (c) Quartech. All rights reserved.
+
 using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Storage;
