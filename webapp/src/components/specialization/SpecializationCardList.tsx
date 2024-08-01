@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import { ISpecialization } from '../../libs/models/Specialization';
@@ -32,23 +32,19 @@ interface SpecializationProps {
 }
 
 export const SpecializationCardList: React.FC<SpecializationProps> = ({ specializations, setShowSpecialization }) => {
+    const specializaionCarouselId = useId();
+    const specializaionCardId = useId();
     return (
-        <>
-            <div>
-                <Carousel responsive={responsive}>
-                    {specializations.map((_specialization, index) => (
-                        <>
-                            <div className="root">
-                                <SpecializationCard
-                                    key={index}
-                                    specialization={_specialization}
-                                    setShowSpecialization={setShowSpecialization}
-                                />
-                            </div>
-                        </>
-                    ))}
-                </Carousel>
-            </div>
-        </>
+        <Carousel responsive={responsive} key={specializaionCarouselId}>
+            {specializations.map((_specialization, index) => (
+                <div className="root" key={index}>
+                    <SpecializationCard
+                        key={specializaionCardId + '_' + index.toString()}
+                        specialization={_specialization}
+                        setShowSpecialization={setShowSpecialization}
+                    />
+                </div>
+            ))}
+        </Carousel>
     );
 };

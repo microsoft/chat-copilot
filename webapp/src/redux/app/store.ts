@@ -15,6 +15,7 @@ import { signalRMiddleware } from '../features/message-relay/signalRMiddleware';
 import { PluginsState } from '../features/plugins/PluginsState';
 import { UsersState } from '../features/users/UsersState';
 import resetStateReducer, { resetApp } from './rootReducer';
+import { SearchState } from '../features/search/SearchState';
 
 export type StoreMiddlewareAPI = MiddlewareAPI<Dispatch, RootState>;
 export type Store = typeof store;
@@ -28,6 +29,7 @@ export interface RootState {
     conversations: ConversationsState;
     plugins: PluginsState;
     users: UsersState;
+    search: SearchState;
 }
 
 export const getSelectedChatID = (): string => {

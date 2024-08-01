@@ -1,8 +1,5 @@
-﻿#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
-///<summary>
-/// This class is reserved for extending the Azure OpenAI Bot responses.
-///</summary>
-#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
+﻿// Copyright (c) Quartech. All rights reserved.
+
 using Azure.AI.OpenAI;
 namespace CopilotChat.WebApi.Plugins.Chat.Ext;
 
@@ -80,7 +77,7 @@ public class QAzureOpenAIChatExtension
         return null;
     }
 
-    private QSpecialization? getSpecialization(string specializationKey)
+    public QSpecialization? getSpecialization(string specializationKey)
     {
         foreach (QSpecialization _qSpecialization in this._qAzureOpenAIChatOptions.Specializations)
         {

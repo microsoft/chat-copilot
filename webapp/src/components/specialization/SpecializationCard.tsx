@@ -7,7 +7,6 @@ import { useChat } from '../../libs/hooks';
 
 const useStyles = makeStyles({
     main: {
-        gap: '16px',
         display: 'flex',
         flexWrap: 'wrap',
     },
@@ -63,7 +62,9 @@ interface SpecializationItemProps {
 export const SpecializationCard: React.FC<SpecializationItemProps> = ({ specialization, setShowSpecialization }) => {
     const styles = useStyles();
     const chat = useChat();
-
+    const cardDivId = React.useId();
+    const cardId = React.useId();
+    const specializationId = React.useId();
     const onAddChat = () => {
         void chat.createChat(specialization.key);
         setShowSpecialization(false);
@@ -79,13 +80,12 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
     };
 
     return (
-        <>
-            <div className={styles.root} key={'div-' + specialization.key}>
+        <div className={styles.root} key={cardDivId}>
                 <Card
                     className={styles.card}
                     data-testid="addNewBotMenuItem"
                     onClick={onAddChat}
-                    key={specialization.key}
+                    key={cardId}
                 >
                     <CardPreview className={styles.grayBackground}>
                         <img
@@ -105,6 +105,7 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
                                 className={
                                     specialization.description.length > 250 ? styles.showTooltip : styles.hideTooltip
                                 }
+                                key={specializationId}
                             >
                                 <Tooltip content={specialization.description} relationship="label">
                                     <Button
@@ -118,6 +119,5 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
                     ></CardHeader>
                 </Card>
             </div>
-        </>
     );
 };

@@ -1,10 +1,5 @@
-﻿#pragma warning disable IDE0073 // The file header is missing or not located at the top of the file
-/// <summary>
-/// Model for managing specialization in DB.
-/// Currently, this is defined to store only specialization metadata(Key/Name/Description/ImageUrl).
-/// NOTE: The key will be mapped with QAzureOpenAIChatOptions for LLM request settings.
-/// </summary>
-#pragma warning restore IDE0073 // The file header is missing or not located at the top of the file
+﻿// Copyright (c) Quartech. All rights reserved.
+
 namespace CopilotChat.WebApi.Models.Storage;
 
 /// <summary>

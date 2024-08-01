@@ -1,22 +1,11 @@
 import { Button } from '@fluentui/react-button';
-import { Tooltip, makeStyles } from '@fluentui/react-components';
+import { Tooltip } from '@fluentui/react-components';
 import { Dialog, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger } from '@fluentui/react-dialog';
-
 import { Add20, Dismiss24 } from '../../../shared/BundledIcons';
 import { SpecializationCardList } from '../../../../components/specialization/SpecializationCardList';
 import { RootState } from '../../../../redux/app/store';
 import { useAppSelector } from '../../../../redux/app/hooks';
 import { useEffect, useState } from 'react';
-
-const useClasses = makeStyles({
-    root: {
-        maxWidth: '45%',
-        height: '43%',
-    },
-    actions: {
-        paddingTop: '10%',
-    },
-});
 
 export const SpecializationDialog: React.FC = ({}) => {
     const { specializations } = useAppSelector((state: RootState) => state.app);
@@ -29,12 +18,10 @@ export const SpecializationDialog: React.FC = ({}) => {
             setShowSpecialization(true);
         }
     }, [conversations]);
-    const classes = useClasses();
     return (
         <Dialog open={showSpecialization}>
             <DialogTrigger disableButtonEnhancement>
-                {
-                    <Tooltip content={'Add a chat'} relationship="label">
+                <Tooltip content={'Add a chat'} relationship="label">
                         <Button
                             icon={<Add20 />}
                             appearance="transparent"
@@ -44,9 +31,8 @@ export const SpecializationDialog: React.FC = ({}) => {
                             }}
                         />
                     </Tooltip>
-                }
             </DialogTrigger>
-            <DialogSurface className={classes.root}>
+            <DialogSurface >
                 <DialogBody>
                     <DialogTitle
                         action={
@@ -67,12 +53,10 @@ export const SpecializationDialog: React.FC = ({}) => {
                     </DialogTitle>
                     <DialogTrigger action="close" disableButtonEnhancement>
                         <DialogContent>
-                            {
-                                <SpecializationCardList
+                            <SpecializationCardList
                                     specializations={specializations}
                                     setShowSpecialization={setShowSpecialization}
                                 />
-                            }
                         </DialogContent>
                     </DialogTrigger>
                 </DialogBody>
