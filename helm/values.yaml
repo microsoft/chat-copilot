@@ -336,6 +336,26 @@ webapi:
         secretKeyRef:
           name: q-copilot-webapi-secret
           key: QAzureOpenAIChatConfig-Specializations-3-VectorizationSource-APIKey
+    - name: "QAzureOpenAIChatConfig__Specializations__4__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-4-ApiKey
+    - name: "QAzureOpenAIChatConfig__Specializations__4__VectorizationSource__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-4-VectorizationSource-APIKey
+    - name: "QAzureOpenAIChatConfig__Specializations__5__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-5-ApiKey
+    - name: "QAzureOpenAIChatConfig__Specializations__5__VectorizationSource__APIKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-copilot-webapi-secret
+          key: QAzureOpenAIChatConfig-Specializations-5-VectorizationSource-APIKey
     - name: "APP_NAME"
       value: "webapi"
 
@@ -395,6 +415,10 @@ webapi:
         QAzureOpenAIChatConfig-Specializations-2-VectorizationSource-APIKey,
         QAzureOpenAIChatConfig-Specializations-3-ApiKey,
         QAzureOpenAIChatConfig-Specializations-3-VectorizationSource-APIKey,
+        QAzureOpenAIChatConfig-Specializations-4-ApiKey,
+        QAzureOpenAIChatConfig-Specializations-4-VectorizationSource-APIKey,
+        QAzureOpenAIChatConfig-Specializations-5-ApiKey,
+        QAzureOpenAIChatConfig-Specializations-5-VectorizationSource-APIKey,
       ]
 
   ingress:
