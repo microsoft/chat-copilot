@@ -36,6 +36,7 @@ interface IChatListSectionProps {
 export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conversations }) => {
     const classes = useClasses();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const { specializations } = useAppSelector((state: RootState) => state.app);
     const keys = Object.keys(conversations);
 
     return keys.length > 0 ? (
@@ -46,6 +47,8 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                 const messages = convo.messages;
                 const lastMessage = messages[convo.messages.length - 1];
                 const isSelected = id === selectedId;
+                const specialization = specializations.find((spec) => spec.key === convo.specializationKey);
+                const specializationName = specialization ? specialization.name : 'Unknown Specialization';
                 return (
                     <ChatListItem
                         id={id}
@@ -63,6 +66,7 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                                 : 'Click to start the chat'
                         }
                         botProfilePicture={convo.botProfilePicture}
+                        specializationName={specializationName} 
                     />
                 );
             })}
