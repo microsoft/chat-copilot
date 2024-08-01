@@ -5,6 +5,25 @@ import { AppState, useClasses } from '../../App';
 import { UserSettingsMenu } from '../header/UserSettingsMenu';
 import { PluginGallery } from '../open-api-plugins/PluginGallery';
 import { BackendProbe, ChatView, Error, Loading } from '../views';
+import { useEffect, useState } from 'react';
+import { RootState } from '../../redux/app/store';
+import { useAppSelector } from '../../redux/app/hooks';
+import { makeStyles } from '@fluentui/react-components';
+
+const useStyles = makeStyles({
+    title: {
+        display: 'flex',
+        justifyContent: 'flex-start',
+        textAlign: 'left',
+    },
+    specialization: {
+        position: 'absolute',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        textAlign: 'center',
+        fontSize: '1.25rem', // Slightly smaller font size for specialization
+    },
+});
 
 const Chat = ({
     classes,
@@ -15,6 +34,20 @@ const Chat = ({
     appState: AppState;
     setAppState: (state: AppState) => void;
 }) => {
+    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const { specializations } = useAppSelector((state: RootState) => state.app);
+    const [currentSpecialization, setCurrentSpecialization] = useState<string | null>(null);
+    const styles = useStyles();
+    useEffect(() => {
+        if (selectedId) {
+            const specializationKey = conversations[selectedId].specializationKey;
+            const specialization = specializations.find((spec) => spec.key === specializationKey);
+            if (specialization) {
+                setCurrentSpecialization(specialization.name);
+            }
+        }
+    }, [selectedId, conversations, specializations]);
+
     const onBackendFound = React.useCallback(() => {
         setAppState(
             AuthHelper.isAuthAAD()
@@ -27,7 +60,14 @@ const Chat = ({
     return (
         <div className={classes.container}>
             <div className={classes.header}>
-                <Subtitle1 as="h1">Chat Copilot</Subtitle1>
+                <Subtitle1 as="h1" className={styles.title}>
+                    Chat Copilot
+                </Subtitle1>
+                {currentSpecialization && (
+                    <Subtitle1 as="h1" className={styles.specialization}>
+                        {currentSpecialization}
+                    </Subtitle1>
+                )}
                 {appState > AppState.SettingUserInfo && (
                     <div className={classes.cornerItems}>
                         <div className={classes.cornerItems}>
