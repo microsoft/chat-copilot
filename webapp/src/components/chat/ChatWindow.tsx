@@ -1,23 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import {
-    Button,
     Label,
     makeStyles,
     Persona,
-    Popover,
-    PopoverSurface,
-    PopoverTrigger,
     SelectTabEventHandler,
     shorthands,
     Tab,
     TabList,
     TabValue,
     tokens,
-    Tooltip,
 } from '@fluentui/react-components';
-import { Edit24Filled, EditRegular, Map16Regular, Person16Regular } from '@fluentui/react-icons';
-import React, { useState } from 'react';
+import { Map16Regular, Person16Regular } from '@fluentui/react-icons';
+import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { FeatureKeys } from '../../redux/features/app/AppState';
@@ -25,7 +20,6 @@ import { Alerts } from '../shared/Alerts';
 import { ChatRoom } from './ChatRoom';
 import { ParticipantsList } from './controls/ParticipantsList';
 import { ShareBotMenu } from './controls/ShareBotMenu';
-import { EditChatName } from './shared/EditChatName';
 import { DocumentsTab } from './tabs/DocumentsTab';
 import { PersonaTab } from './tabs/PersonaTab';
 import { PlansTab } from './tabs/PlansTab';
@@ -58,29 +52,6 @@ const useClasses = makeStyles({
         display: 'flex',
         alignItems: 'center',
     },
-    popoverHeader: {
-        ...shorthands.margin('0'),
-        paddingBottom: tokens.spacingVerticalXXS,
-        fontStyle: 'normal',
-        fontWeight: '600',
-    },
-    popover: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        ...shorthands.padding(tokens.spacingVerticalXXL),
-        ...shorthands.gap(tokens.spacingVerticalMNudge),
-        width: '398px',
-    },
-    input: {
-        width: '100%',
-    },
-    buttons: {
-        display: 'flex',
-        alignSelf: 'end',
-        ...shorthands.gap(tokens.spacingVerticalS),
-    },
     alerts: {
         display: 'flex',
         flexDirection: 'column',
@@ -94,8 +65,19 @@ export const ChatWindow: React.FC = () => {
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const showShareBotMenu = features[FeatureKeys.BotAsDocs].enabled || features[FeatureKeys.MultiUserChat].enabled;
     const chatName = conversations[selectedId].title;
+    const { specializations } = useAppSelector((state: RootState) => state.app);
+    const [specializationName, setSpecializationName] = useState<string | null>(null);
 
-    const [isEditing, setIsEditing] = useState<boolean>(false);
+    useEffect(() => {
+        if (selectedId) {
+            const specializationKey = conversations[selectedId].specializationKey;
+            const specialization = specializations.find((spec) => spec.key === specializationKey);
+            if (specialization) {
+                setSpecializationName(specialization.name);
+            }
+        }
+    }, [selectedId, conversations, specializations]);
+
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('chat');
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
@@ -105,46 +87,15 @@ export const ChatWindow: React.FC = () => {
         <div className={classes.root}>
             <div className={classes.header}>
                 <div className={classes.title}>
-                    {!features[FeatureKeys.SimplifiedExperience].enabled && (
-                        <>
-                            <Persona
-                                key={'Semantic Kernel Bot'}
-                                size="medium"
-                                avatar={{ image: { src: conversations[selectedId].botProfilePicture } }}
-                                presence={{ status: 'available' }}
-                            />
-                            <Label size="large" weight="semibold">
-                                {chatName}
-                            </Label>
-                            <Popover open={isEditing}>
-                                <PopoverTrigger disableButtonEnhancement>
-                                    <Tooltip content={'Edit conversation name'} relationship="label">
-                                        <Button
-                                            data-testid="editChatTitleButton"
-                                            icon={isEditing ? <Edit24Filled /> : <EditRegular />}
-                                            appearance="transparent"
-                                            onClick={() => {
-                                                setIsEditing(true);
-                                            }}
-                                            disabled={!chatName}
-                                            aria-label="Edit conversation name"
-                                        />
-                                    </Tooltip>
-                                </PopoverTrigger>
-                                <PopoverSurface className={classes.popover}>
-                                    <h3 className={classes.popoverHeader}>Bot name</h3>
-                                    <EditChatName
-                                        name={chatName}
-                                        chatId={selectedId}
-                                        exitEdits={() => {
-                                            setIsEditing(false);
-                                        }}
-                                        textButtons
-                                    />
-                                </PopoverSurface>
-                            </Popover>
-                        </>
-                    )}
+                    <Persona
+                        key={'Semantic Kernel Bot'}
+                        size="medium"
+                        avatar={{ image: { src: conversations[selectedId].botProfilePicture } }}
+                        presence={{ status: 'available' }}
+                    />
+                    <Label size="large" weight="semibold">
+                        {specializationName}
+                    </Label>
                     <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
                         <Tab data-testid="chatTab" id="chat" value="chat" aria-label="Chat Tab" title="Chat Tab">
                             Chat
