@@ -22,7 +22,7 @@ To deploy the sample to Azure, please view [Deploying Chat Copilot](./scripts/de
 
 You will need the following items to run the sample:
 
-- [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) _(via Setup install.\* script)_
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) _(via Setup install.\* script)_
 - [Node.js](https://nodejs.org/en/download) _(via Setup install.\* script)_
 - [Yarn](https://classic.yarnpkg.com/docs/install) _(via Setup install.\* script)_
 - [Git](https://www.git-scm.com/downloads)
@@ -30,7 +30,7 @@ You will need the following items to run the sample:
 
 | AI Service   | Requirement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-35-turbo` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
+| Azure OpenAI | - [Access](https://aka.ms/oai/access)<br>- [Resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource)<br>- [Deployed models](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) (`gpt-4o` and `text-embedding-ada-002`) <br>- [Endpoint](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint)<br>- [API key](https://learn.microsoft.com/azure/ai-services/openai/tutorials/embeddings?tabs=command-line#retrieve-key-and-endpoint) |
 | OpenAI       | - [Account](https://platform.openai.com/docs/overview)<br>- [API key](https://platform.openai.com/api-keys)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 # Instructions
@@ -66,7 +66,7 @@ You will need the following items to run the sample:
    - `API_KEY`: The `API key` for Azure OpenAI or for OpenAI.
    - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address. This is only required when using Azure OpenAI, omit `-Endpoint` if using OpenAI.
 
-   - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-35-turbo` and `text-embedding-ada-002` with custom names (instead of the default names), also use the parameters:
+   - > **IMPORTANT:** For `AzureOpenAI`, if you deployed models `gpt-4o` and `text-embedding-ada-002` with custom names (instead of the default names), also use the parameters:
 
      ```powershell
      -CompletionModel {DEPLOYMENT_NAME} -EmbeddingModel {DEPLOYMENT_NAME}
@@ -142,7 +142,7 @@ You will need the following items to run the sample:
       - `AZURE_OPENAI_ENDPOINT`: The Azure OpenAI resource `Endpoint` address.
       - `API_KEY`: The `API key` for Azure OpenAI.
 
-      **IMPORTANT:** If you deployed models `gpt-35-turbo` and `text-embedding-ada-002`
+      **IMPORTANT:** If you deployed models `gpt-4o` and `text-embedding-ada-002`
       with custom names (instead of the default names), you need to specify
       the deployment names with three additional parameters:
 

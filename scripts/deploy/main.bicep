@@ -32,7 +32,7 @@ param webSearcherPackageUri string = 'https://aka.ms/copilotchat/websearcher/lat
 param aiService string = 'AzureOpenAI'
 
 @description('Model to use for chat completions')
-param completionModel string = 'gpt-35-turbo'
+param completionModel string = 'gpt-4o'
 
 @description('Model to use for text embeddings')
 param embeddingModel string = 'text-embedding-ada-002'
