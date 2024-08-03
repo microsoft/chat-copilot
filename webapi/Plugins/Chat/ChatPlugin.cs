@@ -246,52 +246,66 @@ public class ChatPlugin
     /// <param name="userMessage">ChatMessage object representing new user message.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The created chat message containing the model-generated response.</returns>
-    private async Task<CopilotChatMessage> GetChatResponseAsync(string chatId, string userId, KernelArguments chatContext, CopilotChatMessage userMessage, CancellationToken cancellationToken)
+    private async Task<CopilotChatMessage> GetChatResponseAsync(
+        string chatId,
+        string userId,
+        KernelArguments chatContext,
+        CopilotChatMessage userMessage,
+        CancellationToken cancellationToken)
     {
-        // Render system instruction components and create the meta-prompt template
-        var systemInstructions = await AsyncUtils.SafeInvokeAsync(
+        // Start rendering system instructions
+        var systemInstructionsTask = AsyncUtils.SafeInvokeAsync(
             () => this.RenderSystemInstructions(chatId, chatContext, cancellationToken), nameof(RenderSystemInstructions));
-        ChatHistory metaPrompt = new(systemInstructions);
 
-        // Bypass audience extraction if Auth is disabled
-        var audience = string.Empty;
+        // Start extracting audience if the user is not a default user
+        Task<string> audienceTask = Task.FromResult(string.Empty);
         if (!PassThroughAuthenticationHandler.IsDefaultUser(userId))
         {
-            // Get the audience
-            await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting audience", cancellationToken);
-            audience = await AsyncUtils.SafeInvokeAsync(
+            audienceTask = AsyncUtils.SafeInvokeAsync(
                 () => this.GetAudienceAsync(chatContext, cancellationToken), nameof(GetAudienceAsync));
+        }
+
+        // Start extracting user intent
+        var userIntentTask = AsyncUtils.SafeInvokeAsync(
+            () => this.GetUserIntentAsync(chatContext, cancellationToken), nameof(GetUserIntentAsync));
+
+        // Wait for system instructions to complete
+        var systemInstructions = await systemInstructionsTask;
+        ChatHistory metaPrompt = new(systemInstructions);
+
+        // Wait for audience and user intent tasks to complete
+        var audience = await audienceTask;
+        if (!string.IsNullOrEmpty(audience))
+        {
             metaPrompt.AddSystemMessage(audience);
         }
 
-        // Extract user intent from the conversation history.
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting user intent", cancellationToken);
-        var userIntent = await AsyncUtils.SafeInvokeAsync(
-            () => this.GetUserIntentAsync(chatContext, cancellationToken), nameof(GetUserIntentAsync));
+        var userIntent = await userIntentTask;
         metaPrompt.AddSystemMessage(userIntent);
 
         // Calculate max amount of tokens to use for memories
         int maxRequestTokenBudget = this.GetMaxRequestTokenBudget();
-        // Calculate tokens used so far: system instructions, audience extraction and user intent
         int tokensUsed = TokenUtils.GetContextMessagesTokenCount(metaPrompt);
         int chatMemoryTokenBudget = maxRequestTokenBudget
             - tokensUsed
             - TokenUtils.GetContextMessageTokenCount(AuthorRole.User, userMessage.ToFormattedString());
         chatMemoryTokenBudget = (int)(chatMemoryTokenBudget * this._promptOptions.MemoriesResponseContextWeight);
 
-        // Query relevant semantic and document memories
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting semantic and document memories", cancellationToken);
-        (var memoryText, var citationMap) = await this._semanticMemoryRetriever.QueryMemoriesAsync(userIntent, chatId, chatMemoryTokenBudget);
+        // Start querying relevant semantic and document memories
+        var memoryQueryTask = this._semanticMemoryRetriever.QueryMemoriesAsync(userIntent, chatId, chatMemoryTokenBudget);
+
+        // Start extracting chat history
+        var chatHistoryTask = this.GetAllowedChatHistoryAsync(chatId, maxRequestTokenBudget - tokensUsed, metaPrompt, cancellationToken);
+
+        // Wait for memory query and chat history tasks to complete
+        var (memoryText, citationMap) = await memoryQueryTask;
         if (!string.IsNullOrWhiteSpace(memoryText))
         {
             metaPrompt.AddSystemMessage(memoryText);
             tokensUsed += TokenUtils.GetContextMessageTokenCount(AuthorRole.System, memoryText);
         }
 
-        // Add as many chat history messages to meta-prompt as the token budget will allow
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Extracting chat history", cancellationToken);
-        string allowedChatHistory = await this.GetAllowedChatHistoryAsync(chatId, maxRequestTokenBudget - tokensUsed, metaPrompt, cancellationToken);
-
+        var allowedChatHistory = await chatHistoryTask;
         // Store token usage of prompt template
         chatContext[TokenUtils.GetFunctionKey("SystemMetaPrompt")] = TokenUtils.GetContextMessagesTokenCount(metaPrompt).ToString(CultureInfo.CurrentCulture);
 
@@ -310,7 +324,7 @@ public class ChatPlugin
     private async Task<string> RenderSystemInstructions(string chatId, KernelArguments context, CancellationToken cancellationToken)
     {
         // Render system instruction components
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
+        //await this.UpdateBotResponseStatusOnClientAsync(chatId, "Initializing prompt", cancellationToken);
 
         var promptTemplateFactory = new KernelPromptTemplateFactory();
         var promptTemplate = promptTemplateFactory.Create(new PromptTemplateConfig(this._promptOptions.SystemPersona));
