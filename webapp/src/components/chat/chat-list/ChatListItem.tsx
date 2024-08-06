@@ -162,14 +162,14 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                     </div>
                 </>
             )}
-            {showActions && (
+            {showActions && !editingTitle ? (
                 <ListItemActions
                     chatId={id}
                     onEditTitleClick={() => {
                         setEditingTitle(true);
                     }}
                 />
-            )}
+            ) : null}
         </div>
     );
 };
