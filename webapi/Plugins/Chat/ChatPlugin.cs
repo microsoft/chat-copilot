@@ -92,7 +92,6 @@ public class ChatPlugin
     // feature flag for user intent extraction
     private readonly bool _isUserIntentExtractionEnabled;
 
-
     /// <summary>
     /// Create a new instance of <see cref="ChatPlugin"/>.
     /// </summary>
