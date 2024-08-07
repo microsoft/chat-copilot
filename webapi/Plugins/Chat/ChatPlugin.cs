@@ -281,10 +281,6 @@ public class ChatPlugin
                 () => this.GetUserIntentAsync(chatContext, cancellationToken), nameof(GetUserIntentAsync));
         }
 
-        // Start extracting user intent
-        //var userIntentTask = AsyncUtils.SafeInvokeAsync(
-        //    () => this.GetUserIntentAsync(chatContext, cancellationToken), nameof(GetUserIntentAsync));
-
         // Wait for system instructions to complete
         var systemInstructions = await systemInstructionsTask;
         ChatHistory metaPrompt = new(systemInstructions);
@@ -301,9 +297,6 @@ public class ChatPlugin
         {
             metaPrompt.AddSystemMessage(userIntent);
         }
-
-        //var userIntent = await userIntentTask;
-        //metaPrompt.AddSystemMessage(userIntent);
 
         // Calculate max amount of tokens to use for memories
         int maxRequestTokenBudget = this.GetMaxRequestTokenBudget();
@@ -371,8 +364,6 @@ public class ChatPlugin
         IEnumerable<CitationSource>? citations,
         CancellationToken cancellationToken)
     {
-        // Get bot response and stream to client
-        await this.UpdateBotResponseStatusOnClientAsync(chatId, "Generating bot response", cancellationToken);
         CopilotChatMessage chatMessage = await AsyncUtils.SafeInvokeAsync(
             () => this.StreamResponseToClientAsync(chatId, userId, (string)chatContext[this._qAzureOpenAIChatExtension.contextKey]!, promptView, cancellationToken, citations), nameof(StreamResponseToClientAsync));
 
