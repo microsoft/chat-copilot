@@ -670,14 +670,29 @@ public class ChatPlugin
         var accumulatedContent = new StringBuilder();
 
         // Create message on client
-        var chatMessage = await this.CreateBotMessageOnClient(
-            chatId,
-            userId,
-            JsonSerializer.Serialize(prompt),
-            string.Empty,
-            cancellationToken,
-            new List<CitationSource>()
-        );
+        CopilotChatMessage chatMessage;
+        if (specializationkey == "general")
+        {
+            chatMessage = await this.CreateBotMessageOnClient(
+                chatId,
+                userId,
+                JsonSerializer.Serialize(prompt),
+                string.Empty,
+                cancellationToken,
+                citations
+            );
+        }
+        else
+        {
+            chatMessage = await this.CreateBotMessageOnClient(
+                chatId,
+                userId,
+                JsonSerializer.Serialize(prompt),
+                string.Empty,
+                cancellationToken,
+                new List<CitationSource>()
+            );
+        }
 
         // Stream the message to the client
         await foreach (var contentPiece in stream)
@@ -764,7 +779,11 @@ public class ChatPlugin
 
             // Update the message content and citations on the client
             chatMessage.Content += processedContentPiece;
-            chatMessage.Citations = filteredCitations;
+            // Conditionally update citations based on specialization key
+            if (specializationkey != "general")
+            {
+                chatMessage.Citations = filteredCitations;
+            }
             await this.UpdateMessageOnClient(chatMessage, cancellationToken);
         }
 
