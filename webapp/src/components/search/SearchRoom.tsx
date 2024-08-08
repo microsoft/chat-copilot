@@ -40,46 +40,63 @@ export const SearchRoom: React.FC = () => {
     const classes = useClasses();
     const search = useSearch();
 
-    const { searchData, selectedSearchItem } = useAppSelector((state: RootState) => state.search);
-    const values = searchData.value
-    let displayContent: string[] = []
-    let metaData: ISearchMetaData = {}
+    const { searchData, selectedSearchItem, selectedSpecializationKey } = useAppSelector((state: RootState) => state.search);
+    const values = searchData.value;
+    let displayContent: string[] = [];
+    let metaData: ISearchMetaData = {};
+
     values.forEach((data) => {
         data.matches.map((match) => {
             if (match.id === selectedSearchItem) {
-                displayContent = match.content
-                metaData = match.metadata
+                displayContent = match.content;
+                metaData = match.metadata;
             }
-        })
+        });
     });
 
     const scrollViewTargetRef = React.useRef<HTMLDivElement>(null);
 
-    const handleSubmit = async (specialization:string, value: string) => {
+    const handleSubmit = async (specialization: string, value: string) => {
         await search.getResponse(specialization, value);
     };
 
     return (
-        <div className={classes.root} >
-            <SearchInput onSubmit={handleSubmit} />
+        <div className={classes.root}>
+            <SearchInput onSubmit={handleSubmit} defaultSpecializationKey={selectedSpecializationKey} />
             <div ref={scrollViewTargetRef} className={classes.scroll}>
                 <div>
-                    {displayContent.map((content, index) => <p key={index} dangerouslySetInnerHTML={{ __html: content }} />)}
+                    {displayContent.map((content, index) => (
+                        <p key={index} dangerouslySetInnerHTML={{ __html: content }} />
+                    ))}
                 </div>
                 <div id="meta-data">
-                    {metaData.source?.filename && <div>
-                        <span><b>Filename</b></span>: <span>{metaData.source.filename}</span>
-                    </div>}
-                    {metaData.source?.url && <div>
-                        <span><b>URL</b></span>: <span>{metaData.source.url}</span>
-                    </div>}
-                    {metaData.page_number !== undefined && <div>
-                        <span><b>Page Number</b></span>: <span>{metaData.page_number}</span>
-                    </div>}
+                    {metaData.source?.filename && (
+                        <div>
+                            <span>
+                                <b>Filename</b>
+                            </span>
+                            : <span>{metaData.source.filename}</span>
+                        </div>
+                    )}
+                    {metaData.source?.url && (
+                        <div>
+                            <span>
+                                <b>URL</b>
+                            </span>
+                            : <span>{metaData.source.url}</span>
+                        </div>
+                    )}
+                    {metaData.page_number !== undefined && (
+                        <div>
+                            <span>
+                                <b>Page Number</b>
+                            </span>
+                            : <span>{metaData.page_number}</span>
+                        </div>
+                    )}
                 </div>
             </div>
-            <div className={classes.input}>
-            </div>
+            <div className={classes.input}></div>
         </div>
     );
 };

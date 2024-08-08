@@ -9,11 +9,11 @@ import {
 } from '@fluentui/react-components';
 import React, { FC, useEffect } from 'react';
 import { Breakpoints } from '../../../styles';
-import { useAppDispatch } from '../../../redux/app/hooks';
+import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { ChatList } from './ChatList';
 import { SearchList } from '../../search/search-list/SearchList';
-import {  setSearchSelected } from '../../../redux/features/search/searchSlice';
-// import { searchData } from '../../../assets/const';
+import { setSearchSelected } from '../../../redux/features/search/searchSlice';
+import { RootState } from '../../../redux/app/store';
 
 const useClasses = makeStyles({
     root: {
@@ -32,16 +32,20 @@ const useClasses = makeStyles({
 export const ChatType: FC = () => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
+    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('chat');
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
     };
 
     useEffect(() => {
-        selectedTab === 'search' ? dispatch(setSearchSelected(true)) : dispatch(setSearchSelected(false));
-        // selectedTab === 'search' ? dispatch(setSearch(searchData)) : null
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab]);
+        if (selectedTab === 'search') {
+            const chatSpecializationKey: string = conversations[selectedId].specializationKey || '';
+            dispatch(setSearchSelected({ selected: true, specializationKey: chatSpecializationKey }));
+        } else {
+            dispatch(setSearchSelected({ selected: false, specializationKey: '' }));
+        }
+    }, [selectedTab, conversations, selectedId, dispatch]);
 
     return (
         <div className={classes.root}>
@@ -61,7 +65,6 @@ export const ChatType: FC = () => {
             </TabList>
             {selectedTab === 'chat' && <ChatList />}
             {selectedTab === 'search' && <SearchList />}
-            
         </div>
     );
 };
