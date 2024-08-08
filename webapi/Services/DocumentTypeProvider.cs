@@ -33,6 +33,8 @@ public class DocumentTypeProvider
                 { FileExtensions.ImageJpg, true },
                 { FileExtensions.ImageJpeg, true },
                 { FileExtensions.ImageTiff, true },
+                { ".ppt", false },
+                { ".pptx", false }
             };
     }
 
