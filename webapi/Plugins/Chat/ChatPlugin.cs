@@ -325,7 +325,14 @@ public class ChatPlugin
         chatContext[TokenUtils.GetFunctionKey("SystemMetaPrompt")] = TokenUtils.GetContextMessagesTokenCount(metaPrompt).ToString(CultureInfo.CurrentCulture);
 
         // Stream the response to the client
-        var promptView = new BotResponsePrompt(systemInstructions, audience, string.Empty, memoryText, allowedChatHistory, metaPrompt);
+        var promptView = new BotResponsePrompt(
+            systemInstructions, 
+            audience, 
+            this._isUserIntentExtractionEnabled ? userIntent : string.Empty, // Include user intent if the flag is enabled
+            memoryText, 
+            allowedChatHistory, 
+            metaPrompt
+        );
 
         return await this.HandleBotResponseAsync(chatId, userId, chatContext, promptView, citationMap.Values.AsEnumerable(), cancellationToken);
     }
