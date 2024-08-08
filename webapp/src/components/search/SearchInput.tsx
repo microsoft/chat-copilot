@@ -30,6 +30,7 @@ const useClasses = makeStyles({
 
 interface SearchInputProps {
     onSubmit: (specialization: string, value: string) => Promise<void>;
+    defaultSpecializationKey?: string;
 }
 
 interface Specialization {
@@ -37,12 +38,16 @@ interface Specialization {
     name: string;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpecializationKey = '' }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
-    const [specialization, setSpecialization] = useState<Specialization>({ key: '', name: '' });
-    const [value, setValue] = useState('');
     const { specializations } = useAppSelector((state: RootState) => state.app);
+
+    // Find the specialization name based on the defaultSpecializationKey
+    const defaultSpecialization = specializations.find(spec => spec.key === defaultSpecializationKey) ?? { key: '', name: '' };
+
+    const [specialization, setSpecialization] = useState<Specialization>(defaultSpecialization);
+    const [value, setValue] = useState('');
 
     const dropdownId = useId();
 

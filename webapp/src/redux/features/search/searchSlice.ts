@@ -11,8 +11,12 @@ export const searchSlice = createSlice({
         setSelectedSearchItem: (state: SearchState, action: PayloadAction<string>) => {
             state.selectedSearchItem = action.payload;
         },
-        setSearchSelected: (state: SearchState, action: PayloadAction<boolean>) => {
-            state.selected = action.payload;
+        setSearchSelected: (
+            state: SearchState,
+            action: PayloadAction<{ selected: boolean; specializationKey: string }>,
+        ) => {
+            state.selected = action.payload.selected;
+            state.selectedSpecializationKey = action.payload.specializationKey;
         },
     },
 });
