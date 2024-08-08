@@ -326,11 +326,11 @@ public class ChatPlugin
 
         // Stream the response to the client
         var promptView = new BotResponsePrompt(
-            systemInstructions, 
-            audience, 
+            systemInstructions,
+            audience,
             this._isUserIntentExtractionEnabled ? userIntent : string.Empty, // Include user intent if the flag is enabled
-            memoryText, 
-            allowedChatHistory, 
+            memoryText,
+            allowedChatHistory,
             metaPrompt
         );
 
