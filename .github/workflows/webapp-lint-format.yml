@@ -11,11 +11,12 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
+      - run: npm ci
       - name: Setup Node
         run: npm install
       - name: Run ESLint
         working-directory: webapp
-        run: npm run action:lint
+        run: npm run lint
 
   prettier:
     runs-on: ubuntu-latest
@@ -25,8 +26,9 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
+      - run: npm ci
       - name: Setup Node
         run: npm install
       - name: Run Format Check
         working-directory: webapp
-        run: npm run action:format
+        run: npm run format
