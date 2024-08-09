@@ -11,8 +11,8 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
-      - run: npm ci
       - name: Setup Node
+        working-directory: webapp
         run: npm install
       - name: Run ESLint
         working-directory: webapp
@@ -26,8 +26,8 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
-      - run: npm ci
       - name: Setup Node
+        working-directory: webapp
         run: npm install
       - name: Run Format Check
         working-directory: webapp
