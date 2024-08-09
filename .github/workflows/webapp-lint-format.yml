@@ -1,0 +1,32 @@
+name: WebApp Lint Format
+
+on: [push]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+      - name: Setup Node
+        run: npm install
+      - name: Run ESLint
+        working-directory: webapp
+        run: npm run action:lint
+
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+      - name: Setup Node
+        run: npm install
+      - name: Run Format Check
+        working-directory: webapp
+        run: npm run action:format
