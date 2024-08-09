@@ -77,7 +77,13 @@ const useClasses = makeStyles({
         position: 'relative',
         display: 'flex',
         flexDirection: 'row',
+        alignItems: 'center',
         ...shorthands.gap(customTokens.spacingHorizontalL),
+    },
+    headerMenu: {
+        display: 'flex',
+        flexDirection: 'row',
+        marginLeft: 'auto',
     },
     canvas: {
         width: '100%',
@@ -187,8 +193,8 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                 <div className={classes.header}>
                     {!isMe && <Text weight="semibold">{fullName}</Text>}
                     <Text className={classes.time}>{timestampToDateString(message.timestamp, true)}</Text>
-                    {isBot && <PromptDialog message={message} />}
-                    {isBot && message.prompt && (
+                    <div className={classes.headerMenu}>
+                        {isBot && <PromptDialog message={message} />}
                         <Tooltip content={messagedCopied ? 'Copied' : 'Copy text'} relationship="label">
                             <Button
                                 icon={messagedCopied ? <ClipboardTask20Regular /> : <Clipboard20Regular />}
@@ -198,7 +204,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                                 }}
                             />
                         </Tooltip>
-                    )}
+                    </div>
                 </div>
                 {content}
                 {showExtra && (
