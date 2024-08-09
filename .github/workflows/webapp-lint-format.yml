@@ -3,32 +3,36 @@ name: WebApp Lint Format
 on: [push]
 
 jobs:
-  eslint:
+  lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webapp # Here the path to the folder where package-lock.json is located.
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "npm"
-      - name: Setup Node
-        working-directory: webapp
-        run: npm install
-      - name: Run ESLint
-        working-directory: webapp
+          cache: npm
+          cache-dependency-path: './webapp/yarn.lock'
+      - name: Install Dependencies
+        run: npm i --force
+      - name: Run ESLint Check
         run: npm run lint
 
-  prettier:
+  format:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webapp # Here the path to the folder where package-lock.json is located.
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "npm"
-      - name: Setup Node
-        working-directory: webapp
-        run: npm install
-      - name: Run Format Check
-        working-directory: webapp
+          cache: npm
+          cache-dependency-path: './webapp/yarn.lock'
+      - name: Install Dependencies
+        run: npm i --force
+      - name: Run Prettier Format Check
         run: npm run format
