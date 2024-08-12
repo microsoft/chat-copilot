@@ -22,7 +22,7 @@
     "@fluentui/react-northstar": "^0.66.4",
     "@microsoft/signalr": "^8.0.7",
     "@playwright/test": "^1.45.2",
-    "@reduxjs/toolkit": "^2.2.6",
+    "@reduxjs/toolkit": "^2.2.7",
     "debug": "^4.3.6",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "react": "^18.3.1",
