@@ -6,9 +6,9 @@ export const getPlanGoal = (description: string) => {
     const userIntentIndex = description.indexOf(userIntentPrefix);
     return userIntentIndex !== -1
         ? description.substring(userIntentIndex + userIntentPrefix.length).trim()
-        : description
+        : (description
               .split('\n')
               .find((line: string) => line.startsWith('INPUT:'))
               ?.replace('INPUT:', '')
-              .trim() ?? description;
+              .trim() ?? description);
 };

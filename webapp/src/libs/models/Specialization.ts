@@ -1,4 +1,3 @@
-
 export interface ISpecialization {
     key: string;
     name: string;

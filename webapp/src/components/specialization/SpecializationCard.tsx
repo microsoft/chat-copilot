@@ -81,43 +81,36 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
 
     return (
         <div className={styles.root} key={cardDivId}>
-                <Card
-                    className={styles.card}
-                    data-testid="addNewBotMenuItem"
-                    onClick={onAddChat}
-                    key={cardId}
-                >
-                    <CardPreview className={styles.grayBackground}>
-                        <img
-                            className={styles.smallRadius}
-                            src={getimagefilepath(specialization.imageFilepath)}
-                            alt="Presentation Preview"
-                        />
-                    </CardPreview>
+            <Card className={styles.card} data-testid="addNewBotMenuItem" onClick={onAddChat} key={cardId}>
+                <CardPreview className={styles.grayBackground}>
+                    <img
+                        className={styles.smallRadius}
+                        src={getimagefilepath(specialization.imageFilepath)}
+                        alt="Presentation Preview"
+                    />
+                </CardPreview>
 
-                    <CardHeader
-                        header={<Text weight="semibold"> {specialization.name}</Text>}
-                        description={
-                            <Caption1 className={styles.caption}>{truncate(specialization.description)}</Caption1>
-                        }
-                        action={
-                            <div
-                                className={
-                                    specialization.description.length > 250 ? styles.showTooltip : styles.hideTooltip
-                                }
-                                key={specializationId}
-                            >
-                                <Tooltip content={specialization.description} relationship="label">
-                                    <Button
-                                        appearance="transparent"
-                                        icon={<MoreHorizontal20Regular />}
-                                        aria-label="More actions"
-                                    ></Button>
-                                </Tooltip>
-                            </div>
-                        }
-                    ></CardHeader>
-                </Card>
-            </div>
+                <CardHeader
+                    header={<Text weight="semibold"> {specialization.name}</Text>}
+                    description={<Caption1 className={styles.caption}>{truncate(specialization.description)}</Caption1>}
+                    action={
+                        <div
+                            className={
+                                specialization.description.length > 250 ? styles.showTooltip : styles.hideTooltip
+                            }
+                            key={specializationId}
+                        >
+                            <Tooltip content={specialization.description} relationship="label">
+                                <Button
+                                    appearance="transparent"
+                                    icon={<MoreHorizontal20Regular />}
+                                    aria-label="More actions"
+                                ></Button>
+                            </Tooltip>
+                        </div>
+                    }
+                ></CardHeader>
+            </Card>
+        </div>
     );
 };

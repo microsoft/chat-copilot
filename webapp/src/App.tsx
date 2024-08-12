@@ -15,9 +15,9 @@ import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
 import { addAlert, setActiveUserInfo, setServiceInfo, setSpecialization } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
-/** 
- * Changes to support specialization 
-*/
+/**
+ * Changes to support specialization
+ */
 export const useClasses = makeStyles({
     container: {
         display: 'flex',

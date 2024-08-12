@@ -1,14 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import {
-    Badge,
-    Card,
-    CardHeader,
-    makeStyles,
-    shorthands,
-    Text,
-    ToggleButton,
-} from '@fluentui/react-components';
+import { Badge, Card, CardHeader, makeStyles, shorthands, Text, ToggleButton } from '@fluentui/react-components';
 import { ChevronDown20Regular, ChevronUp20Regular } from '@fluentui/react-icons';
 import React, { useState } from 'react';
 import { IChatMessage } from '../../../libs/models/ChatMessage';

@@ -6,7 +6,6 @@ import { UserSettingsMenu } from '../header/UserSettingsMenu';
 import { PluginGallery } from '../open-api-plugins/PluginGallery';
 import { BackendProbe, ChatView, Error, Loading } from '../views';
 
-
 const Chat = ({
     classes,
     appState,
@@ -16,7 +15,6 @@ const Chat = ({
     appState: AppState;
     setAppState: (state: AppState) => void;
 }) => {
-
     const onBackendFound = React.useCallback(() => {
         setAppState(
             AuthHelper.isAuthAAD()

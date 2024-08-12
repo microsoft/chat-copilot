@@ -13,9 +13,7 @@ interface ServiceRequest {
 const noResponseBodyStatusCodes = [202, 204];
 
 export const BackendServiceUrl =
-    window._env_.REACT_APP_BACKEND_URI.trim() === ''
-        ? window.origin
-        : window._env_.REACT_APP_BACKEND_URI;
+    window._env_.REACT_APP_BACKEND_URI.trim() === '' ? window.origin : window._env_.REACT_APP_BACKEND_URI;
 export const NetworkErrorMessage = '\n\nPlease check that your backend is running and that it is accessible by the app';
 
 export class BaseService {

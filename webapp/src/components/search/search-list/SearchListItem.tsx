@@ -81,11 +81,7 @@ interface ISearchListItemProps {
     isSelected: boolean;
 }
 
-export const SearchListItem: FC<ISearchListItemProps> = ({
-    label,
-    id,
-    isSelected,
-}) => {
+export const SearchListItem: FC<ISearchListItemProps> = ({ label, id, isSelected }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
 
@@ -94,7 +90,8 @@ export const SearchListItem: FC<ISearchListItemProps> = ({
     };
 
     return (
-        <div key={useId()}
+        <div
+            key={useId()}
             className={mergeClasses(classes.root, isSelected && classes.selected)}
             onClick={onClick}
             title={label}

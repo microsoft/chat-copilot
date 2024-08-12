@@ -5,7 +5,7 @@ import appReducer from '../features/app/appSlice';
 import conversationsReducer from '../features/conversations/conversationsSlice';
 import pluginsReducer from '../features/plugins/pluginsSlice';
 import usersReducer from '../features/users/usersSlice';
-import searchReducer from '../features/search/searchSlice'
+import searchReducer from '../features/search/searchSlice';
 import { RootState } from './store';
 
 // Define a top-level root state reset action

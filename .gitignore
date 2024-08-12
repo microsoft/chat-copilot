@@ -416,6 +416,8 @@ launchSettings.json
 config.development.yaml
 *.development.config
 *.development.json
+*.Development.config
+*.Development.json
 .DS_Store
 .idea/
 node_modules/

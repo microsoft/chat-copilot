@@ -26,7 +26,7 @@ const useClasses = makeStyles({
         ...Breakpoints.small({
             width: '64px',
         }),
-    }
+    },
 });
 
 export const ChatType: FC = () => {
@@ -53,13 +53,7 @@ export const ChatType: FC = () => {
                 <Tab data-testid="chatTab" id="chat" value="chat" aria-label="Chat Tab" title="Chat Tab">
                     Chat
                 </Tab>
-                <Tab
-                    data-testid="searchTab"
-                    id="search"
-                    value="search"
-                    aria-label="Search Tab"
-                    title="Search Tab"
-                >
+                <Tab data-testid="searchTab" id="search" value="search" aria-label="Search Tab" title="Search Tab">
                     Search
                 </Tab>
             </TabList>

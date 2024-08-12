@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-import {
-    makeStyles,
-    tokens,
-} from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 
 import React from 'react';
 

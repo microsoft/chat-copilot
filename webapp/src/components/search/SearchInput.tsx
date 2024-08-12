@@ -44,7 +44,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
     const { specializations } = useAppSelector((state: RootState) => state.app);
 
     // Find the specialization name based on the defaultSpecializationKey
-    const defaultSpecialization = specializations.find(spec => spec.key === defaultSpecializationKey) ?? { key: '', name: '' };
+    const defaultSpecialization = specializations.find((spec) => spec.key === defaultSpecializationKey) ?? {
+        key: '',
+        name: '',
+    };
 
     const [specialization, setSpecialization] = useState<Specialization>(defaultSpecialization);
     const [value, setValue] = useState('');
@@ -98,8 +101,8 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
                                 ),
                         )}
                     </Dropdown>
-                    <SearchBox 
-                        placeholder="Search..." 
+                    <SearchBox
+                        placeholder="Search..."
                         className={classes.inputWidth}
                         value={value}
                         appearance="outline"
@@ -112,16 +115,18 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
                                 handleSubmit();
                             }
                         }}
-                        dismiss={<Button
-                            title="Reset"
-                            aria-label="Reset Search"
-                            appearance="transparent"
-                            icon={<Dismiss20Regular />}
-                            onClick={() => {
-                                clearSearchInputState();
-                            }}
-                        />}
-                         />
+                        dismiss={
+                            <Button
+                                title="Reset"
+                                aria-label="Reset Search"
+                                appearance="transparent"
+                                icon={<Dismiss20Regular />}
+                                onClick={() => {
+                                    clearSearchInputState();
+                                }}
+                            />
+                        }
+                    />
                     {/* <Input
                         
                         className={classes.inputWidth}
@@ -145,7 +150,6 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
                             handleSubmit();
                         }}
                     />
-                    
                 </Flex>
             </div>
         </>

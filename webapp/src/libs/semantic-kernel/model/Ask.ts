@@ -10,7 +10,7 @@ export interface IAskVariables {
     value: string;
 }
 
-export interface IAskSearch{
+export interface IAskSearch {
     specializationKey: string;
     search: string;
 }

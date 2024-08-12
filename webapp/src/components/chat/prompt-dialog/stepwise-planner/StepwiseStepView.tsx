@@ -44,7 +44,7 @@ export const StepwiseStepView: React.FC<IStepwiseStepViewProps> = ({ step, index
         const thoughtRegEx = /\[(THOUGHT|QUESTION|ACTION)](\s*(.*))*/g;
         let thought = step.final_answer
             ? `[FINAL ANSWER] ${step.final_answer}`
-            : step.thought.match(thoughtRegEx)?.[0] ?? `[THOUGHT] ${step.thought}`;
+            : (step.thought.match(thoughtRegEx)?.[0] ?? `[THOUGHT] ${step.thought}`);
 
         // Only show the first sentence of the thought in the header. Show the rest as details.
         // Match the first period or colon followed by a non-digit or non-letter

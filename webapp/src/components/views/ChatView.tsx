@@ -20,12 +20,12 @@ export const ChatView: FC = () => {
     const classes = useClasses();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { selected } = useAppSelector((state: RootState) => state.search);
-    
+
     return (
         <div className={classes.container}>
-            <ChatType/>
+            <ChatType />
             {selectedId !== '' && !selected && <ChatWindow />}
-            {selected && <SearchWindow/>}
+            {selected && <SearchWindow />}
         </div>
     );
 };

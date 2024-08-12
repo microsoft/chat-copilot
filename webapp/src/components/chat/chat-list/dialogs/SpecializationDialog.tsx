@@ -22,17 +22,17 @@ export const SpecializationDialog: React.FC = ({}) => {
         <Dialog open={showSpecialization}>
             <DialogTrigger disableButtonEnhancement>
                 <Tooltip content={'Add a chat'} relationship="label">
-                        <Button
-                            icon={<Add20 />}
-                            appearance="transparent"
-                            aria-label="Add"
-                            onClick={() => {
-                                setShowSpecialization(true);
-                            }}
-                        />
-                    </Tooltip>
+                    <Button
+                        icon={<Add20 />}
+                        appearance="transparent"
+                        aria-label="Add"
+                        onClick={() => {
+                            setShowSpecialization(true);
+                        }}
+                    />
+                </Tooltip>
             </DialogTrigger>
-            <DialogSurface >
+            <DialogSurface>
                 <DialogBody>
                     <DialogTitle
                         action={
@@ -54,9 +54,9 @@ export const SpecializationDialog: React.FC = ({}) => {
                     <DialogTrigger action="close" disableButtonEnhancement>
                         <DialogContent>
                             <SpecializationCardList
-                                    specializations={specializations}
-                                    setShowSpecialization={setShowSpecialization}
-                                />
+                                specializations={specializations}
+                                setShowSpecialization={setShowSpecialization}
+                            />
                         </DialogContent>
                     </DialogTrigger>
                 </DialogBody>

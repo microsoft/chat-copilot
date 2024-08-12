@@ -47,7 +47,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ message, messageIndex })
     const parsedContent = JSON.parse(message.content) as ProposedPlan;
     const originalPlan = parsedContent.proposedPlan;
     const planState =
-        parsedContent.state === PlanState.Derived ? PlanState.Derived : message.planState ?? parsedContent.state;
+        parsedContent.state === PlanState.Derived ? PlanState.Derived : (message.planState ?? parsedContent.state);
     const [plan, setPlan] = useState(originalPlan);
 
     const onPlanAction = async (planState: PlanState.Approved | PlanState.Rejected) => {

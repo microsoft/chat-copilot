@@ -40,7 +40,9 @@ export const SearchRoom: React.FC = () => {
     const classes = useClasses();
     const search = useSearch();
 
-    const { searchData, selectedSearchItem, selectedSpecializationKey } = useAppSelector((state: RootState) => state.search);
+    const { searchData, selectedSearchItem, selectedSpecializationKey } = useAppSelector(
+        (state: RootState) => state.search,
+    );
     const values = searchData.value;
     let displayContent: string[] = [];
     let metaData: ISearchMetaData = {};

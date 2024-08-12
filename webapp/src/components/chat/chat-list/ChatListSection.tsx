@@ -46,7 +46,7 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                 const messages = convo.messages;
                 const lastMessage = messages[convo.messages.length - 1];
                 const isSelected = id === selectedId;
-                const specializationKey = convo.specializationKey
+                const specializationKey = convo.specializationKey;
                 return (
                     <ChatListItem
                         id={id}
@@ -64,7 +64,7 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                                 : 'Click to start the chat'
                         }
                         botProfilePicture={convo.botProfilePicture}
-                        specializationKey={specializationKey} 
+                        specializationKey={specializationKey}
                     />
                 );
             })}

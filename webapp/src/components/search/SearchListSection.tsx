@@ -57,7 +57,7 @@ export const SearchListSection: React.FC<ISearchListSectionProps> = ({ value, in
                         const selectedItem = match.id === selectedSearchItem;
 
                         return (
-                            <AccordionPanel key={'acc'+accordionPanelId+id}>
+                            <AccordionPanel key={'acc' + accordionPanelId + id}>
                                 <SearchListItem key={id} label={label} id={id} isSelected={selectedItem} />
                             </AccordionPanel>
                         );

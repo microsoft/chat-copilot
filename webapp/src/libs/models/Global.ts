@@ -1,7 +1,9 @@
-export { };
+export {};
 
 declare global {
-    interface Window { _env_: ENVType; }
+    interface Window {
+        _env_: ENVType;
+    }
 }
 
 interface ENVType {
