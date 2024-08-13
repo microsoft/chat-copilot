@@ -108,7 +108,7 @@ export const Features = {
         description: 'Enable multi-user chat sessions. Not available when authorization is disabled.',
     },
     [FeatureKeys.RLHF]: {
-        enabled: false,
+        enabled: true,
         label: 'Reinforcement Learning from Human Feedback',
         description: 'Enable users to vote on model-generated responses. For demonstration purposes only.',
         // TODO: [Issue #42] Send and store feedback in backend

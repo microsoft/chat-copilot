@@ -16,9 +16,10 @@ const useClasses = makeStyles({
 
 interface IUserFeedbackProps {
     messageIndex: number;
+    wasHelpful?: number;
 }
 
-export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex }) => {
+export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex, wasHelpful }) => {
     const classes = useClasses();
 
     const dispatch = useAppDispatch();
@@ -42,11 +43,11 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
     return (
         <div className={classes.root}>
             <Text color="gray" size={200}>
-                AI-generated content may be incorrect
+                Was this response helpful?
             </Text>
-            <Tooltip content={'Like bot message'} relationship="label">
+            <Tooltip content={'Like'} relationship="label">
                 <Button
-                    icon={<ThumbLike16 />}
+                    icon={<ThumbLike16 filled={wasHelpful === UserFeedback.Positive} />}
                     appearance="transparent"
                     aria-label="Edit"
                     onClick={() => {
@@ -54,9 +55,9 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     }}
                 />
             </Tooltip>
-            <Tooltip content={'Dislike bot message'} relationship="label">
+            <Tooltip content={'Dislike'} relationship="label">
                 <Button
-                    icon={<ThumbDislike16 />}
+                    icon={<ThumbDislike16 filled={wasHelpful === UserFeedback.Negative} />}
                     appearance="transparent"
                     aria-label="Edit"
                     onClick={() => {
