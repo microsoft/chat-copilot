@@ -27,6 +27,7 @@ export interface ActiveUserInfo {
     id: string;
     email: string;
     username: string;
+    image?: string;
 }
 
 export interface Alert {

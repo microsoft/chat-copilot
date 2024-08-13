@@ -141,11 +141,17 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
         });
     };
 
+    const avatarImage = activeUserInfo?.image
+        ? {
+              src: activeUserInfo.image,
+          }
+        : undefined;
+
     const avatar: AvatarProps = isBot
         ? { image: { src: conversations[selectedId].botProfilePicture } }
         : isDefaultUser
-          ? { idForColor: selectedId, color: 'colorful' }
-          : { name: fullName, color: 'colorful' };
+          ? { idForColor: selectedId, color: 'colorful', image: avatarImage }
+          : { name: fullName, color: 'colorful', image: avatarImage };
 
     let content: JSX.Element;
     if (isBot && message.type === ChatMessageType.Plan) {

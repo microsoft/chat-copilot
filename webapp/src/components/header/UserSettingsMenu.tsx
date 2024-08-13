@@ -62,6 +62,7 @@ export const UserSettingsMenu: FC<IUserSettingsProps> = ({ setLoadingState }) =>
                                 className={classes.root}
                                 key={activeUserInfo?.username}
                                 name={activeUserInfo?.username}
+                                image={{ src: activeUserInfo?.image }}
                                 size={28}
                                 badge={
                                     !features[FeatureKeys.SimplifiedExperience].enabled
