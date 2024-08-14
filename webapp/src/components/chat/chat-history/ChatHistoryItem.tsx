@@ -94,8 +94,6 @@ const useClasses = makeStyles({
         filter: 'blur(5px)',
     },
     controls: {
-        display: 'flex',
-        flexDirection: 'row',
         marginTop: customTokens.spacingVerticalS,
         marginBottom: customTokens.spacingVerticalS,
         ...shorthands.gap(customTokens.spacingHorizontalL),
@@ -219,6 +217,11 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                 {content}
 
                 <div className={classes.controls}>
+                    {showFeedback && showShowRLHFMessage && (
+                        <div className={classes.rlhf}>
+                            {<UserFeedbackActions messageIndex={messageIndex} wasHelpful={message.userFeedback} />}
+                        </div>
+                    )}
                     {showMessageCitation && (
                         <ToggleButton
                             appearance="subtle"
@@ -233,11 +236,6 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                         >
                             {`${messageCitations.length} ${messageCitations.length === 1 ? 'citation' : 'citations'}`}
                         </ToggleButton>
-                    )}
-                    {showFeedback && showShowRLHFMessage && (
-                        <div className={classes.rlhf}>
-                            {<UserFeedbackActions messageIndex={messageIndex} wasHelpful={message.userFeedback} />}
-                        </div>
                     )}
                     {showCitationCards && <CitationCards message={message} />}
                 </div>

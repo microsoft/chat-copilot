@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { makeStyles } from '@fluentui/react-components';
-import { Animation } from '@fluentui/react-northstar';
 import React from 'react';
 import { IChatUser } from '../../libs/models/ChatUser';
 import { useAppSelector } from '../../redux/app/hooks';
@@ -49,11 +48,9 @@ export const ChatStatus: React.FC = () => {
     }
 
     return (
-        <Animation name="slideInCubic" keyframeParams={{ distance: '2.4rem' }}>
-            <div className={classes.root}>
-                <label>{message}</label>
-                <TypingIndicator />
-            </div>
-        </Animation>
+        <div className={classes.root}>
+            <label style={{ marginRight: '4px' }}>{message}</label>
+            <TypingIndicator />
+        </div>
     );
 };

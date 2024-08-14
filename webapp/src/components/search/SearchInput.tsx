@@ -1,12 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 import { Button, Dropdown, makeStyles, Option, SearchBox } from '@fluentui/react-components';
-import { SendRegular, Dismiss20Regular } from '@fluentui/react-icons';
+import { Dismiss20Regular, SendRegular } from '@fluentui/react-icons';
 import React, { useId, useState } from 'react';
 import { AlertType } from '../../libs/models/AlertType';
-import { RootState } from '../../redux/app/store';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
+import { RootState } from '../../redux/app/store';
 import { addAlert } from '../../redux/features/app/appSlice';
-import { Flex } from '@fluentui/react-northstar';
 import { setSearch } from '../../redux/features/search/searchSlice';
 
 const useClasses = makeStyles({
@@ -25,6 +24,9 @@ const useClasses = makeStyles({
         '& .ui-box::after': {
             transformOrigin: 'left top',
         },
+    },
+    flex: {
+        display: 'flex',
     },
 });
 
@@ -79,7 +81,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
     return (
         <>
             <div className={classes.root}>
-                <Flex>
+                <div className={classes.flex}>
                     <Dropdown
                         className={classes.keyWidth}
                         aria-labelledby={dropdownId}
@@ -150,7 +152,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
                             handleSubmit();
                         }}
                     />
-                </Flex>
+                </div>
             </div>
         </>
     );
