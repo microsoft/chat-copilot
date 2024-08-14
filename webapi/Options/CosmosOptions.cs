@@ -47,7 +47,7 @@ public class CosmosOptions
     public string ChatParticipantsContainer { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the Cosmos container for chat participants.
+    /// Gets or sets the Cosmos container for chat specialization sessions.
     /// </summary>
     [Required, NotEmptyOrWhitespace]
     public string ChatSpecializationSessionsContainer { get; set; } = string.Empty;

@@ -31,7 +31,7 @@ public class ChatParticipant : IStorageEntity
     /// The partition key for the source.
     /// </summary>
     [JsonIgnore]
-    public string Partition => this.UserId;
+    public string Partition => this.ChatId;
 
     public ChatParticipant(string userId, string chatId)
     {
