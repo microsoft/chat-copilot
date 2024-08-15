@@ -25,3 +25,14 @@ body,
     border-radius: 12px;
     visibility: 'hidden';
 }
+
+.message-content table,
+.message-content th,
+.message-content td {
+    border: 1px solid #e5e5e5;
+    padding: 4px;
+}
+
+.message-content table {
+    border-collapse: collapse;
+}

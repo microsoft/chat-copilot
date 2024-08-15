@@ -214,7 +214,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                         </Tooltip>
                     </div>
                 </div>
-                {content}
+                <div className="message-content">{content}</div>
 
                 <div className={classes.controls}>
                     {showFeedback && showShowRLHFMessage && (
