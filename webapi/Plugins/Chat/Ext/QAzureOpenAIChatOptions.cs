@@ -29,6 +29,7 @@ public class QSpecialization
     public string QueryType { get; set; } = string.Empty;
     public string SemanticConfiguration { get; set; } = string.Empty;
     public bool RestrictResultScope { get; set; } = true;
+    public IList<string> GroupMemberships { get; set; } = new List<string>();
     public FieldMappingOption? FieldMapping { get; set; } = new FieldMappingOption();
     public int Strictness { get; set; }
     public int DocumentCount { get; set; }

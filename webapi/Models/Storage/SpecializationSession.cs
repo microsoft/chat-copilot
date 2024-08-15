@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Quartech. All rights reserved.
 
+using System.Collections.Generic;
+
 namespace CopilotChat.WebApi.Models.Storage;
 
 /// <summary>
@@ -27,11 +29,17 @@ public class SpecializationSession
     /// </summary>
     public string ImageFilepath { get; set; }
 
-    public SpecializationSession(string Key, string Name, string Description, string ImageFilepath)
+    /// <summary>
+    /// List of group memberships for the user.
+    /// </summary>
+    public IList<string> GroupMemberships { get; set; }
+
+    public SpecializationSession(string Key, string Name, string Description, string ImageFilepath, IList<string> GroupMemberships)
     {
         this.Key = Key;
         this.Name = Name;
         this.Description = Description;
         this.ImageFilepath = ImageFilepath;
+        this.GroupMemberships = GroupMemberships;
     }
 }

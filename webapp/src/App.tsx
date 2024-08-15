@@ -13,6 +13,7 @@ import {
 import { Client, ResponseType } from '@microsoft/microsoft-graph-client';
 import * as React from 'react';
 import { useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import Chat from './components/chat/Chat';
 import { Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
@@ -65,6 +66,10 @@ export enum AppState {
     LoadingChats,
     Chat,
     SigningOut,
+}
+
+interface JWTPayload {
+    groups: string[];
 }
 
 const App = () => {
@@ -139,12 +144,15 @@ const App = () => {
                 if (result) {
                     getUserImage(result.accessToken, account.username)
                         .then((image) => {
+                            const decoded: JWTPayload = jwtDecode(account.idToken ?? '');
                             dispatch(
                                 setActiveUserInfo({
                                     id: `${account.localAccountId}.${account.tenantId}`,
                                     email: account.username, // username is the email address
                                     username: account.name ?? account.username,
                                     image: image,
+                                    groups: decoded.groups,
+                                    id_token: account.idToken ?? '',
                                 }),
                             );
                         })

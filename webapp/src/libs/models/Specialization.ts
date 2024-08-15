@@ -3,4 +3,5 @@ export interface ISpecialization {
     name: string;
     description: string;
     imageFilepath?: string;
+    groupMemberships: string[];
 }

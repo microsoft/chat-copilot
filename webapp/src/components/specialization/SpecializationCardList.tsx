@@ -3,6 +3,8 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import { ISpecialization } from '../../libs/models/Specialization';
 import { SpecializationCard } from './SpecializationCard';
+import { useAppSelector } from '../../redux/app/hooks';
+import { RootState } from '../../redux/app/store';
 
 const responsive = {
     // Define responsive settings for different screen sizes
@@ -34,9 +36,17 @@ interface SpecializationProps {
 export const SpecializationCardList: React.FC<SpecializationProps> = ({ specializations, setShowSpecialization }) => {
     const specializaionCarouselId = useId();
     const specializaionCardId = useId();
+    const { app } = useAppSelector((state: RootState) => state);
+    const filteredSpecializations = specializations.filter((_specialization) => {
+        const hasMembership = app.activeUserInfo?.groups.some((val) => _specialization.groupMemberships.includes(val));
+        if (hasMembership) {
+            return _specialization;
+        }
+        return;
+    });
     return (
         <Carousel responsive={responsive} key={specializaionCarouselId}>
-            {specializations.map((_specialization, index) => (
+            {filteredSpecializations.map((_specialization, index) => (
                 <div className="root" key={index}>
                     <SpecializationCard
                         key={specializaionCardId + '_' + index.toString()}

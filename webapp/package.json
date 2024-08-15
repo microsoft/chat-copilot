@@ -25,6 +25,7 @@
     "@playwright/test": "^1.45.2",
     "@reduxjs/toolkit": "^2.2.6",
     "debug": "^4.3.5",
+    "jwt-decode": "^4.0.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
