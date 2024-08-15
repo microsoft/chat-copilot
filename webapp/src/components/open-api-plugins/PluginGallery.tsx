@@ -60,7 +60,11 @@ const useClasses = makeStyles({
     },
 });
 
-export const PluginGallery: React.FC = () => {
+interface PluginGalleryProps {
+    isDarkMode: boolean;
+}
+
+export const PluginGallery: React.FC<PluginGalleryProps> = ({ isDarkMode }) => {
     const classes = useClasses();
     const dispatch = useDispatch();
 
@@ -115,9 +119,9 @@ export const PluginGallery: React.FC = () => {
             <DialogTrigger>
                 <Button
                     data-testid="pluginButton"
-                    style={{ color: 'white' }}
+                    style={{ color: isDarkMode ? 'white' : 'black', marginRight: '10px' }}
                     appearance="transparent"
-                    icon={<AppsAddIn24 color="white" />}
+                    icon={<AppsAddIn24 color={isDarkMode ? 'white' : 'black'} />}
                     title="Plugins Gallery"
                     aria-label="Plugins Gallery"
                 >
