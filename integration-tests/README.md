@@ -10,7 +10,7 @@
 
 Integration tests require the URL of the backend instance.
 
-We suggest using the .NET [Secret Manager](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets)
+We suggest using the .NET [Secret Manager](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0)
 to avoid the risk of leaking secrets into the repository, branches and pull requests.
 
 Values set using the Secret Manager will override the settings set in the `testsettings.development.json` file and in environment variables.

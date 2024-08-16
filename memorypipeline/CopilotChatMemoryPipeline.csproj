@@ -15,8 +15,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.15.1" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.70.240803.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.17.1" />
   </ItemGroup>
 
 </Project>
