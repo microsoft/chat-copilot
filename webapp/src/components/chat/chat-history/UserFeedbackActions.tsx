@@ -1,6 +1,9 @@
+import { useMsal } from '@azure/msal-react';
 import { Button, Text, Tooltip, makeStyles } from '@fluentui/react-components';
 import { useCallback } from 'react';
+import { AuthHelper } from '../../../libs/auth/AuthHelper';
 import { UserFeedback } from '../../../libs/models/ChatMessage';
+import { ChatService } from '../../../libs/services/ChatService';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
@@ -15,29 +18,42 @@ const useClasses = makeStyles({
 });
 
 interface IUserFeedbackProps {
-    messageIndex: number;
-    wasHelpful?: number;
+    messageId: string;
+    wasHelpful?: string;
 }
 
-export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex, wasHelpful }) => {
+export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageId, wasHelpful }: IUserFeedbackProps) => {
     const classes = useClasses();
+
+    const { instance, inProgress } = useMsal();
 
     const dispatch = useAppDispatch();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
 
     const onUserFeedbackProvided = useCallback(
-        (positive: boolean) => {
-            dispatch(
-                updateMessageProperty({
-                    chatId: selectedId,
-                    messageIdOrIndex: messageIndex,
-                    property: 'userFeedback',
-                    value: positive ? UserFeedback.Positive : UserFeedback.Negative,
-                    frontLoad: true,
-                }),
-            );
+        async (positive: boolean) => {
+            const chatService = new ChatService();
+            const userRating = positive ? UserFeedback.Positive : UserFeedback.Negative;
+            const token = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+
+            chatService
+                .rateMessageAync(selectedId, messageId, positive, token)
+                .then(() => {
+                    dispatch(
+                        updateMessageProperty({
+                            chatId: selectedId,
+                            messageIdOrIndex: messageId,
+                            property: 'userFeedback',
+                            value: userRating,
+                            frontLoad: true,
+                        }),
+                    );
+                })
+                .catch((e) => {
+                    console.error(e);
+                });
         },
-        [dispatch, messageIndex, selectedId],
+        [instance, inProgress, selectedId, messageId, dispatch],
     );
 
     return (
@@ -51,7 +67,7 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     appearance="transparent"
                     aria-label="Edit"
                     onClick={() => {
-                        onUserFeedbackProvided(true);
+                        void onUserFeedbackProvided(true);
                     }}
                 />
             </Tooltip>
@@ -61,7 +77,7 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageIndex
                     appearance="transparent"
                     aria-label="Edit"
                     onClick={() => {
-                        onUserFeedbackProvided(false);
+                        void onUserFeedbackProvided(false);
                     }}
                 />
             </Tooltip>

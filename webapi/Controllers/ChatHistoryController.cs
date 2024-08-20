@@ -208,6 +208,40 @@ public class ChatHistoryController : ControllerBase
         return this.Ok(chatMessages);
     }
 
+    public class RateChatMessageBody
+    {
+        public bool positive { get; set; }
+    }
+
+    /// <summary>
+    /// Rate a chat message
+    /// Returns updated message
+    /// </summary>
+    /// <param name="chatId">The chat id.</param>
+    /// <param name="messageId">The message id.</param>
+    /// <param name="body">The body containing a bool on whether feedback was positive.</param>
+    [HttpPost]
+    [Route("chats/{chatId:guid}/messages/{messageId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
+    public async Task<IActionResult> RateChatMessageAsync(
+        [FromRoute] Guid chatId,
+        [FromRoute] Guid messageId,
+        [FromBody] RateChatMessageBody body)
+    {
+        var chatMessage = await this._messageRepository.FindByMessageIdAsync(chatId.ToString(), messageId.ToString());
+        if (chatMessage == null)
+        {
+            return this.NotFound($"No message found for message id '{messageId}'.");
+        }
+        chatMessage.UserFeedback = body.positive ? Models.Storage.UserFeedback.Positive : Models.Storage.UserFeedback.Negative;
+        await this._messageRepository.UpsertAsync(chatMessage);
+
+        return this.Ok(chatMessage);
+    }
+
     /// <summary>
     /// Edit a chat session.
     /// </summary>

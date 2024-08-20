@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ChatMessageType, IChatMessage, UserFeedback } from '../../../libs/models/ChatMessage';
+import { IChatMessage } from '../../../libs/models/ChatMessage';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { ChatState } from './ChatState';
 import {
@@ -212,11 +212,7 @@ const frontLoadChat = (state: ConversationsState, id: string) => {
 };
 
 const updateConversation = (state: ConversationsState, chatId: string, message: IChatMessage) => {
-    const requestUserFeedback = message.userId === 'bot' && message.type === ChatMessageType.Message;
-    state.conversations[chatId].messages.push({
-        ...message,
-        userFeedback: requestUserFeedback ? UserFeedback.Requested : undefined,
-    });
+    state.conversations[chatId].messages.push(message);
     frontLoadChat(state, chatId);
 };
 

@@ -119,6 +119,26 @@ export class ChatService extends BaseService {
         return result;
     };
 
+    public rateMessageAync = async (
+        chatId: string,
+        messageId: string,
+        positive: boolean,
+        accessToken: string,
+    ): Promise<object> => {
+        const result = await this.getResponseAsync<object>(
+            {
+                commandPath: `chats/${chatId}/messages/${messageId}`,
+                method: 'POST',
+                body: {
+                    positive,
+                },
+            },
+            accessToken,
+        );
+
+        return result;
+    };
+
     public getBotResponseAsync = async (
         ask: IAsk,
         accessToken: string,

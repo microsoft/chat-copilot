@@ -10,6 +10,23 @@ using CopilotChat.WebApi.Storage;
 
 namespace CopilotChat.WebApi.Models.Storage;
 
+//
+// Summary:
+//     The enum UserFeedback.
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum UserFeedback
+{
+    /// <summary>
+    /// Positive feedback
+    /// </summary>
+    Positive,
+
+    /// <summary>
+    /// Negative feedback
+    /// </summary>
+    Negative,
+}
+
 /// <summary>
 /// Information about a single chat message.
 /// </summary>
@@ -111,6 +128,11 @@ public class CopilotChatMessage : IStorageEntity
     public IDictionary<string, int>? TokenUsage { get; set; }
 
     /// <summary>
+    /// Counts of total token usage used to generate bot response.
+    /// </summary>
+    public UserFeedback? UserFeedback { get; set; }
+
+    /// <summary>
     /// The partition key for the source.
     /// </summary>
     [JsonIgnore]
@@ -136,7 +158,8 @@ public class CopilotChatMessage : IStorageEntity
         IEnumerable<CitationSource>? citations = null,
         AuthorRoles authorRole = AuthorRoles.User,
         ChatMessageType type = ChatMessageType.Message,
-        IDictionary<string, int>? tokenUsage = null)
+        IDictionary<string, int>? tokenUsage = null,
+        UserFeedback? userFeedback = null)
     {
         this.Timestamp = DateTimeOffset.Now;
         this.UserId = userId;
@@ -149,6 +172,7 @@ public class CopilotChatMessage : IStorageEntity
         this.AuthorRole = authorRole;
         this.Type = type;
         this.TokenUsage = tokenUsage;
+        this.UserFeedback = userFeedback;
     }
 
     /// <summary>

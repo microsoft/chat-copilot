@@ -34,6 +34,17 @@ public class ChatMessageRepository : CopilotChatMessageRepository
     }
 
     /// <summary>
+    /// Finds messages by id.
+    /// </summary>
+    /// <param name="chatId">The chat id.</param>
+    /// <param name="messageId">The message id.</param>
+    /// <returns>The message if found</returns>
+    public Task<CopilotChatMessage> FindByMessageIdAsync(string chatId, string messageId)
+    {
+        return base.FindByIdAsync(messageId, chatId);
+    }
+
+    /// <summary>
     /// Finds the most recent chat message by chat id.
     /// </summary>
     /// <param name="chatId">The chat id.</param>
