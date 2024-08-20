@@ -21,7 +21,7 @@ import { useChat, useFile, useSpecialization } from './libs/hooks';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
-import { setActiveUserInfo, setServiceInfo, setSpecialization } from './redux/features/app/appSlice';
+import { setActiveUserInfo, setServiceInfo } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
 import Header from './components/header/Header';
 
@@ -204,11 +204,8 @@ const App = () => {
                     }
                 }),
                 //Get all specializations
-                specialization.getSpecializations().then((specializations) => {
-                    if (specializations) {
-                        dispatch(setSpecialization(specializations));
-                    }
-                }),
+                specialization.loadSpecializations(),
+                specialization.loadSpecializationIndexes(),
             ]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

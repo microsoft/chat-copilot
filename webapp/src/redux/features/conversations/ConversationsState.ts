@@ -40,3 +40,8 @@ export interface UpdatePluginStatePayload {
     pluginName: string;
     newState: boolean;
 }
+
+export interface ConversationSpecializationChange {
+    id: string;
+    newSpecializationKey: string;
+}

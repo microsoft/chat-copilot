@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
-import React from 'react';
+import React, { useState } from 'react';
 import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
@@ -9,6 +9,7 @@ import { FeatureKeys, Features } from '../../redux/features/app/AppState';
 import { SharedStyles } from '../../styles';
 import { ChatInput } from './ChatInput';
 import { ChatHistory } from './chat-history/ChatHistory';
+import { SpecializationCardList } from '../../components/specialization/SpecializationCardList';
 
 const useClasses = makeStyles({
     root: {
@@ -35,6 +36,17 @@ const useClasses = makeStyles({
         justifyContent: 'center',
         ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingVerticalNone),
     },
+    carouselroot: {
+        display: 'flex',
+        justifyContent: 'center',
+    },
+    carouselwrapper: {
+        paddingTop: tokens.spacingHorizontalXXXL,
+        display: 'block',
+        lineHeight: tokens.lineHeightBase100,
+        justifyContent: 'center',
+        position: 'relative',
+    },
 });
 
 export const ChatRoom: React.FC = () => {
@@ -56,6 +68,9 @@ export const ChatRoom: React.FC = () => {
         e.preventDefault();
         setIsDraggingOver(false);
     };
+    const { specializations } = useAppSelector((state: RootState) => state.admin);
+
+    const [showSpecialization, setShowSpecialization] = useState(true);
 
     React.useEffect(() => {
         if (!shouldAutoScroll) return;
@@ -80,6 +95,14 @@ export const ChatRoom: React.FC = () => {
         };
     }, []);
 
+    React.useEffect(() => {
+        if (Object.keys(messages).length <= 1 && conversations[selectedId].specializationKey === '') {
+            setShowSpecialization(true);
+        } else {
+            setShowSpecialization(false);
+        }
+    }, [messages, selectedId, conversations, showSpecialization]);
+
     const handleSubmit = async (options: GetResponseOptions) => {
         await chat.getResponse(options);
         setShouldAutoScroll(true);
@@ -103,11 +126,21 @@ export const ChatRoom: React.FC = () => {
 
     return (
         <div className={classes.root} onDragEnter={onDragEnter} onDragOver={onDragEnter} onDragLeave={onDragLeave}>
-            <div ref={scrollViewTargetRef} className={classes.scroll}>
-                <div className={classes.history}>
-                    <ChatHistory messages={messages} />
+            {showSpecialization && (
+                <div className={classes.carouselroot}>
+                    <div className={classes.carouselwrapper}>
+                        <SpecializationCardList specializations={specializations} />
+                    </div>
                 </div>
-            </div>
+            )}
+            {!showSpecialization && (
+                <div ref={scrollViewTargetRef} className={classes.scroll}>
+                    <div className={classes.history}>
+                        <ChatHistory messages={messages} />
+                    </div>
+                </div>
+            )}
+
             <div className={classes.input}>
                 <ChatInput isDraggingOver={isDraggingOver} onDragLeave={onDragLeave} onSubmit={handleSubmit} />
             </div>

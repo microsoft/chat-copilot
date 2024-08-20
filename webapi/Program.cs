@@ -5,10 +5,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Services;
+
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.AspNetCore.Builder;
@@ -64,11 +66,7 @@ public sealed class Program
             .AddApplicationInsightsTelemetry(options => { options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]; })
             .AddSingleton<ITelemetryInitializer, AppInsightsUserTelemetryInitializerService>()
             .AddLogging(logBuilder => logBuilder.AddApplicationInsights())
-            .AddSingleton<ITelemetryService, AppInsightsTelemetryService>()
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            .AddSingleton<IQSearchService>(new QSearchService(qAzureOpenAIChatOptions));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
+            .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
         TelemetryDebugWriter.IsTracingDisabled = Debugger.IsAttached;
 
         // Add named HTTP clients for IHttpClientFactory

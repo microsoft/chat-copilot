@@ -5,6 +5,7 @@ import { RootState } from '../../redux/app/store';
 import { ChatWindow } from '../chat/ChatWindow';
 import { ChatType } from '../chat/chat-list/ChatType';
 import { SearchWindow } from '../search/SearchWindow';
+import { AdminWindow } from '../admin/specialization/SpecializationWindow';
 
 const useClasses = makeStyles({
     container: {
@@ -20,12 +21,14 @@ export const ChatView: FC = () => {
     const classes = useClasses();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { selected } = useAppSelector((state: RootState) => state.search);
+    const { isAdminSelected } = useAppSelector((state: RootState) => state.admin);
 
     return (
         <div className={classes.container}>
             <ChatType />
-            {selectedId !== '' && !selected && <ChatWindow />}
+            {isAdminSelected && <AdminWindow />}
             {selected && <SearchWindow />}
+            {selectedId !== '' && !selected && !isAdminSelected && <ChatWindow />}
         </div>
     );
 };

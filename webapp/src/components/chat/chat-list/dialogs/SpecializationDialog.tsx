@@ -8,7 +8,7 @@ import { useAppSelector } from '../../../../redux/app/hooks';
 import { useEffect, useState } from 'react';
 
 export const SpecializationDialog: React.FC = ({}) => {
-    const { specializations } = useAppSelector((state: RootState) => state.app);
+    const { specializations } = useAppSelector((state: RootState) => state.admin);
     const { conversations } = useAppSelector((state: RootState) => state.conversations);
 
     const [showSpecialization, setShowSpecialization] = useState(false);
@@ -53,10 +53,7 @@ export const SpecializationDialog: React.FC = ({}) => {
                     </DialogTitle>
                     <DialogTrigger action="close" disableButtonEnhancement>
                         <DialogContent>
-                            <SpecializationCardList
-                                specializations={specializations}
-                                setShowSpecialization={setShowSpecialization}
-                            />
+                            <SpecializationCardList specializations={specializations} />
                         </DialogContent>
                     </DialogTrigger>
                 </DialogBody>

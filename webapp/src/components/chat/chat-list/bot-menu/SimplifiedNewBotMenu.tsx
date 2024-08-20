@@ -5,22 +5,21 @@
 import { FC, useState } from 'react';
 
 import {
-    //Button,
+    Button,
     Divider,
     Menu,
     MenuItem,
     MenuList,
     MenuPopover,
-    //MenuTrigger,
-    //Tooltip,
+    MenuTrigger,
+    Tooltip,
 } from '@fluentui/react-components';
 import { useChat } from '../../../../libs/hooks';
 import { useAppSelector } from '../../../../redux/app/hooks';
 import { RootState } from '../../../../redux/app/store';
 import { FeatureKeys } from '../../../../redux/features/app/AppState';
-//import { Add20 } from '../../../shared/BundledIcons';
+import { Add20 } from '../../../shared/BundledIcons';
 import { InvitationJoinDialog } from '../../invitation-dialog/InvitationJoinDialog';
-import { SpecializationDialog } from '../dialogs/SpecializationDialog';
 
 interface SimplifiedNewBotMenuProps {
     onFileUpload: () => void;
@@ -48,7 +47,11 @@ export const SimplifiedNewBotMenu: FC<SimplifiedNewBotMenuProps> = () => {
     return (
         <div>
             <Menu>
-                <SpecializationDialog />
+                <MenuTrigger disableButtonEnhancement>
+                    <Tooltip content="Add a chat" relationship="label">
+                        <Button data-testid="createNewConversationButton" icon={<Add20 />} appearance="transparent" />
+                    </Tooltip>
+                </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
                         <MenuItem data-testid="addNewBotMenuItem" onClick={onAddChat}>

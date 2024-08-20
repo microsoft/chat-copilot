@@ -14,6 +14,8 @@ import { ChatList } from './ChatList';
 import { SearchList } from '../../search/search-list/SearchList';
 import { setSearchSelected } from '../../../redux/features/search/searchSlice';
 import { RootState } from '../../../redux/app/store';
+import { SpecializationList } from '../../admin/specialization/specialization-list/SpecializationList';
+import { setAdminSelected } from '../../../redux/features/admin/adminSlice';
 
 const useClasses = makeStyles({
     root: {
@@ -40,10 +42,23 @@ export const ChatType: FC = () => {
 
     useEffect(() => {
         if (selectedTab === 'search') {
-            const chatSpecializationKey: string = conversations[selectedId].specializationKey || '';
-            dispatch(setSearchSelected({ selected: true, specializationKey: chatSpecializationKey }));
+            if (
+                selectedId &&
+                conversations[selectedId].specializationKey &&
+                conversations[selectedId].specializationKey != 'general'
+            ) {
+                const chatSpecializationKey: string = conversations[selectedId].specializationKey;
+                dispatch(setSearchSelected({ selected: true, specializationKey: chatSpecializationKey }));
+            } else {
+                dispatch(setSearchSelected({ selected: true, specializationKey: '' }));
+            }
+            dispatch(setAdminSelected(false));
+        } else if (selectedTab === 'admin') {
+            dispatch(setAdminSelected(true));
+            dispatch(setSearchSelected({ selected: false, specializationKey: '' }));
         } else {
             dispatch(setSearchSelected({ selected: false, specializationKey: '' }));
+            dispatch(setAdminSelected(false));
         }
     }, [selectedTab, conversations, selectedId, dispatch]);
 
@@ -56,9 +71,13 @@ export const ChatType: FC = () => {
                 <Tab data-testid="searchTab" id="search" value="search" aria-label="Search Tab" title="Search Tab">
                     Search
                 </Tab>
+                <Tab data-testid="adminTab" id="admin" value="admin" aria-label="admin Tab" title="Admin Tab">
+                    Admin
+                </Tab>
             </TabList>
             {selectedTab === 'chat' && <ChatList />}
             {selectedTab === 'search' && <SearchList />}
+            {selectedTab === 'admin' && <SpecializationList />}
         </div>
     );
 };

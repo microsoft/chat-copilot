@@ -83,6 +83,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
     const { instance, inProgress } = useMsal();
     const dispatch = useAppDispatch();
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const { specializations } = useAppSelector((state: RootState) => state.admin);
+
     const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
     const fileHandler = useFile();
 
@@ -159,6 +161,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
     const handleDrop = (e: React.DragEvent<HTMLTextAreaElement>) => {
         onDragLeave(e);
         void fileHandler.handleImport(selectedId, documentFileRef, false, undefined, e.dataTransfer.files);
+    };
+
+    const isSpecializationDisabled = () => {
+        if (conversations[selectedId].specializationKey === '') {
+            return true;
+        } else {
+            const specialization = specializations.find(
+                (spec) => spec.key === conversations[selectedId].specializationKey,
+            );
+            if (
+                specialization &&
+                specialization.key == conversations[selectedId].specializationKey &&
+                specialization.isActive
+            ) {
+                return false;
+            }
+        }
+        return true;
     };
 
     return (
@@ -262,7 +282,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
                         onClick={() => {
                             handleSubmit(value);
                         }}
-                        disabled={conversations[selectedId].disabled}
+                        disabled={conversations[selectedId].disabled || isSpecializationDisabled()}
                     />
                 </div>
             </div>

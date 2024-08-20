@@ -16,14 +16,9 @@ import { BaseService } from './BaseService';
  * Changes to take specialization key in chat creation.
  */
 export class ChatService extends BaseService {
-    public createChatAsync = async (
-        title: string,
-        specializationKey: string,
-        accessToken: string,
-    ): Promise<ICreateChatSessionResponse> => {
+    public createChatAsync = async (title: string, accessToken: string): Promise<ICreateChatSessionResponse> => {
         const body = {
             title,
-            specializationKey,
         };
 
         const result = await this.getResponseAsync<ICreateChatSessionResponse>(
@@ -98,6 +93,27 @@ export class ChatService extends BaseService {
         const result = await this.getResponseAsync<IChatSession>(
             {
                 commandPath: `chats/${chatId}`,
+                method: 'PATCH',
+                body,
+            },
+            accessToken,
+        );
+
+        return result;
+    };
+
+    public editChatSepcializationAsync = async (
+        chatId: string,
+        specializationKey: string,
+        accessToken: string,
+    ): Promise<any> => {
+        const body = {
+            specializationKey,
+        };
+
+        const result = await this.getResponseAsync<IChatSession>(
+            {
+                commandPath: `chats/${chatId}/specialization`,
                 method: 'PATCH',
                 body,
             },

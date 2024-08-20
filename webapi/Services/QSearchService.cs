@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
+using CopilotChat.WebApi.Storage;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -21,9 +22,9 @@ public class QSearchService : IQSearchService
     private readonly HttpClientHandler? _httpClientHandler;
     private QAzureOpenAIChatExtension _qAzureOpenAIChatExtension;
 
-    public QSearchService(QAzureOpenAIChatOptions qAzureOpenAIChatOptions)
+    public QSearchService(QAzureOpenAIChatOptions qAzureOpenAIChatOptions, SpecializationSourceRepository specializationSourceRepository)
     {
-        this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(qAzureOpenAIChatOptions);
+        this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(qAzureOpenAIChatOptions, specializationSourceRepository);
         this._httpClientHandler = new() { CheckCertificateRevocationList = true };
         this._httpClient = new(this._httpClientHandler);
     }
@@ -96,21 +97,21 @@ public class QSearchService : IQSearchService
     private string GetApiKey(string specializationKey)
     {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return this._qAzureOpenAIChatExtension.getSpecialization(specializationKey).APIKey;
+        return this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(specializationKey).APIKey;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 
     private string GetEndpoint(string specializationKey)
     {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return this._qAzureOpenAIChatExtension.getSpecialization(specializationKey).Endpoint.ToString();
+        return this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(specializationKey).Endpoint.ToString();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 
     private string GetIndexName(string specializationKey)
     {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return this._qAzureOpenAIChatExtension.getSpecialization(specializationKey).IndexName;
+        return this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(specializationKey).IndexName;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 }

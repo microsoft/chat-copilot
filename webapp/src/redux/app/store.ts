@@ -16,6 +16,7 @@ import { PluginsState } from '../features/plugins/PluginsState';
 import { UsersState } from '../features/users/UsersState';
 import resetStateReducer, { resetApp } from './rootReducer';
 import { SearchState } from '../features/search/SearchState';
+import { AdminState } from '../features/admin/AdminState';
 
 export type StoreMiddlewareAPI = MiddlewareAPI<Dispatch, RootState>;
 export type Store = typeof store;
@@ -30,6 +31,7 @@ export interface RootState {
     plugins: PluginsState;
     users: UsersState;
     search: SearchState;
+    admin: AdminState;
 }
 
 export const getSelectedChatID = (): string => {

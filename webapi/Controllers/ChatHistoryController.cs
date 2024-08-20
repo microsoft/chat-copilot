@@ -14,6 +14,7 @@ using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Plugins.Utils;
+using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -45,7 +46,7 @@ public class ChatHistoryController : ControllerBase
     private readonly ChatParticipantRepository _participantRepository;
     private readonly ChatMemorySourceRepository _sourceRepository;
     private readonly PromptsOptions _promptOptions;
-    private readonly QAzureOpenAIChatExtension _qAzureOpenAIChatExtension;
+    private readonly QSpecializationService _qSpecializationService;
     private readonly IAuthInfo _authInfo;
 
     /// <summary>
@@ -66,6 +67,7 @@ public class ChatHistoryController : ControllerBase
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         ChatMemorySourceRepository sourceRepository,
+        SpecializationSourceRepository specializationSourceRepository,
         IOptions<PromptsOptions> promptsOptions,
         IOptions<QAzureOpenAIChatOptions> specializationOptions,
         IAuthInfo authInfo)
@@ -77,7 +79,7 @@ public class ChatHistoryController : ControllerBase
         this._participantRepository = participantRepository;
         this._sourceRepository = sourceRepository;
         this._promptOptions = promptsOptions.Value;
-        this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(specializationOptions.Value);
+        this._qSpecializationService = new QSpecializationService(specializationSourceRepository);
         this._authInfo = authInfo;
     }
 
@@ -98,8 +100,7 @@ public class ChatHistoryController : ControllerBase
             return this.BadRequest("Chat session parameters cannot be null.");
         }
         // Create a new chat session 
-        var specializationDescription = this._qAzureOpenAIChatExtension.getRoleInformation(chatParameters.specialization);
-        var systemDescription = specializationDescription != null ? specializationDescription : this._promptOptions.SystemDescription;
+        var systemDescription = this._promptOptions.SystemDescription;
         var newChat = new ChatSession(chatParameters.Title, systemDescription, chatParameters.specialization);
         await this._sessionRepository.CreateAsync(newChat);
         ChatSession? chat = null;
@@ -263,6 +264,43 @@ public class ChatHistoryController : ControllerBase
             chat!.Title = chatParameters.Title ?? chat!.Title;
             chat!.SystemDescription = chatParameters.SystemDescription ?? chat!.SafeSystemDescription;
             chat!.MemoryBalance = chatParameters.MemoryBalance ?? chat!.MemoryBalance;
+            await this._sessionRepository.UpsertAsync(chat);
+            await messageRelayHubContext.Clients.Group(chatId.ToString()).SendAsync(ChatEditedClientCall, chat);
+
+            return this.Ok(chat);
+        }
+
+        return this.NotFound($"No chat session found for chat id '{chatId}'.");
+    }
+
+    /// <summary>
+    /// Edit a chat session to set specialization.
+    /// </summary>
+    /// <param name="chatParameters">Object that contains the specialization chosen for the chat.</param>
+    [HttpPatch]
+    [Route("chats/{chatId:guid}/specialization")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
+    public async Task<IActionResult> EditChatSessionSpecializationAsync(
+        [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
+        [FromBody] EditChatSpecializationParameters chatParameters,
+        [FromRoute] Guid chatId)
+    {
+        ChatSession? chat = null;
+        if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), callback: v => chat = v))
+        {
+            if (chatParameters.SpecializationKey != "general")
+            {
+                SpecializationSource specializationSource = this._qSpecializationService.GetSpecializationSource(chatParameters.SpecializationKey);
+                chat!.SystemDescription = specializationSource.RoleInformation;
+            }
+            else
+            {
+                chat!.SystemDescription = this._promptOptions.SystemDescription;
+            }
+            chat!.specialization = new ChatSpecializationSession(chatId.ToString(), chatParameters.SpecializationKey);
             await this._sessionRepository.UpsertAsync(chat);
             await messageRelayHubContext.Clients.Group(chatId.ToString()).SendAsync(ChatEditedClientCall, chat);
 

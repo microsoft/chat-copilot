@@ -3,10 +3,13 @@
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Response;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Services;
+using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CopilotChat.WebApi.Controllers;
 
@@ -18,14 +21,15 @@ public class SearchController : ControllerBase
 {
     private readonly ILogger<SearchController> _logger;
 
-    private readonly IQSearchService _qSearchService;
+    private readonly QSearchService _qSearchService;
 
     public SearchController(
     ILogger<SearchController> logger,
-    IQSearchService qSearchService)
+    SpecializationSourceRepository specializationSourceRepository,
+    IOptions<QAzureOpenAIChatOptions> specializationOptions)
     {
         this._logger = logger;
-        this._qSearchService = qSearchService;
+        this._qSearchService = new QSearchService(specializationOptions.Value, specializationSourceRepository);
     }
 
     /// <summary>

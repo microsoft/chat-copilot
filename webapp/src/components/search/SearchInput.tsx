@@ -43,7 +43,7 @@ interface Specialization {
 export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpecializationKey = '' }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
-    const { specializations } = useAppSelector((state: RootState) => state.app);
+    const { specializations } = useAppSelector((state: RootState) => state.admin);
 
     // Find the specialization name based on the defaultSpecializationKey
     const defaultSpecialization = specializations.find((spec) => spec.key === defaultSpecializationKey) ?? {

@@ -7,6 +7,7 @@ import { ChatState } from './ChatState';
 import {
     ConversationInputChange,
     Conversations,
+    ConversationSpecializationChange,
     ConversationsState,
     ConversationSystemDescriptionChange,
     ConversationTitleChange,
@@ -25,6 +26,14 @@ export const conversationsSlice = createSlice({
             const id = action.payload.id;
             const newTitle = action.payload.newTitle;
             state.conversations[id].title = newTitle;
+            frontLoadChat(state, id);
+        },
+        editConversationSpecialization: (
+            state: ConversationsState,
+            action: PayloadAction<ConversationSpecializationChange>,
+        ) => {
+            const id = action.payload.id;
+            state.conversations[id].specializationKey = action.payload.newSpecializationKey;
             frontLoadChat(state, id);
         },
         editConversationInput: (state: ConversationsState, action: PayloadAction<ConversationInputChange>) => {
@@ -244,6 +253,7 @@ export const {
     deleteConversation,
     disableConversation,
     updatePluginState,
+    editConversationSpecialization,
 } = conversationsSlice.actions;
 
 export default conversationsSlice.reducer;

@@ -5,7 +5,6 @@ import { AlertType } from '../../../libs/models/AlertType';
 import { IChatUser } from '../../../libs/models/ChatUser';
 import { ServiceInfo } from '../../../libs/models/ServiceInfo';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
-import { ISpecialization } from '../../../libs/models/Specialization';
 
 // This is the default user information when authentication is set to 'None'.
 // It must match what is defined in PassthroughAuthenticationHandler.cs on the backend.
@@ -65,7 +64,6 @@ export interface AppState {
     settings: Setting[];
     serviceInfo: ServiceInfo;
     isMaintenance: boolean;
-    specializations: ISpecialization[];
 }
 
 export enum FeatureKeys {
@@ -144,16 +142,6 @@ export const Settings = [
     },
 ];
 
-export const Specializations = [
-    {
-        // Basic settings
-        key: 'general',
-        name: 'General',
-        description: 'General',
-        imagefilepath: '',
-        groupMemberships: [],
-    },
-];
 /**
  * The initialstate of app has been modified to support specializations.
  * All specializations supported by system will be pre-populated.
@@ -172,5 +160,4 @@ export const initialState: AppState = {
         isContentSafetyEnabled: false,
     },
     isMaintenance: false,
-    specializations: Specializations,
 };
