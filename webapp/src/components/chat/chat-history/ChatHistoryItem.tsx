@@ -164,10 +164,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
     // TODO: [Issue #42] Persistent RLHF, hook up to model
     // Currently for demonstration purposes only, no feedback is actually sent to kernel / model
     const showShowRLHFMessage =
-        features[FeatureKeys.RLHF].enabled &&
-        messageIndex === conversations[selectedId].messages.length - 1 &&
-        message.userId === 'Bot' &&
-        message.content.length > 0;
+        features[FeatureKeys.RLHF].enabled && message.userId === 'Bot' && message.content.length > 0;
 
     const messageCitations = message.citations ?? [];
     const showMessageCitation = messageCitations.length > 0;
