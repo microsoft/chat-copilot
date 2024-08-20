@@ -128,7 +128,7 @@ public class SemanticMemoryRetriever
                 }
 
                 builderMemory.Append(
-                    "User has also shared some document snippets.\n" +
+                    "Use the following information as knowledgebase/context for your response:\n" +
                     "Quote the document link in square brackets at the end of each sentence that refers to the snippet in your response.\n");
 
                 foreach ((var memoryContent, var citation) in memories)
