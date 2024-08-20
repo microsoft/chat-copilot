@@ -4,11 +4,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.106.1"
+      version = "~>3.116"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "=2.31.0"
+      version = "~>2.32"
     }
   }
 }
@@ -26,4 +26,13 @@ provider "azurerm" {
   subscription_id = var.azure_subscription_id
   tenant_id       = var.azure_tenant_id
   features {}
+}
+
+provider "azurerm" {
+  environment     = "public"
+  subscription_id = var.kubernetes_azure_subscription_id
+  tenant_id       = var.kubernetes_azure_tenant_id
+  features {}
+
+  alias = "kubernetes"
 }

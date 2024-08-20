@@ -19,6 +19,8 @@ Run helm lint to validate your chart's structure and identify any obvious issues
 `helm template -s templates/webapp/deployment.yaml .`
 Run helm template to test the generation of the K8s files
 
+`helm upgrade -i -f values.yaml -f values-dev.yaml -n copilot-dev dev .`
+
 # Contribute
 
 Reach out to David (david.camden@quartech.com) if you want to contribute.
