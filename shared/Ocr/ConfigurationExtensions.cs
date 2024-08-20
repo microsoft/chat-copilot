@@ -16,7 +16,7 @@ public static class ConfigurationExtensions
 
     public static IOcrEngine? CreateCustomOcr(this IConfiguration configuration)
     {
-        var ocrType = configuration.GetSection($"{MemoryConfiguration.KernelMemorySection}:{ConfigOcrType}").Value ?? string.Empty;
+        var ocrType = configuration.GetSection($"{MemoryConfiguration.KernelMemorySection}:DataIngestion:{ConfigOcrType}").Value ?? string.Empty;
         switch (ocrType)
         {
             case string x when x.Equals(TesseractOptions.SectionName, StringComparison.OrdinalIgnoreCase):
