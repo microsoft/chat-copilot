@@ -50,7 +50,7 @@ public class SpecializationSource : IStorageEntity
     /// The partition key for the specialization session.
     /// </summary>
     [JsonIgnore]
-    public string Partition => this.Key;
+    public string Partition => this.Id;
 
     /// <summary>
     /// On/oFF switch for the specializations.
