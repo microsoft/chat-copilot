@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Quartech. All rights reserved.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 
@@ -10,13 +9,13 @@ namespace CopilotChat.WebApi.Storage;
 /// <summary>
 /// A repository for specialization management.
 /// </summary>
-public class SpecializationSourceRepository : Repository<SpecializationSource>
+public class SpecializationRepository : Repository<Specialization>
 {
     /// <summary>
     /// Initializes a new instance of the SpecializationSourceRepository class.
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
-    public SpecializationSourceRepository(IStorageContext<SpecializationSource> storageContext)
+    public SpecializationRepository(IStorageContext<Specialization> storageContext)
         : base(storageContext)
     {
     }
@@ -25,7 +24,7 @@ public class SpecializationSourceRepository : Repository<SpecializationSource>
     /// Retrieves all specializations.
     /// </summary>
     /// <returns>A list of specializations.</returns>
-    public Task<IEnumerable<SpecializationSource>> GetAllSpecializationsAsync()
+    public Task<IEnumerable<Specialization>> GetAllSpecializationsAsync()
     {
         return base.StorageContext.QueryEntitiesAsync(e => true);
     }
@@ -34,9 +33,8 @@ public class SpecializationSourceRepository : Repository<SpecializationSource>
     /// Retrieves specialization by key.
     /// </summary>
     /// <returns>A specialization matching the key.</returns>
-    public SpecializationSource GetSpecializationAsync(string key)
+    public async Task<Specialization> GetSpecializationAsync(string id)
     {
-        var specializations = base.StorageContext.QueryEntitiesAsync(e => e.Key == key);
-        return specializations.Result.First();
+        return await base.StorageContext.ReadAsync(id, id);
     }
 }

@@ -1,11 +1,11 @@
+import { makeStyles } from '@fluentui/react-components';
 import React, { useId } from 'react';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import { ISpecialization } from '../../libs/models/Specialization';
-import { SpecializationCard } from './SpecializationCard';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
-import { makeStyles } from '@fluentui/react-components';
+import { SpecializationCard } from './SpecializationCard';
 
 const responsive = {
     // Define responsive settings for different screen sizes
@@ -56,11 +56,14 @@ export const SpecializationCardList: React.FC<SpecializationProps> = ({ speciali
     const classes = useClasses();
     const { app } = useAppSelector((state: RootState) => state);
     const filteredSpecializations = specializations.filter((_specialization) => {
-        const hasMembership = app.activeUserInfo?.groups.some((val) => {
-            return _specialization.groupMemberships.includes(val);
-        });
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if ((hasMembership && _specialization.isActive) || _specialization.key == 'general') {
+        const hasMembership =
+            app.activeUserInfo?.groups.some((val) => {
+                return _specialization.groupMemberships.includes(val);
+            }) ?? false;
+        if (
+            ((hasMembership || _specialization.groupMemberships.length === 0) && _specialization.isActive) ||
+            _specialization.id == 'general'
+        ) {
             return _specialization;
         }
         return;

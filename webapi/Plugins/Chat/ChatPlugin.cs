@@ -100,7 +100,7 @@ public class ChatPlugin
         IKernelMemory memoryClient,
         ChatMessageRepository chatMessageRepository,
         ChatSessionRepository chatSessionRepository,
-        SpecializationSourceRepository specializationSourceRepository,
+        SpecializationRepository specializationSourceRepository,
         IHubContext<MessageRelayHub> messageRelayHubContext,
         IOptions<PromptsOptions> promptOptions,
         IOptions<DocumentMemoryOptions> documentImportOptions,
@@ -426,7 +426,7 @@ public class ChatPlugin
         var specializationKey = context[this._qAzureOpenAIChatExtension.ContextKey] ?? this._qAzureOpenAIChatExtension.DefaultSpecialization;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemAudienceExtraction,
-            this.CreateIntentCompletionSettings((string)specializationKey),
+            await this.CreateIntentCompletionSettingsAsync((string)specializationKey),
             functionName: "SystemAudienceExtraction",
             description: "Extract audience");
 
@@ -473,7 +473,7 @@ public class ChatPlugin
         var specializationKey = context[this._qAzureOpenAIChatExtension.ContextKey] ?? this._qAzureOpenAIChatExtension.DefaultSpecialization;
         var completionFunction = this._kernel.CreateFunctionFromPrompt(
             this._promptOptions.SystemIntentExtraction,
-            this.CreateIntentCompletionSettings((string)specializationKey),
+            await this.CreateIntentCompletionSettingsAsync((string)specializationKey),
             functionName: "UserIntentExtraction",
             description: "Extract user intent");
 
@@ -591,7 +591,7 @@ public class ChatPlugin
     /// <summary>
     /// Create `OpenAIPromptExecutionSettings` for chat response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private OpenAIPromptExecutionSettings CreateChatRequestSettings(string specializationKey)
+    private async Task<OpenAIPromptExecutionSettings> CreateChatRequestSettingsAsync(string specializationId)
     {
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         return new OpenAIPromptExecutionSettings
@@ -602,7 +602,7 @@ public class ChatPlugin
             FrequencyPenalty = this._promptOptions.ResponseFrequencyPenalty,
             PresencePenalty = this._promptOptions.ResponsePresencePenalty,
             ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
-            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled(specializationKey) == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions(specializationKey) : null
+            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled(specializationId) == true ? await this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions(specializationId) : null
         };
 #pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
@@ -610,7 +610,7 @@ public class ChatPlugin
     /// <summary>
     /// Create `OpenAIPromptExecutionSettings` for intent response. Parameters are read from the PromptSettings class.
     /// </summary>
-    private OpenAIPromptExecutionSettings CreateIntentCompletionSettings(string specializationKey)
+    private async Task<OpenAIPromptExecutionSettings> CreateIntentCompletionSettingsAsync(string specializationId)
     {
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         return new OpenAIPromptExecutionSettings
@@ -621,7 +621,7 @@ public class ChatPlugin
             FrequencyPenalty = this._promptOptions.IntentFrequencyPenalty,
             PresencePenalty = this._promptOptions.IntentPresencePenalty,
             StopSequences = new string[] { "] bot:" },
-            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled(specializationKey) == true ? this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions(specializationKey) : null
+            AzureChatExtensionsOptions = this._qAzureOpenAIChatExtension.isEnabled(specializationId) == true ? await this._qAzureOpenAIChatExtension.GetAzureChatExtensionsOptions(specializationId) : null
         };
 #pragma warning restore SKEXP0010 //Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
@@ -704,7 +704,7 @@ public class ChatPlugin
         var stream =
             chatCompletion.GetStreamingChatMessageContentsAsync(
                 chatHistory,
-                this.CreateChatRequestSettings(specializationkey),
+                await this.CreateChatRequestSettingsAsync(specializationkey),
                 this._kernel,
                 cancellationToken);
 

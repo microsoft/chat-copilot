@@ -2,6 +2,7 @@
 
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import React, { useState } from 'react';
+import { SpecializationCardList } from '../../components/specialization/SpecializationCardList';
 import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
@@ -9,7 +10,6 @@ import { FeatureKeys, Features } from '../../redux/features/app/AppState';
 import { SharedStyles } from '../../styles';
 import { ChatInput } from './ChatInput';
 import { ChatHistory } from './chat-history/ChatHistory';
-import { SpecializationCardList } from '../../components/specialization/SpecializationCardList';
 
 const useClasses = makeStyles({
     root: {
@@ -96,7 +96,7 @@ export const ChatRoom: React.FC = () => {
     }, []);
 
     React.useEffect(() => {
-        if (Object.keys(messages).length <= 1 && conversations[selectedId].specializationKey === '') {
+        if (Object.keys(messages).length <= 1 && conversations[selectedId].specializationId === '') {
             setShowSpecialization(true);
         } else {
             setShowSpecialization(false);

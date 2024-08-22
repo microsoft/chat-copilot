@@ -43,5 +43,5 @@ export interface UpdatePluginStatePayload {
 
 export interface ConversationSpecializationChange {
     id: string;
-    newSpecializationKey: string;
+    specializationId: string;
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Quartech. All rights reserved.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
@@ -32,14 +33,14 @@ public class QAzureOpenAIChatExtension
     /// </summary>
     private readonly QSpecializationService _qSpecializationService;
 
-    public QAzureOpenAIChatExtension(QAzureOpenAIChatOptions qAzureOpenAIChatOptions, SpecializationSourceRepository specializationSourceRepository)
+    public QAzureOpenAIChatExtension(QAzureOpenAIChatOptions qAzureOpenAIChatOptions, SpecializationRepository specializationSourceRepository)
     {
         this._qAzureOpenAIChatOptions = qAzureOpenAIChatOptions;
         this._qSpecializationService = new QSpecializationService(specializationSourceRepository);
     }
-    public bool isEnabled(string? specializationKey)
+    public bool isEnabled(string? specializationId)
     {
-        if (this._qAzureOpenAIChatOptions.Enabled && specializationKey != this.DefaultSpecialization)
+        if (this._qAzureOpenAIChatOptions.Enabled && specializationId != this.DefaultSpecialization)
         {
             return true;
         }
@@ -49,12 +50,17 @@ public class QAzureOpenAIChatExtension
     /// <summary>
     /// Extension method to support passing Azure Search options for chatCompletions.
     /// </summary>
-    public AzureChatExtensionsOptions? GetAzureChatExtensionsOptions(string specializationKey)
+    public async Task<AzureChatExtensionsOptions?> GetAzureChatExtensionsOptions(string specializationId)
     {
-        SpecializationSource specializationSource = this._qSpecializationService.GetSpecializationSource(specializationKey);
-        QSpecializationIndex? qSpecializationIndex = this.GetSpecializationIndexByKey(specializationKey);
-        if (specializationSource != null && qSpecializationIndex != null)
+        Specialization specialization = await this._qSpecializationService.GetSpecializationAsync(specializationId);
+
+        if (specialization != null && specialization.IndexName != null)
         {
+            QSpecializationIndex? qSpecializationIndex = this.GetSpecializationIndexByName(specialization.IndexName);
+            if (qSpecializationIndex == null)
+            {
+                return null;
+            }
             var azureConfig = this._qAzureOpenAIChatOptions.AzureConfig;
             return new AzureChatExtensionsOptions()
             {
@@ -63,9 +69,9 @@ public class QAzureOpenAIChatExtension
                     new AzureSearchChatExtensionConfiguration()
                     {
                         Filter = null,
-                        IndexName  = specializationSource.IndexName,
+                        IndexName  = specialization.IndexName,
                         SearchEndpoint= azureConfig.Endpoint,
-                        Strictness = specializationSource.Strictness,
+                        Strictness = specialization.Strictness,
                         FieldMappingOptions = new AzureSearchIndexFieldMappingOptions {
                             UrlFieldName = qSpecializationIndex.FieldMapping?.UrlFieldName,
                             TitleFieldName = qSpecializationIndex.FieldMapping?.TitleFieldName,
@@ -74,8 +80,8 @@ public class QAzureOpenAIChatExtension
                         SemanticConfiguration = qSpecializationIndex.SemanticConfiguration,
                         QueryType = new AzureSearchQueryType(qSpecializationIndex.QueryType),
                         ShouldRestrictResultScope = qSpecializationIndex!.RestrictResultScope,
-                        RoleInformation = specializationSource.RoleInformation,
-                        DocumentCount = specializationSource.DocumentCount,
+                        RoleInformation = specialization.RoleInformation,
+                        DocumentCount = specialization.DocumentCount,
                         Authentication = new OnYourDataApiKeyAuthenticationOptions (azureConfig!.APIKey),
                         VectorizationSource = new OnYourDataEndpointVectorizationSource (
                            azureConfig.VectorizationSource!.Endpoint,
@@ -103,19 +109,6 @@ public class QAzureOpenAIChatExtension
             indexNames.Add(_qSpecializationIndex.IndexName);
         }
         return indexNames;
-    }
-
-    /// <summary>
-    /// Retrieve the specialization Index based on key..
-    /// </summary>
-    public QSpecializationIndex? GetSpecializationIndexByKey(string specializationKey)
-    {
-        SpecializationSource specializationSource = this._qSpecializationService.GetSpecializationSource(specializationKey);
-        if (specializationSource != null)
-        {
-            return this.GetSpecializationIndexByName(specializationSource.IndexName);
-        }
-        return null;
     }
 
     /// <summary>

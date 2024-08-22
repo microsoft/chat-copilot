@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Quartech. All rights reserved.
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace CopilotChat.WebApi.Models.Request;
@@ -12,8 +13,8 @@ public class QSpecializationParameters
     /// <summary>
     /// Key of the specialization
     /// </summary>
-    [JsonPropertyName("key")]
-    public string key { get; set; } = string.Empty;
+    [JsonPropertyName("label")]
+    public string label { get; set; } = string.Empty;
 
     /// <summary>
     /// Name of the specialization
@@ -34,16 +35,22 @@ public class QSpecializationParameters
     public string RoleInformation { get; set; } = string.Empty;
 
     /// <summary>
+    /// List of group memberships for the user.
+    /// </summary>
+    [JsonPropertyName("groupMemberships")]
+    public IList<string> GroupMemberships { get; set; } = new List<string>();
+
+    /// <summary>
     /// IndexName of the specialization
     /// </summary>
     [JsonPropertyName("indexName")]
-    public string IndexName { get; set; } = string.Empty;
+    public string? IndexName { get; set; } = string.Empty;
 
     /// <summary>
     /// Image FilePath of the specialization.
     /// </summary>
     [JsonPropertyName("imageFilePath")]
-    public string ImageFilePath { get; set; } = string.Empty;
+    public string? ImageFilePath { get; set; } = string.Empty;
 
     /// <summary>
     /// Enable/Disable flag of the specialization.

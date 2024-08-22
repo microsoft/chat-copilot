@@ -109,7 +109,7 @@ internal static class SemanticKernelExtensions
                 memoryClient: sp.GetRequiredService<IKernelMemory>(),
                 chatMessageRepository: sp.GetRequiredService<ChatMessageRepository>(),
                 chatSessionRepository: sp.GetRequiredService<ChatSessionRepository>(),
-                specializationSourceRepository: sp.GetRequiredService<SpecializationSourceRepository>(),
+                specializationSourceRepository: sp.GetRequiredService<SpecializationRepository>(),
                 messageRelayHubContext: sp.GetRequiredService<IHubContext<MessageRelayHub>>(),
                 promptOptions: sp.GetRequiredService<IOptions<PromptsOptions>>(),
                 documentImportOptions: sp.GetRequiredService<IOptions<DocumentMemoryOptions>>(),

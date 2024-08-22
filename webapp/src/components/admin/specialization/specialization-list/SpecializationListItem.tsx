@@ -1,11 +1,10 @@
-import { makeStyles, mergeClasses, shorthands, tokens, Text } from '@fluentui/react-components';
+import { makeStyles, mergeClasses, shorthands, Text, tokens } from '@fluentui/react-components';
 
-import { FC } from 'react';
-import { useId } from 'react';
+import { FC, useId } from 'react';
+import { useAppDispatch } from '../../../../redux/app/hooks';
+import { setSelectedKey } from '../../../../redux/features/admin/adminSlice';
 import { Breakpoints, SharedStyles } from '../../../../styles';
 import { SpecializationListItemActions } from '../SpecializationListItemActions';
-import { setSelectedKey } from '../../../../redux/features/admin/adminSlice';
-import { useAppDispatch } from '../../../../redux/app/hooks';
 
 const useClasses = makeStyles({
     root: {
@@ -62,7 +61,7 @@ const useClasses = makeStyles({
 
 interface ISpecializationListItemProps {
     specializationId: string;
-    specializationKey: string;
+    label: string;
     name: string;
     specializationMode: boolean;
     isSelected: boolean;
@@ -70,7 +69,7 @@ interface ISpecializationListItemProps {
 
 export const SpecializationListItem: FC<ISpecializationListItemProps> = ({
     specializationId,
-    specializationKey,
+    label,
     name,
     specializationMode,
     isSelected,
@@ -78,15 +77,15 @@ export const SpecializationListItem: FC<ISpecializationListItemProps> = ({
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const friendlyTitle = name.length > 30 ? name.substring(0, 30) + '...' : name;
-    const onEditSpecializationClick = (specializationKey: string) => {
-        dispatch(setSelectedKey(specializationKey));
+    const onEditSpecializationClick = (specializationId: string) => {
+        dispatch(setSelectedKey(specializationId));
     };
 
     return (
         <div
             className={mergeClasses(classes.root, isSelected && classes.selected)}
             onClick={() => {
-                onEditSpecializationClick(specializationKey);
+                onEditSpecializationClick(specializationId);
             }}
             title={`Chat: ${friendlyTitle}`}
             aria-label={`Chat list item: ${friendlyTitle}`}
@@ -98,8 +97,8 @@ export const SpecializationListItem: FC<ISpecializationListItemProps> = ({
                             {friendlyTitle}
                         </Text>
                     </div>
-                    <Text className={classes.specialization} title={specializationKey}>
-                        {specializationKey}
+                    <Text className={classes.specialization} title={label}>
+                        {label}
                     </Text>
                 </div>
                 <SpecializationListItemActions

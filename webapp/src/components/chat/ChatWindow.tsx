@@ -12,7 +12,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { Map16Regular } from '@fluentui/react-icons';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { FeatureKeys } from '../../redux/features/app/AppState';
@@ -70,8 +70,8 @@ export const ChatWindow: React.FC = () => {
 
     useEffect(() => {
         if (selectedId) {
-            const specializationKey = conversations[selectedId].specializationKey;
-            const specialization = specializations.find((spec) => spec.key === specializationKey);
+            const specializationId = conversations[selectedId].specializationId;
+            const specialization = specializations.find((spec) => spec.id === specializationId);
             if (specialization) {
                 setSpecializationName(specialization.name);
             }

@@ -17,5 +17,5 @@ public interface IQSearchService : IDisposable
     /// </summary>
     /// <param name="qsearchParameters">Search Parameters(Specialization, searchBy)</param>
     /// <returns>Results containing the response from search endpoint.</returns>
-    Task<QSearchResult> GetMatchesAsync(QSearchParameters qsearchParameters);
+    Task<QSearchResult?> GetMatchesAsync(QSearchParameters qsearchParameters);
 }

@@ -1,9 +1,18 @@
-import * as React from 'react';
-import { makeStyles, Button, Caption1, tokens, Text, Tooltip } from '@fluentui/react-components';
+import {
+    Button,
+    Caption1,
+    Card,
+    CardHeader,
+    CardPreview,
+    makeStyles,
+    Text,
+    tokens,
+    Tooltip,
+} from '@fluentui/react-components';
 import { MoreHorizontal20Regular } from '@fluentui/react-icons';
-import { Card, CardHeader, CardPreview } from '@fluentui/react-components';
-import { ISpecialization } from '../../libs/models/Specialization';
+import * as React from 'react';
 import { useChat } from '../../libs/hooks';
+import { ISpecialization } from '../../libs/models/Specialization';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import {
@@ -74,8 +83,8 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const onAddChat = () => {
-        void chat.editChatSpecialization(selectedId, specialization.key).finally(() => {
-            dispatch(editConversationSpecialization({ id: selectedId, newSpecializationKey: specialization.key }));
+        void chat.editChatSpecialization(selectedId, specialization.id).finally(() => {
+            dispatch(editConversationSpecialization({ id: selectedId, specializationId: specialization.id }));
             dispatch(
                 editConversationSystemDescription({
                     id: selectedId,
@@ -111,7 +120,7 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
                     action={
                         <div
                             className={
-                                specialization.description.length > 250 || specialization.key == 'general'
+                                specialization.description.length > 250 || specialization.id == 'general'
                                     ? styles.showTooltip
                                     : styles.hideTooltip
                             }

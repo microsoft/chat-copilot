@@ -6,13 +6,13 @@ export interface AdminState {
     isAdminSelected: boolean;
     specializations: ISpecialization[];
     specializationIndexes: string[];
-    selectedKey: string;
+    selectedId: string;
 }
 export const Specializations = [
     {
         // Basic settings
         id: '',
-        key: 'general',
+        label: 'general',
         name: 'General',
         description: 'General',
         roleInformation: '',
@@ -28,5 +28,5 @@ export const initialState: AdminState = {
     isAdminSelected: false,
     specializations: Specializations,
     specializationIndexes: [],
-    selectedKey: '',
+    selectedId: '',
 };

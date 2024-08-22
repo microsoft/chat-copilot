@@ -174,7 +174,7 @@ public static class CopilotChatServiceExtensions
         IStorageContext<MemorySource> chatMemorySourceStorageContext;
         IStorageContext<ChatParticipant> chatParticipantStorageContext;
         IStorageContext<ChatSpecializationSession> chatSpecializationSessionStorageContext;
-        IStorageContext<SpecializationSource> specializationSourceStorageContext;
+        IStorageContext<Specialization> specializationStorageContext;
 
         ChatStoreOptions chatStoreConfig = services.BuildServiceProvider().GetRequiredService<IOptions<ChatStoreOptions>>().Value;
 
@@ -187,7 +187,7 @@ public static class CopilotChatServiceExtensions
                 chatMemorySourceStorageContext = new VolatileContext<MemorySource>();
                 chatParticipantStorageContext = new VolatileContext<ChatParticipant>();
                 chatSpecializationSessionStorageContext = new VolatileContext<ChatSpecializationSession>();
-                specializationSourceStorageContext = new VolatileContext<SpecializationSource>();
+                specializationStorageContext = new VolatileContext<Specialization>();
                 break;
             }
 
@@ -208,10 +208,8 @@ public static class CopilotChatServiceExtensions
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}")));
                 chatParticipantStorageContext = new FileSystemContext<ChatParticipant>(
                     new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_participants{Path.GetExtension(fullPath)}")));
-                chatSpecializationSessionStorageContext = new FileSystemContext<ChatSpecializationSession>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
-                specializationSourceStorageContext = new FileSystemContext<SpecializationSource>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
+                specializationStorageContext = new FileSystemContext<Specialization>(
+                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_specializations{Path.GetExtension(fullPath)}")));
                 break;
             }
 
@@ -230,10 +228,8 @@ public static class CopilotChatServiceExtensions
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMemorySourcesContainer);
                 chatParticipantStorageContext = new CosmosDbContext<ChatParticipant>(
                     chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatParticipantsContainer);
-                chatSpecializationSessionStorageContext = new CosmosDbContext<ChatSpecializationSession>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatSpecializationSessionsContainer);
-                specializationSourceStorageContext = new CosmosDbContext<SpecializationSource>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.SpecializationSourceContainer);
+                specializationStorageContext = new CosmosDbContext<Specialization>(
+                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.SpecializationContainer);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 break;
             }
@@ -249,8 +245,7 @@ public static class CopilotChatServiceExtensions
         services.AddSingleton<ChatMessageRepository>(new ChatMessageRepository(chatMessageStorageContext));
         services.AddSingleton<ChatMemorySourceRepository>(new ChatMemorySourceRepository(chatMemorySourceStorageContext));
         services.AddSingleton<ChatParticipantRepository>(new ChatParticipantRepository(chatParticipantStorageContext));
-        services.AddSingleton<ChatSpecializationSessionRepository>(new ChatSpecializationSessionRepository(chatSpecializationSessionStorageContext));
-        services.AddSingleton<SpecializationSourceRepository>(new SpecializationSourceRepository(specializationSourceStorageContext));
+        services.AddSingleton<SpecializationRepository>(new SpecializationRepository(specializationStorageContext));
 
         return services;
     }

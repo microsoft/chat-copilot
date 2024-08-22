@@ -20,29 +20,37 @@ public class QSearchService : IQSearchService
 {
     private readonly HttpClient _httpClient;
     private readonly HttpClientHandler? _httpClientHandler;
+    private readonly SpecializationRepository _specializationRepository;
     private QAzureOpenAIChatExtension _qAzureOpenAIChatExtension;
 
-    public QSearchService(QAzureOpenAIChatOptions qAzureOpenAIChatOptions, SpecializationSourceRepository specializationSourceRepository)
+    public QSearchService(QAzureOpenAIChatOptions qAzureOpenAIChatOptions, SpecializationRepository specializationSourceRepository)
     {
         this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(qAzureOpenAIChatOptions, specializationSourceRepository);
         this._httpClientHandler = new() { CheckCertificateRevocationList = true };
         this._httpClient = new(this._httpClientHandler);
+        this._specializationRepository = specializationSourceRepository;
     }
 
     /// <summary>
     /// Retrieves the search results using AzureAISearch service.
     /// </summary>
-    public async Task<QSearchResult> GetMatchesAsync(QSearchParameters qsearchParameters)
+    public async Task<QSearchResult?> GetMatchesAsync(QSearchParameters qsearchParameters)
     {
-        string specializationKey = qsearchParameters.SpecializationKey;
+        string specializationId = qsearchParameters.SpecializationId;
         QAzureSearchRequest requestBody = new(qsearchParameters.Search);
+        var indexName = await this.GetIndexName(specializationId);
+        if (indexName == null)
+        {
+            return null;
+        }
+
         using var httpRequestMessage = new HttpRequestMessage()
         {
             Method = HttpMethod.Post,
-            RequestUri = new Uri($"{this.GetEndpoint(specializationKey)}indexes/{this.GetIndexName(specializationKey)}/docs/search?api-version=2020-06-30"),
+            RequestUri = new Uri($"{this.GetEndpoint()}indexes/{indexName}/docs/search?api-version=2020-06-30"),
             Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"),
         };
-        httpRequestMessage.Headers.Add("api-Key", this.GetApiKey(specializationKey));
+        httpRequestMessage.Headers.Add("api-Key", this.GetApiKey());
         var response = await this._httpClient.SendAsync(httpRequestMessage);
         var body = await response.Content.ReadAsStringAsync();
         var searchResponse = JsonSerializer.Deserialize<QAzureSearchResponse>(body!);
@@ -94,24 +102,23 @@ public class QSearchService : IQSearchService
             this._httpClientHandler?.Dispose();
         }
     }
-    private string GetApiKey(string specializationKey)
+    private string GetApiKey()
     {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         return this._qAzureOpenAIChatExtension.AzureConfig.APIKey;
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 
-    private string GetEndpoint(string specializationKey)
+    private string GetEndpoint()
     {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         return this._qAzureOpenAIChatExtension.AzureConfig.Endpoint.ToString();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 
-    private string GetIndexName(string specializationKey)
+    private async Task<string?> GetIndexName(string specializationId)
     {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(specializationKey).IndexName;
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+        var specialiazation = await this._specializationRepository.FindByIdAsync(specializationId);
+        return specialiazation?.IndexName;
     }
 }

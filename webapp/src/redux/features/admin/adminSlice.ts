@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { initialState, AdminState } from './AdminState';
 import { ISpecialization } from '../../../libs/models/Specialization';
+import { AdminState, initialState } from './AdminState';
 
 export const adminSlice = createSlice({
     name: 'admin',
@@ -19,7 +19,7 @@ export const adminSlice = createSlice({
             state.isAdminSelected = action.payload;
         },
         setSelectedKey: (state: AdminState, action: PayloadAction<string>) => {
-            state.selectedKey = action.payload;
+            state.selectedId = action.payload;
         },
         addSpecialization: (state: AdminState, action: PayloadAction<ISpecialization>) => {
             state.specializations.push(action.payload);

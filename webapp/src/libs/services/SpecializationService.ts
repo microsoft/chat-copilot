@@ -25,22 +25,9 @@ export class SpecializationService extends BaseService {
     };
 
     public createSpecializationAsync = async (
-        key: string,
-        name: string,
-        description: string,
-        roleInformation: string,
-        indexName: string,
-        imageFilePath: string,
+        body: ISpecializationRequest,
         accessToken: string,
     ): Promise<ISpecialization> => {
-        const body: ISpecializationRequest = {
-            key,
-            name,
-            description,
-            roleInformation,
-            indexName,
-            imageFilePath,
-        };
         const result = await this.getResponseAsync<ISpecialization>(
             {
                 commandPath: 'specializations',
@@ -54,22 +41,9 @@ export class SpecializationService extends BaseService {
 
     public updateSpecializationAsync = async (
         specializationId: string,
-        key: string,
-        name: string,
-        description: string,
-        roleInformation: string,
-        indexName: string,
-        imageFilePath: string,
+        body: ISpecializationRequest,
         accessToken: string,
     ): Promise<ISpecialization> => {
-        const body: ISpecializationRequest = {
-            key,
-            name,
-            description,
-            roleInformation,
-            indexName,
-            imageFilePath,
-        };
         const result = await this.getResponseAsync<ISpecialization>(
             {
                 commandPath: `specializations/${specializationId}`,

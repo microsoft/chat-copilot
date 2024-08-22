@@ -22,7 +22,7 @@ public class ChatSpecializationSession : IStorageEntity
     /// <summary>
     /// Specialization Key associated with the chat.
     /// </summary>
-    public string SpecializationKey { get; set; }
+    public string SpecializationId { get; set; }
 
     /// <summary>
     /// The partition key for the session.
@@ -47,10 +47,10 @@ public class ChatSpecializationSession : IStorageEntity
     /// </summary>
     /// <param name="chatId">The id of the chat.</param>
     /// <param name="specialization">The specialization key associated with the chat.</param>
-    public ChatSpecializationSession(string chatId, string specialization)
+    public ChatSpecializationSession(string chatId, string specializationId)
     {
         this.Id = chatId;
-        this.SpecializationKey = specialization;
+        this.SpecializationId = specializationId;
         this.CreatedOn = DateTimeOffset.Now;
         this.Version = CurrentVersion;
     }

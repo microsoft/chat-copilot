@@ -37,7 +37,7 @@ public class SpecializationController : ControllerBase
     public SpecializationController(
     ILogger<SpecializationController> logger,
     IOptions<QAzureOpenAIChatOptions> specializationOptions,
-    SpecializationSourceRepository specializationSourceRepository,
+    SpecializationRepository specializationSourceRepository,
     IOptions<PromptsOptions> promptsOptions)
     {
         this._logger = logger;
@@ -59,14 +59,13 @@ public class SpecializationController : ControllerBase
     public async Task<OkObjectResult> GetAllSpecializations()
     {
         var specializationResponses = new List<QSpecializationResponse>();
-        IEnumerable<SpecializationSource> specializations = await this._qspecializationService.GetAllSpecializations();
-        foreach (SpecializationSource _specializationsource in specializations)
+        IEnumerable<Specialization> specializations = await this._qspecializationService.GetAllSpecializations();
+        foreach (Specialization specialization in specializations)
         {
-            QSpecializationResponse qSpecializationResponse = new(_specializationsource);
-            qSpecializationResponse.GroupMemberships = this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(_specializationsource.Key)!.GroupMemberships;
+            QSpecializationResponse qSpecializationResponse = new(specialization);
             specializationResponses.Add(qSpecializationResponse);
         }
-        var defaultSpecializationProps = this.GetDefaultSpecializationKeys();
+        var defaultSpecializationProps = this.GetDefaultSpecializationDict();
         specializationResponses.Add(new QSpecializationResponse(defaultSpecializationProps));
         return this.Ok(specializationResponses);
     }
@@ -111,10 +110,9 @@ public class SpecializationController : ControllerBase
         if (_specializationsource != null)
         {
             QSpecializationResponse qSpecializationResponse = new(_specializationsource);
-            qSpecializationResponse.GroupMemberships = this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(_specializationsource.Key)!.GroupMemberships;
             return this.Ok(qSpecializationResponse);
         }
-        return this.StatusCode(500, $"Failed to create specialization for key '{qSpecializationParameters.key}'.");
+        return this.StatusCode(500, $"Failed to create specialization for label '{qSpecializationParameters.label}'.");
     }
 
     /// <summary>
@@ -132,11 +130,10 @@ public class SpecializationController : ControllerBase
         [FromBody] QSpecializationParameters qSpecializationParameters,
         [FromRoute] Guid specializationId)
     {
-        SpecializationSource? specializationToEdit = await this._qspecializationService.UpdateSpecialization(specializationId, qSpecializationParameters);
+        Specialization? specializationToEdit = await this._qspecializationService.UpdateSpecialization(specializationId, qSpecializationParameters);
         if (specializationToEdit != null)
         {
             QSpecializationResponse qSpecializationResponse = new(specializationToEdit);
-            qSpecializationResponse.GroupMemberships = this._qAzureOpenAIChatExtension.GetSpecializationIndexByKey(specializationToEdit.Key)!.GroupMemberships;
             return this.Ok(qSpecializationResponse);
         }
 
@@ -169,11 +166,11 @@ public class SpecializationController : ControllerBase
     /// Gets the default specialization prtoperties
     /// </summary>
     /// <returns>The dictionary containing default specialization properties</returns>
-    private Dictionary<string, string> GetDefaultSpecializationKeys()
+    private Dictionary<string, string> GetDefaultSpecializationDict()
     {
         var defaultProps = new Dictionary<string, string>();
         defaultProps.Add("id", "general");
-        defaultProps.Add("key", "general");
+        defaultProps.Add("label", "general");
         defaultProps.Add("name", "General");
         defaultProps.Add("description", string.IsNullOrEmpty(this._qAzureOpenAIChatOptions.DefaultSpecializationDescription) ? "This is a chat between an intelligent AI bot named Copilot and one or more participants. SK stands for Semantic Kernel, the AI platform used to build the bot." : this._qAzureOpenAIChatOptions.DefaultSpecializationDescription);
         defaultProps.Add("roleInformation", this._promptOptions.SystemDescription);

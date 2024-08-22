@@ -1,10 +1,10 @@
 export interface ISpecialization {
     id: string;
-    key: string;
+    label: string;
     name: string;
     description: string;
     roleInformation: string;
-    indexName: string;
+    indexName: string | undefined;
     imageFilePath: string;
     isActive: boolean;
     groupMemberships: string[];
@@ -13,12 +13,13 @@ export interface ISpecialization {
 }
 
 export interface ISpecializationRequest {
-    key: string;
+    label: string;
     name: string;
     description: string;
     roleInformation: string;
     indexName: string;
     imageFilePath: string;
+    groupMemberships: string[];
 }
 
 export interface ISpecializationToggleRequest {

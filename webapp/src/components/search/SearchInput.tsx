@@ -32,22 +32,22 @@ const useClasses = makeStyles({
 
 interface SearchInputProps {
     onSubmit: (specialization: string, value: string) => Promise<void>;
-    defaultSpecializationKey?: string;
+    defaultSpecializationId?: string;
 }
 
 interface Specialization {
-    key: string;
+    id: string;
     name: string;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpecializationKey = '' }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpecializationId = '' }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const { specializations } = useAppSelector((state: RootState) => state.admin);
 
-    // Find the specialization name based on the defaultSpecializationKey
-    const defaultSpecialization = specializations.find((spec) => spec.key === defaultSpecializationKey) ?? {
-        key: '',
+    // Find the specialization name based on the defaultSpecializationId
+    const defaultSpecialization = specializations.find((spec) => spec.id === defaultSpecializationId) ?? {
+        id: '',
         name: '',
     };
 
@@ -55,8 +55,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
     const [value, setValue] = useState('');
     const { app } = useAppSelector((state: RootState) => state);
     const filteredSpecializations = specializations.filter((_specialization) => {
-        const hasMembership = app.activeUserInfo?.groups.some((val) => _specialization.groupMemberships.includes(val));
-        if (hasMembership) {
+        const hasMembership =
+            app.activeUserInfo?.groups.some((val) => _specialization.groupMemberships.includes(val)) ?? false;
+        if (hasMembership || _specialization.groupMemberships.length === 0) {
             return _specialization;
         }
         return;
@@ -71,10 +72,10 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
     };
 
     const handleSubmit = () => {
-        if (value.trim() === '' || specialization.key.trim() === '') {
+        if (value.trim() === '' || specialization.id.trim() === '') {
             return; // only submit if value is not empty
         }
-        onSubmit(specialization.key, value).catch((error) => {
+        onSubmit(specialization.id, value).catch((error) => {
             const message = `Error submitting search input: ${(error as Error).message}`;
             dispatch(
                 addAlert({
@@ -99,11 +100,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({ onSubmit, defaultSpeci
                     >
                         {filteredSpecializations.map(
                             (specialization) =>
-                                specialization.key != 'general' && (
+                                specialization.id != 'general' && (
                                     <Option
-                                        key={specialization.key}
+                                        key={specialization.id}
                                         onClick={() => {
-                                            setSpecialization({ key: specialization.key, name: specialization.name });
+                                            setSpecialization({ id: specialization.id, name: specialization.name });
                                         }}
                                     >
                                         {specialization.name}

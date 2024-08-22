@@ -34,18 +34,18 @@ interface IChatListSectionProps {
 export const SpecializationListSection: React.FC<IChatListSectionProps> = ({ header }) => {
     const classes = useClasses();
     const specializations = useAppSelector((state: RootState) => state.admin.specializations);
-    const selectedKey = useAppSelector((state: RootState) => state.admin.selectedKey);
+    const selectedId = useAppSelector((state: RootState) => state.admin.selectedId);
 
     return specializations.length > 0 ? (
         <div className={classes.root}>
             <Text className={classes.header}>{header}</Text>
             {specializations.map((specialization) => {
-                const isSelected = specialization.key === selectedKey;
-                return specialization.key != 'general' ? (
+                const isSelected = specialization.id === selectedId;
+                return specialization.id != 'general' ? (
                     <SpecializationListItem
                         key={specialization.id}
                         specializationId={specialization.id}
-                        specializationKey={specialization.key}
+                        label={specialization.label}
                         name={specialization.name}
                         specializationMode={specialization.isActive}
                         isSelected={isSelected}

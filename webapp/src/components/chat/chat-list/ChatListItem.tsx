@@ -90,7 +90,7 @@ interface IChatListItemProps {
     preview: string;
     botProfilePicture: string;
     isSelected: boolean;
-    specializationKey: string;
+    specializationLabel: string;
 }
 
 export const ChatListItem: FC<IChatListItemProps> = ({
@@ -100,7 +100,7 @@ export const ChatListItem: FC<IChatListItemProps> = ({
     preview,
     botProfilePicture,
     isSelected,
-    specializationKey,
+    specializationLabel,
 }) => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
@@ -151,8 +151,8 @@ export const ChatListItem: FC<IChatListItemProps> = ({
                                 </Text>
                             )}
                         </div>
-                        <Text className={classes.specialization} title={specializationKey}>
-                            {specializationKey}
+                        <Text className={classes.specialization} title={specializationLabel}>
+                            {specializationLabel}
                         </Text>
                         {showPreview && (
                             <Text id={`message-preview-${id}`} size={200} className={classes.previewText}>

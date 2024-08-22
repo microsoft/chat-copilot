@@ -104,11 +104,11 @@ export class ChatService extends BaseService {
 
     public editChatSepcializationAsync = async (
         chatId: string,
-        specializationKey: string,
+        specializationId: string,
         accessToken: string,
     ): Promise<any> => {
         const body = {
-            specializationKey,
+            specializationId,
         };
 
         const result = await this.getResponseAsync<IChatSession>(

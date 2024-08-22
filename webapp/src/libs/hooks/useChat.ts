@@ -65,7 +65,7 @@ export const useChat = () => {
         id: userId,
         fullName,
         emailAddress,
-        photo: undefined, // TODO: [Issue #45] Make call to Graph /me endpoint to load photo
+        photo: undefined,
         online: true,
         isTyping: false,
     };
@@ -76,8 +76,8 @@ export const useChat = () => {
         if (id === `${chatId}-bot` || id.toLocaleLowerCase() === 'bot') return Constants.bot.profile;
         return users.find((user) => user.id === id);
     };
-    const defaultSpecialization = '';
-    const createChat = async (specializationKey = defaultSpecialization) => {
+    const defaultSpecializationId = '';
+    const createChat = async (specializationId = defaultSpecializationId) => {
         const chatTitle = `Copilot @ ${new Date().toLocaleString()}`;
         try {
             await chatService
@@ -97,7 +97,7 @@ export const useChat = () => {
                         userDataLoaded: false,
                         disabled: false,
                         hidden: false,
-                        specializationKey: specializationKey,
+                        specializationId,
                     };
 
                     dispatch(addConversation(newChat));
@@ -138,7 +138,7 @@ export const useChat = () => {
                 },
                 {
                     key: 'specialization',
-                    value: conversations[chatId].specializationKey,
+                    value: conversations[chatId].specializationId ?? defaultSpecializationId,
                 },
             ],
         };
@@ -202,9 +202,7 @@ export const useChat = () => {
                         userDataLoaded: false,
                         disabled: false,
                         hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
-                        specializationKey: chatSession.specialization
-                            ? chatSession.specialization.specializationKey
-                            : defaultSpecialization,
+                        specializationId: chatSession.specializationId,
                     };
                 }
 
@@ -262,9 +260,7 @@ export const useChat = () => {
                     userDataLoaded: false,
                     disabled: false,
                     hidden: false,
-                    specializationKey: chatSession.specialization
-                        ? chatSession.specialization.specializationKey
-                        : defaultSpecialization,
+                    specializationId: chatSession.specializationId,
                 };
 
                 dispatch(addConversation(newChat));
@@ -371,9 +367,7 @@ export const useChat = () => {
                     userDataLoaded: false,
                     disabled: false,
                     hidden: false,
-                    specializationKey: result.specialization
-                        ? result.specialization.specializationKey
-                        : defaultSpecialization,
+                    specializationId: result.specializationId,
                 };
 
                 dispatch(addConversation(newChat));
@@ -401,11 +395,11 @@ export const useChat = () => {
         }
     };
 
-    const editChatSpecialization = async (chatId: string, specializationKey: string) => {
+    const editChatSpecialization = async (chatId: string, specializationId: string) => {
         try {
             await chatService.editChatSepcializationAsync(
                 chatId,
-                specializationKey,
+                specializationId,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
         } catch (e: any) {

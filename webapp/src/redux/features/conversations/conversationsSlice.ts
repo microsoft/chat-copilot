@@ -33,7 +33,7 @@ export const conversationsSlice = createSlice({
             action: PayloadAction<ConversationSpecializationChange>,
         ) => {
             const id = action.payload.id;
-            state.conversations[id].specializationKey = action.payload.newSpecializationKey;
+            state.conversations[id].specializationId = action.payload.specializationId;
             frontLoadChat(state, id);
         },
         editConversationInput: (state: ConversationsState, action: PayloadAction<ConversationInputChange>) => {

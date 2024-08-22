@@ -2,12 +2,12 @@
 
 import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import React from 'react';
+import { useSearch } from '../../libs/hooks/useSearch';
+import { ISearchMetaData } from '../../libs/models/SearchResponse';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { SharedStyles } from '../../styles';
 import { SearchInput } from './SearchInput';
-import { useSearch } from '../../libs/hooks/useSearch';
-import { ISearchMetaData } from '../../libs/models/SearchResponse';
 
 const useClasses = makeStyles({
     root: {
@@ -40,7 +40,7 @@ export const SearchRoom: React.FC = () => {
     const classes = useClasses();
     const search = useSearch();
 
-    const { searchData, selectedSearchItem, selectedSpecializationKey } = useAppSelector(
+    const { searchData, selectedSearchItem, selectedSpecializationId } = useAppSelector(
         (state: RootState) => state.search,
     );
     const values = searchData.value;
@@ -64,7 +64,7 @@ export const SearchRoom: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            <SearchInput onSubmit={handleSubmit} defaultSpecializationKey={selectedSpecializationKey} />
+            <SearchInput onSubmit={handleSubmit} defaultSpecializationId={selectedSpecializationId} />
             <div ref={scrollViewTargetRef} className={classes.scroll}>
                 <div>
                     {displayContent.map((content, index) => (

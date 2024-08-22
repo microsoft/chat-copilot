@@ -2,18 +2,18 @@ import { useMsal } from '@azure/msal-react';
 import { useAppDispatch } from '../../redux/app/hooks';
 import { addAlert } from '../../redux/features/app/appSlice';
 
-import { SpecializationService } from '../services/SpecializationService';
-import { AuthHelper } from '../auth/AuthHelper';
-import { AlertType } from '../models/AlertType';
 import { getErrorDetails } from '../../components/utils/TextUtils';
 import {
     addSpecialization,
-    removeSpecialization,
     editSpecialization,
-    setSpecializations,
+    removeSpecialization,
     setSpecializationIndexes,
+    setSpecializations,
 } from '../../redux/features/admin/adminSlice';
-import { ISpecialization } from '../models/Specialization';
+import { AuthHelper } from '../auth/AuthHelper';
+import { AlertType } from '../models/AlertType';
+import { ISpecialization, ISpecializationRequest } from '../models/Specialization';
+import { SpecializationService } from '../services/SpecializationService';
 
 export const useSpecialization = () => {
     const dispatch = useAppDispatch();
@@ -46,57 +46,23 @@ export const useSpecialization = () => {
         }
     };
 
-    const createSpecialization = async (
-        key: string,
-        name: string,
-        description: string,
-        roleInformation: string,
-        indexName: string,
-        imageFilePath: string,
-    ) => {
+    const createSpecialization = async (data: ISpecializationRequest) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            await specializationService
-                .createSpecializationAsync(
-                    key,
-                    name,
-                    description,
-                    roleInformation,
-                    indexName,
-                    imageFilePath,
-                    accessToken,
-                )
-                .then((result: ISpecialization) => {
-                    dispatch(addSpecialization(result));
-                });
+            await specializationService.createSpecializationAsync(data, accessToken).then((result: ISpecialization) => {
+                dispatch(addSpecialization(result));
+            });
         } catch (e: any) {
             const errorMessage = `Unable to load chats. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
     };
 
-    const updateSpecialization = async (
-        id: string,
-        key: string,
-        name: string,
-        description: string,
-        roleInformation: string,
-        indexName: string,
-        imageFilePath: string,
-    ) => {
+    const updateSpecialization = async (id: string, data: ISpecializationRequest) => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
             await specializationService
-                .updateSpecializationAsync(
-                    id,
-                    key,
-                    name,
-                    description,
-                    roleInformation,
-                    indexName,
-                    imageFilePath,
-                    accessToken,
-                )
+                .updateSpecializationAsync(id, data, accessToken)
                 .then((result: ISpecialization) => {
                     dispatch(editSpecialization(result));
                 });

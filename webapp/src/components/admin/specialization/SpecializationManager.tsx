@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useState } from 'react';
 
-import { Button, Dropdown, Option, Input, makeStyles, shorthands, Textarea, tokens } from '@fluentui/react-components';
+import { Button, Dropdown, Input, makeStyles, Option, shorthands, Textarea, tokens } from '@fluentui/react-components';
 import { useSpecialization } from '../../../libs/hooks';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
@@ -25,6 +25,9 @@ const useClasses = makeStyles({
     dialog: {
         maxWidth: '25%',
     },
+    required: {
+        color: '#990000',
+    },
 });
 
 const Rows = 8;
@@ -33,107 +36,134 @@ export const SpecializationManager: React.FC = () => {
     const specialization = useSpecialization();
     const classes = useClasses();
 
+    const [editMode, setEditMode] = useState(false);
+
     const [id, setId] = useState('');
-    const [key, setKey] = useState('');
+    const [label, setLabel] = useState('');
     const [name, setName] = useState('');
-    const [indexName, setIndexName] = useState('');
     const [description, setDescription] = useState('');
     const [roleInformation, setRoleInformation] = useState('');
+    const [indexName, setIndexName] = useState('');
     const [imageFilePath, setImageFilePath] = useState('');
-    const [editMode, setEditMode] = useState(false);
+    const [membershipId, setMembershipId] = useState<string[]>([]);
+
     const dropdownId = useId();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
-    const { specializations, specializationIndexes, selectedKey } = useAppSelector((state: RootState) => state.admin);
+    const { specializations, specializationIndexes, selectedId } = useAppSelector((state: RootState) => state.admin);
 
     const onSaveSpecialization = () => {
         if (editMode) {
-            void specialization.updateSpecialization(
-                id,
-                key,
+            void specialization.updateSpecialization(id, {
+                label,
                 name,
                 description,
                 roleInformation,
                 indexName,
                 imageFilePath,
-            );
+                groupMemberships: [],
+            });
             resetSpecialization();
         } else {
-            void specialization.createSpecialization(key, name, description, roleInformation, indexName, imageFilePath);
+            void specialization.createSpecialization({
+                label,
+                name,
+                description,
+                roleInformation,
+                indexName,
+                imageFilePath,
+                groupMemberships: [],
+            });
             resetSpecialization();
         }
     };
 
     const resetSpecialization = () => {
-        setKey('');
+        setId('');
+        setLabel('');
         setName('');
         setDescription('');
         setRoleInformation('');
+        setMembershipId([]);
         setImageFilePath('');
         setIndexName('');
     };
 
     useEffect(() => {
-        if (selectedKey != '') {
+        if (selectedId != '') {
             setEditMode(true);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const specializationObj = specializations.find((specialization) => specialization.key === selectedKey);
+            const specializationObj = specializations.find((specialization) => specialization.id === selectedId);
             if (specializationObj) {
                 setId(specializationObj.id);
-                setKey(specializationObj.key);
+                setLabel(specializationObj.label);
                 setName(specializationObj.name);
                 setDescription(specializationObj.description);
                 setRoleInformation(specializationObj.roleInformation);
+                setMembershipId(specializationObj.groupMemberships);
                 setImageFilePath(specializationObj.imageFilePath);
-                setIndexName(specializationObj.indexName);
+                setIndexName(specializationObj.indexName ?? '');
             }
         } else {
             setEditMode(false);
             resetSpecialization();
         }
-    }, [editMode, selectedKey, specializations]);
+    }, [editMode, selectedId, specializations]);
 
     const onDeleteChat = () => {
         void specialization.deleteSpecialization(id);
         resetSpecialization();
     };
 
+    const [isValid, setIsValid] = useState(false);
+    useEffect(() => {
+        const isValid = !!label && !!name && !!roleInformation;
+        setIsValid(isValid);
+        return () => {};
+    }, [specializations, selectedId, label, name, roleInformation]);
+
     return (
         <div className={classes.root}>
             <div className={classes.horizontal}></div>
-            <label>Key</label>
+            <label htmlFor="name">
+                Name<span className={classes.required}>*</span>
+            </label>
             <Input
-                value={key}
-                onChange={(_event, data) => {
-                    setKey(data.value);
-                }}
-            />
-            <label>Name</label>
-            <Input
+                id="name"
+                required
                 value={name}
                 onChange={(_event, data) => {
                     setName(data.value);
                 }}
             />
-            <label>Index Name</label>
+            <label htmlFor="label">
+                Label<span className={classes.required}>*</span>
+            </label>
+            <Input
+                id="label"
+                required
+                value={label}
+                onChange={(_event, data) => {
+                    setLabel(data.value);
+                }}
+            />
+            <label htmlFor="index-name">Enrichment Index</label>
             <Dropdown
+                clearable
+                id="index-name"
                 aria-labelledby={dropdownId}
-                placeholder="Select Index"
+                onOptionSelect={(_control, data) => {
+                    setIndexName(data.optionValue ?? '');
+                }}
                 value={indexName}
-                selectedOptions={[indexName]}
             >
                 {specializationIndexes.map((specializationIndex) => (
-                    <Option
-                        key={specializationIndex}
-                        onClick={() => {
-                            setIndexName(specializationIndex);
-                        }}
-                    >
-                        {specializationIndex}
-                    </Option>
+                    <Option key={specializationIndex}>{specializationIndex}</Option>
                 ))}
             </Dropdown>
-            <label>Short Description</label>
+            <label htmlFor="description">
+                Short Description<span className={classes.required}>*</span>
+            </label>
             <Textarea
+                id="description"
+                required
                 resize="vertical"
                 value={description}
                 rows={2}
@@ -141,8 +171,12 @@ export const SpecializationManager: React.FC = () => {
                     setDescription(data.value);
                 }}
             />
-            <label>Role Information</label>
+            <label htmlFor="context">
+                Chat Context<span className={classes.required}>*</span>
+            </label>
             <Textarea
+                id="context"
+                required
                 resize="vertical"
                 value={roleInformation}
                 rows={Rows}
@@ -150,19 +184,31 @@ export const SpecializationManager: React.FC = () => {
                     setRoleInformation(data.value);
                 }}
             />
-            <label>Image URL</label>
+            <label htmlFor="membership">
+                Entra Membership IDs<span className={classes.required}>*</span>
+            </label>
             <Input
+                id="membership"
+                required
+                value={membershipId.join(', ')}
+                onChange={(_event, data) => {
+                    setMembershipId(data.value.split(', '));
+                }}
+            />
+            <label htmlFor="image-url">Image URL</label>
+            <Input
+                id="image-url"
                 value={imageFilePath}
                 onChange={(_event, data) => {
                     setImageFilePath(data.value);
                 }}
             />
             <div className={classes.controls}>
-                <Button appearance="secondary" onClick={onDeleteChat}>
+                <Button appearance="secondary" disabled={!id} onClick={onDeleteChat}>
                     Delete
                 </Button>
 
-                <Button appearance="primary" onClick={onSaveSpecialization}>
+                <Button appearance="primary" disabled={!isValid} onClick={onSaveSpecialization}>
                     Save
                 </Button>
             </div>

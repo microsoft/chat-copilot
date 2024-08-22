@@ -1,6 +1,11 @@
+import { useMsal } from '@azure/msal-react';
 import { makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
+import { useEffect, useState } from 'react';
+import { AuthHelper } from '../../../libs/auth/AuthHelper';
 import { getFriendlyChatName } from '../../../libs/hooks/useChat';
 import { ChatMessageType } from '../../../libs/models/ChatMessage';
+import { ISpecialization } from '../../../libs/models/Specialization';
+import { SpecializationService } from '../../../libs/services/SpecializationService';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { Conversations } from '../../../redux/features/conversations/ConversationsState';
@@ -37,6 +42,24 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
     const classes = useClasses();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
     const keys = Object.keys(conversations);
+    const { instance, inProgress } = useMsal();
+    const specializationService = new SpecializationService();
+
+    const [specializationMap, setSpecializationMap] = useState(new Map<string, ISpecialization>());
+    useEffect(() => {
+        async function loadSpecializations() {
+            const map = new Map<string, ISpecialization>();
+
+            const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+            const specializations = await specializationService.getAllSpecializationsAsync(accessToken);
+            for (const specialization of specializations) {
+                map.set(specialization.id, specialization);
+            }
+            setSpecializationMap(map);
+        }
+        void loadSpecializations();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return keys.length > 0 ? (
         <div className={classes.root}>
@@ -46,7 +69,9 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                 const messages = convo.messages;
                 const lastMessage = messages[convo.messages.length - 1];
                 const isSelected = id === selectedId;
-                const specializationKey = convo.specializationKey;
+                const specialization = !!convo.specializationId
+                    ? specializationMap.get(convo.specializationId)
+                    : undefined;
                 return (
                     <ChatListItem
                         id={id}
@@ -63,8 +88,8 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                                       : lastMessage.content
                                 : 'Click to start the chat'
                         }
-                        botProfilePicture={convo.botProfilePicture}
-                        specializationKey={specializationKey}
+                        botProfilePicture={specialization?.imageFilePath ?? convo.botProfilePicture}
+                        specializationLabel={specialization?.label ?? ''}
                     />
                 );
             })}

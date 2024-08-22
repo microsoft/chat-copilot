@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SearchState, initialState, SearchResponse } from './SearchState';
+import { initialState, SearchResponse, SearchState } from './SearchState';
 
 export const searchSlice = createSlice({
     name: 'search',
@@ -13,10 +13,10 @@ export const searchSlice = createSlice({
         },
         setSearchSelected: (
             state: SearchState,
-            action: PayloadAction<{ selected: boolean; specializationKey: string }>,
+            action: PayloadAction<{ selected: boolean; specializationId: string }>,
         ) => {
             state.selected = action.payload.selected;
-            state.selectedSpecializationKey = action.payload.specializationKey;
+            state.selectedSpecializationId = action.payload.specializationId;
         },
     },
 });

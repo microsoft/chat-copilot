@@ -18,6 +18,6 @@ public class CreateChatParameters
     /// <summary>
     /// Specialization of the chat.
     /// </summary>
-    [JsonPropertyName("specializationKey")]
-    public string specialization { get; set; } = string.Empty;
+    [JsonPropertyName("specializationId")]
+    public string specializationId { get; set; } = string.Empty;
 }

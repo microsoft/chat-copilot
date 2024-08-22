@@ -164,15 +164,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({ isDraggingOver, onDragLeav
     };
 
     const isSpecializationDisabled = () => {
-        if (conversations[selectedId].specializationKey === '') {
+        if (conversations[selectedId].specializationId === '') {
             return true;
         } else {
             const specialization = specializations.find(
-                (spec) => spec.key === conversations[selectedId].specializationKey,
+                (spec) => spec.id === conversations[selectedId].specializationId,
             );
             if (
                 specialization &&
-                specialization.key == conversations[selectedId].specializationKey &&
+                specialization.id == conversations[selectedId].specializationId &&
                 specialization.isActive
             ) {
                 return false;

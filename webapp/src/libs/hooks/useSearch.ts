@@ -1,15 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+import { useMsal } from '@azure/msal-react';
+import { getErrorDetails } from '../../components/utils/TextUtils';
 import { useAppDispatch } from '../../redux/app/hooks';
 import { addAlert } from '../../redux/features/app/appSlice';
+import { setSearch } from '../../redux/features/search/searchSlice';
+import { SearchResponse } from '../../redux/features/search/SearchState';
+import { AuthHelper } from '../auth/AuthHelper';
 import { AlertType } from '../models/AlertType';
 import { ChatMessageType } from '../models/ChatMessage';
 import { IAskSearch, IAskVariables } from '../semantic-kernel/model/Ask';
-import { getErrorDetails } from '../../components/utils/TextUtils';
-import { setSearch } from '../../redux/features/search/searchSlice';
-import { useMsal } from '@azure/msal-react';
-import { SearchResponse } from '../../redux/features/search/SearchState';
-import { AuthHelper } from '../auth/AuthHelper';
 import { SearchService } from '../services/SearchService';
 
 export interface GetResponseOptions {
@@ -25,9 +25,9 @@ export const useSearch = () => {
     const { instance, inProgress } = useMsal();
     const searchService = new SearchService();
 
-    const getResponse = async (specialization: string, value: string) => {
+    const getResponse = async (specializationId: string, value: string) => {
         const searchAsk: IAskSearch = {
-            specializationKey: specialization,
+            specializationId,
             search: value,
         };
         try {

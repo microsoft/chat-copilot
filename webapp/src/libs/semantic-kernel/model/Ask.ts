@@ -11,6 +11,6 @@ export interface IAskVariables {
 }
 
 export interface IAskSearch {
-    specializationKey: string;
+    specializationId: string;
     search: string;
 }

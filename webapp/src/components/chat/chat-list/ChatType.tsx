@@ -1,21 +1,21 @@
 import {
     makeStyles,
+    SelectTabEventHandler,
     shorthands,
-    tokens,
     Tab,
     TabList,
     TabValue,
-    SelectTabEventHandler,
+    tokens,
 } from '@fluentui/react-components';
 import React, { FC, useEffect } from 'react';
-import { Breakpoints } from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
-import { ChatList } from './ChatList';
-import { SearchList } from '../../search/search-list/SearchList';
-import { setSearchSelected } from '../../../redux/features/search/searchSlice';
 import { RootState } from '../../../redux/app/store';
-import { SpecializationList } from '../../admin/specialization/specialization-list/SpecializationList';
 import { setAdminSelected } from '../../../redux/features/admin/adminSlice';
+import { setSearchSelected } from '../../../redux/features/search/searchSlice';
+import { Breakpoints } from '../../../styles';
+import { SpecializationList } from '../../admin/specialization/specialization-list/SpecializationList';
+import { SearchList } from '../../search/search-list/SearchList';
+import { ChatList } from './ChatList';
 
 const useClasses = makeStyles({
     root: {
@@ -42,22 +42,19 @@ export const ChatType: FC = () => {
 
     useEffect(() => {
         if (selectedTab === 'search') {
-            if (
-                selectedId &&
-                conversations[selectedId].specializationKey &&
-                conversations[selectedId].specializationKey != 'general'
-            ) {
-                const chatSpecializationKey: string = conversations[selectedId].specializationKey;
-                dispatch(setSearchSelected({ selected: true, specializationKey: chatSpecializationKey }));
+            const selectedConversation = conversations[selectedId];
+            if (selectedConversation.specializationId) {
+                const chatSpecializationId = selectedConversation.specializationId;
+                void dispatch(setSearchSelected({ selected: true, specializationId: chatSpecializationId }));
             } else {
-                dispatch(setSearchSelected({ selected: true, specializationKey: '' }));
+                dispatch(setSearchSelected({ selected: true, specializationId: '' }));
             }
             dispatch(setAdminSelected(false));
         } else if (selectedTab === 'admin') {
             dispatch(setAdminSelected(true));
-            dispatch(setSearchSelected({ selected: false, specializationKey: '' }));
+            dispatch(setSearchSelected({ selected: false, specializationId: '' }));
         } else {
-            dispatch(setSearchSelected({ selected: false, specializationKey: '' }));
+            dispatch(setSearchSelected({ selected: false, specializationId: '' }));
             dispatch(setAdminSelected(false));
         }
     }, [selectedTab, conversations, selectedId, dispatch]);

@@ -67,7 +67,7 @@ public class ChatHistoryController : ControllerBase
         ChatMessageRepository messageRepository,
         ChatParticipantRepository participantRepository,
         ChatMemorySourceRepository sourceRepository,
-        SpecializationSourceRepository specializationSourceRepository,
+        SpecializationRepository specializationSourceRepository,
         IOptions<PromptsOptions> promptsOptions,
         IOptions<QAzureOpenAIChatOptions> specializationOptions,
         IAuthInfo authInfo)
@@ -95,13 +95,13 @@ public class ChatHistoryController : ControllerBase
     public async Task<IActionResult> CreateChatSessionAsync(
         [FromBody] CreateChatParameters chatParameters)
     {
-        if (chatParameters.Title == null || chatParameters.specialization == null)
+        if (chatParameters.Title == null || chatParameters.specializationId == null)
         {
             return this.BadRequest("Chat session parameters cannot be null.");
         }
         // Create a new chat session 
         var systemDescription = this._promptOptions.SystemDescription;
-        var newChat = new ChatSession(chatParameters.Title, systemDescription, chatParameters.specialization);
+        var newChat = new ChatSession(chatParameters.Title, systemDescription, chatParameters.specializationId);
         await this._sessionRepository.CreateAsync(newChat);
         ChatSession? chat = null;
         if (await this._sessionRepository.TryFindByIdAsync(newChat.Id, callback: v => chat = v))
@@ -291,16 +291,16 @@ public class ChatHistoryController : ControllerBase
         ChatSession? chat = null;
         if (await this._sessionRepository.TryFindByIdAsync(chatId.ToString(), callback: v => chat = v))
         {
-            if (chatParameters.SpecializationKey != "general")
+            if (chatParameters.SpecializationId != "general")
             {
-                SpecializationSource specializationSource = this._qSpecializationService.GetSpecializationSource(chatParameters.SpecializationKey);
+                Specialization specializationSource = await this._qSpecializationService.GetSpecializationAsync(chatParameters.SpecializationId);
                 chat!.SystemDescription = specializationSource.RoleInformation;
             }
             else
             {
                 chat!.SystemDescription = this._promptOptions.SystemDescription;
             }
-            chat!.specialization = new ChatSpecializationSession(chatId.ToString(), chatParameters.SpecializationKey);
+            chat!.specializationId = chatParameters.SpecializationId;
             await this._sessionRepository.UpsertAsync(chat);
             await messageRelayHubContext.Clients.Group(chatId.ToString()).SendAsync(ChatEditedClientCall, chat);
 

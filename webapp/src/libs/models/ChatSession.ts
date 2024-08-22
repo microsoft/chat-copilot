@@ -10,11 +10,7 @@ export interface IChatSession {
     systemDescription: string;
     memoryBalance: number;
     enabledPlugins: string[];
-    specialization?: IChatSpecialization;
-}
-
-export interface IChatSpecialization {
-    specializationKey: string;
+    specializationId?: string;
 }
 
 export interface ICreateChatSessionResponse {
