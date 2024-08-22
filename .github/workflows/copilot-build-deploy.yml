@@ -1,0 +1,16 @@
+name: copilot-build-deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  copilot-build-images:
+    uses: ./.github/workflows/copilot-build-images.yml
+    secrets: inherit
+  copilot-deploy-aks:
+    uses: ./.github/workflows/copilot-deploy-aks.yml
+    with:
+      environment: dev
+    secrets: inherit

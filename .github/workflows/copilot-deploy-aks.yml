@@ -1,4 +1,4 @@
-name: Deploy to Azure Kubernetes Service
+name: copilot-deploy-aks
 
 on:
   push:
