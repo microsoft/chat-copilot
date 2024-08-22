@@ -118,7 +118,6 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
     const [showCitationCards, setShowCitationCards] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(false);
 
     const isDefaultUser = message.userId === DefaultChatUser.id;
     const isMe = isDefaultUser || (message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id);
@@ -161,10 +160,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
             isBot && message.content.length === 0 ? <TypingIndicator /> : <ChatHistoryTextContent message={message} />;
     }
 
-    // TODO: [Issue #42] Persistent RLHF, hook up to model
-    // Currently for demonstration purposes only, no feedback is actually sent to kernel / model
-    const showShowRLHFMessage =
-        features[FeatureKeys.RLHF].enabled && message.userId === 'Bot' && message.content.length > 0;
+    const showFeedback = features[FeatureKeys.RLHF].enabled && message.userId === 'Bot' && message.content.length > 0;
 
     const messageCitations = message.citations ?? [];
     const showMessageCitation = messageCitations.length > 0;
@@ -176,12 +172,6 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
             data-testid={`chat-history-item-${messageIndex}`}
             data-username={fullName}
             data-content={utils.formatChatTextContent(message.content)}
-            onMouseEnter={() => {
-                setShowFeedback(true);
-            }}
-            onMouseLeave={() => {
-                setShowFeedback(false);
-            }}
         >
             {
                 <Persona
@@ -199,6 +189,11 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                     {!isMe && <Text weight="semibold">{fullName}</Text>}
                     <Text className={classes.time}>{timestampToDateString(message.timestamp, true)}</Text>
                     <div className={classes.headerMenu}>
+                        {showFeedback && message.id && (
+                            <div className={classes.rlhf}>
+                                {<UserFeedbackActions messageId={message.id} wasHelpful={message.userFeedback} />}
+                            </div>
+                        )}
                         {isBot && <PromptDialog message={message} />}
                         <Tooltip content={messagedCopied ? 'Copied' : 'Copy text'} relationship="label">
                             <Button
@@ -228,11 +223,6 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                         >
                             {`${messageCitations.length} ${messageCitations.length === 1 ? 'citation' : 'citations'}`}
                         </ToggleButton>
-                    )}
-                    {showFeedback && showShowRLHFMessage && message.id && (
-                        <div className={classes.rlhf}>
-                            {<UserFeedbackActions messageId={message.id} wasHelpful={message.userFeedback} />}
-                        </div>
                     )}
                     {showCitationCards && <CitationCards message={message} />}
                 </div>

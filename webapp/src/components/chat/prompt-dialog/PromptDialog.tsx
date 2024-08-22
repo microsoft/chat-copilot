@@ -22,7 +22,7 @@ import {
     mergeClasses,
     shorthands,
 } from '@fluentui/react-components';
-import { Info16Regular } from '@fluentui/react-icons';
+import { Info20Regular } from '@fluentui/react-icons';
 import React from 'react';
 import { BotResponsePrompt, DependencyDetails, PromptSectionsNameMap } from '../../../libs/models/BotResponsePrompt';
 import { ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
@@ -37,7 +37,6 @@ const useClasses = makeStyles({
     infoButton: {
         ...shorthands.padding(0),
         ...shorthands.margin(0),
-        minWidth: 'auto',
         marginLeft: 'auto', // align to right
     },
     text: {
@@ -120,7 +119,7 @@ export const PromptDialog: React.FC<IPromptDialogProps> = ({ message }) => {
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
                 <Tooltip content={'Show prompt'} relationship="label">
-                    <Button className={classes.infoButton} icon={<Info16Regular />} appearance="transparent" />
+                    <Button className={classes.infoButton} icon={<Info20Regular />} appearance="transparent" />
                 </Tooltip>
             </DialogTrigger>
             <DialogSurface className={dialogClasses.surface}>

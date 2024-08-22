@@ -1,5 +1,11 @@
 import { useMsal } from '@azure/msal-react';
-import { Button, Text, Tooltip, makeStyles } from '@fluentui/react-components';
+import { Button, Tooltip, makeStyles } from '@fluentui/react-components';
+import {
+    ThumbDislike20Filled,
+    ThumbDislike20Regular,
+    ThumbLike20Filled,
+    ThumbLike20Regular,
+} from '@fluentui/react-icons';
 import { useCallback } from 'react';
 import { AuthHelper } from '../../../libs/auth/AuthHelper';
 import { UserFeedback } from '../../../libs/models/ChatMessage';
@@ -7,12 +13,10 @@ import { ChatService } from '../../../libs/services/ChatService';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { updateMessageProperty } from '../../../redux/features/conversations/conversationsSlice';
-import { ThumbDislike16, ThumbLike16 } from '../../shared/BundledIcons';
 
 const useClasses = makeStyles({
     root: {
         display: 'flex',
-        'place-content': 'flex-end',
         alignItems: 'center',
     },
 });
@@ -58,12 +62,9 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageId, w
 
     return (
         <div className={classes.root}>
-            <Text color="gray" size={200}>
-                Was this response helpful?
-            </Text>
             <Tooltip content={'Like'} relationship="label">
                 <Button
-                    icon={<ThumbLike16 filled={wasHelpful === UserFeedback.Positive} />}
+                    icon={wasHelpful === UserFeedback.Positive ? <ThumbLike20Filled /> : <ThumbLike20Regular />}
                     appearance="transparent"
                     aria-label="Edit"
                     onClick={() => {
@@ -73,7 +74,7 @@ export const UserFeedbackActions: React.FC<IUserFeedbackProps> = ({ messageId, w
             </Tooltip>
             <Tooltip content={'Dislike'} relationship="label">
                 <Button
-                    icon={<ThumbDislike16 filled={wasHelpful === UserFeedback.Negative} />}
+                    icon={wasHelpful === UserFeedback.Negative ? <ThumbDislike20Filled /> : <ThumbDislike20Regular />}
                     appearance="transparent"
                     aria-label="Edit"
                     onClick={() => {

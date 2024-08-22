@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable react/jsx-key */
 import { makeStyles, shorthands, Text, tokens } from '@fluentui/react-components';
+import { useAppSelector } from '../../../../redux/app/hooks';
 import { RootState } from '../../../../redux/app/store';
 import { Breakpoints } from '../../../../styles';
 import { SpecializationListItem } from './SpecializationListItem';
-import { useAppSelector } from '../../../../redux/app/hooks';
 
 const useClasses = makeStyles({
     root: {
@@ -33,10 +33,8 @@ interface IChatListSectionProps {
 
 export const SpecializationListSection: React.FC<IChatListSectionProps> = ({ header }) => {
     const classes = useClasses();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
-    const { specializations } = useAppSelector((state: RootState) => state.admin);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
-    const { selectedKey } = useAppSelector((state: RootState) => state.admin);
+    const specializations = useAppSelector((state: RootState) => state.admin.specializations);
+    const selectedKey = useAppSelector((state: RootState) => state.admin.selectedKey);
 
     return specializations.length > 0 ? (
         <div className={classes.root}>
@@ -45,6 +43,7 @@ export const SpecializationListSection: React.FC<IChatListSectionProps> = ({ hea
                 const isSelected = specialization.key === selectedKey;
                 return specialization.key != 'general' ? (
                     <SpecializationListItem
+                        key={specialization.id}
                         specializationId={specialization.id}
                         specializationKey={specialization.key}
                         name={specialization.name}
