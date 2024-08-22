@@ -55,6 +55,7 @@ public class QAzureOpenAIChatExtension
         QSpecializationIndex? qSpecializationIndex = this.GetSpecializationIndexByKey(specializationKey);
         if (specializationSource != null && qSpecializationIndex != null)
         {
+            var azureConfig = this._qAzureOpenAIChatOptions.AzureConfig;
             return new AzureChatExtensionsOptions()
             {
                 Extensions =
@@ -63,7 +64,7 @@ public class QAzureOpenAIChatExtension
                     {
                         Filter = null,
                         IndexName  = specializationSource.IndexName,
-                        SearchEndpoint= qSpecializationIndex.Endpoint,
+                        SearchEndpoint= azureConfig.Endpoint,
                         Strictness = specializationSource.Strictness,
                         FieldMappingOptions = new AzureSearchIndexFieldMappingOptions {
                             UrlFieldName = qSpecializationIndex.FieldMapping?.UrlFieldName,
@@ -75,16 +76,21 @@ public class QAzureOpenAIChatExtension
                         ShouldRestrictResultScope = qSpecializationIndex!.RestrictResultScope,
                         RoleInformation = specializationSource.RoleInformation,
                         DocumentCount = specializationSource.DocumentCount,
-                        Authentication = new OnYourDataApiKeyAuthenticationOptions (qSpecializationIndex!.APIKey),
+                        Authentication = new OnYourDataApiKeyAuthenticationOptions (azureConfig!.APIKey),
                         VectorizationSource = new OnYourDataEndpointVectorizationSource (
-                           qSpecializationIndex.VectorizationSource!.Endpoint,
-                           new OnYourDataApiKeyAuthenticationOptions (qSpecializationIndex.VectorizationSource!.APIKey))
+                           azureConfig.VectorizationSource!.Endpoint,
+                           new OnYourDataApiKeyAuthenticationOptions (azureConfig.VectorizationSource!.APIKey))
                     }
                 }
             };
         }
         return null;
     }
+
+    /// <summary>
+    /// Retrieve the Azure configuration.
+    /// </summary>
+    public AzureConfig AzureConfig => this._qAzureOpenAIChatOptions.AzureConfig;
 
     /// <summary>
     /// Retrieve all configured specialization indexess.

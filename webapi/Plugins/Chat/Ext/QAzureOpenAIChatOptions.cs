@@ -20,6 +20,19 @@ public class QAzureOpenAIChatOptions
     public IList<QSpecializationIndex> SpecializationIndexes { get; set; } = new List<QSpecializationIndex>();
 
     public bool Enabled { get; set; } = false;
+    public AzureConfig AzureConfig { get; set; } = new AzureConfig();
+}
+
+/// <summary>
+/// Normalized representation of Azure configuration.
+/// </summary>
+public class AzureConfig
+{
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    public Uri? Endpoint { get; set; } = null;
+#pragma warning restore CS8618
+    public string APIKey { get; set; } = string.Empty;
+    public VectorizationSourceOption VectorizationSource { get; set; } = new VectorizationSourceOption();
 }
 
 /// <summary>
@@ -28,13 +41,10 @@ public class QAzureOpenAIChatOptions
 public class QSpecializationIndex
 {
     public string IndexName { get; set; } = string.Empty;
-    public Uri? Endpoint { get; set; } = null;
-    public string APIKey { get; set; } = string.Empty;
     public string QueryType { get; set; } = string.Empty;
     public string SemanticConfiguration { get; set; } = "default";
     public bool RestrictResultScope { get; set; } = true;
     public FieldMappingOption? FieldMapping { get; set; } = new FieldMappingOption();
-    public VectorizationSourceOption? VectorizationSource { get; set; }
     public IList<string> GroupMemberships { get; set; } = new List<string>();
 }
 
