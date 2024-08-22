@@ -1,0 +1,101 @@
+cert:
+  hosts:
+    - host: q-copilot-test.pegasus.quartechlab.com
+    - host: q-copilot-test.api.pegasus.quartechlab.com
+
+image:
+  tag: "test"
+
+secretProviderClass:
+  # Retrieved from Terraform Output
+  vaultName: "kvt-copilot-cnc-app-test"
+
+###############
+# FE Common values
+###############
+
+fe:
+  env:
+    - name: "REACT_APP_BACKEND_URI"
+      value: "https://q-copilot-test.api.pegasus.quartechlab.com/"
+
+###############
+# BE Common values
+###############
+
+be:
+  env:
+    - name: "ASPNETCORE_URLS"
+      value: "http://+:8080"
+    - name: "ASPNETCORE_ENVIRONMENT"
+      value: "Test"
+
+###############
+# webapp specific values
+###############
+
+webapp:
+  image:
+    tag: "test"
+  ingress:
+    hosts:
+      - host: q-copilot-test.pegasus.quartechlab.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - q-copilot-test.pegasus.quartechlab.com
+
+###############
+# webapi specific values
+###############
+
+webapi:
+  image:
+    tag: "test"
+
+  volumeMounts:
+    - name: appsettings-volume
+      mountPath: /app/appsettings.json
+      subPath: appsettings.json
+    - name: appsettings-test-volume
+      mountPath: /app/appsettings.Test.json
+      subPath: appsettings.Test.json
+    - name: secrets-store
+      mountPath: "/mnt/secrets-store"
+      readOnly: true
+
+  volumes:
+    - name: appsettings-volume
+      configMap:
+        name: q-copilot-webapi
+        items:
+          - key: appsettings.json
+            path: appsettings.json
+    - name: appsettings-test-volume
+      configMap:
+        name: q-copilot-webapi
+        items:
+          - key: appsettings.Test.json
+            path: appsettings.Test.json
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: "q-copilot-webapi"
+
+  configs:
+    - config/test/appsettings.json
+    - config/test/appsettings.Test.json
+
+  ingress:
+    hosts:
+      - host: q-copilot-test.api.pegasus.quartechlab.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - q-copilot-test.api.pegasus.quartechlab.com

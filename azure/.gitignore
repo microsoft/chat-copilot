@@ -29,6 +29,8 @@ override.tf.json
 !shared.auto.tfvars
 !k8s.auto.tfvars
 !state.auto.tfvars
+!test.tfvars
+!prod.tfvars
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*

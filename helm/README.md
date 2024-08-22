@@ -16,10 +16,13 @@ TODO: Guide users through getting your code up and running on their own system. 
 `helm lint`
 Run helm lint to validate your chart's structure and identify any obvious issues.
 
-`helm template -s templates/webapp/deployment.yaml .`
+`helm template -s templates/webapp/deployment.yaml -f values.yaml -f values-test.yaml .`
 Run helm template to test the generation of the K8s files
 
 `helm upgrade -i -f values.yaml -f values-dev.yaml -n copilot-dev dev .`
+`helm upgrade -i -f values.yaml -f values-test.yaml -n copilot-test test .`
+
+Notes: the last values-file i.e. values-dev.yaml will trump values.yaml
 
 # Contribute
 

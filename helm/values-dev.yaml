@@ -1,0 +1,17 @@
+image:
+  tag: "dev"
+
+###############
+# webapp specific values
+###############
+
+webapp:
+  image:
+    tag: "dev"
+###############
+# webapi specific values
+###############
+
+webapi:
+  image:
+    tag: "dev"
