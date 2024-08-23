@@ -53,6 +53,12 @@ public class QSpecializationParameters
     public string? ImageFilePath { get; set; } = string.Empty;
 
     /// <summary>
+    /// Image FilePath of the specialization.
+    /// </summary>
+    [JsonPropertyName("iconFilePath")]
+    public string IconFilePath { get; set; } = string.Empty;
+
+    /// <summary>
     /// Enable/Disable flag of the specialization.
     /// </summary>
     [JsonPropertyName("isActive")]

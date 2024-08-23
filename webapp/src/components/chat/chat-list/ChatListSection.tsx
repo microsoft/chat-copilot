@@ -88,7 +88,9 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                                       : lastMessage.content
                                 : 'Click to start the chat'
                         }
-                        botProfilePicture={specialization?.imageFilePath ?? convo.botProfilePicture}
+                        botProfilePicture={
+                            specialization?.iconFilePath ? specialization.iconFilePath : convo.botProfilePicture
+                        }
                         specializationLabel={specialization?.label ?? ''}
                     />
                 );

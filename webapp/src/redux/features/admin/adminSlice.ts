@@ -6,6 +6,10 @@ export const adminSlice = createSlice({
     name: 'admin',
     initialState,
     reducers: {
+        // Set the currently selected chat specialization
+        setChatSpecialization: (state: AdminState, action: PayloadAction<ISpecialization>) => {
+            state.chatSpecialization = action.payload;
+        },
         setSpecializations: (state: AdminState, action: PayloadAction<ISpecialization[]>) => {
             // const updatedSpecializations = action.payload.filter(
             //     (specialization: ISpecialization) => specialization.isActive,
@@ -45,6 +49,7 @@ export const adminSlice = createSlice({
 
 export const {
     setSpecializations,
+    setChatSpecialization,
     setSpecializationIndexes,
     setAdminSelected,
     setSelectedKey,

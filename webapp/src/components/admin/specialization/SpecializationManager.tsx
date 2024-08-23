@@ -45,9 +45,11 @@ export const SpecializationManager: React.FC = () => {
     const [roleInformation, setRoleInformation] = useState('');
     const [indexName, setIndexName] = useState('');
     const [imageFilePath, setImageFilePath] = useState('');
+    const [iconFilePath, setIconFilePath] = useState('');
     const [membershipId, setMembershipId] = useState<string[]>([]);
 
     const dropdownId = useId();
+
     const { specializations, specializationIndexes, selectedId } = useAppSelector((state: RootState) => state.admin);
 
     const onSaveSpecialization = () => {
@@ -59,6 +61,7 @@ export const SpecializationManager: React.FC = () => {
                 roleInformation,
                 indexName,
                 imageFilePath,
+                iconFilePath,
                 groupMemberships: [],
             });
             resetSpecialization();
@@ -70,6 +73,7 @@ export const SpecializationManager: React.FC = () => {
                 roleInformation,
                 indexName,
                 imageFilePath,
+                iconFilePath,
                 groupMemberships: [],
             });
             resetSpecialization();
@@ -84,6 +88,7 @@ export const SpecializationManager: React.FC = () => {
         setRoleInformation('');
         setMembershipId([]);
         setImageFilePath('');
+        setIconFilePath('');
         setIndexName('');
     };
 
@@ -99,6 +104,7 @@ export const SpecializationManager: React.FC = () => {
                 setRoleInformation(specializationObj.roleInformation);
                 setMembershipId(specializationObj.groupMemberships);
                 setImageFilePath(specializationObj.imageFilePath);
+                setIconFilePath(specializationObj.iconFilePath);
                 setIndexName(specializationObj.indexName ?? '');
             }
         } else {
@@ -201,6 +207,14 @@ export const SpecializationManager: React.FC = () => {
                 value={imageFilePath}
                 onChange={(_event, data) => {
                     setImageFilePath(data.value);
+                }}
+            />
+            <label htmlFor="image-url">Bot Icon URL</label>
+            <Input
+                id="icon-url"
+                value={iconFilePath}
+                onChange={(_event, data) => {
+                    setIconFilePath(data.value);
                 }}
             />
             <div className={classes.controls}>

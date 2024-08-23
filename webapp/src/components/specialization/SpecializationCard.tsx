@@ -19,6 +19,7 @@ import {
     editConversationSpecialization,
     editConversationSystemDescription,
 } from '../../redux/features/conversations/conversationsSlice';
+import { setChatSpecialization } from '../../redux/features/admin/adminSlice';
 
 const useStyles = makeStyles({
     main: {
@@ -65,10 +66,10 @@ const useStyles = makeStyles({
 });
 
 interface SpecializationItemProps {
-    /* eslint-disable 
+    /* eslint-disable
         @typescript-eslint/no-unsafe-assignment,
         @typescript-eslint/no-unsafe-member-access,
-        @typescript-eslint/no-unsafe-call 
+        @typescript-eslint/no-unsafe-call
     */
     specialization: ISpecialization;
 }
@@ -81,9 +82,14 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
     const specializationId = React.useId();
     const dispatch = useAppDispatch();
     const { selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const { specializations } = useAppSelector((state: RootState) => state.admin);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const onAddChat = () => {
         void chat.editChatSpecialization(selectedId, specialization.id).finally(() => {
+            const specializationMatch = specializations.find((spec) => spec.id === specialization.id);
+            if (specializationMatch) {
+                dispatch(setChatSpecialization(specializationMatch));
+            }
             dispatch(editConversationSpecialization({ id: selectedId, specializationId: specialization.id }));
             dispatch(
                 editConversationSystemDescription({

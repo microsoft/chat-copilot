@@ -13,6 +13,7 @@ module.exports = {
         'plugin:@typescript-eslint/strict-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
     ],
+    plugins: ['react', 'react-hooks'],
     ignorePatterns: ['build', '.*js', 'node_modules'],
     parser: '@typescript-eslint/parser',
     parserOptions: {

@@ -11,10 +11,11 @@ import {
     PopupRequest,
 } from '@azure/msal-browser';
 import { Client, ResponseType } from '@microsoft/microsoft-graph-client';
+import { jwtDecode } from 'jwt-decode';
 import * as React from 'react';
 import { useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode';
 import Chat from './components/chat/Chat';
+import Header from './components/header/Header';
 import { Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
 import { useChat, useFile, useSpecialization } from './libs/hooks';
@@ -23,7 +24,6 @@ import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
 import { setActiveUserInfo, setServiceInfo } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
-import Header from './components/header/Header';
 
 /**
  * Changes to support specialization
@@ -166,6 +166,38 @@ const App = () => {
             });
     }
 
+    /**
+     * Load chats and set dependant state.
+     *
+     * Note: This prevents the race condition with chats and specializations.
+     * Chats need specializations to be loaded beforehand to use chat icons / images.
+     *
+     * @async
+     * @returns {Promise<Promise<void>>}
+     */
+    const loadAppStateAsync = async (): Promise<void> => {
+        try {
+            const [loadedSpecializations] = await Promise.all([
+                specialization.loadSpecializations(),
+                specialization.loadSpecializationIndexes(),
+            ]);
+
+            const [serviceInfo] = await Promise.all([
+                chat.getServiceInfo(),
+                file.getContentSafetyStatus(),
+                chat.loadChats(loadedSpecializations ?? []),
+            ]);
+
+            if (serviceInfo) {
+                dispatch(setServiceInfo(serviceInfo));
+            }
+
+            setAppState(AppState.Chat);
+        } catch (err) {
+            setAppState(AppState.ErrorLoadingChats);
+        }
+    };
+
     useEffect(() => {
         if (isMaintenance && appState !== AppState.ProbeForBackend) {
             setAppState(AppState.ProbeForBackend);
@@ -183,30 +215,7 @@ const App = () => {
         }
 
         if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
-            void Promise.all([
-                // Load all chats from memory
-                chat
-                    .loadChats()
-                    .then(() => {
-                        setAppState(AppState.Chat);
-                    })
-                    .catch(() => {
-                        setAppState(AppState.ErrorLoadingChats);
-                    }),
-
-                // Check if content safety is enabled
-                file.getContentSafetyStatus(),
-
-                // Load service information
-                chat.getServiceInfo().then((serviceInfo) => {
-                    if (serviceInfo) {
-                        dispatch(setServiceInfo(serviceInfo));
-                    }
-                }),
-                //Get all specializations
-                specialization.loadSpecializations(),
-                specialization.loadSpecializationIndexes(),
-            ]);
+            void loadAppStateAsync();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);

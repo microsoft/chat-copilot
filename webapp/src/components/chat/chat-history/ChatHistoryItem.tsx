@@ -117,6 +117,8 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
 
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
     const { activeUserInfo, features } = useAppSelector((state: RootState) => state.app);
+    const { chatSpecialization } = useAppSelector((state: RootState) => state.admin);
+
     const [showCitationCards, setShowCitationCards] = useState(false);
 
     const isDefaultUser = message.userId === DefaultChatUser.id;
@@ -145,7 +147,13 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
         : undefined;
 
     const avatar: AvatarProps = isBot
-        ? { image: { src: conversations[selectedId].botProfilePicture } }
+        ? {
+              image: {
+                  src: chatSpecialization?.iconFilePath
+                      ? chatSpecialization.iconFilePath
+                      : conversations[selectedId].botProfilePicture,
+              },
+          }
         : isDefaultUser
           ? { idForColor: selectedId, color: 'colorful', image: avatarImage }
           : { name: fullName, color: 'colorful', image: avatarImage };

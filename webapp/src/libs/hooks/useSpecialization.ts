@@ -20,12 +20,12 @@ export const useSpecialization = () => {
     const { instance, inProgress } = useMsal();
     const specializationService = new SpecializationService();
 
-    const loadSpecializations = async () => {
+    const loadSpecializations = async (): Promise<ISpecialization[] | undefined> => {
         try {
             const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
-            await specializationService.getAllSpecializationsAsync(accessToken).then((result: ISpecialization[]) => {
-                dispatch(setSpecializations(result));
-            });
+            const specializations = await specializationService.getAllSpecializationsAsync(accessToken);
+            dispatch(setSpecializations(specializations));
+            return specializations;
         } catch (e: any) {
             const errorMessage = `Unable to load chats. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));

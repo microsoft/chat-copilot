@@ -12,7 +12,7 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { Map16Regular } from '@fluentui/react-icons';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { FeatureKeys } from '../../redux/features/app/AppState';
@@ -23,6 +23,14 @@ import { ShareBotMenu } from './controls/ShareBotMenu';
 import { DocumentsTab } from './tabs/DocumentsTab';
 import { PersonaTab } from './tabs/PersonaTab';
 import { PlansTab } from './tabs/PlansTab';
+
+// Enum for chat window tabs
+enum ChatWindowTabEnum {
+    CHAT = 'CHAT',
+    DOCUMENTS = 'DOCUMENTS',
+    PERSONA = 'PERSONA',
+    PLANS = 'PLANS',
+}
 
 const useClasses = makeStyles({
     root: {
@@ -63,22 +71,12 @@ export const ChatWindow: React.FC = () => {
     const classes = useClasses();
     const { features } = useAppSelector((state: RootState) => state.app);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>(ChatWindowTabEnum.CHAT);
+
     const showShareBotMenu = features[FeatureKeys.BotAsDocs].enabled || features[FeatureKeys.MultiUserChat].enabled;
     const chatName = conversations[selectedId].title;
-    const { specializations } = useAppSelector((state: RootState) => state.admin);
-    const [specializationName, setSpecializationName] = useState<string | null>(null);
+    const { chatSpecialization } = useAppSelector((state: RootState) => state.admin);
 
-    useEffect(() => {
-        if (selectedId) {
-            const specializationId = conversations[selectedId].specializationId;
-            const specialization = specializations.find((spec) => spec.id === specializationId);
-            if (specialization) {
-                setSpecializationName(specialization.name);
-            }
-        }
-    }, [selectedId, conversations, specializations]);
-
-    const [selectedTab, setSelectedTab] = React.useState<TabValue>('chat');
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
     };
@@ -90,20 +88,32 @@ export const ChatWindow: React.FC = () => {
                     <Persona
                         key={'Semantic Kernel Bot'}
                         size="medium"
-                        avatar={{ image: { src: conversations[selectedId].botProfilePicture } }}
+                        avatar={{
+                            image: {
+                                src: chatSpecialization?.iconFilePath
+                                    ? chatSpecialization.iconFilePath
+                                    : conversations[selectedId].botProfilePicture,
+                            },
+                        }}
                         presence={{ status: 'available' }}
                     />
                     <Label size="large" weight="semibold">
-                        {specializationName}
+                        {chatSpecialization?.name}
                     </Label>
                     <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
-                        <Tab data-testid="chatTab" id="chat" value="chat" aria-label="Chat Tab" title="Chat Tab">
+                        <Tab
+                            data-testid="chatTab"
+                            id="chat"
+                            value={ChatWindowTabEnum.CHAT}
+                            aria-label="Chat Tab"
+                            title="Chat Tab"
+                        >
                             Chat
                         </Tab>
                         <Tab
                             data-testid="documentsTab"
                             id="documents"
-                            value="documents"
+                            value={ChatWindowTabEnum.DOCUMENTS}
                             aria-label="Documents Tab"
                             title="Documents Tab"
                         >
@@ -114,7 +124,7 @@ export const ChatWindow: React.FC = () => {
                                 <Tab
                                     data-testid="plansTab"
                                     id="plans"
-                                    value="plans"
+                                    value={ChatWindowTabEnum.PLANS}
                                     icon={<Map16Regular />}
                                     aria-label="Plans Tab"
                                     title="Plans Tab"
@@ -124,7 +134,7 @@ export const ChatWindow: React.FC = () => {
                                 {/* <Tab
                                     data-testid="personaTab"
                                     id="persona"
-                                    value="persona"
+                                    value={ChatWindowTabEnum.PERSONA}
                                     icon={<Person16Regular />}
                                     aria-label="Persona Tab"
                                     title="Persona Tab"
@@ -148,17 +158,17 @@ export const ChatWindow: React.FC = () => {
                     )}
                 </div>
             </div>
-            {selectedTab === 'chat' && <ChatRoom />}
-            {selectedTab === 'documents' && <DocumentsTab />}
-            {selectedTab === 'plans' && (
+            {selectedTab === ChatWindowTabEnum.CHAT && <ChatRoom />}
+            {selectedTab === ChatWindowTabEnum.DOCUMENTS && <DocumentsTab />}
+            {selectedTab === ChatWindowTabEnum.PLANS && (
                 <PlansTab
                     setChatTab={() => {
-                        setSelectedTab('chat');
+                        setSelectedTab(ChatWindowTabEnum.CHAT);
                     }}
                 />
             )}
-            {selectedTab === 'persona' && <PersonaTab />}
-            {selectedTab !== 'chat' && (
+            {selectedTab === ChatWindowTabEnum.PERSONA && <PersonaTab />}
+            {selectedTab !== ChatWindowTabEnum.CHAT && (
                 <div className={classes.alerts}>
                     <Alerts />
                 </div>

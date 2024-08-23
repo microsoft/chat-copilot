@@ -48,9 +48,14 @@ public class Specialization : IStorageEntity
     public string? IndexName { get; set; }
 
     /// <summary>
-    /// Image URL for pictorial description of specialization or logo etc.
+    /// Image URL for pictorial description of specialization.
     /// </summary>
     public string ImageFilePath { get; set; }
+
+    /// <summary>
+    /// Icon URL for pictorial description of specialization.
+    /// </summary>
+    public string IconFilePath { get; set; }
 
     /// <summary>
     /// The partition key for the specialization session.
@@ -93,7 +98,7 @@ public class Specialization : IStorageEntity
     /// </summary>>
     public int DocumentCount { get; set; } = 20;
 
-    public Specialization(string Label, string Name, string Description, string RoleInformation, string? IndexName, string ImageFilePath, IList<string> GroupMemberships)
+    public Specialization(string Label, string Name, string Description, string RoleInformation, string? IndexName, string ImageFilePath, string IconFilePath, IList<string> GroupMemberships)
     {
         this.Id = Guid.NewGuid().ToString();
         this.Label = Label;
@@ -102,6 +107,7 @@ public class Specialization : IStorageEntity
         this.RoleInformation = RoleInformation;
         this.IndexName = IndexName;
         this.ImageFilePath = ImageFilePath;
+        this.IconFilePath = IconFilePath;
         this.GroupMemberships = GroupMemberships;
         this.CreatedOn = DateTimeOffset.Now;
         this.IsActive = true;

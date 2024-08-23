@@ -4,6 +4,7 @@ export type Specializations = Record<string, AdminState>;
 
 export interface AdminState {
     isAdminSelected: boolean;
+    chatSpecialization: ISpecialization | undefined;
     specializations: ISpecialization[];
     specializationIndexes: string[];
     selectedId: string;
@@ -18,6 +19,7 @@ export const Specializations = [
         roleInformation: '',
         indexName: '',
         imageFilePath: '',
+        iconFilePath: '',
         isActive: true,
         groupMemberships: [],
         strictness: 3,
@@ -26,6 +28,7 @@ export const Specializations = [
 ];
 export const initialState: AdminState = {
     isAdminSelected: false,
+    chatSpecialization: undefined,
     specializations: Specializations,
     specializationIndexes: [],
     selectedId: '',
