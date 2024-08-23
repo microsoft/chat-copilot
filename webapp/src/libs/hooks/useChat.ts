@@ -231,7 +231,7 @@ export const useChat = () => {
                 }
             } else {
                 // No chats exist, create first chat window
-                //await createChat();
+                await createChat();
             }
 
             return true;
