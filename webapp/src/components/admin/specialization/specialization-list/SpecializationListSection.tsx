@@ -33,8 +33,7 @@ interface IChatListSectionProps {
 
 export const SpecializationListSection: React.FC<IChatListSectionProps> = ({ header }) => {
     const classes = useClasses();
-    const specializations = useAppSelector((state: RootState) => state.admin.specializations);
-    const selectedId = useAppSelector((state: RootState) => state.admin.selectedId);
+    const { specializations, selectedId } = useAppSelector((state: RootState) => state.admin);
 
     return specializations.length > 0 ? (
         <div className={classes.root}>

@@ -62,7 +62,7 @@ export const SpecializationManager: React.FC = () => {
                 indexName,
                 imageFilePath,
                 iconFilePath,
-                groupMemberships: [],
+                groupMemberships: membershipId,
             });
             resetSpecialization();
         } else {
@@ -74,7 +74,7 @@ export const SpecializationManager: React.FC = () => {
                 indexName,
                 imageFilePath,
                 iconFilePath,
-                groupMemberships: [],
+                groupMemberships: membershipId,
             });
             resetSpecialization();
         }

@@ -31,8 +31,8 @@ export const appSlice = createSlice({
         removeAlert: (state: AppState, action: PayloadAction<number>) => {
             state.alerts.splice(action.payload, 1);
         },
-        setActiveUserInfo: (state: AppState, action: PayloadAction<ActiveUserInfo>) => {
-            state.activeUserInfo = action.payload;
+        updateActiveUserInfo: (state: AppState, action: PayloadAction<Partial<ActiveUserInfo>>) => {
+            state.activeUserInfo = Object.assign({}, state.activeUserInfo, action.payload);
         },
         updateTokenUsage: (state: AppState, action: PayloadAction<TokenUsage>) => {
             Object.keys(TokenUsageFunctionNameMap).forEach((key) => {
@@ -48,6 +48,17 @@ export const appSlice = createSlice({
                 [action.payload]: {
                     ...feature,
                     enabled: !feature.enabled,
+                },
+            };
+        },
+        // This sets the feature flag based on end user input
+        setFeatureFlag: (state: AppState, action: PayloadAction<{ key: FeatureKeys; enabled: boolean }>) => {
+            const feature = state.features[action.payload.key];
+            state.features = {
+                ...state.features,
+                [action.payload.key]: {
+                    ...feature,
+                    enabled: action.payload.enabled,
                 },
             };
         },
@@ -83,13 +94,14 @@ export const {
     addAlert,
     removeAlert,
     setAlerts,
-    setActiveUserInfo,
+    updateActiveUserInfo,
     toggleFeatureFlag,
     toggleFeatureState,
     updateTokenUsage,
     setServiceInfo,
     setMaintenance,
     setAuthConfig,
+    setFeatureFlag,
 } = appSlice.actions;
 
 export default appSlice.reducer;

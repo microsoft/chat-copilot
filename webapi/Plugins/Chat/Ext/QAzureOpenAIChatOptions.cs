@@ -16,6 +16,7 @@ public class QAzureOpenAIChatOptions
     public string DefaultSpecializationDescription { get; set; } = "";
     public string DefaultSpecializationImage { get; set; } = "";
     public string DefaultSpecializationIcon { get; set; } = "";
+    public string AdminGroupMembershipId { get; set; } = "";
 
     [Required]
     public IList<QSpecializationIndex> SpecializationIndexes { get; set; } =
@@ -47,7 +48,6 @@ public class QSpecializationIndex
     public string SemanticConfiguration { get; set; } = "default";
     public bool RestrictResultScope { get; set; } = true;
     public FieldMappingOption? FieldMapping { get; set; } = new FieldMappingOption();
-    public IList<string> GroupMemberships { get; set; } = new List<string>();
 }
 
 /// <summary>

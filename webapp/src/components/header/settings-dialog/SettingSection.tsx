@@ -1,6 +1,7 @@
 import { Divider, Switch, Text, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import { useCallback } from 'react';
 import { AuthHelper } from '../../../libs/auth/AuthHelper';
+import { useSettings } from '../../../libs/hooks/useSettings';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { FeatureKeys, Setting } from '../../../redux/features/app/AppState';
@@ -28,15 +29,18 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
     const classes = useClasses();
     const { features } = useAppSelector((state: RootState) => state.app);
     const dispatch = useAppDispatch();
+    const settings = useSettings();
 
     const onFeatureChange = useCallback(
-        (featureKey: FeatureKeys) => {
+        async (featureKey: FeatureKeys) => {
+            await settings.updateSetting('darkMode', !features[featureKey].enabled);
+
             dispatch(toggleFeatureFlag(featureKey));
             if (featureKey === FeatureKeys.MultiUserChat) {
                 dispatch(toggleMultiUserConversations());
             }
         },
-        [dispatch],
+        [dispatch, features, settings],
     );
 
     return (
@@ -61,7 +65,7 @@ export const SettingSection: React.FC<ISettingsSectionProps> = ({ setting, conte
                                     !!feature.inactive || (key === FeatureKeys.MultiUserChat && !AuthHelper.isAuthAAD())
                                 }
                                 onChange={() => {
-                                    onFeatureChange(key);
+                                    void onFeatureChange(key);
                                 }}
                                 data-testid={feature.label}
                             />

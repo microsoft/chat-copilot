@@ -22,6 +22,7 @@ export const DefaultActiveUserInfo: ActiveUserInfo = {
     username: DefaultChatUser.fullName,
     groups: [],
     id_token: '',
+    hasAdmin: true,
 };
 
 export interface ActiveUserInfo {
@@ -31,6 +32,7 @@ export interface ActiveUserInfo {
     image?: string;
     groups: string[];
     id_token: string;
+    hasAdmin: boolean;
 }
 
 export interface Alert {

@@ -19,10 +19,11 @@ import Header from './components/header/Header';
 import { Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
 import { useChat, useFile, useSpecialization } from './libs/hooks';
+import { useSettings } from './libs/hooks/useSettings';
 import { useAppDispatch, useAppSelector } from './redux/app/hooks';
 import { RootState } from './redux/app/store';
 import { FeatureKeys } from './redux/features/app/AppState';
-import { setActiveUserInfo, setServiceInfo } from './redux/features/app/appSlice';
+import { setFeatureFlag, setServiceInfo, updateActiveUserInfo } from './redux/features/app/appSlice';
 import { semanticKernelDarkTheme, semanticKernelLightTheme } from './styles';
 
 /**
@@ -79,12 +80,13 @@ const App = () => {
     const dispatch = useAppDispatch();
 
     const { instance, inProgress } = useMsal();
-    const { features, isMaintenance } = useAppSelector((state: RootState) => state.app);
+    const { features, isMaintenance, activeUserInfo } = useAppSelector((state: RootState) => state.app);
     const isAuthenticated = useIsAuthenticated();
 
     const chat = useChat();
     const file = useFile();
     const specialization = useSpecialization();
+    const settings = useSettings();
 
     const getUserImage = async (accessToken: string, _id: string) => {
         try {
@@ -144,14 +146,12 @@ const App = () => {
                 if (result) {
                     getUserImage(result.accessToken, account.username)
                         .then((image) => {
-                            const decoded: JWTPayload = jwtDecode(account.idToken ?? '');
                             dispatch(
-                                setActiveUserInfo({
+                                updateActiveUserInfo({
                                     id: `${account.localAccountId}.${account.tenantId}`,
                                     email: account.username, // username is the email address
                                     username: account.name ?? account.username,
                                     image: image,
-                                    groups: decoded.groups,
                                     id_token: account.idToken ?? '',
                                 }),
                             );
@@ -192,11 +192,47 @@ const App = () => {
                 dispatch(setServiceInfo(serviceInfo));
             }
 
+            await loadSettings();
+
             setAppState(AppState.Chat);
         } catch (err) {
             setAppState(AppState.ErrorLoadingChats);
         }
     };
+
+    /**
+     * Loads the users settings
+     *
+     * @async
+     */
+    async function loadSettings() {
+        const loadedSettings = await settings.getSettings();
+        if (loadedSettings) {
+            dispatch(
+                updateActiveUserInfo({
+                    hasAdmin: activeUserInfo?.groups.includes(loadedSettings.adminGroupId) ?? false,
+                }),
+            );
+            dispatch(
+                setFeatureFlag({
+                    key: FeatureKeys.DarkMode,
+                    enabled: loadedSettings.settings.darkMode,
+                }),
+            );
+            dispatch(
+                setFeatureFlag({
+                    enabled: loadedSettings.settings.pluginsPersonas,
+                    key: FeatureKeys.PluginsPlannersAndPersonas,
+                }),
+            );
+            dispatch(
+                setFeatureFlag({
+                    key: FeatureKeys.SimplifiedExperience,
+                    enabled: loadedSettings.settings.simplifiedChat,
+                }),
+            );
+        }
+    }
 
     useEffect(() => {
         if (isMaintenance && appState !== AppState.ProbeForBackend) {
@@ -209,6 +245,13 @@ const App = () => {
             if (!account) {
                 setAppState(AppState.ErrorLoadingUserInfo);
             } else {
+                const decoded: JWTPayload = jwtDecode(account.idToken ?? '');
+                dispatch(
+                    updateActiveUserInfo({
+                        groups: decoded.groups,
+                    }),
+                );
+
                 loadUser(instance, account);
                 setAppState(AppState.LoadingChats);
             }

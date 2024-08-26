@@ -27,7 +27,7 @@ export const useSpecialization = () => {
             dispatch(setSpecializations(specializations));
             return specializations;
         } catch (e: any) {
-            const errorMessage = `Unable to load chats. Details: ${getErrorDetails(e)}`;
+            const errorMessage = `Unable to load specializations. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
             return undefined;
         }

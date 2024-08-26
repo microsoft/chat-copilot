@@ -7,7 +7,7 @@ import {
     TabValue,
     tokens,
 } from '@fluentui/react-components';
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
 import { setAdminSelected } from '../../../redux/features/admin/adminSlice';
@@ -35,10 +35,17 @@ export const ChatType: FC = () => {
     const classes = useClasses();
     const dispatch = useAppDispatch();
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const activeUserInfo = useAppSelector((state: RootState) => state.app.activeUserInfo);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('chat');
+    const [hasAdmin, setHasAdmin] = useState(false);
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
     };
+    useEffect(() => {
+        if (activeUserInfo) {
+            setHasAdmin(activeUserInfo.hasAdmin);
+        }
+    }, [activeUserInfo]);
 
     useEffect(() => {
         if (selectedTab === 'search') {
@@ -68,9 +75,11 @@ export const ChatType: FC = () => {
                 <Tab data-testid="searchTab" id="search" value="search" aria-label="Search Tab" title="Search Tab">
                     Search
                 </Tab>
-                <Tab data-testid="adminTab" id="admin" value="admin" aria-label="admin Tab" title="Admin Tab">
-                    Admin
-                </Tab>
+                {hasAdmin && (
+                    <Tab data-testid="adminTab" id="admin" value="admin" aria-label="admin Tab" title="Admin Tab">
+                        Admin
+                    </Tab>
+                )}
             </TabList>
             {selectedTab === 'chat' && <ChatList />}
             {selectedTab === 'search' && <SearchList />}
