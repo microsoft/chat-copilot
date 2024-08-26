@@ -28,6 +28,11 @@ const useClasses = makeStyles({
     required: {
         color: '#990000',
     },
+    scrollableContainer: {
+        overflowY: 'auto',
+        maxHeight: 'calc(100vh - 100px)', // Adjust this value as needed
+        ...shorthands.padding('10px'),
+    },
 });
 
 const Rows = 8;
@@ -126,105 +131,107 @@ export const SpecializationManager: React.FC = () => {
     }, [specializations, selectedId, label, name, roleInformation]);
 
     return (
-        <div className={classes.root}>
-            <div className={classes.horizontal}></div>
-            <label htmlFor="name">
-                Name<span className={classes.required}>*</span>
-            </label>
-            <Input
-                id="name"
-                required
-                value={name}
-                onChange={(_event, data) => {
-                    setName(data.value);
-                }}
-            />
-            <label htmlFor="label">
-                Label<span className={classes.required}>*</span>
-            </label>
-            <Input
-                id="label"
-                required
-                value={label}
-                onChange={(_event, data) => {
-                    setLabel(data.value);
-                }}
-            />
-            <label htmlFor="index-name">Enrichment Index</label>
-            <Dropdown
-                clearable
-                id="index-name"
-                aria-labelledby={dropdownId}
-                onOptionSelect={(_control, data) => {
-                    setIndexName(data.optionValue ?? '');
-                }}
-                value={indexName}
-            >
-                {specializationIndexes.map((specializationIndex) => (
-                    <Option key={specializationIndex}>{specializationIndex}</Option>
-                ))}
-            </Dropdown>
-            <label htmlFor="description">
-                Short Description<span className={classes.required}>*</span>
-            </label>
-            <Textarea
-                id="description"
-                required
-                resize="vertical"
-                value={description}
-                rows={2}
-                onChange={(_event, data) => {
-                    setDescription(data.value);
-                }}
-            />
-            <label htmlFor="context">
-                Chat Context<span className={classes.required}>*</span>
-            </label>
-            <Textarea
-                id="context"
-                required
-                resize="vertical"
-                value={roleInformation}
-                rows={Rows}
-                onChange={(_event, data) => {
-                    setRoleInformation(data.value);
-                }}
-            />
-            <label htmlFor="membership">
-                Entra Membership IDs<span className={classes.required}>*</span>
-            </label>
-            <Input
-                id="membership"
-                required
-                value={membershipId.join(', ')}
-                onChange={(_event, data) => {
-                    setMembershipId(data.value.split(', '));
-                }}
-            />
-            <label htmlFor="image-url">Image URL</label>
-            <Input
-                id="image-url"
-                value={imageFilePath}
-                onChange={(_event, data) => {
-                    setImageFilePath(data.value);
-                }}
-            />
-            <label htmlFor="image-url">Bot Icon URL</label>
-            <Input
-                id="icon-url"
-                value={iconFilePath}
-                onChange={(_event, data) => {
-                    setIconFilePath(data.value);
-                }}
-            />
-            <div className={classes.controls}>
-                <Button appearance="secondary" disabled={!id} onClick={onDeleteChat}>
-                    Delete
-                </Button>
+        <div className={classes.scrollableContainer}>
+            <div className={classes.root}>
+                <div className={classes.horizontal}></div>
+                <label htmlFor="name">
+                    Name<span className={classes.required}>*</span>
+                </label>
+                <Input
+                    id="name"
+                    required
+                    value={name}
+                    onChange={(_event, data) => {
+                        setName(data.value);
+                    }}
+                />
+                <label htmlFor="label">
+                    Label<span className={classes.required}>*</span>
+                </label>
+                <Input
+                    id="label"
+                    required
+                    value={label}
+                    onChange={(_event, data) => {
+                        setLabel(data.value);
+                    }}
+                />
+                <label htmlFor="index-name">Enrichment Index</label>
+                <Dropdown
+                    clearable
+                    id="index-name"
+                    aria-labelledby={dropdownId}
+                    onOptionSelect={(_control, data) => {
+                        setIndexName(data.optionValue ?? '');
+                    }}
+                    value={indexName}
+                >
+                    {specializationIndexes.map((specializationIndex) => (
+                        <Option key={specializationIndex}>{specializationIndex}</Option>
+                    ))}
+                </Dropdown>
+                <label htmlFor="description">
+                    Short Description<span className={classes.required}>*</span>
+                </label>
+                <Textarea
+                    id="description"
+                    required
+                    resize="vertical"
+                    value={description}
+                    rows={2}
+                    onChange={(_event, data) => {
+                        setDescription(data.value);
+                    }}
+                />
+                <label htmlFor="context">
+                    Chat Context<span className={classes.required}>*</span>
+                </label>
+                <Textarea
+                    id="context"
+                    required
+                    resize="vertical"
+                    value={roleInformation}
+                    rows={Rows}
+                    onChange={(_event, data) => {
+                        setRoleInformation(data.value);
+                    }}
+                />
+                <label htmlFor="membership">
+                    Entra Membership IDs<span className={classes.required}>*</span>
+                </label>
+                <Input
+                    id="membership"
+                    required
+                    value={membershipId.join(', ')}
+                    onChange={(_event, data) => {
+                        setMembershipId(data.value.split(', '));
+                    }}
+                />
+                <label htmlFor="image-url">Image URL</label>
+                <Input
+                    id="image-url"
+                    value={imageFilePath}
+                    onChange={(_event, data) => {
+                        setImageFilePath(data.value);
+                    }}
+                />
+                <label htmlFor="image-url">Bot Icon URL</label>
+                <Input
+                    id="icon-url"
+                    value={iconFilePath}
+                    onChange={(_event, data) => {
+                        setIconFilePath(data.value);
+                    }}
+                />
+                <div className={classes.controls}>
+                    <Button appearance="secondary" disabled={!id} onClick={onDeleteChat}>
+                        Delete
+                    </Button>
 
-                <Button appearance="primary" disabled={!isValid} onClick={onSaveSpecialization}>
-                    Save
-                </Button>
+                    <Button appearance="primary" disabled={!isValid} onClick={onSaveSpecialization}>
+                        Save
+                    </Button>
+                </div>
             </div>
         </div>
     );
