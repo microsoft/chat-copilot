@@ -19,7 +19,7 @@ cosmosdb_sql_containers = [
   { name = "chatmessages", partition_key_path = "/chatId" },
   { name = "chatmemorysources", partition_key_path = "/chatId" },
   { name = "chatparticipants", partition_key_path = "/chatId" },
-  { name = "chatspecializationsessions", partition_key_path = "/id" },
-  { name = "specializationssource", partition_key_path = "/id" }
+  { name = "specialization", partition_key_path = "/id" },
+  { name = "chatuser", partition_key_path = "/id" }
 ]
 
