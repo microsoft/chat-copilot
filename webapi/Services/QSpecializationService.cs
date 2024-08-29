@@ -109,6 +109,10 @@ public class QSpecializationService : IQSpecializationService
                 qSpecializationParameters.IconFilePath != null
                     ? qSpecializationParameters.IconFilePath
                     : specializationToUpdate!.IconFilePath;
+            specializationToUpdate!.GroupMemberships =
+                qSpecializationParameters.GroupMemberships != null
+                    ? qSpecializationParameters.GroupMemberships
+                    : specializationToUpdate!.GroupMemberships;
 
             await this._specializationSourceRepository.UpsertAsync(specializationToUpdate);
             return specializationToUpdate;

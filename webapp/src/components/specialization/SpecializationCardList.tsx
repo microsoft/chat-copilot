@@ -64,9 +64,7 @@ export const SpecializationCardList: React.FC<SpecializationProps> = ({ speciali
     const filteredSpecializations = useMemo(() => {
         return specializations.filter((_specialization) => {
             const hasMembership =
-                activeUserInfo?.groups.some((val) => {
-                    return _specialization.groupMemberships.includes(val);
-                }) ?? false;
+                activeUserInfo?.groups.some((val) => _specialization.groupMemberships.includes(val)) ?? false;
 
             // Check if the user has membership to the specialization group and the specialization is active
             const canViewSpecialization =
