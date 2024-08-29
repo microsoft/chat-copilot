@@ -50,7 +50,7 @@ export const DeleteChatDialog: React.FC<IEditChatNameProps> = ({ chatId }) => {
                     <DialogTitle>Are you sure you want to delete chat: {chatName}?</DialogTitle>
                     <DialogContent>
                         This action will permanently delete the chat, and any associated resources and memories, for all
-                        participants, including Chat Copilot.
+                        participants, including Chat Q-Pilot.
                     </DialogContent>
                     <DialogActions className={classes.actions}>
                         <DialogTrigger action="close" disableButtonEnhancement>

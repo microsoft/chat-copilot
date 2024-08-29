@@ -58,7 +58,7 @@ const Header: FC<HeaderProps> = ({ appState, setAppState, showPluginsAndSettings
             }}
         >
             <Subtitle1 as="h1" className={classes.title} style={{ color: isDarkMode ? 'white' : 'black' }}>
-                Chat Copilot - Beta
+                Chat Q-Pilot - Beta
             </Subtitle1>
             <img src={isDarkMode ? darkLogo : logo} alt="Logo" className={classes.logo} />
             {showPluginsAndSettings && appState > AppState.SettingUserInfo && (

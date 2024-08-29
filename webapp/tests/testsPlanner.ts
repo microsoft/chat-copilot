@@ -4,8 +4,8 @@ import { expect } from '@playwright/test';
 import * as util from './utils';
 
 /*
-Summary: Tests if the Copilot Chat can use the Planner with the Klarna plugin, 
-to generate a plan and execute it. Klarna doesnt require any auth credentials.   
+Summary: Tests if the Q-Pilot Chat can use the Planner with the Klarna plugin,
+to generate a plan and execute it. Klarna doesnt require any auth credentials.
 */
 export async function klarnaTest(page) {
     await util.loginAndCreateNewChat(page);
@@ -21,7 +21,7 @@ export async function klarnaTest(page) {
 
     // Expect the last message to be the bot's response.
     const chatHistoryItems = page.getByTestId(new RegExp('chat-history-item-*'));
-    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Copilot');
+    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Q-Pilot');
 
     // Specifically accessing the us site of klarna so any results should have a dollar sign
     await expect(chatHistoryItems.last()).toContainText('$');
@@ -33,8 +33,8 @@ export async function klarnaTest(page) {
 }
 
 /*
-Summary: Tests if the Copilot Chat can use the Planner with the Jira plugin, 
-to generate a plan and execute it. The Jira plugin uses a Basic auth header.   
+Summary: Tests if the Q-Pilot Chat can use the Planner with the Jira plugin,
+to generate a plan and execute it. The Jira plugin uses a Basic auth header.
 */
 export async function jiraTest(page) {
     await util.loginAndCreateNewChat(page);
@@ -56,7 +56,7 @@ export async function jiraTest(page) {
 
     // Expect the last message to be the bot's response.
     const chatHistoryItems = page.getByTestId(new RegExp('chat-history-item-*'));
-    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Copilot');
+    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Q-Pilot');
     await expect(chatHistoryItems.last()).toContainText('SKTES');
 
     var chatbotResponse = await util.getLastChatMessageContentsAsStringWHistory(page, chatHistoryItems);
@@ -66,8 +66,8 @@ export async function jiraTest(page) {
 }
 
 /*
-Summary: Tests if the Copilot Chat can use the Planner with the Github plugin, 
-to generate a plan and execute it. The Github plugin uses a PAT token for auth.   
+Summary: Tests if the Q-Pilot Chat can use the Planner with the Github plugin,
+to generate a plan and execute it. The Github plugin uses a PAT token for auth.
 */
 export async function githubTest(page) {
     await util.loginAndCreateNewChat(page);
@@ -93,7 +93,7 @@ export async function githubTest(page) {
 
     // Expect the last message to be the bot's response.
     const chatHistoryItems = page.getByTestId(new RegExp('chat-history-item-*'));
-    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Copilot');
+    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Q-Pilot');
 
     var chatbotResponse = await util.getLastChatMessageContentsAsStringWHistory(page, chatHistoryItems);
     await util.disablePluginAndEvaluateResponse(page, githubQuery, chatbotResponse);

@@ -4,7 +4,7 @@ import { expect } from '@playwright/test';
 import * as util from './utils';
 
 /*
-Summary: Tests the Multiuser feature of Copilot Chat. Specifically if a user can 
+Summary: Tests the Multiuser feature of Q-Pilot Chat. Specifically if a user can
 generate a chatid for their chat session and then if another user can join that same chat session.
 */
 export async function shareAndJoinChatSessionTest(page) {

@@ -18,7 +18,7 @@ Summary: Tests for the following behaviour from the WebApp:
 - Page has correct title
 - Start New Chat
 - Send a message to the bot, and expect a response
-- Chat History has the correct number of messages and that the last message is from Copilot
+- Chat History has the correct number of messages and that the last message is from Q-Pilot
 - SK core function testing for jokes and fun facts
 */
 export async function basicBotResponses(page) {
@@ -35,26 +35,26 @@ export async function basicBotResponses(page) {
     await expect((await chatHistoryItems.all()).length).toBe(5);
 
     // Expect the last message to be the bot's response.
-    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Copilot');
+    await expect(chatHistoryItems.last()).toHaveAttribute('data-username', 'Q-Pilot');
 
     await util.postUnitTest(page);
 }
 
 /*
-Summary: Tests if the title for the current chat can be changed  
+Summary: Tests if the title for the current chat can be changed
 */
 export async function chatTitleChange(page) {
     await util.loginAndCreateNewChat(page);
 
     await page.getByTestId('editChatTitleButtonSimplified').click();
-    await page.locator('input[type="text"]').fill('Copilot Unit Tests');
+    await page.locator('input[type="text"]').fill('Q-Pilot Unit Tests');
     await page.locator('input[type="text"]').press('Enter');
 
     await util.postUnitTest(page);
 }
 
 /*
-Summary: Tests if a single document can be uploaded and then found in the 'Files' tab  
+Summary: Tests if a single document can be uploaded and then found in the 'Files' tab
 */
 export async function documentUpload(page) {
     await util.loginAndCreateNewChat(page);

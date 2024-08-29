@@ -2,7 +2,7 @@ import botIcon1 from './assets/bot-icons/bot-icon-1.png';
 
 export const Constants = {
     app: {
-        name: 'Copilot',
+        name: 'Q-Pilot',
         updateCheckIntervalSeconds: 60 * 5,
         CONNECTION_ALERT_ID: 'connection-alert',
         importTypes: '.txt,.pdf,.docx,.md,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.gif,.ppt,.pptx',
@@ -20,7 +20,7 @@ export const Constants = {
     bot: {
         profile: {
             id: 'bot',
-            fullName: 'Copilot',
+            fullName: 'Q-Pilot',
             emailAddress: '',
             photo: botIcon1,
         },

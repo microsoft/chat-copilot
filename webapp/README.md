@@ -1,9 +1,9 @@
-# Chat Copilot front end web application
+# Chat Q-Pilot front end web application
 
-This directory contains the source code for Chat Copilot's frontend web application. The backend web API service component can be found in the [webapi/](../webapi/) directory.
+This directory contains the source code for Chat Q-Pilot's frontend web application. The backend web API service component can be found in the [webapi/](../webapi/) directory.
 
-## Running the Chat Copilot sample
-To configure and run the full Chat Copilot application, please view the [main instructions](../README.md#instructions).
+## Running the Chat Q-Pilot sample
+To configure and run the full Chat Q-Pilot application, please view the [main instructions](../README.md#instructions).
 
 ## Run time variables
 
@@ -29,7 +29,7 @@ The following material is under development and may not be complete or accurate.
 
 ## How to use HTTPS for local development
 
-If you want to run Copilot Chat with HTTPS, you need to create a certificate and sign it with a Certificate Authority (CA) that is trusted locally by your device and browser. You have a couple of options on how to do this:
+If you want to run Q-Pilot Chat with HTTPS, you need to create a certificate and sign it with a Certificate Authority (CA) that is trusted locally by your device and browser. You have a couple of options on how to do this:
 
 1. (Recommended) Reusuing the [dotnet dev-certs](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs) generated for the webapi app
 
@@ -108,7 +108,7 @@ Option 2: Using [mkcert](https://github.com/FiloSottile/mkcert#installation)
 
     > **Warning**: (from the developers of mkcert) the rootCA-key.pem file that mkcert automatically generates gives complete power to intercept secure requests from your machine. Do not share it.
 
-### Step 2: Configuring Copilot Chat to use the certificate
+### Step 2: Configuring Q-Pilot Chat to use the certificate
 
 1. In the webapp `.env` file, uncomment the following lines and populate with your respective certificate and key files generated in the step above.
     ```
@@ -132,7 +132,7 @@ Option 2: Using [mkcert](https://github.com/FiloSottile/mkcert#installation)
     ...
     ```
 1. Add the same URLs (with ports!) as single-page application (SPA) redirect URIs to your Azure Active Directory (AAD) application registration. This can be done in the [Azure Portal](https://portal.azure.com).
-1. Restart the `webapi` and `webapp` - Copilot Chat should be now running locally with HTTPS.
+1. Restart the `webapi` and `webapp` - Q-Pilot Chat should be now running locally with HTTPS.
 
 ## Authentication
 

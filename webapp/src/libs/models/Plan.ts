@@ -68,7 +68,7 @@ export interface Plan {
     index: number;
 }
 
-// Information about a single proposed plan from Chat Copilot
+// Information about a single proposed plan from Chat Q-Pilot
 export interface ProposedPlan {
     // Plan object to be approved or invoked
     proposedPlan: Plan;

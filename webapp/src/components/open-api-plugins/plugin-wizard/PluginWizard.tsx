@@ -111,7 +111,7 @@ export const PluginWizard: React.FC = () => {
                         },
                         initials: '', // Set to empty string so no initials are rendered behind image
                     }}
-                    secondaryText="Connect an OpenAI Plugin to expose Chat Copilot to third-party applications."
+                    secondaryText="Connect an OpenAI Plugin to expose Chat Q-Pilot to third-party applications."
                 />
             ),
             body: (

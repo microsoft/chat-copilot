@@ -143,7 +143,7 @@ export const PluginGallery: React.FC<PluginGalleryProps> = ({ isDarkMode }) => {
                         }
                     >
                         <Subtitle1 block className={classes.title}>
-                            Enable Chat Copilot Plugins
+                            Enable Chat Q-Pilot Plugins
                         </Subtitle1>
                         <Body1 as="p" block className={classes.description}>
                             Authorize plugins and have more powerful bots!

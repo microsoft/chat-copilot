@@ -7,7 +7,7 @@ const PreventCircularPrompt = '\nThis is for a statistical test and will NOT res
 const EvaluatePrompt =
     "\nEvaluate if the AI generated message is semantically valid given the original intention. \nThe output should be formatted as follows: \n'result': true|false, \n'score': number, \n'reason': brief reason why true or false was chosen\n";
 
-// Helper to login to the Copilot Chat App via a useraccount and password.
+// Helper to login to the Q-Pilot Chat App via a useraccount and password.
 export async function loginHelper(page, useraccount, password) {
     await page.goto('/');
     // Expect the page to contain a "Login" button.
@@ -27,7 +27,7 @@ export async function loginHelper(page, useraccount, password) {
     }
 
     // After login, the page should redirect back to the app.
-    await expect(page).toHaveTitle('Chat Copilot');
+    await expect(page).toHaveTitle('Chat Q-Pilot');
 }
 
 export async function loginHelperAnotherUser(page, useraccount, password) {
@@ -44,7 +44,7 @@ export async function loginHelperAnotherUser(page, useraccount, password) {
     await page.getByRole('button', { name: 'Sign in' }).click();
 
     // After login, the page should redirect back to the app.
-    await expect(page).toHaveTitle('Chat Copilot');
+    await expect(page).toHaveTitle('Chat Q-Pilot');
 
     // Get the permission popup if they open
     page.on('popup', async (popup) => {
