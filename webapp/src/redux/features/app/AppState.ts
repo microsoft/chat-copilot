@@ -2,28 +2,8 @@
 
 import { AuthConfig } from '../../../libs/auth/AuthHelper';
 import { AlertType } from '../../../libs/models/AlertType';
-import { IChatUser } from '../../../libs/models/ChatUser';
 import { ServiceInfo } from '../../../libs/models/ServiceInfo';
 import { TokenUsage } from '../../../libs/models/TokenUsage';
-
-// This is the default user information when authentication is set to 'None'.
-// It must match what is defined in PassthroughAuthenticationHandler.cs on the backend.
-export const DefaultChatUser: IChatUser = {
-    id: 'c05c61eb-65e4-4223-915a-fe72b0c9ece1',
-    emailAddress: 'user@contoso.com',
-    fullName: 'Default User',
-    online: true,
-    isTyping: false,
-};
-
-export const DefaultActiveUserInfo: ActiveUserInfo = {
-    id: DefaultChatUser.id,
-    email: DefaultChatUser.emailAddress,
-    username: DefaultChatUser.fullName,
-    groups: [],
-    id_token: '',
-    hasAdmin: true,
-};
 
 export interface ActiveUserInfo {
     id: string;
@@ -150,7 +130,6 @@ export const Settings = [
  */
 export const initialState: AppState = {
     alerts: [],
-    activeUserInfo: DefaultActiveUserInfo,
     authConfig: {} as AuthConfig,
     tokenUsage: {},
     features: Features,

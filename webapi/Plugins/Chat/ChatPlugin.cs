@@ -12,7 +12,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
-using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Models.Storage;
@@ -181,11 +180,7 @@ public class ChatPlugin
                 }
                 else
                 {
-                    // Omit user name if Auth is disabled.
-                    var userMessage = PassThroughAuthenticationHandler.IsDefaultUser(chatMessage.UserId)
-                            ? $"[{chatMessage.Timestamp.ToString("G", CultureInfo.CurrentCulture)}] {chatMessage.Content}"
-                            : formattedMessage;
-                    allottedChatHistory.AddUserMessage(userMessage.Trim());
+                    allottedChatHistory.AddUserMessage(formattedMessage.Trim());
                 }
 
                 remainingToken -= tokenCount;
@@ -269,11 +264,9 @@ public class ChatPlugin
 
         // Start extracting audience if the user is not a default user
         Task<string> audienceTask = Task.FromResult(string.Empty);
-        if (!PassThroughAuthenticationHandler.IsDefaultUser(userId))
-        {
-            audienceTask = AsyncUtils.SafeInvokeAsync(
-                () => this.GetAudienceAsync(chatContext, cancellationToken), nameof(GetAudienceAsync));
-        }
+
+        audienceTask = AsyncUtils.SafeInvokeAsync(
+        () => this.GetAudienceAsync(chatContext, cancellationToken), nameof(GetAudienceAsync));
         // Conditionally start extracting user intent based on feature flag
         Task<string> userIntentTask = Task.FromResult(string.Empty);
         if (this._isUserIntentExtractionEnabled)

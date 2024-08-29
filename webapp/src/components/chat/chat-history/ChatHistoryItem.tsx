@@ -22,7 +22,7 @@ import { useChat } from '../../../libs/hooks/useChat';
 import { AuthorRoles, ChatMessageType, IChatMessage } from '../../../libs/models/ChatMessage';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
-import { DefaultChatUser, FeatureKeys } from '../../../redux/features/app/AppState';
+import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { Breakpoints, customTokens } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { PlanViewer } from '../plan-viewer/PlanViewer';
@@ -121,12 +121,9 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
 
     const [showCitationCards, setShowCitationCards] = useState(false);
 
-    const isDefaultUser = message.userId === DefaultChatUser.id;
-    const isMe = isDefaultUser || (message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id);
+    const isMe = message.authorRole === AuthorRoles.User && message.userId === activeUserInfo?.id;
     const isBot = message.authorRole === AuthorRoles.Bot;
-    const user = isDefaultUser
-        ? DefaultChatUser
-        : chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
+    const user = chat.getChatUserById(message.userName, selectedId, conversations[selectedId].users);
     const fullName = user?.fullName ?? message.userName;
 
     const [messagedCopied, setMessageCopied] = useState(false);
@@ -154,9 +151,7 @@ export const ChatHistoryItem: React.FC<ChatHistoryItemProps> = ({ message, messa
                       : conversations[selectedId].botProfilePicture,
               },
           }
-        : isDefaultUser
-          ? { idForColor: selectedId, color: 'colorful', image: avatarImage }
-          : { name: fullName, color: 'colorful', image: avatarImage };
+        : { name: fullName, color: 'colorful', image: avatarImage };
 
     let content: JSX.Element;
     if (isBot && message.type === ChatMessageType.Plan) {
