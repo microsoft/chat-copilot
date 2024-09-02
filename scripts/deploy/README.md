@@ -13,6 +13,8 @@ This document details how to deploy Chat Copilot's required resources to your Az
 
 - Chat Copilot deployments use Azure Active Directory for authentication. All endpoints (except `/healthz` and `/authInfo`) require authentication to access.
 
+-Completion model depends on the model configured in openai subscription( i.e completion model should match the openai subscription)
+
 # Configure your environment
 
 Before you get started, make sure you have the following requirements in place:
