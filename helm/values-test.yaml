@@ -1,7 +1,7 @@
 cert:
   hosts:
-    - host: q-copilot-test.pegasus.quartechlab.com
-    - host: q-copilot-test.api.pegasus.quartechlab.com
+    - host: q-pilot-test.pegasus.quartechlab.com
+    - host: q-pilot-test.api.pegasus.quartechlab.com
 
 image:
   tag: "test"
@@ -17,7 +17,7 @@ secretProviderClass:
 fe:
   env:
     - name: "REACT_APP_BACKEND_URI"
-      value: "https://q-copilot-test.api.pegasus.quartechlab.com/"
+      value: "https://q-pilot-test.api.pegasus.quartechlab.com/"
 
 ###############
 # BE Common values
@@ -39,13 +39,13 @@ webapp:
     tag: "test"
   ingress:
     hosts:
-      - host: q-copilot-test.pegasus.quartechlab.com
+      - host: q-pilot-test.pegasus.quartechlab.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - q-copilot-test.pegasus.quartechlab.com
+          - q-pilot-test.pegasus.quartechlab.com
 
 ###############
 # webapi specific values
@@ -69,13 +69,13 @@ webapi:
   volumes:
     - name: appsettings-volume
       configMap:
-        name: q-copilot-webapi
+        name: q-pilot-webapi
         items:
           - key: appsettings.json
             path: appsettings.json
     - name: appsettings-test-volume
       configMap:
-        name: q-copilot-webapi
+        name: q-pilot-webapi
         items:
           - key: appsettings.Test.json
             path: appsettings.Test.json
@@ -84,7 +84,7 @@ webapi:
         driver: secrets-store.csi.k8s.io
         readOnly: true
         volumeAttributes:
-          secretProviderClass: "q-copilot-webapi"
+          secretProviderClass: "q-pilot-webapi"
 
   configs:
     - config/test/appsettings.json
@@ -92,10 +92,10 @@ webapi:
 
   ingress:
     hosts:
-      - host: q-copilot-test.api.pegasus.quartechlab.com
+      - host: q-pilot-test.api.pegasus.quartechlab.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - q-copilot-test.api.pegasus.quartechlab.com
+          - q-pilot-test.api.pegasus.quartechlab.com

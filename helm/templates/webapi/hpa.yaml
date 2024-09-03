@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "q-copilot.webapi.fullname" . }}
+  name: {{ include "q-pilot.webapi.fullname" . }}
   labels:
-    {{- include "q-copilot.webapi.labels" . | nindent 4 }}
+    {{- include "q-pilot.webapi.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "q-copilot.webapi.fullname" . }}
+    name: {{ include "q-pilot.webapi.fullname" . }}
   minReplicas: {{ (mergeOverwrite (deepCopy .Values.autoscaling) (deepCopy .Values.be.autoscaling) .Values.webapi.autoscaling).minReplicas }}
   maxReplicas: {{ (mergeOverwrite (deepCopy .Values.autoscaling) (deepCopy .Values.be.autoscaling) .Values.webapi.autoscaling).maxReplicas }}
   metrics:

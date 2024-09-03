@@ -105,8 +105,8 @@ resource "azuread_application_registration" "example" {
 }
 
 resource "azuread_application_registration" "frontend" {
-  display_name     = "q-copilot-dev"
-  description      = "Q-Copilot Frontend"
+  display_name     = "q-pilot-dev"
+  description      = "q-pilot Frontend"
   sign_in_audience = "AzureADMyOrg"
 
   homepage_url = "https://app.hashitown.com/"
@@ -118,7 +118,7 @@ resource "azuread_application_registration" "frontend" {
 }
 
 resource "azuread_application" "frontend" {
-  display_name     = "q-copilot-dev"
+  display_name     = "q-pilot-dev"
   identifier_uris  = ["api://example-app"]
   logo_image       = filebase64("/path/to/logo.png")
   owners           = [data.azuread_client_config.current.object_id]

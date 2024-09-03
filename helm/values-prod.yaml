@@ -69,13 +69,13 @@ webapi:
   volumes:
     - name: appsettings-volume
       configMap:
-        name: q-copilot-webapi
+        name: q-pilot-webapi
         items:
           - key: appsettings.json
             path: appsettings.json
     - name: appsettings-prod-volume
       configMap:
-        name: q-copilot-webapi
+        name: q-pilot-webapi
         items:
           - key: appsettings.Production.json
             path: appsettings.Production.json
@@ -84,7 +84,7 @@ webapi:
         driver: secrets-store.csi.k8s.io
         readOnly: true
         volumeAttributes:
-          secretProviderClass: "q-copilot-webapi"
+          secretProviderClass: "q-pilot-webapi"
 
   configs:
     - config/prod/appsettings.json

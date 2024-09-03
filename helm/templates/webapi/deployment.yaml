@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "q-copilot.webapi.fullname" . }}
+  name: {{ include "q-pilot.webapi.fullname" . }}
   labels:
-    {{- include "q-copilot.webapi.labels" . | nindent 4 }}
+    {{- include "q-pilot.webapi.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "q-copilot.webapi.selectorLabels" . | nindent 6 }}
+      {{- include "q-pilot.webapi.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,7 +19,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "q-copilot.webapi.labels" . | nindent 8 }}
+        {{- include "q-pilot.webapi.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -28,11 +28,11 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "q-copilot.serviceAccountName" . }}
+      serviceAccountName: {{ include "q-pilot.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ include "q-copilot.webapi.fullname" . }}
+        - name: {{ include "q-pilot.webapi.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ default .Values.image.repository (default .Values.be.image.repository .Values.webapi.image.repository) }}:{{ default .Values.image.tag (default .Values.be.image.tag .Values.webapi.image.tag) }}"

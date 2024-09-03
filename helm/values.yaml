@@ -4,8 +4,8 @@ fullnameOverride: ""
 cert:
   enabled: true
   hosts:
-    - host: q-copilot-dev.pegasus.quartechlab.com
-    - host: q-copilot-dev.api.pegasus.quartechlab.com
+    - host: q-pilot-dev.pegasus.quartechlab.com
+    - host: q-pilot-dev.api.pegasus.quartechlab.com
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -21,7 +21,7 @@ serviceAccount:
 ###################
 # Shared Variables
 ###################
-name: q-copilot
+name: q-pilot
 
 enabled: true
 
@@ -124,7 +124,7 @@ fe:
 
   env:
     - name: "REACT_APP_BACKEND_URI"
-      value: "https://q-copilot-dev.api.pegasus.quartechlab.com/"
+      value: "https://q-pilot-dev.api.pegasus.quartechlab.com/"
 
   volumeMounts: []
   #   - name: caddyfile-volume
@@ -217,13 +217,13 @@ webapp:
   volumes: []
   #   - name: manifest-volume
   #     configMap:
-  #       name: q-copilot-webapp
+  #       name: q-pilot-webapp
   #       items:
   #         - key: federation.manifest.json
   #           path: federation.manifest.json
   #   - name: caddyfile-volume
   #     configMap:
-  #       name: q-copilot-webapp
+  #       name: q-pilot-webapp
   #       items:
   #         - key: Caddyfile
   #           path: Caddyfile
@@ -236,13 +236,13 @@ webapp:
   ingress:
     enabled: true
     hosts:
-      - host: q-copilot-dev.pegasus.quartechlab.com
+      - host: q-pilot-dev.pegasus.quartechlab.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - q-copilot-dev.pegasus.quartechlab.com
+          - q-pilot-dev.pegasus.quartechlab.com
   tolerations: []
   affinity: {}
 
@@ -274,42 +274,42 @@ webapi:
     - name: "KernelMemory__Services__AzureOpenAIEmbedding__APIKey"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: KernelMemory-Services-AzureOpenAIEmbedding-APIKey
     - name: "KernelMemory__Services__AzureOpenAIText__APIKey"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: KernelMemory-Services-AzureOpenAIText-APIKey
     - name: "KernelMemory__Services__AzureOpenAI__APIKey"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: KernelMemory-Services-AzureOpenAI-APIKey
     - name: "KernelMemory__Services__AzureAISearch__APIKey"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: KernelMemory-Services-AzureAISearch-APIKey
     - name: "KernelMemory__Services__AzureBlobs__ConnectionString"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: KernelMemory-Services-AzureBlobs-ConnectionString
     - name: "QAzureOpenAIChatConfig__AzureConfig__ApiKey"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: QAzureOpenAIChatConfig-AzureConfig-ApiKey
     - name: "QAzureOpenAIChatConfig__AzureConfig__VectorizationSource__APIKey"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: QAzureOpenAIChatConfig-AzureConfig-VectorizationSource-APIKey
     - name: "ChatStore__Cosmos__ConnectionString"
       valueFrom:
         secretKeyRef:
-          name: q-copilot-webapi-secret
+          name: q-pilot-webapi-secret
           key: ChatStore-Cosmos-ConnectionString
     - name: "APP_NAME"
       value: "webapi"
@@ -328,13 +328,13 @@ webapi:
   volumes:
     - name: appsettings-volume
       configMap:
-        name: q-copilot-webapi
+        name: q-pilot-webapi
         items:
           - key: appsettings.json
             path: appsettings.json
     - name: appsettings-development-volume
       configMap:
-        name: q-copilot-webapi
+        name: q-pilot-webapi
         items:
           - key: appsettings.Development.json
             path: appsettings.Development.json
@@ -343,7 +343,7 @@ webapi:
         driver: secrets-store.csi.k8s.io
         readOnly: true
         volumeAttributes:
-          secretProviderClass: "q-copilot-webapi"
+          secretProviderClass: "q-pilot-webapi"
 
   configs:
     - config/dev/appsettings.json
@@ -370,13 +370,13 @@ webapi:
   ingress:
     enabled: true
     hosts:
-      - host: q-copilot-dev.api.pegasus.quartechlab.com
+      - host: q-pilot-dev.api.pegasus.quartechlab.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - q-copilot-dev.api.pegasus.quartechlab.com
+          - q-pilot-dev.api.pegasus.quartechlab.com
 
   tolerations: []
   affinity: {}

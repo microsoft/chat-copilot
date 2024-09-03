@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "q-copilot.name" -}}
+{{- define "q-pilot.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -9,7 +9,7 @@ Expand the name of the chart.
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
-{{- define "q-copilot.fullname" -}}
+{{- define "q-pilot.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,45 +24,45 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{/*
 Create sub app name and version as used by the chart label.
 */}}
-{{- define "q-copilot.webapp.fullname" -}}
-{{- printf "%s-%s" (include "q-copilot.fullname" .) .Values.webapp.name | trunc 63 | trimSuffix "-" -}}
+{{- define "q-pilot.webapp.fullname" -}}
+{{- printf "%s-%s" (include "q-pilot.fullname" .) .Values.webapp.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "q-copilot.webapi.fullname" -}}
-{{- printf "%s-%s" (include "q-copilot.fullname" .) .Values.webapi.name | trunc 63 | trimSuffix "-" -}}
+{{- define "q-pilot.webapi.fullname" -}}
+{{- printf "%s-%s" (include "q-pilot.fullname" .) .Values.webapi.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "q-copilot.chart" -}}
+{{- define "q-pilot.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "q-copilot.labels" -}}
-helm.sh/chart: {{ include "q-copilot.chart" . }}
-{{ include "q-copilot.selectorLabels" . }}
+{{- define "q-pilot.labels" -}}
+helm.sh/chart: {{ include "q-pilot.chart" . }}
+{{ include "q-pilot.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
-{{- define "q-copilot.webapp.labels" -}}
-helm.sh/chart: {{ include "q-copilot.chart" . }}
-{{ include "q-copilot.webapp.selectorLabels" . }}
+{{- define "q-pilot.webapp.labels" -}}
+helm.sh/chart: {{ include "q-pilot.chart" . }}
+{{ include "q-pilot.webapp.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
-{{- define "q-copilot.webapi.labels" -}}
-helm.sh/chart: {{ include "q-copilot.chart" . }}
-{{ include "q-copilot.webapi.selectorLabels" . }}
+{{- define "q-pilot.webapi.labels" -}}
+helm.sh/chart: {{ include "q-pilot.chart" . }}
+{{ include "q-pilot.webapi.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -73,16 +73,16 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "q-copilot.selectorLabels" -}}
+{{- define "q-pilot.selectorLabels" -}}
 app.kubernetes.io/name: {{ .Values.name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-{{- define "q-copilot.webapp.selectorLabels" -}}
+{{- define "q-pilot.webapp.selectorLabels" -}}
 app.kubernetes.io/name: {{ .Values.webapp.name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{- define "q-copilot.webapi.selectorLabels" -}}
+{{- define "q-pilot.webapi.selectorLabels" -}}
 app.kubernetes.io/name: {{ .Values.webapi.name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
@@ -91,9 +91,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "q-copilot.serviceAccountName" -}}
+{{- define "q-pilot.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "q-copilot.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "q-pilot.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -102,7 +102,7 @@ Create the name of the service account to use
 {{/*
 Configmap generation
 */}}
-{{- define "q-copilot.webapp.configs" -}}
+{{- define "q-pilot.webapp.configs" -}}
 data:
 {{ range $v :=  .Values.webapp.configs }}
 {{ $v | regexFind "([^/]+$)" | indent 2 }}: |- {{ $.Files.Get $v | nindent 4 }}
@@ -115,7 +115,7 @@ data:
 {{ end }}
 {{- end }}
 
-{{- define "q-copilot.webapi.configs" -}}
+{{- define "q-pilot.webapi.configs" -}}
 data:
 {{ range $v :=  .Values.webapi.configs }}
 {{ $v | regexFind "([^/]+$)" | indent 2 }}: |- {{ $.Files.Get $v | nindent 4 }}

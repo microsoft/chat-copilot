@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "q-copilot.webapp.fullname" . }}
+  name: {{ include "q-pilot.webapp.fullname" . }}
   labels:
-    {{- include "q-copilot.webapp.labels" . | nindent 4 }}
+    {{- include "q-pilot.webapp.labels" . | nindent 4 }}
 spec:
   type: {{ (default .Values.service.type (default .Values.fe.service.type .Values.webapp.service.type)) }}
   ports:
@@ -13,5 +13,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "q-copilot.webapp.selectorLabels" . | nindent 4 }}
+    {{- include "q-pilot.webapp.selectorLabels" . | nindent 4 }}
 {{- end }}

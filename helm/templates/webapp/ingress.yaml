@@ -1,5 +1,5 @@
 {{- if and (mergeOverwrite (deepCopy .Values.ingress) (deepCopy .Values.fe.ingress) .Values.webapp.ingress).enabled .Values.webapp.enabled }}
-{{- $fullName := include "q-copilot.webapp.fullname" . -}}
+{{- $fullName := include "q-pilot.webapp.fullname" . -}}
 {{- $svcPort := (default .Values.service.port (default .Values.fe.service.port .Values.webapp.service.port)) -}}
 {{- if and .Values.webapp.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.webapp.ingress.annotations "kubernetes.io/ingress.class") }}
@@ -17,7 +17,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    {{- include "q-copilot.webapp.labels" . | nindent 4 }}
+    {{- include "q-pilot.webapp.labels" . | nindent 4 }}
   {{- with (mergeOverwrite (deepCopy .Values.ingress) (deepCopy .Values.fe.ingress) .Values.webapp.ingress).annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
