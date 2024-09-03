@@ -66,6 +66,7 @@ jobs:
         run: |
           helm upgrade --install ${{ env.ENVIRONMENT }} \
           --namespace "copilot-${{ env.ENVIRONMENT }}" \
+          --set 'podLabels.runnumber=github-${{ github.run_number }}' \
           -f helm/values.yaml \
           -f helm/values-${{ env.ENVIRONMENT }}.yaml \
           helm/
