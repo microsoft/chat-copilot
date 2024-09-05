@@ -105,7 +105,7 @@ const App = () => {
         if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
             void Promise.all([
                 chat.loadChats()
-                    .then(() => handleAppStateChange(AppState.Chat))
+                    .then(() => { handleAppStateChange(AppState.Chat); })
                     .catch((error) => {
                         console.error("Error loading chats:", error);
                         handleAppStateChange(AppState.ErrorLoadingChats);
