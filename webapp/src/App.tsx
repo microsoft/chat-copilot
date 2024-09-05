@@ -1,10 +1,8 @@
-// Copyright (c) Microsoft. All rights reserved.
-
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { FluentProvider, Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import Chat from './components/chat/Chat';
 import { Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
@@ -58,37 +56,38 @@ export enum AppState {
 
 const App = () => {
     const classes = useClasses();
-
     const [appState, setAppState] = React.useState(AppState.ProbeForBackend);
     const dispatch = useAppDispatch();
-
-    const { instance, inProgress } = useMsal();
-    const { features, isMaintenance } = useAppSelector((state: RootState) => state.app);
+    const { instance } = useMsal();
     const isAuthenticated = useIsAuthenticated();
+    const { features, isMaintenance } = useAppSelector((state: RootState) => state.app);
 
     const chat = useChat();
     const file = useFile();
 
+    const handleAppStateChange = useCallback((newState: AppState) => {
+        setAppState(newState);
+    }, []);
+
     useEffect(() => {
         if (isMaintenance && appState !== AppState.ProbeForBackend) {
-            setAppState(AppState.ProbeForBackend);
+            handleAppStateChange(AppState.ProbeForBackend);
             return;
         }
 
         if (isAuthenticated && appState === AppState.SettingUserInfo) {
             const account = instance.getActiveAccount();
             if (!account) {
-                setAppState(AppState.ErrorLoadingUserInfo);
+                handleAppStateChange(AppState.ErrorLoadingUserInfo);
             } else {
                 dispatch(
                     setActiveUserInfo({
                         id: `${account.localAccountId}.${account.tenantId}`,
-                        email: account.username, // username is the email address
+                        email: account.username,
                         username: account.name ?? account.username,
                     }),
                 );
 
-                // Privacy disclaimer for internal Microsoft users
                 if (account.username.split('@')[1] === 'microsoft.com') {
                     dispatch(
                         addAlert({
@@ -99,26 +98,19 @@ const App = () => {
                     );
                 }
 
-                setAppState(AppState.LoadingChats);
+                handleAppStateChange(AppState.LoadingChats);
             }
         }
 
         if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
             void Promise.all([
-                // Load all chats from memory
-                chat
-                    .loadChats()
-                    .then(() => {
-                        setAppState(AppState.Chat);
-                    })
-                    .catch(() => {
-                        setAppState(AppState.ErrorLoadingChats);
+                chat.loadChats()
+                    .then(() => handleAppStateChange(AppState.Chat))
+                    .catch((error) => {
+                        console.error("Error loading chats:", error);
+                        handleAppStateChange(AppState.ErrorLoadingChats);
                     }),
-
-                // Check if content safety is enabled
                 file.getContentSafetyStatus(),
-
-                // Load service information
                 chat.getServiceInfo().then((serviceInfo) => {
                     if (serviceInfo) {
                         dispatch(setServiceInfo(serviceInfo));
@@ -127,30 +119,29 @@ const App = () => {
             ]);
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [instance, inProgress, isAuthenticated, appState, isMaintenance]);
+    }, [instance, isAuthenticated, appState, isMaintenance, handleAppStateChange, dispatch, chat, file]);
 
-    const content = <Chat classes={classes} appState={appState} setAppState={setAppState} />;
+    const theme = features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme;
+
     return (
-        <FluentProvider
-            className="app-container"
-            theme={features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme}
-        >
+        <FluentProvider className="app-container" theme={theme}>
             {AuthHelper.isAuthAAD() ? (
                 <>
                     <UnauthenticatedTemplate>
                         <div className={classes.container}>
-                            <div className={classes.header}>
+                            <div className={classes.header} aria-label="Application Header">
                                 <Subtitle1 as="h1">Chat Copilot</Subtitle1>
                             </div>
                             {appState === AppState.SigningOut && <Loading text="Signing you out..." />}
                             {appState !== AppState.SigningOut && <Login />}
                         </div>
                     </UnauthenticatedTemplate>
-                    <AuthenticatedTemplate>{content}</AuthenticatedTemplate>
+                    <AuthenticatedTemplate>
+                        <Chat classes={classes} appState={appState} setAppState={handleAppStateChange} />
+                    </AuthenticatedTemplate>
                 </>
             ) : (
-                content
+                <Chat classes={classes} appState={appState} setAppState={handleAppStateChange} />
             )}
         </FluentProvider>
     );
