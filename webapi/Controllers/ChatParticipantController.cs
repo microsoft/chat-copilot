@@ -38,7 +38,8 @@ public class ChatParticipantController : ControllerBase
     public ChatParticipantController(
         ILogger<ChatParticipantController> logger,
         ChatParticipantRepository chatParticipantRepository,
-        ChatSessionRepository chatSessionRepository)
+        ChatSessionRepository chatSessionRepository
+    )
     {
         this._logger = logger;
         this._chatParticipantRepository = chatParticipantRepository;
@@ -59,7 +60,8 @@ public class ChatParticipantController : ControllerBase
     public async Task<IActionResult> JoinChatAsync(
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         [FromServices] IAuthInfo authInfo,
-        [FromRoute] Guid chatId)
+        [FromRoute] Guid chatId
+    )
     {
         string userId = authInfo.UserId;
 

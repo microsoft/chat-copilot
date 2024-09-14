@@ -16,9 +16,7 @@ public class SpecializationRepository : Repository<Specialization>
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
     public SpecializationRepository(IStorageContext<Specialization> storageContext)
-        : base(storageContext)
-    {
-    }
+        : base(storageContext) { }
 
     /// <summary>
     /// Retrieves all specializations.

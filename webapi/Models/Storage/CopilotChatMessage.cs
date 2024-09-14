@@ -32,7 +32,8 @@ public enum UserFeedback
 /// </summary>
 public class CopilotChatMessage : IStorageEntity
 {
-    private static readonly JsonSerializerOptions SerializerSettings = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions SerializerSettings =
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     /// <summary>
     /// Role of the author of a chat message.
@@ -47,7 +48,7 @@ public class CopilotChatMessage : IStorageEntity
         /// <summary>
         /// The bot.
         /// </summary>
-        Bot
+        Bot,
     }
 
     /// <summary>
@@ -159,7 +160,8 @@ public class CopilotChatMessage : IStorageEntity
         AuthorRoles authorRole = AuthorRoles.User,
         ChatMessageType type = ChatMessageType.Message,
         IDictionary<string, int>? tokenUsage = null,
-        UserFeedback? userFeedback = null)
+        UserFeedback? userFeedback = null
+    )
     {
         this.Timestamp = DateTimeOffset.Now;
         this.UserId = userId;
@@ -182,9 +184,25 @@ public class CopilotChatMessage : IStorageEntity
     /// <param name="content">The message</param>
     /// <param name="prompt">The prompt used to generate the message</param>
     /// <param name="tokenUsage">Total token usage of response completion</param>
-    public static CopilotChatMessage CreateBotResponseMessage(string chatId, string content, string prompt, IEnumerable<CitationSource>? citations, IDictionary<string, int>? tokenUsage = null)
+    public static CopilotChatMessage CreateBotResponseMessage(
+        string chatId,
+        string content,
+        string prompt,
+        IEnumerable<CitationSource>? citations,
+        IDictionary<string, int>? tokenUsage = null
+    )
     {
-        return new CopilotChatMessage("Bot", "Bot", chatId, content, prompt, citations, AuthorRoles.Bot, ChatMessageType.Message, tokenUsage);
+        return new CopilotChatMessage(
+            "Bot",
+            "Bot",
+            chatId,
+            content,
+            prompt,
+            citations,
+            AuthorRoles.Bot,
+            ChatMessageType.Message,
+            tokenUsage
+        );
     }
 
     /// <summary>
@@ -194,9 +212,23 @@ public class CopilotChatMessage : IStorageEntity
     /// <param name="userName">The user name that uploaded the document</param>
     /// <param name="chatId">The chat ID that this message belongs to</param>
     /// <param name="documentMessageContent">The document message content</param>
-    public static CopilotChatMessage CreateDocumentMessage(string userId, string userName, string chatId, DocumentMessageContent documentMessageContent)
+    public static CopilotChatMessage CreateDocumentMessage(
+        string userId,
+        string userName,
+        string chatId,
+        DocumentMessageContent documentMessageContent
+    )
     {
-        return new CopilotChatMessage(userId, userName, chatId, documentMessageContent.ToString(), string.Empty, null, AuthorRoles.User, ChatMessageType.Document);
+        return new CopilotChatMessage(
+            userId,
+            userName,
+            chatId,
+            documentMessageContent.ToString(),
+            string.Empty,
+            null,
+            AuthorRoles.User,
+            ChatMessageType.Document
+        );
     }
 
     /// <summary>
@@ -210,11 +242,12 @@ public class CopilotChatMessage : IStorageEntity
         {
             case ChatMessageType.Document:
                 var documentMessage = DocumentMessageContent.FromString(this.Content);
-                var documentMessageContent = (documentMessage != null) ? documentMessage.ToFormattedString() : "documents";
+                var documentMessageContent =
+                    (documentMessage != null) ? documentMessage.ToFormattedString() : "documents";
 
                 return $"{messagePrefix} {this.UserName} uploaded: {documentMessageContent}";
 
-            case ChatMessageType.Plan:    // Fall through
+            case ChatMessageType.Plan: // Fall through
             case ChatMessageType.Message:
                 return $"{messagePrefix} {this.UserName} said: {this.Content}";
 

@@ -14,7 +14,8 @@ namespace CopilotChat.WebApi.Storage;
 /// A storage context that stores entities in memory.
 /// </summary>
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
+public class VolatileContext<T> : IStorageContext<T>
+    where T : IStorageEntity
 {
     /// <summary>
     /// Using a concurrent dictionary to store entities in memory.
@@ -104,10 +105,14 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
 public class VolatileCopilotChatMessageContext : VolatileContext<CopilotChatMessage>, ICopilotChatMessageStorageContext
 {
     /// <inheritdoc/>
-    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
+    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(
+        Func<CopilotChatMessage, bool> predicate,
+        int skip,
+        int count
+    )
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-                () => this._entities.Values
-                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
+            () => this._entities.Values.Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count)
+        );
     }
 }

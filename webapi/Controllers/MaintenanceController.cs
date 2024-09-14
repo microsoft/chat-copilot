@@ -24,9 +24,7 @@ public class MaintenanceController : ControllerBase
     /// <summary>
     /// Initializes a new instance of the <see cref="MaintenanceController"/> class.
     /// </summary>
-    public MaintenanceController(
-        ILogger<MaintenanceController> logger,
-        IOptions<ServiceOptions> serviceOptions)
+    public MaintenanceController(ILogger<MaintenanceController> logger, IOptions<ServiceOptions> serviceOptions)
     {
         this._logger = logger;
         this._serviceOptions = serviceOptions;
@@ -39,8 +37,7 @@ public class MaintenanceController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<MaintenanceResult?> GetMaintenanceStatusAsync(
-        CancellationToken cancellationToken = default)
+    public ActionResult<MaintenanceResult?> GetMaintenanceStatusAsync(CancellationToken cancellationToken = default)
     {
         MaintenanceResult? result = null;
 

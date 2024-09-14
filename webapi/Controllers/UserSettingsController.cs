@@ -28,7 +28,8 @@ public class UserSettingsController : ControllerBase
     public UserSettingsController(
         ILogger<UserSettingsController> logger,
         IOptions<QAzureOpenAIChatOptions> chatOptions,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory
+    )
     {
         this._logger = logger;
         this._httpClientFactory = httpClientFactory;
@@ -50,7 +51,8 @@ public class UserSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> LoadSettings(
         [FromServices] ChatUserRepository chatUserRepository,
-        [FromServices] IAuthInfo authInfo)
+        [FromServices] IAuthInfo authInfo
+    )
     {
         this._logger.LogDebug("Settings request received.");
 
@@ -63,11 +65,13 @@ public class UserSettingsController : ControllerBase
             await chatUserRepository.CreateAsync(user);
         }
 
-        return this.Ok(new LoadSettingsResponse
-        {
-            settings = user.settings,
-            adminGroupId = this._chatOptions.Value.AdminGroupMembershipId
-        });
+        return this.Ok(
+            new LoadSettingsResponse
+            {
+                settings = user.settings,
+                adminGroupId = this._chatOptions.Value.AdminGroupMembershipId,
+            }
+        );
     }
 
     /// <summary>
@@ -86,7 +90,8 @@ public class UserSettingsController : ControllerBase
     public async Task<IActionResult> UpdateSetting(
         [FromServices] ChatUserRepository chatUserRepository,
         [FromServices] IAuthInfo authInfo,
-        [FromBody] UpdateSettings request)
+        [FromBody] UpdateSettings request
+    )
     {
         this._logger.LogDebug("Settings update received.");
 
@@ -96,7 +101,8 @@ public class UserSettingsController : ControllerBase
         if (user == null)
         {
             return this.BadRequest("Chat user does not exist.");
-        };
+        }
+        ;
 
         if (request.Setting == "darkMode")
         {

@@ -84,9 +84,7 @@ public class MemorySource : IStorageEntity
     /// <summary>
     /// Empty constructor for serialization.
     /// </summary>
-    public MemorySource()
-    {
-    }
+    public MemorySource() { }
 
     public MemorySource(string chatId, string name, string sharedBy, MemorySourceType type, long size, Uri? hyperlink)
     {

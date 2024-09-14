@@ -21,7 +21,8 @@ namespace CopilotChat.WebApi.Extensions;
 /// </summary>
 internal static class ISemanticMemoryClientExtensions
 {
-    private static readonly List<string> pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_records" };
+    private static readonly List<string> pipelineSteps =
+        new() { "extract", "partition", "gen_embeddings", "save_records" };
 
     /// <summary>
     /// Inject <see cref="IKernelMemory"/>.
@@ -33,10 +34,15 @@ internal static class ISemanticMemoryClientExtensions
         var memoryConfig = serviceProvider.GetRequiredService<IOptions<KernelMemoryConfig>>().Value;
 
         var ocrType = memoryConfig.DataIngestion.ImageOcrType;
-        var hasOcr = !string.IsNullOrWhiteSpace(ocrType) && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
+        var hasOcr =
+            !string.IsNullOrWhiteSpace(ocrType)
+            && !ocrType.Equals(MemoryConfiguration.NoneType, StringComparison.OrdinalIgnoreCase);
 
         var pipelineType = memoryConfig.DataIngestion.OrchestrationType;
-        var isDistributed = pipelineType.Equals(MemoryConfiguration.OrchestrationTypeDistributed, StringComparison.OrdinalIgnoreCase);
+        var isDistributed = pipelineType.Equals(
+            MemoryConfiguration.OrchestrationTypeDistributed,
+            StringComparison.OrdinalIgnoreCase
+        );
 
         appBuilder.Services.AddSingleton(sp => new DocumentTypeProvider(hasOcr));
 
@@ -54,10 +60,7 @@ internal static class ISemanticMemoryClientExtensions
             }
         }
 
-        IKernelMemory memory = memoryBuilder.FromMemoryConfiguration(
-            memoryConfig,
-            appBuilder.Configuration
-        ).Build();
+        IKernelMemory memory = memoryBuilder.FromMemoryConfiguration(memoryConfig, appBuilder.Configuration).Build();
 
         appBuilder.Services.AddSingleton(memory);
     }
@@ -69,9 +72,18 @@ internal static class ISemanticMemoryClientExtensions
         float relevanceThreshold,
         string chatId,
         string? memoryName = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        return memoryClient.SearchMemoryAsync(indexName, query, relevanceThreshold, resultCount: -1, chatId, memoryName, cancellationToken);
+        return memoryClient.SearchMemoryAsync(
+            indexName,
+            query,
+            relevanceThreshold,
+            resultCount: -1,
+            chatId,
+            memoryName,
+            cancellationToken
+        );
     }
 
     public static async Task<SearchResult> SearchMemoryAsync(
@@ -82,7 +94,8 @@ internal static class ISemanticMemoryClientExtensions
         int resultCount,
         string chatId,
         string? memoryName = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var filter = new MemoryFilter();
 
@@ -93,15 +106,15 @@ internal static class ISemanticMemoryClientExtensions
             filter.ByTag(MemoryTags.TagMemory, memoryName);
         }
 
-        var searchResult =
-            await memoryClient.SearchAsync(
-                query,
-                indexName,
-                filter,
-                null,
-                relevanceThreshold, // minRelevance param
-                resultCount,
-                cancellationToken: cancellationToken);
+        var searchResult = await memoryClient.SearchAsync(
+            query,
+            indexName,
+            filter,
+            null,
+            relevanceThreshold, // minRelevance param
+            resultCount,
+            cancellationToken: cancellationToken
+        );
 
         return searchResult;
     }
@@ -114,16 +127,16 @@ internal static class ISemanticMemoryClientExtensions
         string memoryName,
         string fileName,
         Stream fileContent,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var uploadRequest =
-            new DocumentUploadRequest
-            {
-                DocumentId = documentId,
-                Files = new List<DocumentUploadRequest.UploadedFile> { new(fileName, fileContent) },
-                Index = indexName,
-                Steps = pipelineSteps,
-            };
+        var uploadRequest = new DocumentUploadRequest
+        {
+            DocumentId = documentId,
+            Files = new List<DocumentUploadRequest.UploadedFile> { new(fileName, fileContent) },
+            Index = indexName,
+            Steps = pipelineSteps,
+        };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
         uploadRequest.Tags.Add(MemoryTags.TagMemory, memoryName);
@@ -137,9 +150,17 @@ internal static class ISemanticMemoryClientExtensions
         string chatId,
         string memoryName,
         string memory,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        return memoryClient.StoreMemoryAsync(indexName, chatId, memoryName, memoryId: Guid.NewGuid().ToString(), memory, cancellationToken);
+        return memoryClient.StoreMemoryAsync(
+            indexName,
+            chatId,
+            memoryName,
+            memoryId: Guid.NewGuid().ToString(),
+            memory,
+            cancellationToken
+        );
     }
 
     public static async Task StoreMemoryAsync(
@@ -149,7 +170,8 @@ internal static class ISemanticMemoryClientExtensions
         string memoryName,
         string memoryId,
         string memory,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
@@ -161,12 +183,11 @@ internal static class ISemanticMemoryClientExtensions
         {
             DocumentId = memoryId,
             Index = indexName,
-            Files =
-                new()
-                {
-                    // Document file name not relevant, but required.
-                    new DocumentUploadRequest.UploadedFile("memory.txt", stream)
-                },
+            Files = new()
+            {
+                // Document file name not relevant, but required.
+                new DocumentUploadRequest.UploadedFile("memory.txt", stream),
+            },
             Steps = pipelineSteps,
         };
 
@@ -180,11 +201,20 @@ internal static class ISemanticMemoryClientExtensions
         this IKernelMemory memoryClient,
         string indexName,
         string chatId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var memories = await memoryClient.SearchMemoryAsync(indexName, "*", 0.0F, chatId, cancellationToken: cancellationToken);
+        var memories = await memoryClient.SearchMemoryAsync(
+            indexName,
+            "*",
+            0.0F,
+            chatId,
+            cancellationToken: cancellationToken
+        );
         var documentIds = memories.Results.Select(memory => memory.DocumentId).Distinct().ToArray();
-        var tasks = documentIds.Select(documentId => memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken)).ToArray();
+        var tasks = documentIds
+            .Select(documentId => memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken))
+            .ToArray();
 
         Task.WaitAll(tasks, cancellationToken);
     }

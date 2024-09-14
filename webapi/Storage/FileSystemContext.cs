@@ -14,7 +14,8 @@ namespace CopilotChat.WebApi.Storage;
 /// <summary>
 /// A storage context that stores entities on disk.
 /// </summary>
-public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
+public class FileSystemContext<T> : IStorageContext<T>
+    where T : IStorageEntity
 {
     /// <summary>
     /// Initializes a new instance of the OnDiskContext class and load the entities from disk.
@@ -100,9 +101,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     /// <summary>
     /// A concurrent dictionary to store entities in memory.
     /// </summary>
-    protected sealed class EntityDictionary : ConcurrentDictionary<string, T>
-    {
-    }
+    protected sealed class EntityDictionary : ConcurrentDictionary<string, T> { }
 
     /// <summary>
     /// Using a concurrent dictionary to store entities in memory.
@@ -138,7 +137,8 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
                 path: fileInfo.FullName,
                 mode: FileMode.OpenOrCreate,
                 access: FileAccess.Write,
-                share: FileShare.Read);
+                share: FileShare.Read
+            );
 
             JsonSerializer.Serialize(fileStream, entities);
         }
@@ -161,7 +161,8 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
                 path: fileInfo.FullName,
                 mode: FileMode.OpenOrCreate,
                 access: FileAccess.Read,
-                share: FileShare.Read);
+                share: FileShare.Read
+            );
 
             return JsonSerializer.Deserialize<EntityDictionary>(fileStream) ?? new EntityDictionary();
         }
@@ -171,7 +172,9 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
 /// <summary>
 /// Specialization of FileSystemContext<T> for CopilotChatMessage.
 /// </summary>
-public class FileSystemCopilotChatMessageContext : FileSystemContext<CopilotChatMessage>, ICopilotChatMessageStorageContext
+public class FileSystemCopilotChatMessageContext
+    : FileSystemContext<CopilotChatMessage>,
+        ICopilotChatMessageStorageContext
 {
     /// <summary>
     /// Initializes a new instance of the CosmosDbContext class.
@@ -179,16 +182,18 @@ public class FileSystemCopilotChatMessageContext : FileSystemContext<CopilotChat
     /// <param name="connectionString">The CosmosDB connection string.</param>
     /// <param name="database">The CosmosDB database name.</param>
     /// <param name="container">The CosmosDB container name.</param>
-    public FileSystemCopilotChatMessageContext(FileInfo filePath) :
-        base(filePath)
-    {
-    }
+    public FileSystemCopilotChatMessageContext(FileInfo filePath)
+        : base(filePath) { }
 
     /// <inheritdoc/>
-    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
+    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(
+        Func<CopilotChatMessage, bool> predicate,
+        int skip,
+        int count
+    )
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-                () => this._entities.Values
-                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
+            () => this._entities.Values.Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count)
+        );
     }
 }

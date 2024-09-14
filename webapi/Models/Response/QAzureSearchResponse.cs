@@ -17,6 +17,7 @@ public class QAzureSearchResponse
     [JsonPropertyName("value")]
     public List<QSearchValue> values { get; set; } = new List<QSearchValue>();
 }
+
 public class QSearchValue
 {
     [JsonPropertyName("@search.highlights")]

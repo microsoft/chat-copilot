@@ -47,7 +47,8 @@ public class ChatArchiveController : ControllerBase
         ChatParticipantRepository chatParticipantRepository,
         ChatArchiveEmbeddingConfig embeddingConfig,
         IOptions<PromptsOptions> promptOptions,
-        ILogger<ChatArchiveController> logger)
+        ILogger<ChatArchiveController> logger
+    )
     {
         this._memoryClient = memoryClient;
         this._logger = logger;
@@ -70,7 +71,10 @@ public class ChatArchiveController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Authorize(Policy = AuthPolicyName.RequireChatParticipant)]
-    public async Task<ActionResult<ChatArchive?>> DownloadAsync(Guid chatId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ChatArchive?>> DownloadAsync(
+        Guid chatId,
+        CancellationToken cancellationToken = default
+    )
     {
         this._logger.LogDebug("Received call to download a chat archive");
 
@@ -108,7 +112,8 @@ public class ChatArchiveController : ControllerBase
         {
             chatArchive.Embeddings.Add(
                 memory,
-                await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(chatIdString, memory, cancellationToken));
+                await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(chatIdString, memory, cancellationToken)
+            );
         }
 
         // get the document memory collection names (global scope)
@@ -117,7 +122,9 @@ public class ChatArchiveController : ControllerBase
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
                 Guid.Empty.ToString(),
                 this._promptOptions.DocumentMemoryName,
-                cancellationToken));
+                cancellationToken
+            )
+        );
 
         // get the document memory collection names (user scope)
         chatArchive.DocumentEmbeddings.Add(
@@ -125,7 +132,9 @@ public class ChatArchiveController : ControllerBase
             await this.GetMemoryRecordsAndAppendToEmbeddingsAsync(
                 chatIdString,
                 this._promptOptions.DocumentMemoryName,
-                cancellationToken));
+                cancellationToken
+            )
+        );
 
         return chatArchive;
     }
@@ -142,7 +151,8 @@ public class ChatArchiveController : ControllerBase
     private async Task<List<Citation>> GetMemoryRecordsAndAppendToEmbeddingsAsync(
         string chatId,
         string memoryName,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         List<Citation> collectionMemoryRecords;
         try
@@ -153,16 +163,15 @@ public class ChatArchiveController : ControllerBase
                 relevanceThreshold: -1, // no relevance required since the collection only has one entry
                 chatId,
                 memoryName,
-                cancellationToken);
+                cancellationToken
+            );
 
             collectionMemoryRecords = result.Results;
         }
         catch (Exception connectorException) when (!connectorException.IsCriticalException())
         {
             // A store exception might be thrown if the collection does not exist, depending on the memory store connector.
-            this._logger.LogError(connectorException,
-                "Cannot search collection {0}",
-                memoryName);
+            this._logger.LogError(connectorException, "Cannot search collection {0}", memoryName);
             collectionMemoryRecords = new();
         }
 

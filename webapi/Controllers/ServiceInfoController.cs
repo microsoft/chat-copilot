@@ -40,7 +40,8 @@ public class ServiceInfoController : ControllerBase
         IOptions<ChatAuthenticationOptions> chatAuthenticationOptions,
         IOptions<FrontendOptions> frontendOptions,
         IDictionary<string, Plugin> availablePlugins,
-        IOptions<ContentSafetyOptions> contentSafetyOptions)
+        IOptions<ContentSafetyOptions> contentSafetyOptions
+    )
     {
         this._logger = logger;
         this.Configuration = configuration;
@@ -68,7 +69,7 @@ public class ServiceInfoController : ControllerBase
             },
             AvailablePlugins = this.availablePlugins,
             Version = GetAssemblyFileVersion(),
-            IsContentSafetyEnabled = this._contentSafetyOptions.Enabled
+            IsContentSafetyEnabled = this._contentSafetyOptions.Enabled,
         };
 
         return this.Ok(response);
@@ -84,8 +85,10 @@ public class ServiceInfoController : ControllerBase
     public IActionResult GetAuthConfig()
     {
         string authorityUriString = string.Empty;
-        if (!string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.Instance) &&
-            !string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.TenantId))
+        if (
+            !string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.Instance)
+            && !string.IsNullOrEmpty(this._chatAuthenticationOptions.AzureAd!.TenantId)
+        )
         {
             var authorityUri = new Uri(this._chatAuthenticationOptions.AzureAd!.Instance);
             authorityUri = new Uri(authorityUri, this._chatAuthenticationOptions.AzureAd!.TenantId);
@@ -97,7 +100,8 @@ public class ServiceInfoController : ControllerBase
             AuthType = this._chatAuthenticationOptions.Type.ToString(),
             AadAuthority = authorityUriString,
             AadClientId = this._frontendOptions.AadClientId,
-            AadApiScope = $"api://{this._chatAuthenticationOptions.AzureAd!.ClientId}/{this._chatAuthenticationOptions.AzureAd!.Scopes}",
+            AadApiScope =
+                $"api://{this._chatAuthenticationOptions.AzureAd!.ClientId}/{this._chatAuthenticationOptions.AzureAd!.Scopes}",
         };
 
         return this.Ok(config);
@@ -118,10 +122,6 @@ public class ServiceInfoController : ControllerBase
     /// <returns></returns>
     private IEnumerable<Plugin> SanitizePlugins(IDictionary<string, Plugin> plugins)
     {
-        return plugins.Select(p => new Plugin()
-        {
-            Name = p.Value.Name,
-            ManifestDomain = p.Value.ManifestDomain,
-        });
+        return plugins.Select(p => new Plugin() { Name = p.Value.Name, ManifestDomain = p.Value.ManifestDomain });
     }
 }

@@ -1,0 +1,20 @@
+#
+# See: scripts/format.sh
+#
+# To fix: scripts/format.sh
+# To check: scripts/format.sh --check
+#
+name: Validate Code Style
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: csharpier formatting
+        working-directory: webapi
+        run: |
+          dotnet tool restore
+          dotnet csharpier --check .

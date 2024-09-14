@@ -62,7 +62,8 @@ public class ChatController : ControllerBase, IDisposable
         IOptions<ServiceOptions> serviceOptions,
         IOptions<MsGraphOboPluginOptions> msGraphOboPluginOptions,
         IOptions<PromptsOptions> promptsOptions,
-        IDictionary<string, Plugin> plugins)
+        IDictionary<string, Plugin> plugins
+    )
     {
         this._logger = logger;
         this._httpClientFactory = httpClientFactory;
@@ -99,7 +100,8 @@ public class ChatController : ControllerBase, IDisposable
         [FromServices] ChatParticipantRepository chatParticipantRepository,
         [FromServices] IAuthInfo authInfo,
         [FromBody] Ask ask,
-        [FromRoute] Guid chatId)
+        [FromRoute] Guid chatId
+    )
     {
         this._logger.LogDebug("Chat message received.");
 
@@ -156,14 +158,17 @@ public class ChatController : ControllerBase, IDisposable
             throw;
         }
 
-        AskResult chatAskResult = new()
-        {
-            Value = result.ToString() ?? string.Empty,
-            Variables = contextVariables.Select(v => new KeyValuePair<string, object?>(v.Key, v.Value))
-        };
+        AskResult chatAskResult =
+            new()
+            {
+                Value = result.ToString() ?? string.Empty,
+                Variables = contextVariables.Select(v => new KeyValuePair<string, object?>(v.Key, v.Value)),
+            };
 
         // Broadcast AskResult to all users
-        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(GeneratingResponseClientCall, chatIdString, null);
+        await messageRelayHubContext
+            .Clients.Group(chatIdString)
+            .SendAsync(GeneratingResponseClientCall, chatIdString, null);
 
         return this.Ok(chatAskResult);
     }
@@ -196,7 +201,11 @@ public class ChatController : ControllerBase, IDisposable
     /// <summary>
     /// Register functions with the kernel.
     /// </summary>
-    private async Task RegisterFunctionsAsync(Kernel kernel, Dictionary<string, string> authHeaders, KernelArguments variables)
+    private async Task RegisterFunctionsAsync(
+        Kernel kernel,
+        Dictionary<string, string> authHeaders,
+        KernelArguments variables
+    )
     {
         // Register authenticated functions with the kernel only if the request includes an auth header for the plugin.
 
@@ -241,16 +250,17 @@ public class ChatController : ControllerBase, IDisposable
         await kernel.ImportPluginFromOpenApiAsync(
             pluginName: "GitHubPlugin",
             filePath: GetPluginFullPath("GitHubPlugin/openapi.json"),
-            new OpenApiFunctionExecutionParameters
-            {
-                AuthCallback = authenticationProvider.AuthenticateRequestAsync,
-            });
+            new OpenApiFunctionExecutionParameters { AuthCallback = authenticationProvider.AuthenticateRequestAsync }
+        );
     }
 
     private async Task RegisterJiraPlugin(Kernel kernel, string JiraAuthHeader, KernelArguments variables)
     {
         this._logger.LogInformation("Registering Jira plugin");
-        var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
+        var authenticationProvider = new BasicAuthenticationProvider(() =>
+        {
+            return Task.FromResult(JiraAuthHeader);
+        });
         var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out object? serverUrlOverride);
 
         await kernel.ImportPluginFromOpenApiAsync(
@@ -260,14 +270,19 @@ public class ChatController : ControllerBase, IDisposable
             {
                 AuthCallback = authenticationProvider.AuthenticateRequestAsync,
                 ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!.ToString()!) : null,
-            }); ; ;
+            }
+        );
+        ;
+        ;
     }
 
     private Task RegisterMicrosoftGraphPlugins(Kernel kernel, string GraphAuthHeader)
     {
         this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GraphAuthHeader));
-        GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.GraphClientAuthenticateRequestAsync);
+        GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(
+            authenticationProvider.GraphClientAuthenticateRequestAsync
+        );
 
         kernel.ImportPluginFromObject(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
         kernel.ImportPluginFromObject(new CalendarPlugin(new OutlookCalendarConnector(graphServiceClient)), "calendar");
@@ -279,12 +294,23 @@ public class ChatController : ControllerBase, IDisposable
     {
         this._logger.LogInformation("Enabling Microsoft Graph OBO plugin(s).");
         kernel.ImportPluginFromObject(
-            new MsGraphOboPlugin(GraphOboAuthHeader, this._httpClientFactory, this._msGraphOboPluginOptions, this._promptsOptions.FunctionCallingTokenLimit, this._logger),
-            "msGraphObo");
+            new MsGraphOboPlugin(
+                GraphOboAuthHeader,
+                this._httpClientFactory,
+                this._msGraphOboPluginOptions,
+                this._promptsOptions.FunctionCallingTokenLimit,
+                this._logger
+            ),
+            "msGraphObo"
+        );
         return Task.CompletedTask;
     }
 
-    private IEnumerable<Task> RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
+    private IEnumerable<Task> RegisterCustomPlugins(
+        Kernel kernel,
+        object? customPluginsString,
+        Dictionary<string, string> authHeaders
+    )
     {
         CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString!.ToString()!);
 
@@ -299,7 +325,12 @@ public class ChatController : ControllerBase, IDisposable
 
                     // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                     var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
-                    Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
+                    Task authCallback(
+                        HttpRequestMessage request,
+                        string _,
+                        OpenAIAuthenticationConfig __,
+                        CancellationToken ___ = default
+                    )
                     {
                         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
 
@@ -313,8 +344,9 @@ public class ChatController : ControllerBase, IDisposable
                         {
                             HttpClient = this._httpClientFactory.CreateClient(),
                             IgnoreNonCompliantErrors = true,
-                            AuthCallback = requiresAuth ? authCallback : null
-                        });
+                            AuthCallback = requiresAuth ? authCallback : null,
+                        }
+                    );
                 }
             }
         }
@@ -328,13 +360,16 @@ public class ChatController : ControllerBase, IDisposable
     /// Create a Microsoft Graph service client.
     /// </summary>
     /// <param name="authenticateRequestAsyncDelegate">The delegate to authenticate the request.</param>
-    private GraphServiceClient CreateGraphServiceClient(AuthenticateRequestAsyncDelegate authenticateRequestAsyncDelegate)
+    private GraphServiceClient CreateGraphServiceClient(
+        AuthenticateRequestAsyncDelegate authenticateRequestAsyncDelegate
+    )
     {
         MsGraphClientLoggingHandler graphLoggingHandler = new(this._logger);
         this._disposables.Add(graphLoggingHandler);
 
-        IList<DelegatingHandler> graphMiddlewareHandlers =
-            GraphClientFactory.CreateDefaultHandlers(new DelegateAuthenticationProvider(authenticateRequestAsyncDelegate));
+        IList<DelegatingHandler> graphMiddlewareHandlers = GraphClientFactory.CreateDefaultHandlers(
+            new DelegateAuthenticationProvider(authenticateRequestAsyncDelegate)
+        );
         graphMiddlewareHandlers.Add(graphLoggingHandler);
 
         HttpClient graphHttpClient = GraphClientFactory.Create(graphMiddlewareHandlers);
@@ -352,7 +387,12 @@ public class ChatController : ControllerBase, IDisposable
             {
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
-                Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
+                Task authCallback(
+                    HttpRequestMessage request,
+                    string _,
+                    OpenAIAuthenticationConfig __,
+                    CancellationToken ___ = default
+                )
                 {
                     request.Headers.Add("X-Functions-Key", plugin.Key);
 
@@ -367,8 +407,9 @@ public class ChatController : ControllerBase, IDisposable
                     {
                         HttpClient = this._httpClientFactory.CreateClient(),
                         IgnoreNonCompliantErrors = true,
-                        AuthCallback = authCallback
-                    });
+                        AuthCallback = authCallback,
+                    }
+                );
             }
             else
             {
@@ -450,10 +491,15 @@ public class BasicAuthenticationProvider
     /// </summary>
     /// <param name="request">The HTTP request message.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task AuthenticateRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+    public async Task AuthenticateRequestAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken = default
+    )
     {
         // Base64 encode
-        string encodedContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(await this._credentialsDelegate().ConfigureAwait(false)));
+        string encodedContent = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes(await this._credentialsDelegate().ConfigureAwait(false))
+        );
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", encodedContent);
     }
 }
@@ -479,7 +525,10 @@ public class BearerAuthenticationProvider
     /// Applies the token to the provided HTTP request message.
     /// </summary>
     /// <param name="request">The HTTP request message.</param>
-    public async Task AuthenticateRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+    public async Task AuthenticateRequestAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken = default
+    )
     {
         var token = await this._bearerTokenDelegate().ConfigureAwait(false);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -498,7 +547,12 @@ public class BearerAuthenticationProvider
     /// Applies the token to the provided HTTP request message.
     /// </summary>
     /// <param name="request">The HTTP request message.</param>
-    public async Task OpenAIAuthenticateRequestAsync(HttpRequestMessage request, string pluginName, OpenAIAuthenticationConfig openAIAuthConfig, CancellationToken cancellationToken = default)
+    public async Task OpenAIAuthenticateRequestAsync(
+        HttpRequestMessage request,
+        string pluginName,
+        OpenAIAuthenticationConfig openAIAuthConfig,
+        CancellationToken cancellationToken = default
+    )
     {
         await this.AuthenticateRequestAsync(request, cancellationToken);
     }

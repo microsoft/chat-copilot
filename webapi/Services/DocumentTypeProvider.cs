@@ -19,23 +19,22 @@ public class DocumentTypeProvider
     /// <param name="allowImageOcr">Flag indicating if image ocr is supported</param>
     public DocumentTypeProvider(bool allowImageOcr)
     {
-        this.supportedTypes =
-            new(StringComparer.OrdinalIgnoreCase)
-            {
-                { FileExtensions.MarkDown, false },
-                { FileExtensions.MsWord, false },
-                { FileExtensions.MsWordX, false },
-                { FileExtensions.Pdf, false },
-                { FileExtensions.PlainText, false },
-                { FileExtensions.ImageBmp, true },
-                { FileExtensions.ImageGif, true },
-                { FileExtensions.ImagePng, true },
-                { FileExtensions.ImageJpg, true },
-                { FileExtensions.ImageJpeg, true },
-                { FileExtensions.ImageTiff, true },
-                { FileExtensions.MsPowerPoint, false },
-                { FileExtensions.MsPowerPointX, false }
-            };
+        this.supportedTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { FileExtensions.MarkDown, false },
+            { FileExtensions.MsWord, false },
+            { FileExtensions.MsWordX, false },
+            { FileExtensions.Pdf, false },
+            { FileExtensions.PlainText, false },
+            { FileExtensions.ImageBmp, true },
+            { FileExtensions.ImageGif, true },
+            { FileExtensions.ImagePng, true },
+            { FileExtensions.ImageJpg, true },
+            { FileExtensions.ImageJpeg, true },
+            { FileExtensions.ImageTiff, true },
+            { FileExtensions.MsPowerPoint, false },
+            { FileExtensions.MsPowerPointX, false },
+        };
     }
 
     /// <summary>

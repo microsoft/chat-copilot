@@ -33,7 +33,11 @@ internal sealed class RequiredOnPropertyValueAttribute : ValidationAttribute
     /// <param name="otherPropertyName">Name of the other property.</param>
     /// <param name="otherPropertyValue">Value of the other property when this property is required.</param>
     /// <param name="notEmptyOrWhitespace">True to make sure that the value is not empty or whitespace when required.</param>
-    public RequiredOnPropertyValueAttribute(string otherPropertyName, object? otherPropertyValue, bool notEmptyOrWhitespace = true)
+    public RequiredOnPropertyValueAttribute(
+        string otherPropertyName,
+        object? otherPropertyValue,
+        bool notEmptyOrWhitespace = true
+    )
     {
         this.OtherPropertyName = otherPropertyName;
         this.OtherPropertyValue = otherPropertyValue;
@@ -53,7 +57,9 @@ internal sealed class RequiredOnPropertyValueAttribute : ValidationAttribute
         // If the other property is an indexer, return an error.
         if (otherPropertyInfo.GetIndexParameters().Length > 0)
         {
-            throw new ArgumentException($"Other property not found ('{validationContext.MemberName}, '{this.OtherPropertyName}').");
+            throw new ArgumentException(
+                $"Other property not found ('{validationContext.MemberName}, '{this.OtherPropertyName}')."
+            );
         }
 
         object? otherPropertyValue = otherPropertyInfo.GetValue(validationContext.ObjectInstance, null);
@@ -63,11 +69,15 @@ internal sealed class RequiredOnPropertyValueAttribute : ValidationAttribute
         {
             if (value == null)
             {
-                return new ValidationResult($"Property '{validationContext.DisplayName}' is required when '{this.OtherPropertyName}' is {this.OtherPropertyValue}.");
+                return new ValidationResult(
+                    $"Property '{validationContext.DisplayName}' is required when '{this.OtherPropertyName}' is {this.OtherPropertyValue}."
+                );
             }
             else if (this.NotEmptyOrWhitespace && string.IsNullOrWhiteSpace(value.ToString()))
             {
-                return new ValidationResult($"Property '{validationContext.DisplayName}' cannot be empty or whitespace when '{this.OtherPropertyName}' is {this.OtherPropertyValue}.");
+                return new ValidationResult(
+                    $"Property '{validationContext.DisplayName}' cannot be empty or whitespace when '{this.OtherPropertyName}' is {this.OtherPropertyValue}."
+                );
             }
             else
             {

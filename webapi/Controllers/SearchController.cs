@@ -23,9 +23,10 @@ public class SearchController : ControllerBase
     private readonly QSearchService _qSearchService;
 
     public SearchController(
-    ILogger<SearchController> logger,
-    SpecializationRepository specializationSourceRepository,
-    IOptions<QAzureOpenAIChatOptions> specializationOptions)
+        ILogger<SearchController> logger,
+        SpecializationRepository specializationSourceRepository,
+        IOptions<QAzureOpenAIChatOptions> specializationOptions
+    )
     {
         this._logger = logger;
         this._qSearchService = new QSearchService(specializationOptions.Value, specializationSourceRepository);
@@ -43,10 +44,9 @@ public class SearchController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
-    public async Task<IActionResult> GetMatchesAsync(
-        [FromBody] QSearchParameters searchParameters)
+    public async Task<IActionResult> GetMatchesAsync([FromBody] QSearchParameters searchParameters)
     {
-        //Scope: To implement filter to give more refined search functionality.      
+        //Scope: To implement filter to give more refined search functionality.
         var response = await this._qSearchService.GetMatchesAsync(searchParameters);
         if (response == null)
         {

@@ -14,7 +14,5 @@ public class ChatUserRepository : Repository<ChatUser>
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
     public ChatUserRepository(IStorageContext<ChatUser> storageContext)
-        : base(storageContext)
-    {
-    }
+        : base(storageContext) { }
 }

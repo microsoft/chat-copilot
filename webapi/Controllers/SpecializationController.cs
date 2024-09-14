@@ -63,8 +63,7 @@ public class SpecializationController : ControllerBase
     public async Task<OkObjectResult> GetAllSpecializations()
     {
         var specializationResponses = new List<QSpecializationResponse>();
-        IEnumerable<Specialization> specializations =
-            await this._qspecializationService.GetAllSpecializations();
+        IEnumerable<Specialization> specializations = await this._qspecializationService.GetAllSpecializations();
         foreach (Specialization specialization in specializations)
         {
             QSpecializationResponse qSpecializationResponse = new(specialization);
@@ -109,26 +108,19 @@ public class SpecializationController : ControllerBase
     {
         if (string.IsNullOrEmpty(qSpecializationParameters.ImageFilePath))
         {
-            qSpecializationParameters.ImageFilePath =
-                this._qAzureOpenAIChatOptions.DefaultSpecializationImage;
+            qSpecializationParameters.ImageFilePath = this._qAzureOpenAIChatOptions.DefaultSpecializationImage;
         }
         if (string.IsNullOrEmpty(qSpecializationParameters.IconFilePath))
         {
-            qSpecializationParameters.IconFilePath =
-                this._qAzureOpenAIChatOptions.DefaultSpecializationIcon;
+            qSpecializationParameters.IconFilePath = this._qAzureOpenAIChatOptions.DefaultSpecializationIcon;
         }
-        var _specializationsource = await this._qspecializationService.SaveSpecialization(
-            qSpecializationParameters
-        );
+        var _specializationsource = await this._qspecializationService.SaveSpecialization(qSpecializationParameters);
         if (_specializationsource != null)
         {
             QSpecializationResponse qSpecializationResponse = new(_specializationsource);
             return this.Ok(qSpecializationResponse);
         }
-        return this.StatusCode(
-            500,
-            $"Failed to create specialization for label '{qSpecializationParameters.label}'."
-        );
+        return this.StatusCode(500, $"Failed to create specialization for label '{qSpecializationParameters.label}'.");
     }
 
     /// <summary>
@@ -147,21 +139,17 @@ public class SpecializationController : ControllerBase
         [FromRoute] Guid specializationId
     )
     {
-        Specialization? specializationToEdit =
-            await this._qspecializationService.UpdateSpecialization(
-                specializationId,
-                qSpecializationParameters
-            );
+        Specialization? specializationToEdit = await this._qspecializationService.UpdateSpecialization(
+            specializationId,
+            qSpecializationParameters
+        );
         if (specializationToEdit != null)
         {
             QSpecializationResponse qSpecializationResponse = new(specializationToEdit);
             return this.Ok(qSpecializationResponse);
         }
 
-        return this.StatusCode(
-            500,
-            $"Failed to update specialization for id '{specializationId}'."
-        );
+        return this.StatusCode(500, $"Failed to update specialization for id '{specializationId}'.");
     }
 
     /// <summary>
@@ -182,10 +170,7 @@ public class SpecializationController : ControllerBase
         {
             return this.Ok(specializationId);
         }
-        return this.StatusCode(
-            500,
-            $"Failed to delete specialization for id '{specializationId}'."
-        );
+        return this.StatusCode(500, $"Failed to delete specialization for id '{specializationId}'.");
     }
 
     /// <summary>

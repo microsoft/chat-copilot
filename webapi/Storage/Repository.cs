@@ -10,7 +10,8 @@ namespace CopilotChat.WebApi.Storage;
 /// <summary>
 /// Defines the basic CRUD operations for a repository.
 /// </summary>
-public class Repository<T> : IRepository<T> where T : IStorageEntity
+public class Repository<T> : IRepository<T>
+    where T : IStorageEntity
 {
     /// <summary>
     /// The storage context.
@@ -80,7 +81,7 @@ public class CopilotChatMessageRepository : Repository<CopilotChatMessage>
     private readonly ICopilotChatMessageStorageContext _messageStorageContext;
 
     public CopilotChatMessageRepository(ICopilotChatMessageStorageContext storageContext)
-    : base(storageContext)
+        : base(storageContext)
     {
         this._messageStorageContext = storageContext;
     }
@@ -92,9 +93,14 @@ public class CopilotChatMessageRepository : Repository<CopilotChatMessage>
     /// <param name="skip">Number of messages to skip before starting to return messages.</param>
     /// <param name="count">The number of messages to return. -1 returns all messages.</param>
     /// <returns>A list of ChatMessages matching the given chatId sorted from most recent to oldest.</returns>
-    public async Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip = 0, int count = -1)
+    public async Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(
+        Func<CopilotChatMessage, bool> predicate,
+        int skip = 0,
+        int count = -1
+    )
     {
         return await Task.Run<IEnumerable<CopilotChatMessage>>(
-            () => this._messageStorageContext.QueryEntitiesAsync(predicate, skip, count));
+            () => this._messageStorageContext.QueryEntitiesAsync(predicate, skip, count)
+        );
     }
 }

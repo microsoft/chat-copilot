@@ -40,7 +40,12 @@ public class IssueResponseFields
     /// <param name="summary">The Summary of the issue.</param>
     /// <param name="parent">The Parent of the issue.</param>
     /// <param name="commentResponse">List of all comments on the issue.</param>
-    public IssueResponseFields(string statusCategoryChangeDate, string summary, IssueResponse parent, CommentResponse commentResponse)
+    public IssueResponseFields(
+        string statusCategoryChangeDate,
+        string summary,
+        IssueResponse parent,
+        CommentResponse commentResponse
+    )
     {
         this.StatusCategoryChangeDate = statusCategoryChangeDate;
         this.Summary = summary;

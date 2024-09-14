@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-format:
+  lint:
     runs-on: ubuntu-latest
     env:
       NUGET_CERT_REVOCATION_MODE: offline
@@ -71,5 +71,7 @@ jobs:
         run: |
           for csproj in ${{ steps.find-csproj.outputs.csproj_files }}; do
             echo "Checking formatting for $csproj"
-            dotnet format $csproj --verify-no-changes --verbosity diagnostic
+            # https://csharpier.com/docs/IntegratingWithLinters
+            dotnet format style $csproj --verify-no-changes --verbosity diagnostic
+            dotnet format analyzers $csproj --verify-no-changes --verbosity diagnostic
           done

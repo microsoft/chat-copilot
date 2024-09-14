@@ -17,7 +17,11 @@ public sealed class SemanticKernelProvider
 {
     private readonly Kernel _kernel;
 
-    public SemanticKernelProvider(IServiceProvider serviceProvider, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public SemanticKernelProvider(
+        IServiceProvider serviceProvider,
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory
+    )
     {
         this._kernel = InitializeCompletionKernel(serviceProvider, configuration, httpClientFactory);
     }
@@ -30,7 +34,8 @@ public sealed class SemanticKernelProvider
     private static Kernel InitializeCompletionKernel(
         IServiceProvider serviceProvider,
         IConfiguration configuration,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory
+    )
     {
         var builder = Kernel.CreateBuilder();
 
@@ -42,13 +47,17 @@ public sealed class SemanticKernelProvider
         {
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
-                var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(configuration, "AzureOpenAIText");
+                var azureAIOptions = memoryOptions.GetServiceConfig<AzureOpenAIConfig>(
+                    configuration,
+                    "AzureOpenAIText"
+                );
 #pragma warning disable CA2000 // No need to dispose of HttpClient instances from IHttpClientFactory
                 builder.AddAzureOpenAIChatCompletion(
                     azureAIOptions.Deployment,
                     azureAIOptions.Endpoint,
                     azureAIOptions.APIKey,
-                    httpClient: httpClientFactory.CreateClient());
+                    httpClient: httpClientFactory.CreateClient()
+                );
                 break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
@@ -56,12 +65,15 @@ public sealed class SemanticKernelProvider
                 builder.AddOpenAIChatCompletion(
                     openAIOptions.TextModel,
                     openAIOptions.APIKey,
-                    httpClient: httpClientFactory.CreateClient());
+                    httpClient: httpClientFactory.CreateClient()
+                );
 #pragma warning restore CA2000
                 break;
 
             default:
-                throw new ArgumentException($"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'KernelMemory' settings.");
+                throw new ArgumentException(
+                    $"Invalid {nameof(memoryOptions.TextGeneratorType)} value in 'KernelMemory' settings."
+                );
         }
 
         return builder.Build();

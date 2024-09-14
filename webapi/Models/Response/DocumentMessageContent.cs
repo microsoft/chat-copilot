@@ -27,12 +27,14 @@ public class DocumentMessageContent
     /// <param name="isUploaded">Status of the uploaded document</param>
     public void AddDocument(string name, string size, bool isUploaded)
     {
-        this.Documents = this.Documents.Append(new DocumentData
-        {
-            Name = name,
-            Size = size,
-            IsUploaded = isUploaded,
-        });
+        this.Documents = this.Documents.Append(
+            new DocumentData
+            {
+                Name = name,
+                Size = size,
+                IsUploaded = isUploaded,
+            }
+        );
     }
 
     /// <summary>
@@ -56,9 +58,10 @@ public class DocumentMessageContent
             return string.Empty;
         }
 
-        var formattedStrings = this.Documents
-            .Where(document => document.IsUploaded)
-            .Select(document => document.Name).ToList();
+        var formattedStrings = this
+            .Documents.Where(document => document.IsUploaded)
+            .Select(document => document.Name)
+            .ToList();
 
         if (formattedStrings.Count == 1)
         {
@@ -80,9 +83,10 @@ public class DocumentMessageContent
             return string.Empty;
         }
 
-        var formattedStrings = this.Documents
-            .Where(document => document.IsUploaded)
-            .Select(document => document.Name).ToList();
+        var formattedStrings = this
+            .Documents.Where(document => document.IsUploaded)
+            .Select(document => document.Name)
+            .ToList();
 
         if (formattedStrings.Count == 1)
         {

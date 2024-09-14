@@ -39,7 +39,8 @@ public class ChatMemoryController : ControllerBase
     public ChatMemoryController(
         ILogger<ChatMemoryController> logger,
         IOptions<PromptsOptions> promptsOptions,
-        ChatSessionRepository chatSessionRepository)
+        ChatSessionRepository chatSessionRepository
+    )
     {
         this._logger = logger;
         this._promptOptions = promptsOptions.Value;
@@ -60,7 +61,8 @@ public class ChatMemoryController : ControllerBase
     public async Task<IActionResult> GetSemanticMemoriesAsync(
         [FromServices] IKernelMemory memoryClient,
         [FromRoute] string chatId,
-        [FromQuery] string type)
+        [FromQuery] string type
+    )
     {
         // Sanitize the log input by removing new line characters.
         // https://github.com/microsoft/chat-copilot/security/code-scanning/1
@@ -92,14 +94,14 @@ public class ChatMemoryController : ControllerBase
             filter.ByTag("chatid", chatId);
             filter.ByTag("memory", memoryContainerName);
 
-            var searchResult =
-                await memoryClient.SearchMemoryAsync(
-                    this._promptOptions.MemoryIndexName,
-                    "*",
-                    relevanceThreshold: 0,
-                    resultCount: 1,
-                    chatId,
-                    memoryContainerName);
+            var searchResult = await memoryClient.SearchMemoryAsync(
+                this._promptOptions.MemoryIndexName,
+                "*",
+                relevanceThreshold: 0,
+                resultCount: 1,
+                chatId,
+                memoryContainerName
+            );
 
             foreach (var memory in searchResult.Results.SelectMany(c => c.Partitions))
             {

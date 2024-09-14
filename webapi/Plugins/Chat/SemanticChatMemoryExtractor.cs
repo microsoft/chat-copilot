@@ -35,7 +35,8 @@ internal static class SemanticChatMemoryExtractor
         KernelArguments kernelArguments,
         PromptsOptions options,
         ILogger logger,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         foreach (string memoryType in Enum.GetNames(typeof(SemanticMemoryType)))
         {
@@ -43,7 +44,10 @@ internal static class SemanticChatMemoryExtractor
             {
                 if (!options.TryGetMemoryContainerName(memoryType, out var memoryName))
                 {
-                    logger.LogInformation("Unable to extract kernel memory for invalid memory type {0}. Continuing...", memoryType);
+                    logger.LogInformation(
+                        "Unable to extract kernel memory for invalid memory type {0}. Continuing...",
+                        memoryType
+                    );
                     continue;
                 }
                 var semanticMemory = await ExtractCognitiveMemoryAsync(memoryType, memoryName, logger);
@@ -56,7 +60,11 @@ internal static class SemanticChatMemoryExtractor
             {
                 // Skip kernel memory extraction for this item if it fails.
                 // We cannot rely on the model to response with perfect Json each time.
-                logger.LogInformation("Unable to extract kernel memory for {0}: {1}. Continuing...", memoryType, ex.Message);
+                logger.LogInformation(
+                    "Unable to extract kernel memory for {0}: {1}. Continuing...",
+                    memoryType,
+                    ex.Message
+                );
                 continue;
             }
         }
@@ -73,10 +81,7 @@ internal static class SemanticChatMemoryExtractor
 
             // Token limit for chat history
             var tokenLimit = options.CompletionTokenLimit;
-            var remainingToken =
-                tokenLimit -
-                options.ResponseTokenLimit -
-                TokenUtils.TokenCount(memoryPrompt);
+            var remainingToken = tokenLimit - options.ResponseTokenLimit - TokenUtils.TokenCount(memoryPrompt);
 
             var memoryExtractionArguments = new KernelArguments(kernelArguments);
             memoryExtractionArguments["tokenLimit"] = remainingToken.ToString(new NumberFormatInfo());
@@ -85,10 +90,7 @@ internal static class SemanticChatMemoryExtractor
             memoryExtractionArguments["knowledgeCutoff"] = options.KnowledgeCutoffDate;
 
             var completionFunction = kernel.CreateFunctionFromPrompt(memoryPrompt);
-            var result = await completionFunction.InvokeAsync(
-                kernel,
-                memoryExtractionArguments,
-                cancellationToken);
+            var result = await completionFunction.InvokeAsync(kernel, memoryExtractionArguments, cancellationToken);
 
             // Get token usage from ChatCompletion result and add to context
             string? tokenUsage = TokenUtils.GetFunctionTokenUsage(result, logger);
@@ -116,19 +118,25 @@ internal static class SemanticChatMemoryExtractor
             try
             {
                 // Search if there is already a memory item that has a high similarity score with the new item.
-                var searchResult =
-                    await memoryClient.SearchMemoryAsync(
-                        options.MemoryIndexName,
-                        memory,
-                        options.SemanticMemoryRelevanceUpper,
-                        resultCount: 1,
-                        chatId,
-                        memoryName,
-                        cancellationToken);
+                var searchResult = await memoryClient.SearchMemoryAsync(
+                    options.MemoryIndexName,
+                    memory,
+                    options.SemanticMemoryRelevanceUpper,
+                    resultCount: 1,
+                    chatId,
+                    memoryName,
+                    cancellationToken
+                );
 
                 if (searchResult.Results.Count == 0)
                 {
-                    await memoryClient.StoreMemoryAsync(options.MemoryIndexName, chatId, memoryName, memory, cancellationToken: cancellationToken);
+                    await memoryClient.StoreMemoryAsync(
+                        options.MemoryIndexName,
+                        chatId,
+                        memoryName,
+                        memory,
+                        cancellationToken: cancellationToken
+                    );
                 }
             }
             catch (Exception exception) when (!exception.IsCriticalException())

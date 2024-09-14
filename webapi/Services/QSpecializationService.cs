@@ -45,9 +45,7 @@ public class QSpecializationService : IQSpecializationService
     /// </summary>
     /// <param name="qSpecializationParameters">Specialization parameters</param>
     /// <returns>The task result contains the specialization source</returns>
-    public async Task<Specialization> SaveSpecialization(
-        QSpecializationParameters qSpecializationParameters
-    )
+    public async Task<Specialization> SaveSpecialization(QSpecializationParameters qSpecializationParameters)
     {
         Specialization specializationSource =
             new(
@@ -87,14 +85,10 @@ public class QSpecializationService : IQSpecializationService
             specializationToUpdate!.Name = !string.IsNullOrEmpty(qSpecializationParameters.Name)
                 ? qSpecializationParameters.Name
                 : specializationToUpdate!.Name;
-            specializationToUpdate!.Description = !string.IsNullOrEmpty(
-                qSpecializationParameters.Description
-            )
+            specializationToUpdate!.Description = !string.IsNullOrEmpty(qSpecializationParameters.Description)
                 ? qSpecializationParameters.Description
                 : specializationToUpdate!.Description;
-            specializationToUpdate!.RoleInformation = !string.IsNullOrEmpty(
-                qSpecializationParameters.RoleInformation
-            )
+            specializationToUpdate!.RoleInformation = !string.IsNullOrEmpty(qSpecializationParameters.RoleInformation)
                 ? qSpecializationParameters.RoleInformation
                 : specializationToUpdate!.RoleInformation;
             specializationToUpdate!.IndexName =
@@ -129,10 +123,9 @@ public class QSpecializationService : IQSpecializationService
     {
         try
         {
-            Specialization? specializationToDelete =
-                await this._specializationSourceRepository.FindByIdAsync(
-                    specializationId.ToString()
-                );
+            Specialization? specializationToDelete = await this._specializationSourceRepository.FindByIdAsync(
+                specializationId.ToString()
+            );
             await this._specializationSourceRepository.DeleteAsync(specializationToDelete);
             return true;
         }

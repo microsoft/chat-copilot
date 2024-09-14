@@ -17,9 +17,7 @@ public class ChatParticipantRepository : Repository<ChatParticipant>
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
     public ChatParticipantRepository(IStorageContext<ChatParticipant> storageContext)
-        : base(storageContext)
-    {
-    }
+        : base(storageContext) { }
 
     /// <summary>
     /// Finds chat participants by user id.

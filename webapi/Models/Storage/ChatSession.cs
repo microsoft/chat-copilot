@@ -38,7 +38,8 @@ public class ChatSession : IStorageEntity
     /// <summary>
     /// Fixed system description with "TimeSkill" replaced by "TimePlugin"
     /// </summary>
-    public string SafeSystemDescription => this.SystemDescription.Replace("TimeSkill", "TimePlugin", StringComparison.OrdinalIgnoreCase);
+    public string SafeSystemDescription =>
+        this.SystemDescription.Replace("TimeSkill", "TimePlugin", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// The balance between long term memory and working term memory.

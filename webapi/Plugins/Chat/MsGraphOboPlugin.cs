@@ -41,14 +41,21 @@ public sealed class MsGraphOboPlugin
     //
     //   PlannerOptions.OboOptions:
     //     Configuration for the plugin defined in appsettings.json.
-    public MsGraphOboPlugin(string bearerToken, IHttpClientFactory clientFactory, MsGraphOboPluginOptions? onBehalfOfAuth, int responseTokenLimit, ILogger logger)
+    public MsGraphOboPlugin(
+        string bearerToken,
+        IHttpClientFactory clientFactory,
+        MsGraphOboPluginOptions? onBehalfOfAuth,
+        int responseTokenLimit,
+        ILogger logger
+    )
     {
         this._bearerToken = bearerToken ?? throw new ArgumentNullException(bearerToken);
         this._clientFactory = clientFactory;
         this._logger = logger;
 
         this._clientId = onBehalfOfAuth?.ClientId ?? throw new ArgumentNullException(onBehalfOfAuth?.ClientId);
-        this._clientSecret = onBehalfOfAuth?.ClientSecret ?? throw new ArgumentNullException(onBehalfOfAuth?.ClientSecret);
+        this._clientSecret =
+            onBehalfOfAuth?.ClientSecret ?? throw new ArgumentNullException(onBehalfOfAuth?.ClientSecret);
         this._tenantId = onBehalfOfAuth?.TenantId ?? throw new ArgumentNullException(onBehalfOfAuth?.TenantId);
         this._authority = onBehalfOfAuth?.Authority ?? throw new ArgumentNullException(onBehalfOfAuth?.Authority);
         this._responseTokenLimit = responseTokenLimit;
@@ -88,8 +95,16 @@ public sealed class MsGraphOboPlugin
     //   T:System.Net.Http.HttpRequestException:
     //     Failed to get graph data: {graphResponse.StatusCode}.
 
-    [KernelFunction, Description("Call a Graph API using the provided OData query and the Graph API Scopes based on user input")]
-    public async Task<string> CallGraphApiTasksAsync([Description("The URI of the Graph API with the OData query to call")] string apiToCall, [Description("A Comma separated value string with the Graph API Scopes needed to execute the Graph API call")] string graphScopes, CancellationToken cancellationToken = default)
+    [
+        KernelFunction,
+        Description("Call a Graph API using the provided OData query and the Graph API Scopes based on user input")
+    ]
+    public async Task<string> CallGraphApiTasksAsync(
+        [Description("The URI of the Graph API with the OData query to call")] string apiToCall,
+        [Description("A Comma separated value string with the Graph API Scopes needed to execute the Graph API call")]
+            string graphScopes,
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrEmpty(apiToCall))
         {
@@ -107,7 +122,10 @@ public sealed class MsGraphOboPlugin
         {
             using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiToCall))
             {
-                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", oboAccessToken);
+                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    oboAccessToken
+                );
                 var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
 
                 if (graphResponse.IsSuccessStatusCode)
@@ -129,17 +147,22 @@ public sealed class MsGraphOboPlugin
 
         using (HttpClient client = this._clientFactory.CreateClient())
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Post, this._authority + "/" + this._tenantId + "/oauth2/v2.0/token"))
+            using (
+                var request = new HttpRequestMessage(
+                    HttpMethod.Post,
+                    this._authority + "/" + this._tenantId + "/oauth2/v2.0/token"
+                )
+            )
             {
                 var keyValues = new List<KeyValuePair<string, string>>
-            {
-                new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                new("client_id", this._clientId),
-                new("client_secret", this._clientSecret),
-                new("assertion", this._bearerToken),
-                new("scope", graphScopes),
-                new("requested_token_use", "on_behalf_of")
-            };
+                {
+                    new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                    new("client_id", this._clientId),
+                    new("client_secret", this._clientSecret),
+                    new("assertion", this._bearerToken),
+                    new("scope", graphScopes),
+                    new("requested_token_use", "on_behalf_of"),
+                };
 
                 request.Content = new FormUrlEncodedContent(keyValues);
                 var response = await client.SendAsync(request, cancellationToken);

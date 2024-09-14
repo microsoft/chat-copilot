@@ -27,7 +27,7 @@ public class ChatStoreOptions
         /// <summary>
         /// Azure CosmosDB based persistent chat store.
         /// </summary>
-        Cosmos
+        Cosmos,
     }
 
     /// <summary>

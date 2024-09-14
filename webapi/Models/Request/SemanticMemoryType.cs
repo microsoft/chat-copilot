@@ -8,5 +8,5 @@ namespace CopilotChat.WebApi.Models.Request;
 public enum SemanticMemoryType
 {
     LongTermMemory,
-    WorkingMemory
+    WorkingMemory,
 }

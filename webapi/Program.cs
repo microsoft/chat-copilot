@@ -5,12 +5,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Services;
-
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.AspNetCore.Builder;
@@ -43,8 +41,8 @@ public sealed class Program
         builder.WebHost.UseUrls(); // Disables endpoint override warning message when using IConfiguration for Kestrel endpoint.
 
         // Add in configuration options and required services.
-        builder.Services
-            .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Program>>()) // some services require an un-templated ILogger
+        builder
+            .Services.AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Program>>()) // some services require an un-templated ILogger
             .AddOptions(builder.Configuration)
             .AddPersistentChatStore()
             .AddPlugins(builder.Configuration)
@@ -52,18 +50,20 @@ public sealed class Program
             .AddChatCopilotAuthorization();
 
         // Configure and add semantic services
-        builder
-            .AddBotConfig()
-            .AddSemanticKernelServices()
-            .AddSemanticMemoryServices();
+        builder.AddBotConfig().AddSemanticKernelServices().AddSemanticMemoryServices();
 
         // Add SignalR as the real time relay service
         builder.Services.AddSignalR();
-        var qAzureOpenAIChatOptions = builder.Configuration.GetSection(QAzureOpenAIChatOptions.PropertyName).Get<QAzureOpenAIChatOptions>() ?? new QAzureOpenAIChatOptions { Enabled = false };
+        var qAzureOpenAIChatOptions =
+            builder.Configuration.GetSection(QAzureOpenAIChatOptions.PropertyName).Get<QAzureOpenAIChatOptions>()
+            ?? new QAzureOpenAIChatOptions { Enabled = false };
         // Add AppInsights telemetry
-        builder.Services
-            .AddHttpContextAccessor()
-            .AddApplicationInsightsTelemetry(options => { options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]; })
+        builder
+            .Services.AddHttpContextAccessor()
+            .AddApplicationInsightsTelemetry(options =>
+            {
+                options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+            })
             .AddSingleton<ITelemetryInitializer, AppInsightsUserTelemetryInitializerService>()
             .AddLogging(logBuilder => logBuilder.AddApplicationInsights())
             .AddSingleton<ITelemetryService, AppInsightsTelemetryService>();
@@ -73,8 +73,8 @@ public sealed class Program
         builder.Services.AddHttpClient();
 
         // Add in the rest of the services.
-        builder.Services
-            .AddMaintenanceServices()
+        builder
+            .Services.AddMaintenanceServices()
             .AddEndpointsApiExplorer()
             .AddSwaggerGen()
             .AddCorsPolicy(builder.Configuration)
@@ -93,8 +93,7 @@ public sealed class Program
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseMiddleware<MaintenanceMiddleware>();
-        app.MapControllers()
-            .RequireAuthorization();
+        app.MapControllers().RequireAuthorization();
         app.MapHealthChecks("/healthz");
 
         // Add Chat Copilot hub for real time communication
@@ -110,8 +109,8 @@ public sealed class Program
             app.MapWhen(
                 context => context.Request.Path == "/",
                 appBuilder =>
-                    appBuilder.Run(
-                        async context => await Task.Run(() => context.Response.Redirect("/swagger"))));
+                    appBuilder.Run(async context => await Task.Run(() => context.Response.Redirect("/swagger")))
+            );
         }
 
         // Start the service
@@ -120,7 +119,10 @@ public sealed class Program
         // Log the health probe URL for users to validate the service is running.
         try
         {
-            string? address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()?.Addresses.FirstOrDefault();
+            string? address = app
+                .Services.GetRequiredService<IServer>()
+                .Features.Get<IServerAddressesFeature>()
+                ?.Addresses.FirstOrDefault();
             app.Services.GetRequiredService<ILogger>().LogInformation("Health probe: {0}/healthz", address);
         }
         catch (ObjectDisposedException)

@@ -22,9 +22,7 @@ public record AnalysisResult(
 
 public record ImageContent([property: JsonPropertyName("content")] string Content);
 
-public record ImageAnalysisRequest(
-    [property: JsonPropertyName("image")] ImageContent Image
-);
+public record ImageAnalysisRequest([property: JsonPropertyName("image")] ImageContent Image);
 
 /// <summary>
 /// Moderator service to handle content safety.
@@ -94,7 +92,9 @@ public sealed class AzureContentSafety : IContentSafetyService
     {
         // Convert the form file to a base64 string
         var base64Image = await this.ConvertFormFileToBase64Async(formFile);
-        var image = base64Image.Replace("data:image/png;base64,", "", StringComparison.InvariantCultureIgnoreCase).Replace("data:image/jpeg;base64,", "", StringComparison.InvariantCultureIgnoreCase);
+        var image = base64Image
+            .Replace("data:image/png;base64,", "", StringComparison.InvariantCultureIgnoreCase)
+            .Replace("data:image/jpeg;base64,", "", StringComparison.InvariantCultureIgnoreCase);
         ImageContent content = new(image);
         ImageAnalysisRequest requestBody = new(content);
 

@@ -16,9 +16,7 @@ public class ChatSessionRepository : Repository<ChatSession>
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
     public ChatSessionRepository(IStorageContext<ChatSession> storageContext)
-        : base(storageContext)
-    {
-    }
+        : base(storageContext) { }
 
     /// <summary>
     /// Retrieves all chat sessions.

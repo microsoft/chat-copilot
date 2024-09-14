@@ -42,17 +42,19 @@ public class SemanticMemoryRetriever
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository chatSessionRepository,
         IKernelMemory memoryClient,
-        ILogger logger)
+        ILogger logger
+    )
     {
         this._promptOptions = promptOptions.Value;
         this._chatSessionRepository = chatSessionRepository;
         this._memoryClient = memoryClient;
         this._logger = logger;
 
-        this._memoryNames = new List<string> {
+        this._memoryNames = new List<string>
+        {
             this._promptOptions.DocumentMemoryName,
             this._promptOptions.LongTermMemoryName,
-            this._promptOptions.WorkingMemoryName
+            this._promptOptions.WorkingMemoryName,
         };
     }
 
@@ -63,7 +65,8 @@ public class SemanticMemoryRetriever
     public async Task<(string, IDictionary<string, CitationSource>)> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
         [Description("Chat ID to query history from")] string chatId,
-        [Description("Maximum number of tokens")] int tokenLimit)
+        [Description("Maximum number of tokens")] int tokenLimit
+    )
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
@@ -86,7 +89,9 @@ public class SemanticMemoryRetriever
         await Task.WhenAll(tasks);
 
         var builderMemory = new StringBuilder();
-        IDictionary<string, CitationSource> citationMap = new Dictionary<string, CitationSource>(StringComparer.OrdinalIgnoreCase);
+        IDictionary<string, CitationSource> citationMap = new Dictionary<string, CitationSource>(
+            StringComparer.OrdinalIgnoreCase
+        );
 
         if (relevantMemories.Count > 0)
         {
@@ -122,18 +127,23 @@ public class SemanticMemoryRetriever
             /// </summary>
             void FormatSnippets()
             {
-                if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories) || memories.Count == 0)
+                if (
+                    !memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories)
+                    || memories.Count == 0
+                )
                 {
                     return;
                 }
 
                 builderMemory.Append(
-                    "Use the following information as knowledgebase/context for your response:\n" +
-                    "Quote the document link in square brackets at the end of each sentence that refers to the snippet in your response.\n");
+                    "Use the following information as knowledgebase/context for your response:\n"
+                        + "Quote the document link in square brackets at the end of each sentence that refers to the snippet in your response.\n"
+                );
 
                 foreach ((var memoryContent, var citation) in memories)
                 {
-                    var memoryText = $"Document name: {citation.SourceName}\nDocument link: {citation.Link}.\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
+                    var memoryText =
+                        $"Document name: {citation.SourceName}\nDocument link: {citation.Link}.\n[CONTENT START]\n{memoryContent}\n[CONTENT END]\n";
                     builderMemory.Append(memoryText);
                 }
             }
@@ -146,13 +156,13 @@ public class SemanticMemoryRetriever
         /// </summary>
         async Task SearchMemoryAsync(string memoryName, bool isGlobalMemory = false)
         {
-            var searchResult =
-                await this._memoryClient.SearchMemoryAsync(
-                    this._promptOptions.MemoryIndexName,
-                    query,
-                    this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
-                    isGlobalMemory ? DocumentMemoryOptions.GlobalDocumentChatId.ToString() : chatId,
-                    memoryName);
+            var searchResult = await this._memoryClient.SearchMemoryAsync(
+                this._promptOptions.MemoryIndexName,
+                query,
+                this.CalculateRelevanceThreshold(memoryName, chatSession!.MemoryBalance),
+                isGlobalMemory ? DocumentMemoryOptions.GlobalDocumentChatId.ToString() : chatId,
+                memoryName
+            );
 
             foreach (var result in searchResult.Results.SelectMany(c => c.Partitions.Select(p => (c, p))))
             {

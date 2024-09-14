@@ -47,7 +47,7 @@ public class CitationSource
             SourceContentType = citation.SourceContentType,
             SourceName = citation.SourceName,
             Snippet = snippet,
-            RelevanceScore = relevanceScore
+            RelevanceScore = relevanceScore,
         };
 
         return citationSource;

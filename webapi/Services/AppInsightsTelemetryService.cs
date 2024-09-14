@@ -79,9 +79,6 @@ public class AppInsightsTelemetryService : ITelemetryService
     {
         string? userId = GetUserIdFromHttpContext(this._httpContextAccessor);
 
-        return new Dictionary<string, string>
-        {
-            { "userId", GetUserIdFromHttpContext(this._httpContextAccessor) }
-        };
+        return new Dictionary<string, string> { { "userId", GetUserIdFromHttpContext(this._httpContextAccessor) } };
     }
 }

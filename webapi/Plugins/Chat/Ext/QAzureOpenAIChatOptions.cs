@@ -19,8 +19,7 @@ public class QAzureOpenAIChatOptions
     public string AdminGroupMembershipId { get; set; } = "";
 
     [Required]
-    public IList<QSpecializationIndex> SpecializationIndexes { get; set; } =
-        new List<QSpecializationIndex>();
+    public IList<QSpecializationIndex> SpecializationIndexes { get; set; } = new List<QSpecializationIndex>();
 
     public bool Enabled { get; set; } = false;
     public AzureConfig AzureConfig { get; set; } = new AzureConfig();

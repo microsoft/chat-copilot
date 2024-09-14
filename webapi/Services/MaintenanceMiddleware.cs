@@ -31,8 +31,8 @@ public class MaintenanceMiddleware
         IReadOnlyList<IMaintenanceAction> actions,
         IOptions<ServiceOptions> serviceOptions,
         IHubContext<MessageRelayHub> messageRelayHubContext,
-        ILogger<MaintenanceMiddleware> logger)
-
+        ILogger<MaintenanceMiddleware> logger
+    )
     {
         this._next = next;
         this._actions = actions;
@@ -53,7 +53,10 @@ public class MaintenanceMiddleware
         // In maintenance if actions say so or explicitly configured.
         if (this._serviceOptions.Value.InMaintenance)
         {
-            await this._messageRelayHubContext.Clients.All.SendAsync(MaintenanceController.GlobalSiteMaintenance, "Site undergoing maintenance...");
+            await this._messageRelayHubContext.Clients.All.SendAsync(
+                MaintenanceController.GlobalSiteMaintenance,
+                "Site undergoing maintenance..."
+            );
         }
 
         await this._next(ctx);

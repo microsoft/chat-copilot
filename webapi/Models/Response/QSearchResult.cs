@@ -17,6 +17,7 @@ public class QSearchResult
     [JsonPropertyName("value")]
     public IEnumerable<QSearchResultValue>? values { get; set; } = new List<QSearchResultValue>();
 }
+
 public class QSearchResultValue
 {
     [JsonPropertyName("matches")]

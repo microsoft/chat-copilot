@@ -21,15 +21,16 @@ public static class TokenUtils
     /// Semantic dependencies of ChatPlugin.
     ///  If you add a new semantic dependency, please add it here.
     /// </summary>
-    internal static readonly Dictionary<string, string> semanticFunctions = new()
-    {
-        { "SystemAudienceExtraction", "audienceExtraction" },
-        { "SystemIntentExtraction", "userIntentExtraction" },
-        { "SystemMetaPrompt", "metaPromptTemplate" },
-        { "SystemCompletion", "responseCompletion"},
-        { "SystemCognitive_WorkingMemory", "workingMemoryExtraction" },
-        { "SystemCognitive_LongTermMemory", "longTermMemoryExtraction" }
-    };
+    internal static readonly Dictionary<string, string> semanticFunctions =
+        new()
+        {
+            { "SystemAudienceExtraction", "audienceExtraction" },
+            { "SystemIntentExtraction", "userIntentExtraction" },
+            { "SystemMetaPrompt", "metaPromptTemplate" },
+            { "SystemCompletion", "responseCompletion" },
+            { "SystemCognitive_WorkingMemory", "workingMemoryExtraction" },
+            { "SystemCognitive_LongTermMemory", "longTermMemoryExtraction" },
+        };
 
     /// <summary>
     /// Gets dictionary containing empty token usage totals.
@@ -49,8 +50,11 @@ public static class TokenUtils
     {
         if (functionName == null || !semanticFunctions.TryGetValue(functionName, out string? key))
         {
-            throw new KeyNotFoundException($"Unknown token dependency {functionName}. Please define function as semanticFunctions entry in TokenUtils.cs");
-        };
+            throw new KeyNotFoundException(
+                $"Unknown token dependency {functionName}. Please define function as semanticFunctions entry in TokenUtils.cs"
+            );
+        }
+        ;
 
         return $"{key}TokenUsage";
     }
@@ -63,8 +67,11 @@ public static class TokenUtils
     /// <returns>String representation of number of tokens used by function (or null on error)</returns>
     internal static string? GetFunctionTokenUsage(FunctionResult result, ILogger logger)
     {
-        if (result.Metadata is null ||
-            !result.Metadata.TryGetValue("Usage", out object? usageObject) || usageObject is null)
+        if (
+            result.Metadata is null
+            || !result.Metadata.TryGetValue("Usage", out object? usageObject)
+            || usageObject is null
+        )
         {
             logger.LogError("No usage metadata provided");
 

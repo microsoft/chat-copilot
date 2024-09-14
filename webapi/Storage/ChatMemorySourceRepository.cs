@@ -17,9 +17,7 @@ public class ChatMemorySourceRepository : Repository<MemorySource>
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
     public ChatMemorySourceRepository(IStorageContext<MemorySource> storageContext)
-        : base(storageContext)
-    {
-    }
+        : base(storageContext) { }
 
     /// <summary>
     /// Finds chat memory sources by chat session id
@@ -29,7 +27,9 @@ public class ChatMemorySourceRepository : Repository<MemorySource>
     /// <returns>A list of memory sources.</returns>
     public Task<IEnumerable<MemorySource>> FindByChatIdAsync(string chatId, bool includeGlobal = true)
     {
-        return base.StorageContext.QueryEntitiesAsync(e => e.ChatId == chatId || (includeGlobal && e.ChatId == Guid.Empty.ToString()));
+        return base.StorageContext.QueryEntitiesAsync(e =>
+            e.ChatId == chatId || (includeGlobal && e.ChatId == Guid.Empty.ToString())
+        );
     }
 
     /// <summary>

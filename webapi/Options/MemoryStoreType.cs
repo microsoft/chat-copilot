@@ -42,7 +42,10 @@ public static class MemoryStoreTypeExtensions
     /// </summary>
     /// <param name="configuration">The configuration.</param>
     /// <returns>The memory store type.</returns>
-    public static MemoryStoreType GetMemoryStoreType(this KernelMemoryConfig memoryOptions, IConfiguration configuration)
+    public static MemoryStoreType GetMemoryStoreType(
+        this KernelMemoryConfig memoryOptions,
+        IConfiguration configuration
+    )
     {
         var type = memoryOptions.Retrieval.MemoryDbType;
         if (type.Equals("AzureAISearch", StringComparison.OrdinalIgnoreCase))
@@ -55,7 +58,10 @@ public static class MemoryStoreTypeExtensions
         }
         else if (type.Equals("SimpleVectorDb", StringComparison.OrdinalIgnoreCase))
         {
-            var simpleVectorDbConfig = memoryOptions.GetServiceConfig<SimpleVectorDbConfig>(configuration, "SimpleVectorDb");
+            var simpleVectorDbConfig = memoryOptions.GetServiceConfig<SimpleVectorDbConfig>(
+                configuration,
+                "SimpleVectorDb"
+            );
             if (simpleVectorDbConfig != null)
             {
                 type = simpleVectorDbConfig.StorageType.ToString();

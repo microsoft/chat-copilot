@@ -34,7 +34,8 @@ public class PluginController : ControllerBase
         ILogger<PluginController> logger,
         IHttpClientFactory httpClientFactory,
         IDictionary<string, Plugin> availablePlugins,
-        ChatSessionRepository sessionRepository)
+        ChatSessionRepository sessionRepository
+    )
     {
         this._logger = logger;
         this._httpClientFactory = httpClientFactory;
@@ -79,7 +80,8 @@ public class PluginController : ControllerBase
         [FromServices] IHubContext<MessageRelayHub> messageRelayHubContext,
         Guid chatId,
         string pluginName,
-        bool enabled)
+        bool enabled
+    )
     {
         if (!this._availablePlugins.ContainsKey(pluginName))
         {
@@ -104,7 +106,9 @@ public class PluginController : ControllerBase
         }
 
         await this._sessionRepository.UpsertAsync(chat);
-        await messageRelayHubContext.Clients.Group(chatIdString).SendAsync(PluginStateChanged, chatIdString, pluginName, enabled);
+        await messageRelayHubContext
+            .Clients.Group(chatIdString)
+            .SendAsync(PluginStateChanged, chatIdString, pluginName, enabled);
 
         return this.NoContent();
     }

@@ -45,5 +45,6 @@ public class ChatArchive
     /// <summary>
     /// The embeddings of uploaded documents in Chat Copilot. It represents the document memory which is accessible to all chat sessions of a given user.
     /// </summary>
-    public Dictionary<string, List<Citation>> DocumentEmbeddings { get; set; } = new Dictionary<string, List<Citation>>();
+    public Dictionary<string, List<Citation>> DocumentEmbeddings { get; set; } =
+        new Dictionary<string, List<Citation>>();
 }

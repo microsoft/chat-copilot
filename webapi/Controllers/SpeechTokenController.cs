@@ -25,9 +25,11 @@ public class SpeechTokenController : ControllerBase
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly AzureSpeechOptions _options;
 
-    public SpeechTokenController(IOptions<AzureSpeechOptions> options,
+    public SpeechTokenController(
+        IOptions<AzureSpeechOptions> options,
         ILogger<SpeechTokenController> logger,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory
+    )
     {
         this._logger = logger;
         this._httpClientFactory = httpClientFactory;
@@ -43,8 +45,7 @@ public class SpeechTokenController : ControllerBase
     public async Task<ActionResult<SpeechTokenResponse>> GetAsync()
     {
         // Azure Speech token support is optional. If the configuration is missing or incomplete, return an unsuccessful token response.
-        if (string.IsNullOrWhiteSpace(this._options.Region) ||
-            string.IsNullOrWhiteSpace(this._options.Key))
+        if (string.IsNullOrWhiteSpace(this._options.Region) || string.IsNullOrWhiteSpace(this._options.Key))
         {
             return new SpeechTokenResponse { IsSuccess = false };
         }
@@ -53,7 +54,12 @@ public class SpeechTokenController : ControllerBase
 
         TokenResult tokenResult = await this.FetchTokenAsync(fetchTokenUri, this._options.Key);
         var isSuccess = tokenResult.ResponseCode != HttpStatusCode.NotFound;
-        return new SpeechTokenResponse { Token = tokenResult.Token, Region = this._options.Region, IsSuccess = isSuccess };
+        return new SpeechTokenResponse
+        {
+            Token = tokenResult.Token,
+            Region = this._options.Region,
+            IsSuccess = isSuccess,
+        };
     }
 
     private async Task<TokenResult> FetchTokenAsync(string fetchUri, string subscriptionKey)

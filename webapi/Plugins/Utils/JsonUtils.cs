@@ -58,7 +58,7 @@ public static class JsonUtils
                     resultsDescriptor = string.Format(CultureInfo.InvariantCulture, "{0}: ", odataContextVal);
                 }
 
-                // Extract object to be truncated  
+                // Extract object to be truncated
                 var valueDocument = JsonDocument.Parse(valueElement.GetRawText());
                 document = valueDocument;
             }
@@ -104,6 +104,11 @@ public static class JsonUtils
             }
         }
 
-        return string.Format(CultureInfo.InvariantCulture, "{0}{1}", resultsDescriptor, JsonSerializer.Serialize(itemList));
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "{0}{1}",
+            resultsDescriptor,
+            JsonSerializer.Serialize(itemList)
+        );
     }
 }

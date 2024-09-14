@@ -17,9 +17,7 @@ public class ChatMessageRepository : CopilotChatMessageRepository
     /// </summary>
     /// <param name="storageContext">The storage context.</param>
     public ChatMessageRepository(ICopilotChatMessageStorageContext storageContext)
-        : base(storageContext)
-    {
-    }
+        : base(storageContext) { }
 
     /// <summary>
     /// Finds chat messages by chat id.

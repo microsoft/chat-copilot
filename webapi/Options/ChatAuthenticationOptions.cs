@@ -14,7 +14,7 @@ public class ChatAuthenticationOptions
     public enum AuthenticationType
     {
         None,
-        AzureAd
+        AzureAd,
     }
 
     /// <summary>

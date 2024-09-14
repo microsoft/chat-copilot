@@ -76,7 +76,8 @@ public static class CopilotChatServiceExtensions
     internal static void AddOptions<TOptions>(this IServiceCollection services, IConfigurationSection section)
         where TOptions : class
     {
-        services.AddOptions<TOptions>()
+        services
+            .AddOptions<TOptions>()
             .Bind(section)
             .ValidateDataAnnotations()
             .ValidateOnStart()
@@ -110,18 +111,29 @@ public static class CopilotChatServiceExtensions
                 var response = httpClient.SendAsync(request).Result;
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new InvalidOperationException($"Plugin '{plugin.Name}' at '{pluginManifestUrl}' returned status code '{response.StatusCode}'.");
+                    throw new InvalidOperationException(
+                        $"Plugin '{plugin.Name}' at '{pluginManifestUrl}' returned status code '{response.StatusCode}'."
+                    );
                 }
                 validatedPlugins.Add(plugin.Name, plugin);
                 logger.LogInformation("Added plugin: {0}.", plugin.Name);
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is AggregateException)
             {
-                logger.LogWarning(ex, "Plugin '{0}' at {1} responded with error. Skipping...", plugin.Name, pluginManifestUrl);
+                logger.LogWarning(
+                    ex,
+                    "Plugin '{0}' at {1} responded with error. Skipping...",
+                    plugin.Name,
+                    pluginManifestUrl
+                );
             }
             catch (Exception ex) when (ex is UriFormatException)
             {
-                logger.LogWarning("Plugin '{0}' at {1} is not a valid URL. Skipping...", plugin.Name, pluginManifestUrl);
+                logger.LogWarning(
+                    "Plugin '{0}' at {1} is not a valid URL. Skipping...",
+                    plugin.Name,
+                    pluginManifestUrl
+                );
             }
         }
 
@@ -134,8 +146,9 @@ public static class CopilotChatServiceExtensions
     internal static IServiceCollection AddMaintenanceServices(this IServiceCollection services)
     {
         // Inject action stub
-        services.AddSingleton<IReadOnlyList<IMaintenanceAction>>(
-            sp => (IReadOnlyList<IMaintenanceAction>)Array.Empty<IMaintenanceAction>());
+        services.AddSingleton<IReadOnlyList<IMaintenanceAction>>(sp =>
+            (IReadOnlyList<IMaintenanceAction>)Array.Empty<IMaintenanceAction>()
+        );
 
         return services;
     }
@@ -150,13 +163,13 @@ public static class CopilotChatServiceExtensions
         {
             services.AddCors(options =>
             {
-                options.AddDefaultPolicy(
-                    policy =>
-                    {
-                        policy.WithOrigins(allowedOrigins)
-                            .WithMethods("POST", "GET", "PUT", "DELETE", "PATCH")
-                            .AllowAnyHeader();
-                    });
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy
+                        .WithOrigins(allowedOrigins)
+                        .WithMethods("POST", "GET", "PUT", "DELETE", "PATCH")
+                        .AllowAnyHeader();
+                });
             });
         }
 
@@ -175,7 +188,10 @@ public static class CopilotChatServiceExtensions
         IStorageContext<Specialization> specializationStorageContext;
         IStorageContext<ChatUser> chatUserStorageContext;
 
-        ChatStoreOptions chatStoreConfig = services.BuildServiceProvider().GetRequiredService<IOptions<ChatStoreOptions>>().Value;
+        ChatStoreOptions chatStoreConfig = services
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<ChatStoreOptions>>()
+            .Value;
 
         switch (chatStoreConfig.Type)
         {
@@ -194,23 +210,61 @@ public static class CopilotChatServiceExtensions
             {
                 if (chatStoreConfig.Filesystem == null)
                 {
-                    throw new InvalidOperationException("ChatStore:Filesystem is required when ChatStore:Type is 'Filesystem'");
+                    throw new InvalidOperationException(
+                        "ChatStore:Filesystem is required when ChatStore:Type is 'Filesystem'"
+                    );
                 }
 
                 string fullPath = Path.GetFullPath(chatStoreConfig.Filesystem.FilePath);
                 string directory = Path.GetDirectoryName(fullPath) ?? string.Empty;
                 chatSessionStorageContext = new FileSystemContext<ChatSession>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}")));
+                    new FileInfo(
+                        Path.Combine(
+                            directory,
+                            $"{Path.GetFileNameWithoutExtension(fullPath)}_sessions{Path.GetExtension(fullPath)}"
+                        )
+                    )
+                );
                 chatMessageStorageContext = new FileSystemCopilotChatMessageContext(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_messages{Path.GetExtension(fullPath)}")));
+                    new FileInfo(
+                        Path.Combine(
+                            directory,
+                            $"{Path.GetFileNameWithoutExtension(fullPath)}_messages{Path.GetExtension(fullPath)}"
+                        )
+                    )
+                );
                 chatMemorySourceStorageContext = new FileSystemContext<MemorySource>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}")));
+                    new FileInfo(
+                        Path.Combine(
+                            directory,
+                            $"{Path.GetFileNameWithoutExtension(fullPath)}_memorysources{Path.GetExtension(fullPath)}"
+                        )
+                    )
+                );
                 chatParticipantStorageContext = new FileSystemContext<ChatParticipant>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_participants{Path.GetExtension(fullPath)}")));
+                    new FileInfo(
+                        Path.Combine(
+                            directory,
+                            $"{Path.GetFileNameWithoutExtension(fullPath)}_participants{Path.GetExtension(fullPath)}"
+                        )
+                    )
+                );
                 specializationStorageContext = new FileSystemContext<Specialization>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_specializations{Path.GetExtension(fullPath)}")));
+                    new FileInfo(
+                        Path.Combine(
+                            directory,
+                            $"{Path.GetFileNameWithoutExtension(fullPath)}_specializations{Path.GetExtension(fullPath)}"
+                        )
+                    )
+                );
                 chatUserStorageContext = new FileSystemContext<ChatUser>(
-                    new FileInfo(Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_users{Path.GetExtension(fullPath)}")));
+                    new FileInfo(
+                        Path.Combine(
+                            directory,
+                            $"{Path.GetFileNameWithoutExtension(fullPath)}_users{Path.GetExtension(fullPath)}"
+                        )
+                    )
+                );
                 break;
             }
 
@@ -222,31 +276,50 @@ public static class CopilotChatServiceExtensions
                 }
 #pragma warning disable CA2000 // Dispose objects before losing scope - objects are singletons for the duration of the process and disposed when the process exits.
                 chatSessionStorageContext = new CosmosDbContext<ChatSession>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatSessionsContainer);
+                    chatStoreConfig.Cosmos.ConnectionString,
+                    chatStoreConfig.Cosmos.Database,
+                    chatStoreConfig.Cosmos.ChatSessionsContainer
+                );
                 chatMessageStorageContext = new CosmosDbCopilotChatMessageContext(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMessagesContainer);
+                    chatStoreConfig.Cosmos.ConnectionString,
+                    chatStoreConfig.Cosmos.Database,
+                    chatStoreConfig.Cosmos.ChatMessagesContainer
+                );
                 chatMemorySourceStorageContext = new CosmosDbContext<MemorySource>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatMemorySourcesContainer);
+                    chatStoreConfig.Cosmos.ConnectionString,
+                    chatStoreConfig.Cosmos.Database,
+                    chatStoreConfig.Cosmos.ChatMemorySourcesContainer
+                );
                 chatParticipantStorageContext = new CosmosDbContext<ChatParticipant>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatParticipantsContainer);
+                    chatStoreConfig.Cosmos.ConnectionString,
+                    chatStoreConfig.Cosmos.Database,
+                    chatStoreConfig.Cosmos.ChatParticipantsContainer
+                );
                 specializationStorageContext = new CosmosDbContext<Specialization>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.SpecializationContainer);
+                    chatStoreConfig.Cosmos.ConnectionString,
+                    chatStoreConfig.Cosmos.Database,
+                    chatStoreConfig.Cosmos.SpecializationContainer
+                );
                 chatUserStorageContext = new CosmosDbContext<ChatUser>(
-                    chatStoreConfig.Cosmos.ConnectionString, chatStoreConfig.Cosmos.Database, chatStoreConfig.Cosmos.ChatUserContainer);
+                    chatStoreConfig.Cosmos.ConnectionString,
+                    chatStoreConfig.Cosmos.Database,
+                    chatStoreConfig.Cosmos.ChatUserContainer
+                );
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 break;
             }
 
             default:
             {
-                throw new InvalidOperationException(
-                    "Invalid 'ChatStore' setting 'chatStoreConfig.Type'.");
+                throw new InvalidOperationException("Invalid 'ChatStore' setting 'chatStoreConfig.Type'.");
             }
         }
 
         services.AddSingleton<ChatSessionRepository>(new ChatSessionRepository(chatSessionStorageContext));
         services.AddSingleton<ChatMessageRepository>(new ChatMessageRepository(chatMessageStorageContext));
-        services.AddSingleton<ChatMemorySourceRepository>(new ChatMemorySourceRepository(chatMemorySourceStorageContext));
+        services.AddSingleton<ChatMemorySourceRepository>(
+            new ChatMemorySourceRepository(chatMemorySourceStorageContext)
+        );
         services.AddSingleton<ChatParticipantRepository>(new ChatParticipantRepository(chatParticipantStorageContext));
         services.AddSingleton<SpecializationRepository>(new SpecializationRepository(specializationStorageContext));
         services.AddSingleton<ChatUserRepository>(new ChatUserRepository(chatUserStorageContext));
@@ -259,32 +332,39 @@ public static class CopilotChatServiceExtensions
     /// </summary>
     public static IServiceCollection AddChatCopilotAuthorization(this IServiceCollection services)
     {
-        return services.AddScoped<IAuthorizationHandler, ChatParticipantAuthorizationHandler>()
+        return services
+            .AddScoped<IAuthorizationHandler, ChatParticipantAuthorizationHandler>()
             .AddAuthorizationCore(options =>
             {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-                options.AddPolicy(AuthPolicyName.RequireChatParticipant, builder =>
-                {
-                    builder.RequireAuthenticatedUser()
-                        .AddRequirements(new ChatParticipantRequirement());
-                });
+                options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                options.AddPolicy(
+                    AuthPolicyName.RequireChatParticipant,
+                    builder =>
+                    {
+                        builder.RequireAuthenticatedUser().AddRequirements(new ChatParticipantRequirement());
+                    }
+                );
             });
     }
 
     /// <summary>
     /// Add authentication services
     /// </summary>
-    public static IServiceCollection AddChatCopilotAuthentication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddChatCopilotAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services.AddScoped<IAuthInfo, AuthInfo>();
         var config = services.BuildServiceProvider().GetRequiredService<IOptions<ChatAuthenticationOptions>>().Value;
         switch (config.Type)
         {
             case ChatAuthenticationOptions.AuthenticationType.AzureAd:
-                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddMicrosoftIdentityWebApi(configuration.GetSection($"{ChatAuthenticationOptions.PropertyName}:AzureAd"));
+                services
+                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApi(
+                        configuration.GetSection($"{ChatAuthenticationOptions.PropertyName}:AzureAd")
+                    );
                 break;
 
             default:
@@ -297,7 +377,8 @@ public static class CopilotChatServiceExtensions
     /// <summary>
     /// Trim all string properties, recursively.
     /// </summary>
-    private static void TrimStringProperties<T>(T options) where T : class
+    private static void TrimStringProperties<T>(T options)
+        where T : class
     {
         Queue<object> targets = new();
         targets.Enqueue(options);
@@ -321,13 +402,10 @@ public static class CopilotChatServiceExtensions
                 }
 
                 // Property is a built-in type, readable, and writable.
-                if (property.PropertyType.Namespace == "System" &&
-                    property.CanRead &&
-                    property.CanWrite)
+                if (property.PropertyType.Namespace == "System" && property.CanRead && property.CanWrite)
                 {
                     // Property is a non-null string.
-                    if (property.PropertyType == typeof(string) &&
-                        property.GetValue(target) != null)
+                    if (property.PropertyType == typeof(string) && property.GetValue(target) != null)
                     {
                         property.SetValue(target, property.GetValue(target)!.ToString()!.Trim());
                     }

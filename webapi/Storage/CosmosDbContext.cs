@@ -13,7 +13,8 @@ namespace CopilotChat.WebApi.Storage;
 /// <summary>
 /// A storage context that stores entities in a CosmosDB container.
 /// </summary>
-public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : IStorageEntity
+public class CosmosDbContext<T> : IStorageContext<T>, IDisposable
+    where T : IStorageEntity
 {
     /// <summary>
     /// The CosmosDB client.
@@ -40,7 +41,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
         {
             SerializerOptions = new CosmosSerializationOptions
             {
-                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
             },
         };
         this._client = new CosmosClient(connectionString, options);
@@ -51,7 +52,8 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
     public async Task<IEnumerable<T>> QueryEntitiesAsync(Func<T, bool> predicate)
     {
         return await Task.Run<IEnumerable<T>>(
-            () => this._container.GetItemLinqQueryable<T>(true).Where(predicate).AsEnumerable());
+            () => this._container.GetItemLinqQueryable<T>(true).Where(predicate).AsEnumerable()
+        );
     }
 
     /// <inheritdoc/>
@@ -132,16 +134,25 @@ public class CosmosDbCopilotChatMessageContext : CosmosDbContext<CopilotChatMess
     /// <param name="connectionString">The CosmosDB connection string.</param>
     /// <param name="database">The CosmosDB database name.</param>
     /// <param name="container">The CosmosDB container name.</param>
-    public CosmosDbCopilotChatMessageContext(string connectionString, string database, string container) :
-        base(connectionString, database, container)
-    {
-    }
+    public CosmosDbCopilotChatMessageContext(string connectionString, string database, string container)
+        : base(connectionString, database, container) { }
 
     /// <inheritdoc/>
-    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
+    public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(
+        Func<CopilotChatMessage, bool> predicate,
+        int skip,
+        int count
+    )
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-                () => this._container.GetItemLinqQueryable<CopilotChatMessage>(true)
-                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count).AsEnumerable());
+            () =>
+                this
+                    ._container.GetItemLinqQueryable<CopilotChatMessage>(true)
+                    .Where(predicate)
+                    .OrderByDescending(m => m.Timestamp)
+                    .Skip(skip)
+                    .Take(count)
+                    .AsEnumerable()
+        );
     }
 }

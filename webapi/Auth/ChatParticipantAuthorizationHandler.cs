@@ -23,7 +23,9 @@ public class ChatParticipantAuthorizationHandler : AuthorizationHandler<ChatPart
     public ChatParticipantAuthorizationHandler(
         IAuthInfo authInfo,
         ChatSessionRepository chatSessionRepository,
-        ChatParticipantRepository chatParticipantRepository) : base()
+        ChatParticipantRepository chatParticipantRepository
+    )
+        : base()
     {
         this._authInfo = authInfo;
         this._chatSessionRepository = chatSessionRepository;
@@ -33,7 +35,8 @@ public class ChatParticipantAuthorizationHandler : AuthorizationHandler<ChatPart
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         ChatParticipantRequirement requirement,
-        HttpContext resource)
+        HttpContext resource
+    )
     {
         try
         {
