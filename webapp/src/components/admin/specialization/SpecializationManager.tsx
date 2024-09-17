@@ -31,6 +31,15 @@ const useClasses = makeStyles({
     scrollableContainer: {
         overflowY: 'auto',
         maxHeight: 'calc(100vh - 100px)', // Adjust this value as needed
+        '&:hover': {
+            '&::-webkit-scrollbar-thumb': {
+                backgroundColor: tokens.colorScrollbarOverlay,
+                visibility: 'visible',
+            },
+        },
+        '&::-webkit-scrollbar-track': {
+            backgroundColor: tokens.colorSubtleBackground,
+        },
         ...shorthands.padding('10px'),
     },
 });
