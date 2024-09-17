@@ -212,10 +212,10 @@ internal static class ISemanticMemoryClientExtensions
             cancellationToken: cancellationToken
         );
         var documentIds = memories.Results.Select(memory => memory.DocumentId).Distinct().ToArray();
-        var tasks = documentIds
-            .Select(documentId => memoryClient.DeleteDocumentAsync(documentId, indexName, cancellationToken))
-            .ToArray();
 
-        Task.WaitAll(tasks, cancellationToken);
+        foreach (var docId in documentIds)
+        {
+            await memoryClient.DeleteDocumentAsync(docId, indexName, cancellationToken);
+        }
     }
 }
