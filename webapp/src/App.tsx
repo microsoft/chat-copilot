@@ -180,6 +180,7 @@ const App = () => {
             const [loadedSpecializations] = await Promise.all([
                 specialization.loadSpecializations(),
                 specialization.loadSpecializationIndexes(),
+                specialization.loadChatCompletionDeployments(),
             ]);
 
             const [serviceInfo] = await Promise.all([

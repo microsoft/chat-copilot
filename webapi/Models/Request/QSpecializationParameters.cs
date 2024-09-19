@@ -47,6 +47,12 @@ public class QSpecializationParameters
     public string? IndexName { get; set; } = string.Empty;
 
     /// <summary>
+    /// Deployment of the specialization
+    /// </summary>
+    [JsonPropertyName("deployment")]
+    public string? Deployment { get; set; } = string.Empty;
+
+    /// <summary>
     /// Image FilePath of the specialization.
     /// </summary>
     [JsonPropertyName("imageFilePath")]

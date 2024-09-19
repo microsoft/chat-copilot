@@ -8,6 +8,7 @@ import {
     editSpecialization,
     removeSpecialization,
     setSpecializationIndexes,
+    setChatCompletionDeployments,
     setSpecializations,
 } from '../../redux/features/admin/adminSlice';
 import { AuthHelper } from '../auth/AuthHelper';
@@ -41,6 +42,19 @@ export const useSpecialization = () => {
             });
         } catch (e: any) {
             const errorMessage = `Unable to load chats. Details: ${getErrorDetails(e)}`;
+            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
+            return undefined;
+        }
+    };
+
+    const loadChatCompletionDeployments = async () => {
+        try {
+            const accessToken = await AuthHelper.getSKaaSAccessToken(instance, inProgress);
+            await specializationService.getAllChatCompletionDeploymentsAsync(accessToken).then((result: string[]) => {
+                dispatch(setChatCompletionDeployments(result));
+            });
+        } catch (e: any) {
+            const errorMessage = `Unable to load chat completion deployments. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
             return undefined;
         }
@@ -109,6 +123,7 @@ export const useSpecialization = () => {
     return {
         loadSpecializations,
         loadSpecializationIndexes,
+        loadChatCompletionDeployments,
         createSpecialization,
         updateSpecialization,
         toggleSpecialization,

@@ -7,6 +7,7 @@ export interface AdminState {
     chatSpecialization: ISpecialization | undefined;
     specializations: ISpecialization[];
     specializationIndexes: string[];
+    chatCompletionDeployments: string[];
     selectedId: string;
 }
 export const Specializations = [
@@ -18,6 +19,7 @@ export const Specializations = [
         description: 'General',
         roleInformation: '',
         indexName: '',
+        deployment: '',
         imageFilePath: '',
         iconFilePath: '',
         isActive: true,
@@ -31,5 +33,6 @@ export const initialState: AdminState = {
     chatSpecialization: undefined,
     specializations: Specializations,
     specializationIndexes: [],
+    chatCompletionDeployments: [],
     selectedId: '',
 };

@@ -24,6 +24,17 @@ export class SpecializationService extends BaseService {
         return result;
     };
 
+    public getAllChatCompletionDeploymentsAsync = async (accessToken: string): Promise<string[]> => {
+        const result = await this.getResponseAsync<string[]>(
+            {
+                commandPath: 'specialization/deployments',
+                method: 'GET',
+            },
+            accessToken,
+        );
+        return result;
+    };
+
     public createSpecializationAsync = async (
         body: ISpecializationRequest,
         accessToken: string,

@@ -49,14 +49,18 @@ public class QSearchService : IQSearchService
         {
             return null;
         }
-
+        var (apiKey, endpoint) = this._qAzureOpenAIChatExtension.GetAISearchDeploymentConnectionDetails(indexName);
+        if (apiKey == null || endpoint == null)
+        {
+            return null;
+        }
         using var httpRequestMessage = new HttpRequestMessage()
         {
             Method = HttpMethod.Post,
-            RequestUri = new Uri($"{this.GetEndpoint()}indexes/{indexName}/docs/search?api-version=2020-06-30"),
+            RequestUri = new Uri($"{endpoint}indexes/{indexName}/docs/search?api-version=2020-06-30"),
             Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"),
         };
-        httpRequestMessage.Headers.Add("api-Key", this.GetApiKey());
+        httpRequestMessage.Headers.Add("api-Key", apiKey);
         var response = await this._httpClient.SendAsync(httpRequestMessage);
         var body = await response.Content.ReadAsStringAsync();
         var searchResponse = JsonSerializer.Deserialize<QAzureSearchResponse>(body!);
@@ -108,20 +112,6 @@ public class QSearchService : IQSearchService
             this._httpClient.Dispose();
             this._httpClientHandler?.Dispose();
         }
-    }
-
-    private string GetApiKey()
-    {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return this._qAzureOpenAIChatExtension.AzureConfig.APIKey;
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-    }
-
-    private string GetEndpoint()
-    {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-        return this._qAzureOpenAIChatExtension.AzureConfig.Endpoint.ToString();
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 
     private async Task<string?> GetIndexName(string specializationId)
