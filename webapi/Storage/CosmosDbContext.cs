@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using Microsoft.Azure.Cosmos;
 
@@ -151,7 +152,7 @@ public class CosmosDbCopilotChatMessageContext : CosmosDbContext<CopilotChatMess
                     .Where(predicate)
                     .OrderByDescending(m => m.Timestamp)
                     .Skip(skip)
-                    .Take(count)
+                    .TakeOrAll(count)
                     .AsEnumerable()
         );
     }

@@ -70,6 +70,9 @@ public class PromptsOptions
     [Required, NotEmptyOrWhitespace]
     public string SystemResponse { get; set; } = string.Empty;
 
+    [Required, NotEmptyOrWhitespace]
+    public string ChatHistoryDeletedMessage { get; set; } = string.Empty;
+
     internal string[] SystemAudiencePromptComponents =>
         new string[] { this.SystemAudience, "{{ChatPlugin.ExtractChatHistory}}", this.SystemAudienceContinuation };
 

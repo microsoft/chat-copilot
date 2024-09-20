@@ -135,6 +135,27 @@ export class ChatService extends BaseService {
         return result;
     };
 
+    /**
+     * Deletes the chat history for a given chat ID asynchronously.
+     *
+     * This method sends a DELETE request to remove the history of a specific chat.
+     * It requires an access token for authentication.
+     *
+     * @param {string} chatId - The unique identifier of the chat whose history is to be deleted.
+     * @param {string} accessToken - The authentication token required for making the API request.
+     * @returns {Promise<void>} A promise that resolves to void, indicating the completion of the operation.
+     * @throws {Error} If there's an error during the fetch or API response, an error will be thrown.
+     */
+    public deleteChatHistoryAsync = async (chatId: string, accessToken: string): Promise<void> => {
+        await this.getResponseAsync(
+            {
+                commandPath: `chats/${chatId}/history`,
+                method: 'DELETE',
+            },
+            accessToken,
+        );
+    };
+
     public rateMessageAync = async (
         chatId: string,
         messageId: string,

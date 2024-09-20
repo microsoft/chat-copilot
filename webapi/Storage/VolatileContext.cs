@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Storage;
@@ -112,7 +113,7 @@ public class VolatileCopilotChatMessageContext : VolatileContext<CopilotChatMess
     )
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-            () => this._entities.Values.Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count)
+            () => this._entities.Values.Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).TakeOrAll(count)
         );
     }
 }
