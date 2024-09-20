@@ -282,36 +282,31 @@ webapi:
         secretKeyRef:
           name: q-pilot-webapi-secret
           key: KernelMemory-Services-AzureOpenAIText-APIKey
-    - name: "KernelMemory__Services__AzureOpenAI__APIKey"
-      valueFrom:
-        secretKeyRef:
-          name: q-pilot-webapi-secret
-          key: KernelMemory-Services-AzureOpenAI-APIKey
-    - name: "KernelMemory__Services__AzureAISearch__APIKey"
-      valueFrom:
-        secretKeyRef:
-          name: q-pilot-webapi-secret
-          key: KernelMemory-Services-AzureAISearch-APIKey
-    - name: "KernelMemory__Services__AzureBlobs__ConnectionString"
-      valueFrom:
-        secretKeyRef:
-          name: q-pilot-webapi-secret
-          key: KernelMemory-Services-AzureBlobs-ConnectionString
-    - name: "QAzureOpenAIChatConfig__AzureConfig__ApiKey"
-      valueFrom:
-        secretKeyRef:
-          name: q-pilot-webapi-secret
-          key: QAzureOpenAIChatConfig-AzureConfig-ApiKey
-    - name: "QAzureOpenAIChatConfig__AzureConfig__VectorizationSource__APIKey"
-      valueFrom:
-        secretKeyRef:
-          name: q-pilot-webapi-secret
-          key: QAzureOpenAIChatConfig-AzureConfig-VectorizationSource-APIKey
     - name: "ChatStore__Cosmos__ConnectionString"
       valueFrom:
         secretKeyRef:
           name: q-pilot-webapi-secret
           key: ChatStore-Cosmos-ConnectionString
+    - name: "QAzureOpenAIChatConfig__OpenAIDeploymentConnections__0__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-pilot-webapi-secret
+          key: QAzureOpenAIChatConfig-OpenAIDeploymentConnections-0-ApiKey
+    - name: "QAzureOpenAIChatConfig__OpenAIDeploymentConnections__1__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-pilot-webapi-secret
+          key: QAzureOpenAIChatConfig-OpenAIDeploymentConnections-1-ApiKey
+    - name: "QAzureOpenAIChatConfig__AISearchDeploymentConnections__0__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-pilot-webapi-secret
+          key: QAzureOpenAIChatConfig-AISearchDeploymentConnections-0-ApiKey
+    - name: "QAzureOpenAIChatConfig__AISearchDeploymentConnections__1__ApiKey"
+      valueFrom:
+        secretKeyRef:
+          name: q-pilot-webapi-secret
+          key: QAzureOpenAIChatConfig-AISearchDeploymentConnections-1-ApiKey
     - name: "APP_NAME"
       value: "webapi"
 
@@ -360,12 +355,11 @@ webapi:
       [
         KernelMemory-Services-AzureOpenAIEmbedding-APIKey,
         KernelMemory-Services-AzureOpenAIText-APIKey,
-        KernelMemory-Services-AzureOpenAI-APIKey,
-        KernelMemory-Services-AzureAISearch-APIKey,
-        KernelMemory-Services-AzureBlobs-ConnectionString,
-        QAzureOpenAIChatConfig-AzureConfig-ApiKey,
-        QAzureOpenAIChatConfig-AzureConfig-VectorizationSource-APIKey,
         ChatStore-Cosmos-ConnectionString,
+        QAzureOpenAIChatConfig-OpenAIDeploymentConnections-0-ApiKey,
+        QAzureOpenAIChatConfig-OpenAIDeploymentConnections-1-ApiKey,
+        QAzureOpenAIChatConfig-AISearchDeploymentConnections-0-ApiKey,
+        QAzureOpenAIChatConfig-AISearchDeploymentConnections-1-ApiKey,
       ]
 
   ingress:
