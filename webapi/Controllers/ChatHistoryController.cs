@@ -80,7 +80,10 @@ public class ChatHistoryController : ControllerBase
         this._participantRepository = participantRepository;
         this._sourceRepository = sourceRepository;
         this._promptOptions = promptsOptions.Value;
-        this._qSpecializationService = new QSpecializationService(specializationSourceRepository);
+        this._qSpecializationService = new QSpecializationService(
+            specializationSourceRepository,
+            specializationOptions.Value
+        );
         this._authInfo = authInfo;
     }
 

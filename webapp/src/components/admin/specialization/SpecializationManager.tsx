@@ -4,6 +4,12 @@ import { Button, Dropdown, Input, makeStyles, Option, shorthands, Textarea, toke
 import { useSpecialization } from '../../../libs/hooks';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
+import { ImageUploaderPreview } from '../../files/ImageUploaderPreview';
+
+interface ISpecializationFile {
+    file: File | null;
+    src: string | null;
+}
 
 const useClasses = makeStyles({
     root: {
@@ -42,13 +48,32 @@ const useClasses = makeStyles({
         },
         ...shorthands.padding('10px'),
     },
+    fileUploadContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        ...shorthands.gap(tokens.spacingHorizontalXXXL),
+    },
+    imageContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalSNudge),
+    },
 });
 
 const Rows = 8;
 
+/**
+ * Specialization Manager component.
+ *
+ * @returns {*}
+ */
 export const SpecializationManager: React.FC = () => {
     const specialization = useSpecialization();
     const classes = useClasses();
+
+    const { specializations, specializationIndexes, chatCompletionDeployments, selectedId } = useAppSelector(
+        (state: RootState) => state.admin,
+    );
 
     const [editMode, setEditMode] = useState(false);
 
@@ -59,16 +84,21 @@ export const SpecializationManager: React.FC = () => {
     const [roleInformation, setRoleInformation] = useState('');
     const [indexName, setIndexName] = useState('');
     const [deployment, setDeployment] = useState('');
-    const [imageFilePath, setImageFilePath] = useState('');
-    const [iconFilePath, setIconFilePath] = useState('');
     const [membershipId, setMembershipId] = useState<string[]>([]);
+    const [imageFile, setImageFile] = useState<ISpecializationFile>({ file: null, src: null });
+    const [iconFile, setIconFile] = useState<ISpecializationFile>({ file: null, src: null });
 
+    const [isValid, setIsValid] = useState(false);
     const dropdownId = useId();
 
-    const { specializations, specializationIndexes, chatCompletionDeployments, selectedId } = useAppSelector(
-        (state: RootState) => state.admin,
-    );
-
+    /**
+     * Save specialization by creating or updating.
+     *
+     * Note: When we save a specialization we send the actual files (image / icon) to the server.
+     * On fetch we get the file paths from the Specialization payload and display them.
+     *
+     * @returns {void}
+     */
     const onSaveSpecialization = () => {
         if (editMode) {
             void specialization.updateSpecialization(id, {
@@ -77,9 +107,11 @@ export const SpecializationManager: React.FC = () => {
                 description,
                 roleInformation,
                 indexName,
+                imageFile: imageFile.file,
+                iconFile: iconFile.file,
+                deleteImage: !imageFile.src, // Set the delete flag if the src is null
+                deleteIcon: !iconFile.src, // Set the delete flag if the src is null,
                 deployment,
-                imageFilePath,
-                iconFilePath,
                 groupMemberships: membershipId,
             });
             resetSpecialization();
@@ -90,9 +122,9 @@ export const SpecializationManager: React.FC = () => {
                 description,
                 roleInformation,
                 indexName,
+                imageFile: imageFile.file,
+                iconFile: iconFile.file,
                 deployment,
-                imageFilePath,
-                iconFilePath,
                 groupMemberships: membershipId,
             });
             resetSpecialization();
@@ -106,8 +138,8 @@ export const SpecializationManager: React.FC = () => {
         setDescription('');
         setRoleInformation('');
         setMembershipId([]);
-        setImageFilePath('');
-        setIconFilePath('');
+        setImageFile({ file: null, src: null });
+        setIconFile({ file: null, src: null });
         setIndexName('');
         setDeployment('');
     };
@@ -123,10 +155,14 @@ export const SpecializationManager: React.FC = () => {
                 setDescription(specializationObj.description);
                 setRoleInformation(specializationObj.roleInformation);
                 setMembershipId(specializationObj.groupMemberships);
-                setImageFilePath(specializationObj.imageFilePath);
-                setIconFilePath(specializationObj.iconFilePath);
-                setIndexName(specializationObj.indexName);
                 setDeployment(specializationObj.deployment);
+                /**
+                 * Set the image and icon file paths
+                 * Note: The file is set to null because we only retrieve the file path from the server
+                 */
+                setImageFile({ file: null, src: specializationObj.imageFilePath });
+                setIconFile({ file: null, src: specializationObj.iconFilePath });
+                setIndexName(specializationObj.indexName);
             }
         } else {
             setEditMode(false);
@@ -139,12 +175,11 @@ export const SpecializationManager: React.FC = () => {
         resetSpecialization();
     };
 
-    const [isValid, setIsValid] = useState(false);
     useEffect(() => {
-        const isValid = !!label && !!name && !!roleInformation;
+        const isValid = !!label && !!name && !!roleInformation && membershipId.length > 0;
         setIsValid(isValid);
         return () => {};
-    }, [specializations, selectedId, label, name, roleInformation]);
+    }, [specializations, selectedId, label, name, roleInformation, membershipId]);
 
     return (
         <div className={classes.scrollableContainer}>
@@ -176,7 +211,6 @@ export const SpecializationManager: React.FC = () => {
                 <Dropdown
                     clearable
                     id="index-name"
-                    aria-labelledby={dropdownId}
                     onOptionSelect={(_control, data) => {
                         setIndexName(data.optionValue ?? '');
                     }}
@@ -236,25 +270,36 @@ export const SpecializationManager: React.FC = () => {
                     required
                     value={membershipId.join(', ')}
                     onChange={(_event, data) => {
+                        if (!data.value) {
+                            setMembershipId([]);
+                            return;
+                        }
                         setMembershipId(data.value.split(', '));
                     }}
                 />
-                <label htmlFor="image-url">Image URL</label>
-                <Input
-                    id="image-url"
-                    value={imageFilePath}
-                    onChange={(_event, data) => {
-                        setImageFilePath(data.value);
-                    }}
-                />
-                <label htmlFor="image-url">Bot Icon URL</label>
-                <Input
-                    id="icon-url"
-                    value={iconFilePath}
-                    onChange={(_event, data) => {
-                        setIconFilePath(data.value);
-                    }}
-                />
+                <div className={classes.fileUploadContainer}>
+                    <div className={classes.imageContainer}>
+                        <label htmlFor="image-url">Specialization Image</label>
+                        <ImageUploaderPreview
+                            buttonLabel="Upload Image"
+                            file={imageFile.file ?? imageFile.src}
+                            onFileUpdate={(file, src) => {
+                                setImageFile({ file, src });
+                            }}
+                        />
+                    </div>
+                    <div className={classes.imageContainer}>
+                        <label htmlFor="image-url">Specialization Icon</label>
+                        <ImageUploaderPreview
+                            buttonLabel="Upload Icon"
+                            file={iconFile.file ?? iconFile.src}
+                            onFileUpdate={(file, src) => {
+                                // Set the src to null if the file is falsy ie: '' or null
+                                setIconFile({ file, src: src || null });
+                            }}
+                        />
+                    </div>
+                </div>
                 <div className={classes.controls}>
                     <Button appearance="secondary" disabled={!id} onClick={onDeleteChat}>
                         Delete

@@ -14,6 +14,10 @@ export interface ISpecialization {
     documentCount: number;
 }
 
+/**
+ * Specialization request interface.
+ *
+ */
 export interface ISpecializationRequest {
     label: string;
     name: string;
@@ -21,8 +25,10 @@ export interface ISpecializationRequest {
     roleInformation: string;
     indexName: string;
     deployment: string;
-    imageFilePath: string;
-    iconFilePath: string;
+    imageFile: File | null;
+    iconFile: File | null;
+    deleteImage?: boolean; // Flag to delete the image
+    deleteIcon?: boolean; // Flag to delete the icon
     groupMemberships: string[];
 }
 

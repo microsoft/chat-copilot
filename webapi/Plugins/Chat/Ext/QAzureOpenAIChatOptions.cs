@@ -31,6 +31,9 @@ public class QAzureOpenAIChatOptions
     [Required]
     public IList<QSpecializationIndex> SpecializationIndexes { get; set; } = new List<QSpecializationIndex>();
 
+    [Required]
+    public BlobStorageOption BlobStorage { get; set; } = new BlobStorageOption();
+
     public class OpenAIDeploymentConnection
     {
         public string Name { get; set; } = string.Empty;
@@ -66,5 +69,11 @@ public class QAzureOpenAIChatOptions
         public string UrlFieldName { get; set; } = "url";
         public string TitleFieldName { get; set; } = "title";
         public string FilepathFieldName { get; set; } = "filepath";
+    }
+
+    public class BlobStorageOption
+    {
+        public string ConnectionString { get; set; } = string.Empty;
+        public string SpecializationContainerName { get; set; } = "specialization";
     }
 }

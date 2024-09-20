@@ -121,7 +121,10 @@ public class ChatPlugin
         this._messageRelayHubContext = messageRelayHubContext;
         // Clone the prompt options to avoid modifying the original prompt options.
         this._promptOptions = promptOptions.Value.Copy();
-        this._qSpecializationService = new QSpecializationService(specializationSourceRepository);
+        this._qSpecializationService = new QSpecializationService(
+            specializationSourceRepository,
+            qAzureOpenAIChatOptions.Value
+        );
         this._semanticMemoryRetriever = new SemanticMemoryRetriever(
             promptOptions,
             chatSessionRepository,

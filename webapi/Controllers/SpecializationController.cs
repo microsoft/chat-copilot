@@ -42,11 +42,14 @@ public class SpecializationController : ControllerBase
     )
     {
         this._logger = logger;
-        this._qspecializationService = new QSpecializationService(specializationSourceRepository);
         this._qAzureOpenAIChatOptions = specializationOptions.Value;
         this._qAzureOpenAIChatExtension = new QAzureOpenAIChatExtension(
             specializationOptions.Value,
             specializationSourceRepository
+        );
+        this._qspecializationService = new QSpecializationService(
+            specializationSourceRepository,
+            specializationOptions.Value
         );
         this._promptOptions = promptsOptions.Value;
     }
@@ -118,24 +121,22 @@ public class SpecializationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status504GatewayTimeout)]
     public async Task<IActionResult> CreateSpecializationAsync(
         [FromServices] IAuthInfo authInfo,
-        [FromBody] QSpecializationParameters qSpecializationParameters
+        [FromForm] QSpecializationMutate qSpecializationMutate
     )
     {
-        if (string.IsNullOrEmpty(qSpecializationParameters.ImageFilePath))
+        try
         {
-            qSpecializationParameters.ImageFilePath = this._qAzureOpenAIChatOptions.DefaultSpecializationImage;
-        }
-        if (string.IsNullOrEmpty(qSpecializationParameters.IconFilePath))
-        {
-            qSpecializationParameters.IconFilePath = this._qAzureOpenAIChatOptions.DefaultSpecializationIcon;
-        }
-        var _specializationsource = await this._qspecializationService.SaveSpecialization(qSpecializationParameters);
-        if (_specializationsource != null)
-        {
+            var _specializationsource = await this._qspecializationService.SaveSpecialization(qSpecializationMutate);
+
             QSpecializationResponse qSpecializationResponse = new(_specializationsource);
             return this.Ok(qSpecializationResponse);
         }
-        return this.StatusCode(500, $"Failed to create specialization for label '{qSpecializationParameters.label}'.");
+        catch (Azure.RequestFailedException ex)
+        {
+            this._logger.LogError(ex, "Specialization create threw an exception");
+
+            return this.StatusCode(500, $"Failed to create specialization for label '{qSpecializationMutate.label}'.");
+        }
     }
 
     /// <summary>
@@ -150,21 +151,31 @@ public class SpecializationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EditSpecializationAsync(
-        [FromBody] QSpecializationParameters qSpecializationParameters,
+        [FromForm] QSpecializationMutate qSpecializationMutate,
         [FromRoute] Guid specializationId
     )
     {
-        Specialization? specializationToEdit = await this._qspecializationService.UpdateSpecialization(
-            specializationId,
-            qSpecializationParameters
-        );
-        if (specializationToEdit != null)
+        try
         {
-            QSpecializationResponse qSpecializationResponse = new(specializationToEdit);
-            return this.Ok(qSpecializationResponse);
-        }
+            Specialization? specializationToEdit = await this._qspecializationService.UpdateSpecialization(
+                specializationId,
+                qSpecializationMutate
+            );
 
-        return this.StatusCode(500, $"Failed to update specialization for id '{specializationId}'.");
+            if (specializationToEdit != null)
+            {
+                QSpecializationResponse qSpecializationResponse = new(specializationToEdit);
+                return this.Ok(qSpecializationResponse);
+            }
+
+            return this.StatusCode(500, $"Failed to update specialization for id '{specializationId}'.");
+        }
+        catch (Azure.RequestFailedException ex)
+        {
+            this._logger.LogError(ex, "Specialization update threw an exception");
+
+            return this.StatusCode(500, $"Failed to edit specialization for id '{specializationId}'.");
+        }
     }
 
     /// <summary>
@@ -180,16 +191,31 @@ public class SpecializationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DisableSpecializationAsync(Guid specializationId)
     {
-        bool result = await this._qspecializationService.DeleteSpecialization(specializationId);
-        if (result)
+        try
         {
-            return this.Ok(specializationId);
+            Specialization specialization = await this._qspecializationService.GetSpecializationAsync(
+                specializationId.ToString()
+            );
+
+            bool result = await this._qspecializationService.DeleteSpecialization(specializationId);
+
+            if (result)
+            {
+                return this.Ok(specializationId);
+            }
+
+            return this.StatusCode(500, $"Failed to delete specialization for id '{specializationId}'.");
         }
-        return this.StatusCode(500, $"Failed to delete specialization for id '{specializationId}'.");
+        catch (Azure.RequestFailedException ex)
+        {
+            this._logger.LogError(ex, "Specialization delete threw an exception");
+
+            return this.StatusCode(500, $"Failed to delete specialization for id '{specializationId}'.");
+        }
     }
 
     /// <summary>
-    /// Gets the default specialization prtoperties
+    /// Gets the default specialization properties
     /// </summary>
     /// <returns>The dictionary containing default specialization properties</returns>
     private Dictionary<string, string> GetDefaultSpecializationDict()

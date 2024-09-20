@@ -46,7 +46,7 @@ const FileUploaderComponent = (
             className={classes.root}
             accept={acceptedExtensions?.join(',')}
             onChange={onChange}
-            title="Upload a .pdf, .txt, .jpg, .png or .tiff file"
+            title={'Upload a .pdf, .txt, .jpg, .png or .tiff file'}
         />
     );
 };

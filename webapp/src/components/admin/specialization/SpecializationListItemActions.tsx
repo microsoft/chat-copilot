@@ -23,27 +23,23 @@ export const SpecializationListItemActions: React.FC<ISpecializationListItemActi
 }) => {
     const specialization = useSpecialization();
     const classes = useClasses();
-    const [activeMode, setActiveMode] = useState(false);
 
-    const onSwitchSpecialization = (checked: boolean) => {
-        setActiveMode(checked);
-        void specialization.toggleSpecialization(specializationId, activeMode);
-    };
+    // This piece of state is technically NOT necessary but a nice to have for immediate feedback.
+    const [on, turnOn] = useState(specializationMode);
 
     return (
         <div className={classes.root}>
-            <>
-                <Switch
-                    color="#0000"
-                    width={40}
-                    height={20}
-                    checked={specializationMode}
-                    onChange={(_event, data) => {
-                        onSwitchSpecialization(data.checked);
-                    }}
-                    className="react-switch"
-                />
-            </>
+            <Switch
+                color="#0000"
+                width={40}
+                height={20}
+                checked={on}
+                onChange={(_event, { checked }) => {
+                    turnOn(checked);
+                    void specialization.toggleSpecialization(specializationId, checked);
+                }}
+                className="react-switch"
+            />
         </div>
     );
 };

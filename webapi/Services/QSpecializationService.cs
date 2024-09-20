@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Storage;
+using CopilotChat.WebApi.Plugins.Chat.Ext;
 using CopilotChat.WebApi.Storage;
+using Microsoft.AspNetCore.Http;
 
 namespace CopilotChat.WebApi.Services;
 
@@ -16,9 +18,21 @@ public class QSpecializationService : IQSpecializationService
 {
     private SpecializationRepository _specializationSourceRepository;
 
-    public QSpecializationService(SpecializationRepository specializationSourceRepository)
+    private QAzureOpenAIChatOptions _qAzureOpenAIChatOptions;
+
+    private QBlobStorage _qBlobStorage;
+
+    public QSpecializationService(
+        SpecializationRepository specializationSourceRepository,
+        QAzureOpenAIChatOptions qAzureOpenAIChatOptions
+    )
     {
         this._specializationSourceRepository = specializationSourceRepository;
+        this._qAzureOpenAIChatOptions = qAzureOpenAIChatOptions;
+        this._qBlobStorage = new QBlobStorage(
+            qAzureOpenAIChatOptions.BlobStorage.ConnectionString,
+            qAzureOpenAIChatOptions.BlobStorage.SpecializationContainerName
+        );
     }
 
     /// <summary>
@@ -43,23 +57,37 @@ public class QSpecializationService : IQSpecializationService
     /// <summary>
     /// Creates new specialization.
     /// </summary>
-    /// <param name="qSpecializationParameters">Specialization parameters</param>
+    /// <param name="qSpecializationMutate">Specialization mutate payload</param>
     /// <returns>The task result contains the specialization source</returns>
-    public async Task<Specialization> SaveSpecialization(QSpecializationParameters qSpecializationParameters)
+    public async Task<Specialization> SaveSpecialization(QSpecializationMutate qSpecializationMutate)
     {
+        // Add the image to the blob storage or use the default image
+        var imageFilePath =
+            qSpecializationMutate.ImageFile == null
+                ? this._qAzureOpenAIChatOptions.DefaultSpecializationImage
+                : await this._qBlobStorage.AddBlobAsync(qSpecializationMutate.ImageFile);
+
+        // Add the icon to the blob storage or use the default icon
+        var iconFilePath =
+            qSpecializationMutate.IconFile == null
+                ? this._qAzureOpenAIChatOptions.DefaultSpecializationIcon
+                : await this._qBlobStorage.AddBlobAsync(qSpecializationMutate.IconFile);
+
         Specialization specializationSource =
             new(
-                qSpecializationParameters.label,
-                qSpecializationParameters.Name,
-                qSpecializationParameters.Description,
-                qSpecializationParameters.RoleInformation,
-                qSpecializationParameters.IndexName,
-                qSpecializationParameters.Deployment,
-                qSpecializationParameters.ImageFilePath!,
-                qSpecializationParameters.IconFilePath,
-                qSpecializationParameters.GroupMemberships
+                qSpecializationMutate.label,
+                qSpecializationMutate.Name,
+                qSpecializationMutate.Description,
+                qSpecializationMutate.RoleInformation,
+                qSpecializationMutate.IndexName,
+                qSpecializationMutate.Deployment,
+                imageFilePath,
+                iconFilePath,
+                qSpecializationMutate.GroupMemberships.Split(',')
             );
+
         await this._specializationSourceRepository.CreateAsync(specializationSource);
+
         return specializationSource;
     }
 
@@ -67,55 +95,69 @@ public class QSpecializationService : IQSpecializationService
     /// Updates the specialization.
     /// </summary>
     /// <param name="specializationId">Unique identifier of the specialization</param>
-    /// <param name="qSpecializationParameters">Specialization parameters</param>
+    /// <param name="qSpecializationMutate">Specialization mutate payload</param>
     /// <returns>The task result contains the specialization source</returns>
     public async Task<Specialization?> UpdateSpecialization(
         Guid specializationId,
-        QSpecializationParameters qSpecializationParameters
+        QSpecializationMutate qSpecializationMutate
     )
     {
-        Specialization? specializationToUpdate = null;
-        if (
-            await this._specializationSourceRepository.TryFindByIdAsync(
-                specializationId.ToString(),
-                callback: v => specializationToUpdate = v
-            )
-        )
+        Specialization? specializationToUpdate = await this._specializationSourceRepository.FindByIdAsync(
+            specializationId.ToString()
+        );
+
+        if (specializationToUpdate != null)
         {
-            specializationToUpdate!.IsActive = qSpecializationParameters.isActive;
-            specializationToUpdate!.Name = !string.IsNullOrEmpty(qSpecializationParameters.Name)
-                ? qSpecializationParameters.Name
+            // Update the image file and set the file path
+            specializationToUpdate.ImageFilePath = await this.UpsertSpecializationBlobAsync(
+                qSpecializationMutate.ImageFile,
+                new Uri(specializationToUpdate.ImageFilePath),
+                Convert.ToBoolean(qSpecializationMutate.DeleteImageFile),
+                this._qAzureOpenAIChatOptions.DefaultSpecializationImage
+            );
+
+            // Update the icon file and set the file path
+            specializationToUpdate.IconFilePath = await this.UpsertSpecializationBlobAsync(
+                qSpecializationMutate.IconFile,
+                new Uri(specializationToUpdate.IconFilePath),
+                Convert.ToBoolean(qSpecializationMutate.DeleteIconFile),
+                this._qAzureOpenAIChatOptions.DefaultSpecializationIcon
+            );
+
+            specializationToUpdate!.IsActive = Convert.ToBoolean(qSpecializationMutate.isActive);
+
+            specializationToUpdate!.Name = !string.IsNullOrEmpty(qSpecializationMutate.Name)
+                ? qSpecializationMutate.Name
                 : specializationToUpdate!.Name;
-            specializationToUpdate!.Description = !string.IsNullOrEmpty(qSpecializationParameters.Description)
-                ? qSpecializationParameters.Description
+
+            specializationToUpdate!.Description = !string.IsNullOrEmpty(qSpecializationMutate.Description)
+                ? qSpecializationMutate.Description
                 : specializationToUpdate!.Description;
-            specializationToUpdate!.RoleInformation = !string.IsNullOrEmpty(qSpecializationParameters.RoleInformation)
-                ? qSpecializationParameters.RoleInformation
+
+            specializationToUpdate!.RoleInformation = !string.IsNullOrEmpty(qSpecializationMutate.RoleInformation)
+                ? qSpecializationMutate.RoleInformation
                 : specializationToUpdate!.RoleInformation;
+
             specializationToUpdate!.IndexName =
-                qSpecializationParameters.IndexName != null
-                    ? qSpecializationParameters.IndexName
+                qSpecializationMutate.IndexName != null
+                    ? qSpecializationMutate.IndexName
                     : specializationToUpdate!.IndexName;
+
+            // Group memberships (mutate payload) are a comma separated list of UUIDs.
+            specializationToUpdate!.GroupMemberships = !string.IsNullOrEmpty(qSpecializationMutate.GroupMemberships)
+                ? qSpecializationMutate.GroupMemberships.Split(',')
+                : specializationToUpdate!.GroupMemberships;
+
             specializationToUpdate!.Deployment =
-                qSpecializationParameters.Deployment != null
-                    ? qSpecializationParameters.Deployment
+                qSpecializationMutate.Deployment != null
+                    ? qSpecializationMutate.Deployment
                     : specializationToUpdate!.Deployment;
-            specializationToUpdate!.ImageFilePath =
-                qSpecializationParameters.ImageFilePath != null
-                    ? qSpecializationParameters.ImageFilePath
-                    : specializationToUpdate!.ImageFilePath;
-            specializationToUpdate!.IconFilePath =
-                qSpecializationParameters.IconFilePath != null
-                    ? qSpecializationParameters.IconFilePath
-                    : specializationToUpdate!.IconFilePath;
-            specializationToUpdate!.GroupMemberships =
-                qSpecializationParameters.GroupMemberships != null
-                    ? qSpecializationParameters.GroupMemberships
-                    : specializationToUpdate!.GroupMemberships;
 
             await this._specializationSourceRepository.UpsertAsync(specializationToUpdate);
+
             return specializationToUpdate;
         }
+
         return null;
     }
 
@@ -126,17 +168,68 @@ public class QSpecializationService : IQSpecializationService
     /// <returns>The task result contains the delete state</returns>
     public async Task<bool> DeleteSpecialization(Guid specializationId)
     {
-        try
+        Specialization? specializationToDelete = await this._specializationSourceRepository.FindByIdAsync(
+            specializationId.ToString()
+        );
+
+        await this._specializationSourceRepository.DeleteAsync(specializationToDelete);
+
+        var imageFileUri = new Uri(specializationToDelete.ImageFilePath);
+        var iconFileUri = new Uri(specializationToDelete.IconFilePath);
+
+        // Remove the image file from the blob storage if it is a Blob Storage URI
+        if (await this._qBlobStorage.BlobExistsAsync(imageFileUri))
         {
-            Specialization? specializationToDelete = await this._specializationSourceRepository.FindByIdAsync(
-                specializationId.ToString()
-            );
-            await this._specializationSourceRepository.DeleteAsync(specializationToDelete);
-            return true;
+            await this._qBlobStorage.DeleteBlobByURIAsync(imageFileUri);
         }
-        catch (Exception ex) when (ex is ArgumentOutOfRangeException)
+
+        // Remove the icon file from the blob storage if it is a Blob Storage URI
+        if (await this._qBlobStorage.BlobExistsAsync(iconFileUri))
         {
-            return false;
+            await this._qBlobStorage.DeleteBlobByURIAsync(iconFileUri);
         }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Upsert the specialization blob and return filepath or blob storage URI.
+    /// </summary>
+    /// <param name="file">File to store in blob storage</param>
+    /// <param name="fileUri">File path URI</param>
+    /// <param name="delete">Flag to delete the file from the blob storage</param>
+    /// <param name="filePathDefault">File path default value</param>
+    /// <returns>FilePath or Blob Storage URI</returns>
+    private async Task<string> UpsertSpecializationBlobAsync(
+        IFormFile? file,
+        System.Uri fileUri,
+        bool delete = false,
+        string filePathDefault = ""
+    )
+    {
+        var blobExists = await this._qBlobStorage.BlobExistsAsync(fileUri);
+
+        // 1. File provided and a default file path is stored in the DB
+        if (file != null && !blobExists)
+        {
+            return await this._qBlobStorage.AddBlobAsync(file);
+        }
+
+        // 2. File provided and a Blob Storage URI is stored in the DB
+        if (file != null && blobExists)
+        {
+            await this._qBlobStorage.DeleteBlobByURIAsync(fileUri);
+            return await this._qBlobStorage.AddBlobAsync(file);
+        }
+
+        // 3. File not provided and a default file path is stored in the DB and delete flag is set
+        if (file == null && blobExists && delete)
+        {
+            await this._qBlobStorage.DeleteBlobByURIAsync(fileUri);
+
+            return filePathDefault;
+        }
+
+        return fileUri.ToString();
     }
 }

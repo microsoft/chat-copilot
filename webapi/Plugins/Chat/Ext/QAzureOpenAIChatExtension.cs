@@ -43,7 +43,10 @@ public class QAzureOpenAIChatExtension
     )
     {
         this._qAzureOpenAIChatOptions = qAzureOpenAIChatOptions;
-        this._qSpecializationService = new QSpecializationService(specializationSourceRepository);
+        this._qSpecializationService = new QSpecializationService(
+            specializationSourceRepository,
+            qAzureOpenAIChatOptions
+        );
     }
 
     public bool isEnabled(string? specializationId)
