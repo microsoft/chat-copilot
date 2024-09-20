@@ -1,4 +1,4 @@
-import { Subtitle1, makeStyles, tokens } from '@fluentui/react-components';
+import { Subtitle1, Tag, makeStyles, tokens } from '@fluentui/react-components';
 import { FC } from 'react';
 import { useAppSelector } from '../../redux/app/hooks';
 import { PluginGallery } from '../open-api-plugins/PluginGallery';
@@ -20,8 +20,13 @@ const useStyles = makeStyles({
         position: 'relative',
     },
     title: {
+        display: 'flex',
         flex: 1,
         textAlign: 'left',
+        alignItems: 'center',
+    },
+    betaTag: {
+        marginLeft: tokens.spacingHorizontalM,
     },
     logo: {
         maxWidth: '70%',
@@ -57,9 +62,14 @@ const Header: FC<HeaderProps> = ({ appState, setAppState, showPluginsAndSettings
                 boxShadow: isDarkMode ? '0 2px 4px rgba(255, 255, 255, 0.1)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
             }}
         >
-            <Subtitle1 as="h1" className={classes.title} style={{ color: isDarkMode ? 'white' : 'black' }}>
-                Chat Q-Pilot - Beta
-            </Subtitle1>
+            <div className={classes.title}>
+                <Subtitle1 as="h1" style={{ color: isDarkMode ? 'white' : 'black' }}>
+                    Chat Q-Pilot
+                </Subtitle1>
+                <Tag shape={'rounded'} size="small" appearance="brand" className={classes.betaTag}>
+                    Beta
+                </Tag>
+            </div>
             <img src={isDarkMode ? darkLogo : logo} alt="Logo" className={classes.logo} />
             {showPluginsAndSettings && appState > AppState.SettingUserInfo && (
                 <div className={classes.cornerItems} style={{ color: isDarkMode ? 'white' : 'black' }}>

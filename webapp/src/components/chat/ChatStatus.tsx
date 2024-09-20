@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import { makeStyles } from '@fluentui/react-components';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { IChatUser } from '../../libs/models/ChatUser';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { TypingIndicator } from './typing-indicator/TypingIndicator';
+import { ChatState } from '../../redux/features/conversations/ChatState';
 
 const useClasses = makeStyles({
     root: {
@@ -14,42 +15,64 @@ const useClasses = makeStyles({
     },
 });
 
-export const ChatStatus: React.FC = () => {
+interface ChatStatusProps {
+    chatState: ChatState;
+}
+/**
+ * Component to display the chat status, including the number of users typing and the bot response status.
+ *
+ * @returns {*} The chat status component
+ */
+export const ChatStatus: React.FC<ChatStatusProps> = (props: ChatStatusProps) => {
     const classes = useClasses();
-
-    const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
-    const { users } = conversations[selectedId];
     const { activeUserInfo } = useAppSelector((state: RootState) => state.app);
-    const [typingUserList, setTypingUserList] = React.useState<IChatUser[]>([]);
 
-    React.useEffect(() => {
-        const checkAreTyping = () => {
-            const updatedTypingUsers: IChatUser[] = users.filter(
-                (chatUser: IChatUser) => chatUser.id !== activeUserInfo?.id && chatUser.isTyping,
-            );
+    // The last message either from the user or the bot
+    const lastMessage = props.chatState.messages[props.chatState.messages.length - 1];
 
-            setTypingUserList(updatedTypingUsers);
-        };
-        checkAreTyping();
-    }, [activeUserInfo, users]);
+    // Get the bot response status if the last message is not from the bot
+    const botResponseStatus =
+        (lastMessage.userId === 'Bot' || lastMessage.userName === 'Bot') && Boolean(lastMessage.content.length)
+            ? undefined
+            : props.chatState.botResponseStatus;
 
-    let message = conversations[selectedId].botResponseStatus;
-    const numberOfUsersTyping = typingUserList.length;
-    if (numberOfUsersTyping === 1) {
-        message = message ? `${message} and a user is typing` : 'A user is typing';
-    } else if (numberOfUsersTyping > 1) {
-        message = message
-            ? `${message} and ${numberOfUsersTyping} users are typing`
-            : `${numberOfUsersTyping} users are typing`;
-    }
+    // The number of users typing in the chat
+    const numUsersTyping = useMemo(() => {
+        return props.chatState.users.filter(
+            (chatUser: IChatUser) => chatUser.id !== activeUserInfo?.id && chatUser.isTyping,
+        ).length;
+    }, [activeUserInfo?.id, props.chatState.users]);
 
-    if (!message) {
+    /**
+     * Get the status message to display.
+     *
+     * @param {number} numUsersTyping
+     * @param {string} [botStatus] - The bot response status
+     * @returns {string | undefined} Status message
+     */
+    const getStatus = (numUsersTyping: number, botStatus?: string) => {
+        if (numUsersTyping === 1 && botStatus) {
+            return `${botStatus} and a user is typing`;
+        }
+        if (numUsersTyping === 1) {
+            return 'A user is typing';
+        }
+        if (numUsersTyping > 1 && botStatus) {
+            return `${botStatus} and ${numUsersTyping} users are typing`;
+        }
+        if (numUsersTyping > 1) {
+            return `${numUsersTyping} users are typing`;
+        }
+        return botStatus;
+    };
+
+    if (!getStatus(numUsersTyping, botResponseStatus)) {
         return null;
     }
 
     return (
         <div className={classes.root}>
-            <label style={{ marginRight: '4px' }}>{message}</label>
+            <label style={{ marginRight: '4px' }}>{getStatus(numUsersTyping, botResponseStatus)}</label>
             <TypingIndicator />
         </div>
     );
