@@ -367,6 +367,10 @@ csharp_style_prefer_top_level_statements = true:silent
 csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 
+[*.test.cs]
+# Allow placing test classes in the same directory as the class to test
+# ie: MyProject/MyClass.cs (MyProject.MyClass) and MyProject/MyClass.test.cs (MyProject.MyClass.Test)
+dotnet_diagnostic.IDE0130.severity = none # Namespace does not match folder structure
 
 ###############################
 # Java Coding Conventions     #

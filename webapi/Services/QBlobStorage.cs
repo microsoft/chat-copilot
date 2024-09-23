@@ -11,21 +11,14 @@ namespace CopilotChat.WebApi.Services;
 /// </summary>
 public class QBlobStorage
 {
-    // BlobServiceClient which is used to create a container client
-    private readonly BlobServiceClient _blobServiceClient;
-
     // BlobContainerClient which is used to interact with the container's blobs
     private BlobContainerClient _blobContainerClient;
 
-    public QBlobStorage(string connectionString, string containerName)
+    public QBlobStorage(BlobContainerClient blobContainerClient)
     {
-        BlobServiceClient blobServiceClient = new(connectionString);
-        BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
         // Create a new container only if it does not exist
         blobContainerClient.CreateIfNotExists(PublicAccessType.Blob);
 
-        this._blobServiceClient = blobServiceClient;
         this._blobContainerClient = blobContainerClient;
     }
 
@@ -68,7 +61,6 @@ public class QBlobStorage
     /// Remove a blob from the storage container by URI
     /// </summary>
     /// <param name="blobURI">Blob Storage URI</param>
-    /// <returns>Deleted blob URI</returns>
     public async Task DeleteBlobByURIAsync(System.Uri blobURI)
     {
         BlobUriBuilder blobUriBuilder = new(blobURI);

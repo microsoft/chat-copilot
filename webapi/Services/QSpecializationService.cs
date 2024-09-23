@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Plugins.Chat.Ext;
@@ -29,10 +30,14 @@ public class QSpecializationService : IQSpecializationService
     {
         this._specializationSourceRepository = specializationSourceRepository;
         this._qAzureOpenAIChatOptions = qAzureOpenAIChatOptions;
-        this._qBlobStorage = new QBlobStorage(
-            qAzureOpenAIChatOptions.BlobStorage.ConnectionString,
+
+        BlobServiceClient blobServiceClient = new(qAzureOpenAIChatOptions.BlobStorage.ConnectionString);
+
+        BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(
             qAzureOpenAIChatOptions.BlobStorage.SpecializationContainerName
         );
+
+        this._qBlobStorage = new QBlobStorage(blobContainerClient);
     }
 
     /// <summary>

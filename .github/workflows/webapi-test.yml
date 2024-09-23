@@ -1,0 +1,23 @@
+#
+# In the webapi directory run: dotnet test .
+#
+# Dotnet test: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+#
+# Testing Library (MSTest): https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-mstest
+# Testing Library Resource: https://testingbot.com/support/getting-started/mstest.html
+#
+# Mocking Library (Moq): https://github.com/devlooped/moq/wiki/Quickstart#matching-arguments
+#
+name: Test Backend
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test Runner
+        working-directory: webapi
+        run: |
+          dotnet test .

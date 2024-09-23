@@ -1,4 +1,4 @@
-name: dotnet-format
+name: Lint Backend
 
 on:
   pull_request:
@@ -66,7 +66,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Check formatting
+      - name: Check For Lint
         if: steps.find-csproj.outputs.csproj_files != ''
         run: |
           for csproj in ${{ steps.find-csproj.outputs.csproj_files }}; do
