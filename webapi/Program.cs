@@ -34,6 +34,7 @@ public sealed class Program
     // ReSharper disable once InconsistentNaming
     public static async Task Main(string[] args)
     {
+        Console.WriteLine("Starting Chat Copilot Service...");
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         // Load in configuration settings from appsettings.json, user-secrets, key vaults, etc...
