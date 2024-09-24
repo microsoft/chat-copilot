@@ -29,6 +29,11 @@ resource "azurerm_resource_group" "cosmos" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "storage" {
+  name     = "rg-${local.standard_name}-storage"
+  location = var.location
+}
+
 
 
 ########################
@@ -247,4 +252,17 @@ module "azure_cosmosdb" {
   cosmosdb_sql_containers = var.cosmosdb_sql_containers
   throughput              = var.throughput
   tags                    = var.tags
+}
+
+##################
+# Storage Account
+##################
+
+module "storage_account" {
+  source              = "./modules/storage_account"
+  name                = "stg${local.short_name}"
+  resource_group_name = azurerm_resource_group.storage.name
+  location            = var.location
+  container_names     = var.container_names
+  tags                = var.tags
 }

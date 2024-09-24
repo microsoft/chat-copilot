@@ -81,6 +81,15 @@ variable "throughput" {
   }
 }
 
+#######################
+# Storage Account #
+#######################
+
+variable "container_names" {
+  type        = list(string)
+  description = "The names of the Containers to be created"
+}
+
 
 ###################
 # SQL Server #

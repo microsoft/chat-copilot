@@ -307,6 +307,11 @@ webapi:
         secretKeyRef:
           name: q-pilot-webapi-secret
           key: QAzureOpenAIChatConfig-AISearchDeploymentConnections-1-ApiKey
+    - name: "QAzureOpenAIChatConfig__BlobStorage__ConnectionString"
+      valueFrom:
+        secretKeyRef:
+          name: q-pilot-webapi-secret
+          key: QAzureOpenAIChatConfig-BlobStorage-ConnectionString
     - name: "APP_NAME"
       value: "webapi"
 
@@ -356,6 +361,7 @@ webapi:
         KernelMemory-Services-AzureOpenAIEmbedding-APIKey,
         KernelMemory-Services-AzureOpenAIText-APIKey,
         ChatStore-Cosmos-ConnectionString,
+        QAzureOpenAIChatConfig-BlobStorage-ConnectionString,
         QAzureOpenAIChatConfig-OpenAIDeploymentConnections-0-ApiKey,
         QAzureOpenAIChatConfig-OpenAIDeploymentConnections-1-ApiKey,
         QAzureOpenAIChatConfig-AISearchDeploymentConnections-0-ApiKey,

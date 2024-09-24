@@ -23,3 +23,4 @@ cosmosdb_sql_containers = [
   { name = "chatuser", partition_key_path = "/id" }
 ]
 
+container_names = ["specialization"]
