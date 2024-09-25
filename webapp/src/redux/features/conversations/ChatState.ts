@@ -22,4 +22,5 @@ export interface ChatState {
     disabled: boolean; // For labeling a chat has been deleted
     hidden: boolean; // For hiding a chat from the list
     specializationId?: string;
+    suggestions: string[];
 }

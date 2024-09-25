@@ -4,12 +4,14 @@ import { makeStyles, shorthands, tokens } from '@fluentui/react-components';
 import React, { useState } from 'react';
 import { SpecializationCardList } from '../../components/specialization/SpecializationCardList';
 import { GetResponseOptions, useChat } from '../../libs/hooks/useChat';
+import { ChatMessageType } from '../../libs/models/ChatMessage';
 import { useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { FeatureKeys, Features } from '../../redux/features/app/AppState';
 import { SharedStyles } from '../../styles';
 import { ChatInput } from './ChatInput';
 import { ChatHistory } from './chat-history/ChatHistory';
+import { ChatSuggestionList } from './suggestions/ChatSuggestionList';
 
 const useClasses = makeStyles({
     root: {
@@ -35,6 +37,10 @@ const useClasses = makeStyles({
         flexDirection: 'row',
         justifyContent: 'center',
         ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingVerticalNone),
+    },
+    suggestions: {
+        display: 'flex',
+        flexDirection: 'row',
     },
     carouselroot: {
         display: 'flex',
@@ -71,6 +77,7 @@ export const ChatRoom: React.FC = () => {
     const { specializations } = useAppSelector((state: RootState) => state.admin);
 
     const [showSpecialization, setShowSpecialization] = useState(true);
+    const [showSuggestions, setShowSuggestions] = useState(true);
 
     React.useEffect(() => {
         if (!shouldAutoScroll) return;
@@ -96,6 +103,10 @@ export const ChatRoom: React.FC = () => {
     }, []);
 
     React.useEffect(() => {
+        if (Object.keys(messages).length <= 1) {
+            setShowSuggestions(true);
+        }
+
         if (Object.keys(messages).length <= 1 && conversations[selectedId].specializationId === '') {
             setShowSpecialization(true);
         } else {
@@ -106,6 +117,16 @@ export const ChatRoom: React.FC = () => {
     const handleSubmit = async (options: GetResponseOptions) => {
         await chat.getResponse(options);
         setShouldAutoScroll(true);
+    };
+
+    const suggestionClick = (message: string) => {
+        const messageBody: GetResponseOptions = {
+            messageType: ChatMessageType.Message,
+            value: message,
+            chatId: selectedId,
+        };
+        void chat.getResponse(messageBody);
+        setShowSuggestions(false);
     };
 
     if (conversations[selectedId].hidden) {
@@ -140,7 +161,11 @@ export const ChatRoom: React.FC = () => {
                     </div>
                 </div>
             )}
-
+            {showSuggestions && (
+                <div className={classes.suggestions}>
+                    <ChatSuggestionList onClickSuggestion={suggestionClick} />
+                </div>
+            )}
             <div className={classes.input}>
                 <ChatInput isDraggingOver={isDraggingOver} onDragLeave={onDragLeave} onSubmit={handleSubmit} />
             </div>

@@ -95,6 +95,7 @@ export const useChat = () => {
                         disabled: false,
                         hidden: false,
                         specializationId,
+                        suggestions: [],
                     };
 
                     dispatch(addConversation(newChat));
@@ -104,6 +105,33 @@ export const useChat = () => {
             const errorMessage = `Unable to create new chat. Details: ${getErrorDetails(e)}`;
             dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
         }
+    };
+
+    const getSuggestions = async ({ chatId }: { chatId: string }) => {
+        const ask = {
+            input: `Make 4 suggestions for topics we could talk about and phrase them as one sentence long questions. Format them as a JSON array of strings.`,
+            variables: [
+                {
+                    key: 'chatId',
+                    value: chatId,
+                },
+                {
+                    key: 'messageType',
+                    value: ChatMessageType.Message.toString(),
+                },
+                {
+                    key: 'specialization',
+                    value: conversations[chatId].specializationId
+                        ? conversations[chatId].specializationId
+                        : defaultSpecializationId,
+                },
+            ],
+        };
+        return chatService.getBotResponseSilentAsync(
+            ask,
+            await AuthHelper.getSKaaSAccessToken(instance, inProgress),
+            getEnabledPlugins(),
+        );
     };
 
     const getResponse = async ({ messageType, value, chatId, kernelArguments, processPlan }: GetResponseOptions) => {
@@ -233,6 +261,7 @@ export const useChat = () => {
                         disabled: false,
                         hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
                         specializationId: chatSession.specializationId,
+                        suggestions: [],
                     };
                 }
 
@@ -291,6 +320,7 @@ export const useChat = () => {
                     disabled: false,
                     hidden: false,
                     specializationId: chatSession.specializationId,
+                    suggestions: [],
                 };
 
                 dispatch(addConversation(newChat));
@@ -410,6 +440,7 @@ export const useChat = () => {
                     disabled: false,
                     hidden: false,
                     specializationId: result.specializationId,
+                    suggestions: [],
                 };
 
                 dispatch(addConversation(newChat));
@@ -546,6 +577,7 @@ export const useChat = () => {
         createChat,
         loadChats,
         getResponse,
+        getSuggestions,
         downloadBot,
         uploadBot,
         getChatMemorySources,
