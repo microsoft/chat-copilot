@@ -105,6 +105,8 @@ export const ChatRoom: React.FC = () => {
     React.useEffect(() => {
         if (Object.keys(messages).length <= 1) {
             setShowSuggestions(true);
+        } else {
+            setShowSuggestions(false);
         }
 
         if (Object.keys(messages).length <= 1 && conversations[selectedId].specializationId === '') {

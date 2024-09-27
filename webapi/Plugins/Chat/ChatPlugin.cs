@@ -468,11 +468,6 @@ public class ChatPlugin
         // Calculate max amount of tokens to use for memories
         int maxRequestTokenBudget = this.GetMaxRequestTokenBudget();
         int tokensUsed = TokenUtils.GetContextMessagesTokenCount(promptConfig.MetaPrompt);
-        int chatMemoryTokenBudget =
-            maxRequestTokenBudget
-            - tokensUsed
-            - TokenUtils.GetContextMessageTokenCount(AuthorRole.User, userMessage.ToFormattedString());
-        chatMemoryTokenBudget = (int)(chatMemoryTokenBudget * this._promptOptions.MemoriesResponseContextWeight);
 
         // Start extracting chat history
         var chatHistoryTask = this.GetAllowedChatHistoryAsync(
@@ -519,7 +514,22 @@ public class ChatPlugin
     )
     {
         var promptConfig = await this.GetPromptConfig(chatId, chatContext, cancellationToken);
-        var (memoryText, citationMap) = await this.GetAndInjectSemanticMemories(chatId, 0, chatContext, promptConfig);
+
+        int maxRequestTokenBudget = this.GetMaxRequestTokenBudget();
+        int tokensUsed = TokenUtils.GetContextMessagesTokenCount(promptConfig.MetaPrompt);
+
+        int chatMemoryTokenBudget =
+            maxRequestTokenBudget
+            - tokensUsed
+            - TokenUtils.GetContextMessageTokenCount(AuthorRole.User, userMessage.ToFormattedString());
+        chatMemoryTokenBudget = (int)(chatMemoryTokenBudget * this._promptOptions.MemoriesResponseContextWeight);
+
+        var (memoryText, citationMap) = await this.GetAndInjectSemanticMemories(
+            chatId,
+            chatMemoryTokenBudget,
+            chatContext,
+            promptConfig
+        );
         var botPrompt = await this.GetBotResponsePromptAsync(
             userId,
             chatId,
@@ -557,7 +567,22 @@ public class ChatPlugin
     )
     {
         var promptConfig = await this.GetPromptConfig(chatId, chatContext, cancellationToken);
-        var (memoryText, citationMap) = await this.GetAndInjectSemanticMemories(chatId, 0, chatContext, promptConfig);
+
+        int maxRequestTokenBudget = this.GetMaxRequestTokenBudget();
+        int tokensUsed = TokenUtils.GetContextMessagesTokenCount(promptConfig.MetaPrompt);
+
+        int chatMemoryTokenBudget =
+            maxRequestTokenBudget
+            - tokensUsed
+            - TokenUtils.GetContextMessageTokenCount(AuthorRole.User, userMessage.ToFormattedString());
+        chatMemoryTokenBudget = (int)(chatMemoryTokenBudget * this._promptOptions.MemoriesResponseContextWeight);
+
+        var (memoryText, citationMap) = await this.GetAndInjectSemanticMemories(
+            chatId,
+            chatMemoryTokenBudget,
+            chatContext,
+            promptConfig
+        );
         var botPrompt = await this.GetBotResponsePromptAsync(
             userId,
             chatId,
