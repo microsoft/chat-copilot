@@ -5,6 +5,11 @@ image:
 # webapp specific values
 ###############
 
+fe:
+  env:
+    - name: "REACT_APP_ENVIRONMENT"
+      value: "development"
+
 webapp:
   image:
     tag: "dev"

@@ -18,6 +18,8 @@ fe:
   env:
     - name: "REACT_APP_BACKEND_URI"
       value: "https://q-pilot-test.api.pegasus.quartechlab.com/"
+    - name: "REACT_APP_ENVIRONMENT"
+      value: "test"
 
 ###############
 # BE Common values
