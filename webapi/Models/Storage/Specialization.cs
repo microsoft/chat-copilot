@@ -94,14 +94,21 @@ public class Specialization : IStorageEntity
     public DateTimeOffset UpdatedAt { get; set; }
 
     /// <summary>
-    /// Timestamp of action
-    /// </summary>>
-    public int Strictness { get; set; } = 3;
+    /// Restrict Result Scope of specialization
+    /// </summary>
+    public bool? RestrictResultScope { get; set; }
 
     /// <summary>
-    /// Timestamp of action
+    /// Strictness of specialization
     /// </summary>>
-    public int DocumentCount { get; set; } = 20;
+    public int? Strictness { get; set; }
+
+    /// <summary>
+    /// Document Count of specialization
+    /// </summary>>
+    public int? DocumentCount { get; set; }
+
+    public Specialization() { }
 
     public Specialization(
         string Label,
@@ -110,6 +117,9 @@ public class Specialization : IStorageEntity
         string RoleInformation,
         string? IndexName,
         string? Deployment,
+        bool? RestrictResultScope,
+        int? Strictness,
+        int? DocumentCount,
         string ImageFilePath,
         string IconFilePath,
         IList<string> GroupMemberships
@@ -122,6 +132,9 @@ public class Specialization : IStorageEntity
         this.RoleInformation = RoleInformation;
         this.IndexName = IndexName;
         this.Deployment = Deployment;
+        this.RestrictResultScope = RestrictResultScope;
+        this.Strictness = Strictness;
+        this.DocumentCount = DocumentCount;
         this.ImageFilePath = ImageFilePath;
         this.IconFilePath = IconFilePath;
         this.GroupMemberships = GroupMemberships;

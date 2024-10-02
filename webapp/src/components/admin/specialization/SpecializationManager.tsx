@@ -1,6 +1,21 @@
 import React, { useEffect, useId, useState } from 'react';
 
-import { Button, Dropdown, Input, makeStyles, Option, shorthands, Textarea, tokens } from '@fluentui/react-components';
+import {
+    Button,
+    Checkbox,
+    CheckboxOnChangeData,
+    Dropdown,
+    Input,
+    makeStyles,
+    Option,
+    shorthands,
+    Slider,
+    SliderOnChangeData,
+    Textarea,
+    tokens,
+    Tooltip,
+} from '@fluentui/react-components';
+import { Info20Regular } from '@fluentui/react-icons';
 import { useSpecialization } from '../../../libs/hooks';
 import { useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
@@ -58,6 +73,17 @@ const useClasses = makeStyles({
         flexDirection: 'column',
         ...shorthands.gap(tokens.spacingVerticalSNudge),
     },
+    slidersContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalSNudge),
+        ...shorthands.marginInline('10px'),
+    },
+    slider: {
+        display: 'flex',
+        ...shorthands.gap(tokens.spacingVerticalSNudge),
+        alignItems: 'center',
+    },
 });
 
 const Rows = 8;
@@ -87,6 +113,9 @@ export const SpecializationManager: React.FC = () => {
     const [membershipId, setMembershipId] = useState<string[]>([]);
     const [imageFile, setImageFile] = useState<ISpecializationFile>({ file: null, src: null });
     const [iconFile, setIconFile] = useState<ISpecializationFile>({ file: null, src: null });
+    const [restrictResultScope, setRestrictResultScope] = useState(false);
+    const [strictness, setStrictness] = useState(0);
+    const [documentCount, setDocumentCount] = useState(0);
 
     const [isValid, setIsValid] = useState(false);
     const dropdownId = useId();
@@ -113,8 +142,10 @@ export const SpecializationManager: React.FC = () => {
                 deleteIcon: !iconFile.src, // Set the delete flag if the src is null,
                 deployment,
                 groupMemberships: membershipId,
+                restrictResultScope,
+                strictness,
+                documentCount,
             });
-            resetSpecialization();
         } else {
             void specialization.createSpecialization({
                 label,
@@ -126,8 +157,10 @@ export const SpecializationManager: React.FC = () => {
                 iconFile: iconFile.file,
                 deployment,
                 groupMemberships: membershipId,
+                restrictResultScope,
+                strictness,
+                documentCount,
             });
-            resetSpecialization();
         }
     };
 
@@ -142,6 +175,9 @@ export const SpecializationManager: React.FC = () => {
         setIconFile({ file: null, src: null });
         setIndexName('');
         setDeployment('');
+        setRestrictResultScope(false);
+        setStrictness(3);
+        setDocumentCount(5);
     };
 
     useEffect(() => {
@@ -156,6 +192,9 @@ export const SpecializationManager: React.FC = () => {
                 setRoleInformation(specializationObj.roleInformation);
                 setMembershipId(specializationObj.groupMemberships);
                 setDeployment(specializationObj.deployment);
+                setRestrictResultScope(specializationObj.restrictResultScope);
+                setStrictness(specializationObj.strictness);
+                setDocumentCount(specializationObj.documentCount);
                 /**
                  * Set the image and icon file paths
                  * Note: The file is set to null because we only retrieve the file path from the server
@@ -173,6 +212,27 @@ export const SpecializationManager: React.FC = () => {
     const onDeleteChat = () => {
         void specialization.deleteSpecialization(id);
         resetSpecialization();
+    };
+
+    /**
+     * Callback function for handling changes to the "Limit responses to you data content" checkbox.
+     */
+    const onChangeRestrictResultScope = (_event?: React.ChangeEvent<HTMLInputElement>, data?: CheckboxOnChangeData) => {
+        setRestrictResultScope(!!data?.checked);
+    };
+
+    /**
+     * Callback function for handling changes to the "Strictness" slider.
+     */
+    const onChangeStrictness = (_event?: React.ChangeEvent<HTMLInputElement>, data?: SliderOnChangeData) => {
+        setStrictness(data?.value ?? 0);
+    };
+
+    /**
+     * Callback function for handling changes to the "Retrieved Documents" slider.
+     */
+    const onChangeDocumentCount = (_event?: React.ChangeEvent<HTMLInputElement>, data?: SliderOnChangeData) => {
+        setDocumentCount(data?.value ?? 0);
     };
 
     useEffect(() => {
@@ -236,6 +296,47 @@ export const SpecializationManager: React.FC = () => {
                         </Option>
                     ))}
                 </Dropdown>
+                <div>
+                    <Checkbox
+                        label="Limit responses to your data content"
+                        checked={restrictResultScope}
+                        onChange={onChangeRestrictResultScope}
+                    />
+                    <Tooltip
+                        content={'Enabling this will limit responses specific to your data content'}
+                        relationship="label"
+                    >
+                        <Button icon={<Info20Regular />} appearance="transparent" />
+                    </Tooltip>
+                </div>
+                <div className={classes.slidersContainer}>
+                    <label htmlFor="strictness">Strictness (1-5)</label>
+                    <div id="strictness" className={classes.slider}>
+                        <Slider min={1} max={5} value={strictness} onChange={onChangeStrictness} />
+                        <span>{strictness}</span>
+                        <Tooltip
+                            content={
+                                'Strictness sets the threshold to categorize documents as relevant to your queries. Raising strictness means a higher threshold for relevance and filtering out more documents that are less relevant for responses. Very high strictness could cause failure to generate responses due to limited available documents. The default strictness is 3.'
+                            }
+                            relationship="label"
+                        >
+                            <Button icon={<Info20Regular />} appearance="transparent" />
+                        </Tooltip>
+                    </div>
+                    <label htmlFor="documentCount">Retrieved Documents (3-20)</label>
+                    <div id="documentCount" className={classes.slider}>
+                        <Slider min={3} max={20} value={documentCount} onChange={onChangeDocumentCount} />
+                        <span>{documentCount}</span>
+                        <Tooltip
+                            content={
+                                'This specifies the number of top-scoring documents from your data index used to generate responses. You want to increase the value when you have short documents or want to provide more context. The default value is 5. Note: if you set the value to 20 but only have 10 documents in your index, only 10 will be used.'
+                            }
+                            relationship="label"
+                        >
+                            <Button icon={<Info20Regular />} appearance="transparent" />
+                        </Tooltip>
+                    </div>
+                </div>
                 <label htmlFor="description">
                     Short Description<span className={classes.required}>*</span>
                 </label>

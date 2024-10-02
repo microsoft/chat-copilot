@@ -113,7 +113,7 @@ public class QAzureOpenAIChatExtension
                         },
                         SemanticConfiguration = qSpecializationIndex.SemanticConfiguration,
                         QueryType = new AzureSearchQueryType(qSpecializationIndex.QueryType),
-                        ShouldRestrictResultScope = qSpecializationIndex!.RestrictResultScope,
+                        ShouldRestrictResultScope = specialization.RestrictResultScope,
                         RoleInformation = specialization.RoleInformation,
                         DocumentCount = specialization.DocumentCount,
                         Authentication = new OnYourDataApiKeyAuthenticationOptions(aiSearchDeploymentConnection.APIKey),

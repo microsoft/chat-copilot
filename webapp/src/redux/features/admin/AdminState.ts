@@ -24,6 +24,7 @@ export const Specializations = [
         iconFilePath: '',
         isActive: true,
         groupMemberships: [],
+        restrictResultScope: false,
         strictness: 3,
         documentCount: 20,
     },

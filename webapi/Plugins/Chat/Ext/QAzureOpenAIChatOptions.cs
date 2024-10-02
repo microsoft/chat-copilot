@@ -19,6 +19,9 @@ public class QAzureOpenAIChatOptions
     public string DefaultSpecializationImage { get; set; } = "";
     public string DefaultSpecializationIcon { get; set; } = "";
     public string AdminGroupMembershipId { get; set; } = "";
+    public bool DefaultRestrictResultScope { get; set; } = false;
+    public int DefaultStrictness { get; set; } = 0;
+    public int DefaultDocumentCount { get; set; } = 0;
 
     [Required]
     public IList<OpenAIDeploymentConnection> OpenAIDeploymentConnections { get; set; } =
