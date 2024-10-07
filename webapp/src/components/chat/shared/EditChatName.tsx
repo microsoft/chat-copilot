@@ -50,9 +50,10 @@ export const EditChatName: React.FC<IEditChatNameProps> = ({ name, chatId, exitE
     const onSaveTitleChange = async () => {
         if (name !== title) {
             const chatState = conversations[selectedId];
-            await chat.editChat(chatId, title, chatState.systemDescription, chatState.memoryBalance).then(() => {
-                dispatch(editConversationTitle({ id: chatId, newTitle: title }));
-            });
+            if (chatState.createdOnServer) {
+                await chat.editChat(chatId, title, chatState.systemDescription, chatState.memoryBalance);
+            }
+            dispatch(editConversationTitle({ id: chatId, newTitle: title }));
         }
         exitEdits();
     };

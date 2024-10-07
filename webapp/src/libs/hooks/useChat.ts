@@ -1,5 +1,4 @@
 // Copyright (c) Microsoft. All rights reserved.
-
 import { useMsal } from '@azure/msal-react';
 import { Constants } from '../../Constants';
 import botIcon1 from '../../assets/bot-icons/bot-icon-1.png';
@@ -34,6 +33,7 @@ import { ContextVariable } from '../semantic-kernel/model/AskResult';
 import { ChatArchiveService } from '../services/ChatArchiveService';
 import { ChatService } from '../services/ChatService';
 import { DocumentImportService } from '../services/DocumentImportService';
+import { getUUID } from '../utils/HelperMethods';
 
 export interface GetResponseOptions {
     messageType: ChatMessageType;
@@ -73,40 +73,79 @@ export const useChat = () => {
         if (id === `${chatId}-bot` || id.toLocaleLowerCase() === 'bot') return Constants.bot.profile;
         return users.find((user) => user.id === id);
     };
-    const defaultSpecializationId = specializationsState.find((a) => a.id === 'general')?.id ?? '';
-    const createChat = async (specializationId = defaultSpecializationId) => {
-        const chatTitle = `Q-Pilot @ ${new Date().toLocaleString()}`;
-        try {
-            await chatService
-                .createChatAsync(chatTitle, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
-                .then((result: ICreateChatSessionResponse) => {
-                    const newChat: ChatState = {
-                        id: result.chatSession.id,
-                        title: result.chatSession.title,
-                        systemDescription: result.chatSession.systemDescription,
-                        memoryBalance: result.chatSession.memoryBalance,
-                        messages: [result.initialBotMessage],
-                        enabledHostedPlugins: result.chatSession.enabledPlugins,
-                        users: [loggedInUser],
-                        botProfilePicture: getBotProfilePicture(specializationsState, specializationId),
-                        input: '',
-                        botResponseStatus: undefined,
-                        userDataLoaded: false,
-                        disabled: false,
-                        hidden: false,
-                        specializationId,
-                        suggestions: [],
-                    };
 
-                    dispatch(addConversation(newChat));
-                    return newChat.id;
-                });
-        } catch (e: any) {
-            const errorMessage = `Unable to create new chat. Details: ${getErrorDetails(e)}`;
-            dispatch(addAlert({ message: errorMessage, type: AlertType.Error }));
-        }
+    const defaultSpecializationId = specializationsState.find((a) => a.id === 'general')?.id ?? '';
+    /**
+     * Create chat - This function will create an entry in the redux conversation state with default values.
+     * It does not send any information to the server.
+     * @param specializationId specify the desired specializationId, otherwise default to general
+     * @returns
+     */
+    const createChat = (specializationId = defaultSpecializationId) => {
+        const chatTitle = `Q-Pilot @ ${new Date().toLocaleString()}`;
+
+        const newChat: ChatState = {
+            id: getUUID(),
+            title: chatTitle,
+            systemDescription: '',
+            memoryBalance: -1,
+            messages: [],
+            enabledHostedPlugins: [],
+            users: [loggedInUser],
+            botProfilePicture: getBotProfilePicture(specializationsState, specializationId),
+            input: '',
+            botResponseStatus: undefined,
+            userDataLoaded: false,
+            disabled: false,
+            hidden: false,
+            specializationId,
+            suggestions: [],
+            createdOnServer: false,
+        };
+
+        dispatch(addConversation(newChat));
+        return newChat.id;
     };
 
+    /**
+     * selectSpecializationAndBeginChat - To be used against a chat initialized in the the local redux state that has not been
+     * persisted to the API yet. This will create an entry in the data store for this conversation, set the specialization, and
+     * start the chat with whatever the default message is for this specialization.
+     * @param specializationId
+     * @param chatId
+     */
+    const selectSpecializationAndBeginChat = async (specializationId: string, chatId: string) => {
+        const conversation = conversations[chatId];
+        await chatService
+            .createChatAsync(
+                conversation.title,
+                specializationId,
+                await AuthHelper.getSKaaSAccessToken(instance, inProgress),
+                chatId,
+            )
+            .then((result: ICreateChatSessionResponse) => {
+                const newChat: ChatState = {
+                    id: result.chatSession.id,
+                    title: result.chatSession.title,
+                    systemDescription: result.chatSession.systemDescription,
+                    memoryBalance: result.chatSession.memoryBalance,
+                    messages: [result.initialBotMessage],
+                    enabledHostedPlugins: result.chatSession.enabledPlugins,
+                    users: [loggedInUser],
+                    botProfilePicture: getBotProfilePicture(specializationsState, specializationId),
+                    input: '',
+                    botResponseStatus: undefined,
+                    userDataLoaded: false,
+                    disabled: false,
+                    hidden: false,
+                    specializationId,
+                    suggestions: [],
+                    createdOnServer: true,
+                };
+                dispatch(addConversation(newChat));
+                return newChat.id;
+            });
+    };
     const getSuggestions = async ({ chatId }: { chatId: string }) => {
         const ask = {
             input: `Make 4 suggestions for topics we could talk about and phrase them as one sentence long questions. Format them as a JSON array of strings.`,
@@ -148,8 +187,6 @@ export const useChat = () => {
             authorRole: AuthorRoles.User,
         };
 
-        dispatch(addMessageToConversationFromUser({ message: chatInput, chatId: chatId }));
-
         const ask = {
             input: value,
             variables: [
@@ -176,16 +213,13 @@ export const useChat = () => {
 
         try {
             const conversation = conversations[currentConversationId];
-            if (!conversation.specializationId) {
-                await chatService.editChatSepcializationAsync(
-                    conversation.id,
-                    defaultSpecializationId,
-                    await AuthHelper.getSKaaSAccessToken(instance, inProgress),
-                );
+            if (!conversation.createdOnServer) {
+                await selectSpecializationAndBeginChat(defaultSpecializationId, conversation.id);
                 dispatch(
                     editConversationSpecialization({ id: conversation.id, specializationId: defaultSpecializationId }),
                 );
             }
+            dispatch(addMessageToConversationFromUser({ message: chatInput, chatId: chatId }));
             const askResult = await chatService
                 .getBotResponseAsync(
                     ask,
@@ -261,6 +295,7 @@ export const useChat = () => {
                         disabled: false,
                         hidden: !features[FeatureKeys.MultiUserChat].enabled && chatUsers.length > 1,
                         specializationId: chatSession.specializationId,
+                        createdOnServer: true,
                         suggestions: [],
                     };
                 }
@@ -270,13 +305,13 @@ export const useChat = () => {
                 // If there are no non-hidden chats, create a new chat
                 const nonHiddenChats = Object.values(loadedConversations).filter((c) => !c.hidden);
                 if (nonHiddenChats.length === 0) {
-                    await createChat();
+                    createChat();
                 } else {
                     dispatch(setSelectedConversation(nonHiddenChats[0].id));
                 }
             } else {
                 // No chats exist, create first chat window
-                await createChat();
+                createChat();
             }
 
             return true;
@@ -320,6 +355,7 @@ export const useChat = () => {
                     disabled: false,
                     hidden: false,
                     specializationId: chatSession.specializationId,
+                    createdOnServer: true,
                     suggestions: [],
                 };
 
@@ -440,6 +476,7 @@ export const useChat = () => {
                     disabled: false,
                     hidden: false,
                     specializationId: result.specializationId,
+                    createdOnServer: true,
                     suggestions: [],
                 };
 
@@ -453,12 +490,12 @@ export const useChat = () => {
         return { success: true, message: '' };
     };
 
-    const editChat = async (chatId: string, title: string, syetemDescription: string, memoryBalance: number) => {
+    const editChat = async (chatId: string, title: string, systemDescription: string, memoryBalance: number) => {
         try {
             await chatService.editChatAsync(
                 chatId,
                 title,
-                syetemDescription,
+                systemDescription,
                 memoryBalance,
                 await AuthHelper.getSKaaSAccessToken(instance, inProgress),
             );
@@ -494,30 +531,33 @@ export const useChat = () => {
 
     const deleteChat = async (chatId: string) => {
         const friendlyChatName = getFriendlyChatName(conversations[chatId]);
-        await chatService
-            .deleteChatAsync(chatId, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
-            .then(() => {
-                dispatch(deleteConversation(chatId));
+        if (conversations[chatId].createdOnServer) {
+            await chatService
+                .deleteChatAsync(chatId, await AuthHelper.getSKaaSAccessToken(instance, inProgress))
+                .then(() => {
+                    dispatch(deleteConversation(chatId));
 
-                if (Object.values(conversations).filter((c) => !c.hidden && c.id !== chatId).length === 0) {
-                    // If there are no non-hidden chats, create a new chat
-                    //void createChat();
-                }
-            })
-            .catch((e: any) => {
-                const errorDetails = (e as Error).message.includes('Failed to delete resources for chat id')
-                    ? "Some or all resources associated with this chat couldn't be deleted. Please try again."
-                    : `Details: ${(e as Error).message}`;
-                dispatch(
-                    addAlert({
-                        message: `Unable to delete chat {${friendlyChatName}}. ${errorDetails}`,
-                        type: AlertType.Error,
-                        onRetry: () => void deleteChat(chatId),
-                    }),
-                );
-            });
+                    if (Object.values(conversations).filter((c) => !c.hidden && c.id !== chatId).length === 0) {
+                        // If there are no non-hidden chats, create a new chat
+                        //void createChat();
+                    }
+                })
+                .catch((e: any) => {
+                    const errorDetails = (e as Error).message.includes('Failed to delete resources for chat id')
+                        ? "Some or all resources associated with this chat couldn't be deleted. Please try again."
+                        : `Details: ${(e as Error).message}`;
+                    dispatch(
+                        addAlert({
+                            message: `Unable to delete chat {${friendlyChatName}}. ${errorDetails}`,
+                            type: AlertType.Error,
+                            onRetry: () => void deleteChat(chatId),
+                        }),
+                    );
+                });
+        } else {
+            dispatch(deleteConversation(chatId));
+        }
     };
-    ``;
 
     /**
      * Asynchronously deletes the chat history for a given chat ID.
@@ -590,6 +630,7 @@ export const useChat = () => {
         deleteChat,
         deleteChatHistory,
         processPlan,
+        selectSpecializationAndBeginChat,
     };
 };
 

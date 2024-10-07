@@ -78,7 +78,7 @@ export const ChatListSection: React.FC<IChatListSectionProps> = ({ header, conve
                         key={id}
                         isSelected={isSelected}
                         header={getFriendlyChatName(convo)}
-                        timestamp={convo.lastUpdatedTimestamp ?? lastMessage.timestamp}
+                        timestamp={convo.lastUpdatedTimestamp ?? (messages.length > 0 ? lastMessage.timestamp : 0)} //Note: using 0 as a default unix epoch time value here
                         preview={
                             messages.length > 0
                                 ? lastMessage.type === ChatMessageType.Document

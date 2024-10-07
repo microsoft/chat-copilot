@@ -16,9 +16,16 @@ import { BaseService } from './BaseService';
  * Changes to take specialization key in chat creation.
  */
 export class ChatService extends BaseService {
-    public createChatAsync = async (title: string, accessToken: string): Promise<ICreateChatSessionResponse> => {
+    public createChatAsync = async (
+        title: string,
+        specializationId: string,
+        accessToken: string,
+        id = '',
+    ): Promise<ICreateChatSessionResponse> => {
         const body = {
             title,
+            specializationId,
+            id,
         };
 
         const result = await this.getResponseAsync<ICreateChatSessionResponse>(

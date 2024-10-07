@@ -3,13 +3,13 @@ import { ShieldTask16Regular } from '@fluentui/react-icons';
 import { FC, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../redux/app/hooks';
 import { RootState } from '../../../redux/app/store';
+import { setChatSpecialization } from '../../../redux/features/admin/adminSlice';
 import { FeatureKeys } from '../../../redux/features/app/AppState';
 import { setSelectedConversation } from '../../../redux/features/conversations/conversationsSlice';
 import { Breakpoints, SharedStyles } from '../../../styles';
 import { timestampToDateString } from '../../utils/TextUtils';
 import { EditChatName } from '../shared/EditChatName';
 import { ListItemActions } from './ListItemActions';
-import { setChatSpecialization } from '../../../redux/features/admin/adminSlice';
 
 const useClasses = makeStyles({
     root: {

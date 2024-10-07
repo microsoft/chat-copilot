@@ -12,10 +12,12 @@ import {
 import { MoreHorizontal20Regular } from '@fluentui/react-icons';
 import * as React from 'react';
 import { useChat } from '../../libs/hooks';
+import { AlertType } from '../../libs/models/AlertType';
 import { ISpecialization } from '../../libs/models/Specialization';
 import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
 import { RootState } from '../../redux/app/store';
 import { setChatSpecialization } from '../../redux/features/admin/adminSlice';
+import { addAlert } from '../../redux/features/app/appSlice';
 import {
     editConversationSpecialization,
     editConversationSystemDescription,
@@ -87,22 +89,31 @@ export const SpecializationCard: React.FC<SpecializationItemProps> = ({ speciali
     const { specializations } = useAppSelector((state: RootState) => state.admin);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const onAddChat = () => {
-        void chat.editChatSpecialization(selectedId, specialization.id).finally(() => {
-            const specializationMatch = specializations.find((spec) => spec.id === specialization.id);
-            if (specializationMatch) {
-                dispatch(setChatSpecialization(specializationMatch));
-            }
-            dispatch(editConversationSpecialization({ id: selectedId, specializationId: specialization.id }));
-            dispatch(
-                editConversationSystemDescription({
-                    id: selectedId,
-                    newSystemDescription: specialization.roleInformation,
+        void chat
+            .selectSpecializationAndBeginChat(specialization.id, selectedId)
+            .then(() => {
+                const specializationMatch = specializations.find((spec) => spec.id === specialization.id);
+                if (specializationMatch) {
+                    dispatch(setChatSpecialization(specializationMatch));
+                }
+                dispatch(editConversationSpecialization({ id: selectedId, specializationId: specialization.id }));
+                dispatch(
+                    editConversationSystemDescription({
+                        id: selectedId,
+                        newSystemDescription: specialization.roleInformation,
+                    }),
+                );
+            })
+            .catch(() => {
+                dispatch(
+                    addAlert({ message: 'Unable to select the specified specialization.', type: AlertType.Error }),
+                );
+            })
+            .then(() =>
+                chat.getSuggestions({ chatId: selectedId }).then((response) => {
+                    dispatch(updateSuggestions({ id: selectedId, chatSuggestionMessage: response }));
                 }),
             );
-        });
-        void chat.getSuggestions({ chatId: selectedId }).then((response) => {
-            dispatch(updateSuggestions({ id: selectedId, chatSuggestionMessage: response }));
-        });
     };
 
     const truncate = (str: string) => {

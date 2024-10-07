@@ -75,9 +75,9 @@ public class ChatSession : IStorageEntity
     /// <param name="title">The title of the chat.</param>
     /// <param name="systemDescription">The system description of the chat.</param>
     /// <param name="specialization">The specialization id associated with the chat.</param>
-    public ChatSession(string title, string systemDescription, string specializationId)
+    public ChatSession(string title, string systemDescription, string specializationId, string? id = "")
     {
-        this.Id = Guid.NewGuid().ToString();
+        this.Id = string.IsNullOrEmpty(id) ? Guid.NewGuid().ToString() : id;
         this.Title = title;
         this.CreatedOn = DateTimeOffset.Now;
         this.SystemDescription = systemDescription;

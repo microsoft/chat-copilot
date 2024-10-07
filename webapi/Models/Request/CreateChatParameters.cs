@@ -10,6 +10,12 @@ namespace CopilotChat.WebApi.Models.Request;
 public class CreateChatParameters
 {
     /// <summary>
+    /// Set a GUID manually here. Optional, as the repository can also generate it.
+    /// </summary>
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+
+    /// <summary>
     /// Title of the chat.
     /// </summary>
     [JsonPropertyName("title")]
