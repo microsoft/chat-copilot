@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 import {
-    Label,
     makeStyles,
     Persona,
     SelectTabEventHandler,
@@ -13,17 +12,24 @@ import {
 } from '@fluentui/react-components';
 import { Map16Regular } from '@fluentui/react-icons';
 import React from 'react';
-import { useAppSelector } from '../../redux/app/hooks';
+import { useAppDispatch, useAppSelector } from '../../redux/app/hooks';
+import { useChat } from '../../libs/hooks';
 import { RootState } from '../../redux/app/store';
 import { FeatureKeys } from '../../redux/features/app/AppState';
 import { Alerts } from '../shared/Alerts';
 import { ChatRoom } from './ChatRoom';
-import { DeleteChatHistory } from './controls/DeleteChatHistory';
 import { ParticipantsList } from './controls/ParticipantsList';
 import { ShareBotMenu } from './controls/ShareBotMenu';
 import { DocumentsTab } from './tabs/DocumentsTab';
 import { PersonaTab } from './tabs/PersonaTab';
 import { PlansTab } from './tabs/PlansTab';
+import { setChatSpecialization } from '../../redux/features/admin/adminSlice';
+import {
+    editConversationSpecialization,
+    editConversationSystemDescription,
+    updateSuggestions,
+} from '../../redux/features/conversations/conversationsSlice';
+import { ChatMenu } from './controls/ChatMenu';
 
 // Enum for chat window tabs
 enum ChatWindowTabEnum {
@@ -56,6 +62,13 @@ const useClasses = makeStyles({
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
+        flexGrow: 1,
+    },
+    rightSection: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: tokens.spacingHorizontalM, // Add gap between Persona and Menu
     },
     controls: {
         display: 'flex',
@@ -72,35 +85,51 @@ export const ChatWindow: React.FC = () => {
     const classes = useClasses();
     const { features } = useAppSelector((state: RootState) => state.app);
     const { conversations, selectedId } = useAppSelector((state: RootState) => state.conversations);
+    const botResponseStatus = conversations[selectedId].botResponseStatus;
     const [selectedTab, setSelectedTab] = React.useState<TabValue>(ChatWindowTabEnum.CHAT);
-
     const showShareBotMenu = features[FeatureKeys.BotAsDocs].enabled || features[FeatureKeys.MultiUserChat].enabled;
     const chatName = conversations[selectedId].title;
-    const { chatSpecialization } = useAppSelector((state: RootState) => state.admin);
-
+    const chat = useChat();
+    const dispatch = useAppDispatch();
+    const { chatSpecialization, specializations } = useAppSelector((state: RootState) => state.admin);
     const onTabSelect: SelectTabEventHandler = (_event, data) => {
         setSelectedTab(data.value);
+    };
+    const onNewChatClick = () => {
+        chat.createChat(chatSpecialization?.id);
+        if (chatSpecialization) {
+            void chat.selectSpecializationAndBeginChat(chatSpecialization.id, selectedId).then(() => {
+                const specializationMatch = specializations.find((spec) => spec.id === chatSpecialization.id);
+                if (specializationMatch) {
+                    dispatch(setChatSpecialization(specializationMatch));
+                }
+                dispatch(editConversationSpecialization({ id: selectedId, specializationId: chatSpecialization.id }));
+                dispatch(
+                    editConversationSystemDescription({
+                        id: selectedId,
+                        newSystemDescription: chatSpecialization.roleInformation,
+                    }),
+                );
+            });
+            void chat
+                .getSuggestions({ chatId: selectedId, specializationId: chatSpecialization.id })
+                .then((response) => {
+                    dispatch(updateSuggestions({ id: selectedId, chatSuggestionMessage: response }));
+                })
+                .catch((reason) => {
+                    console.error(`Failed to retrieve suggestions: ${reason}`);
+                });
+        }
+    };
+
+    const onDeleteChatHistory = () => {
+        void chat.deleteChatHistory(selectedId);
     };
 
     return (
         <div className={classes.root}>
             <div className={classes.header}>
                 <div className={classes.title}>
-                    <Persona
-                        key={'Semantic Kernel Bot'}
-                        size="medium"
-                        avatar={{
-                            image: {
-                                src: chatSpecialization?.iconFilePath
-                                    ? chatSpecialization.iconFilePath
-                                    : conversations[selectedId].botProfilePicture,
-                            },
-                        }}
-                        presence={{ status: 'available' }}
-                    />
-                    <Label size="large" weight="semibold">
-                        {chatSpecialization?.name}
-                    </Label>
                     <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
                         <Tab
                             data-testid="chatTab"
@@ -146,10 +175,27 @@ export const ChatWindow: React.FC = () => {
                         )}
                     </TabList>
                 </div>
+                <div className={classes.rightSection}>
+                    <ChatMenu
+                        onNewChatClick={onNewChatClick}
+                        onDeleteChatHistory={onDeleteChatHistory}
+                        botResponseStatus={botResponseStatus}
+                        chatSpecialization={chatSpecialization}
+                    />
+                    <Persona
+                        key={'Semantic Kernel Bot'}
+                        size="medium"
+                        avatar={{
+                            image: {
+                                src: chatSpecialization?.iconFilePath
+                                    ? chatSpecialization.iconFilePath
+                                    : conversations[selectedId].botProfilePicture,
+                            },
+                        }}
+                        presence={{ status: 'available' }}
+                    />
+                </div>
                 <div className={classes.controls}>
-                    <div>
-                        <DeleteChatHistory chatId={selectedId} />
-                    </div>
                     {!features[FeatureKeys.SimplifiedExperience].enabled && (
                         <div data-testid="chatParticipantsView">
                             <ParticipantsList participants={conversations[selectedId].users} />

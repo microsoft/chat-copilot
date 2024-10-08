@@ -146,9 +146,9 @@ export const useChat = () => {
                 return newChat.id;
             });
     };
-    const getSuggestions = async ({ chatId }: { chatId: string }) => {
+    const getSuggestions = async ({ chatId, specializationId }: { chatId: string; specializationId: string }) => {
         const ask = {
-            input: `Make 4 suggestions for topics we could talk about and phrase them as one sentence long questions. Format them as a JSON array of strings.`,
+            input: `Make 4 suggestions for topics we could talk about and phrase them as one sentence long questions. Make them specific to the current chat's specialization and/or documents. Make sure they are formatted as a JSON array.`,
             variables: [
                 {
                     key: 'chatId',
@@ -160,9 +160,7 @@ export const useChat = () => {
                 },
                 {
                     key: 'specialization',
-                    value: conversations[chatId].specializationId
-                        ? conversations[chatId].specializationId
-                        : defaultSpecializationId,
+                    value: specializationId ? specializationId : defaultSpecializationId,
                 },
             ],
         };

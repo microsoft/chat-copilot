@@ -625,11 +625,23 @@ public class ChatPlugin
         string serializedContext = JsonSerializer.Serialize(chatContext);
 
         // Combine the context with the main prompt
-        string combinedPrompt = $"{promptView.MetaPromptTemplate}\n\nContext: {serializedContext}";
-        var chatHistory = new ChatHistory();
+        string combinedPrompt = $"Context: {serializedContext}";
+        var chatHistory = promptView.MetaPromptTemplate;
         chatHistory.AddUserMessage(combinedPrompt);
 
-        var chatCompletion = this._kernel.GetRequiredService<IChatCompletionService>();
+        var provider = this._kernel.GetRequiredService<IServiceProvider>();
+        var defaultModel = this._qAzureOpenAIChatExtension.GetDefaultChatCompletionDeployment();
+        var specialization =
+            speckey == "general" ? null : await this._qSpecializationService.GetSpecializationAsync(speckey);
+        var serviceId =
+            (specialization == null || specialization.Deployment == defaultModel)
+                ? "default"
+                : specialization.Deployment;
+        var chatCompletion = provider.GetKeyedService<IChatCompletionService>(serviceId);
+        if (chatCompletion == null)
+        {
+            throw new InvalidOperationException($"ChatCompletionService for serviceId '{serviceId}' not found.");
+        }
         var stream = await chatCompletion.GetChatMessageContentAsync(
             chatHistory,
             await this.CreateChatRequestSettingsAsync(speckey),
