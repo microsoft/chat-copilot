@@ -123,9 +123,7 @@ fe:
   podSecurityContext: {}
   securityContext: {}
 
-  env:
-    - name: "REACT_APP_BACKEND_URI"
-      value: "https://q-pilot-dev.api.pegasus.quartechlab.com/"
+  env: []
 
   volumeMounts: []
   #   - name: caddyfile-volume
@@ -377,6 +375,8 @@ webapi:
         QAzureOpenAIChatConfig-OpenAIDeploymentConnections-1-ApiKey,
         QAzureOpenAIChatConfig-AISearchDeploymentConnections-0-ApiKey,
         QAzureOpenAIChatConfig-AISearchDeploymentConnections-1-ApiKey,
+        KernelMemory-Services-AzureVision-Key,
+        KernelMemory-Services-AzureVision-Endpoint,
       ]
 
   ingress:
