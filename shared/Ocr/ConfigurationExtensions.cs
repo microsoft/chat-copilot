@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using CopilotChat.Shared.Ocr.AzureVision;
 using CopilotChat.Shared.Ocr.Tesseract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.KernelMemory.DataFormats;
@@ -31,6 +32,16 @@ public static class ConfigurationExtensions
                 }
 
                 return new TesseractOcrEngine(tesseractOptions);
+
+            case string x when x.Equals(AzureVisionOptions.SectionName, StringComparison.OrdinalIgnoreCase):
+                var azureOptions = configuration
+                       .GetSection($"{MemoryConfiguration.KernelMemorySection}:{MemoryConfiguration.ServicesSection}:{AzureVisionOptions.SectionName}")
+                       .Get<AzureVisionOptions>();
+                if (azureOptions == null)
+                {
+                    throw new ArgumentNullException($"Missing configuration for {ConfigOcrType}: {ocrType}");
+                }
+                return new AzureVisionOcrEngine(azureOptions);
 
             default: // Allow for fall-through for standard OCR settings
                 break;

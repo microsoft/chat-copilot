@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.AI.Vision.ImageAnalysis" Version="1.0.0-beta.3" />
     <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.70.240803.1" />
     <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.70.240803.1" />
     <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Redis" Version="0.70.240803.1" />
