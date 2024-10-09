@@ -99,6 +99,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="wwwroot\Quartech_Icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\Quartech_Logo_RGB.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 </Project>
