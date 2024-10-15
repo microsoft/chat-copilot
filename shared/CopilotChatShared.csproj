@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.66.240709.1" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.79.241014.2" />
     <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Redis" Version="0.66.240709.1" />
     <PackageReference Include="Microsoft.KernelMemory.Orchestration.RabbitMQ" Version="0.66.240709.1" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
