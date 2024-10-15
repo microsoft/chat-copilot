@@ -116,7 +116,7 @@ public class PluginEndpoint
             return await this.CreateBadRequestResponseAsync(req, "Empty query.");
         }
 
-        var numResults = queries.ContainsKey("NumResults") ? int.Parse(queries["NumResults"]) : 0;
+        var numResults = queries.ContainsKey("NumResults") ? int.Parse(queries["NumResults"]!) : 0;
         if (numResults <= 0)
         {
             return await this.CreateBadRequestResponseAsync(req, "Invalid number of results.");
