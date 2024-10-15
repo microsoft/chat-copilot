@@ -24,8 +24,8 @@
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.44.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.20.0" />
     <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.15.1" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.15.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.22.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.22.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.5.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.5.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.5.0-alpha" />
