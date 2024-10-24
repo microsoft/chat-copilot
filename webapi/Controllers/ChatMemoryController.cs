@@ -97,7 +97,7 @@ public class ChatMemoryController : ControllerBase
                     this._promptOptions.MemoryIndexName,
                     "*",
                     relevanceThreshold: 0,
-                    resultCount: 1,
+                    resultCount: -1,
                     chatId,
                     memoryContainerName);
 
