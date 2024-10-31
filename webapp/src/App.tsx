@@ -2,7 +2,7 @@ import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated, use
 import { FluentProvider, Subtitle1, makeStyles, shorthands, tokens } from '@fluentui/react-components';
 
 import * as React from 'react';
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import Chat from './components/chat/Chat';
 import { Loading, Login } from './components/views';
 import { AuthHelper } from './libs/auth/AuthHelper';
@@ -49,6 +49,7 @@ export enum AppState {
     SettingUserInfo,
     ErrorLoadingChats,
     ErrorLoadingUserInfo,
+    LoadChats,
     LoadingChats,
     Chat,
     SigningOut,
@@ -98,16 +99,20 @@ const App = () => {
                     );
                 }
 
-                handleAppStateChange(AppState.LoadingChats);
+                handleAppStateChange(AppState.LoadChats);
             }
         }
 
-        if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadingChats) {
+        if ((isAuthenticated || !AuthHelper.isAuthAAD()) && appState === AppState.LoadChats) {
+            handleAppStateChange(AppState.LoadingChats);
             void Promise.all([
-                chat.loadChats()
-                    .then(() => { handleAppStateChange(AppState.Chat); })
+                chat
+                    .loadChats()
+                    .then(() => {
+                        handleAppStateChange(AppState.Chat);
+                    })
                     .catch((error) => {
-                        console.error("Error loading chats:", error);
+                        console.error('Error loading chats:', error);
                         handleAppStateChange(AppState.ErrorLoadingChats);
                     }),
                 file.getContentSafetyStatus(),
@@ -118,7 +123,6 @@ const App = () => {
                 }),
             ]);
         }
-
     }, [instance, isAuthenticated, appState, isMaintenance, handleAppStateChange, dispatch, chat, file]);
 
     const theme = features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme;

@@ -21,7 +21,7 @@ const Chat = ({
                 ? // if AAD is enabled, we need to set the active account before loading chats
                   AppState.SettingUserInfo
                 : // otherwise, we can load chats immediately
-                  AppState.LoadingChats,
+                  AppState.LoadChats,
         );
     }, [setAppState]);
     return (
