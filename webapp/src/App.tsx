@@ -122,8 +122,8 @@ const App = () => {
                     }
                 }),
             ]);
-        }
-    }, [instance, isAuthenticated, appState, isMaintenance, handleAppStateChange, dispatch, chat, file]);
+        } // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [instance, isAuthenticated, appState, isMaintenance]);
 
     const theme = features[FeatureKeys.DarkMode].enabled ? semanticKernelDarkTheme : semanticKernelLightTheme;
 
