@@ -20,7 +20,7 @@ namespace CopilotChat.WebApi.Plugins.Chat;
 /// <summary>
 /// This class provides the functions to query kernel memory.
 /// </summary>
-public class SemanticMemoryRetriever
+public class KernelMemoryRetriever
 {
     private readonly PromptsOptions _promptOptions;
 
@@ -36,9 +36,9 @@ public class SemanticMemoryRetriever
     private readonly ILogger _logger;
 
     /// <summary>
-    /// Create a new instance of SemanticMemoryRetriever.
+    /// Create a new instance of KernelMemoryRetriever.
     /// </summary>
-    public SemanticMemoryRetriever(
+    public KernelMemoryRetriever(
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository chatSessionRepository,
         IKernelMemory memoryClient,
@@ -49,7 +49,8 @@ public class SemanticMemoryRetriever
         this._memoryClient = memoryClient;
         this._logger = logger;
 
-        this._memoryNames = new List<string> {
+        this._memoryNames = new List<string>
+        {
             this._promptOptions.DocumentMemoryName,
             this._promptOptions.LongTermMemoryName,
             this._promptOptions.WorkingMemoryName
@@ -62,8 +63,10 @@ public class SemanticMemoryRetriever
     /// <returns>A string containing the relevant memories.</returns>
     public async Task<(string, IDictionary<string, CitationSource>)> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
-        [Description("Chat ID to query history from")] string chatId,
-        [Description("Maximum number of tokens")] int tokenLimit)
+        [Description("Chat ID to query history from")]
+        string chatId,
+        [Description("Maximum number of tokens")]
+        int tokenLimit)
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
@@ -80,6 +83,7 @@ public class SemanticMemoryRetriever
         {
             tasks.Add(SearchMemoryAsync(memoryName));
         }
+
         // Global document memory.
         tasks.Add(SearchMemoryAsync(this._promptOptions.DocumentMemoryName, isGlobalMemory: true));
         // Wait for all tasks to complete.
@@ -177,7 +181,7 @@ public class SemanticMemoryRetriever
                     if (result.Memory.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
-                        var citationSource = CitationSource.FromSemanticMemoryCitation(
+                        var citationSource = CitationSource.FromKernelMemoryCitation(
                             result.Citation,
                             result.Memory.Text,
                             result.Memory.Relevance
@@ -232,8 +236,8 @@ public class SemanticMemoryRetriever
     /// <exception cref="ArgumentException">Thrown when the memory name is invalid.</exception>
     private float CalculateRelevanceThreshold(string memoryName, float memoryBalance)
     {
-        var upper = this._promptOptions.SemanticMemoryRelevanceUpper;
-        var lower = this._promptOptions.SemanticMemoryRelevanceLower;
+        var upper = this._promptOptions.KernelMemoryRelevanceUpper;
+        var lower = this._promptOptions.KernelMemoryRelevanceLower;
 
         if (memoryBalance < 0.0 || memoryBalance > 1.0)
         {

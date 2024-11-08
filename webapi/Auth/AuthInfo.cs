@@ -27,21 +27,24 @@ public class AuthInfo : IAuthInfo
             {
                 throw new InvalidOperationException("HttpContext must be present to inspect auth info.");
             }
+
             var userIdClaim = user.FindFirst(ClaimConstants.Oid)
-                ?? user.FindFirst(ClaimConstants.ObjectId)
-                ?? user.FindFirst(ClaimConstants.Sub)
-                ?? user.FindFirst(ClaimConstants.NameIdentifierId);
+                              ?? user.FindFirst(ClaimConstants.ObjectId)
+                              ?? user.FindFirst(ClaimConstants.Sub)
+                              ?? user.FindFirst(ClaimConstants.NameIdentifierId);
             if (userIdClaim is null)
             {
                 throw new CredentialUnavailableException("User Id was not present in the request token.");
             }
+
             var tenantIdClaim = user.FindFirst(ClaimConstants.Tid)
-                ?? user.FindFirst(ClaimConstants.TenantId);
+                                ?? user.FindFirst(ClaimConstants.TenantId);
             var userNameClaim = user.FindFirst(ClaimConstants.Name);
             if (userNameClaim is null)
             {
                 throw new CredentialUnavailableException("User name was not present in the request token.");
             }
+
             return new AuthData
             {
                 UserId = (tenantIdClaim is null) ? userIdClaim.Value : string.Join(".", userIdClaim.Value, tenantIdClaim.Value),

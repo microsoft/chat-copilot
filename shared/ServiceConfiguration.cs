@@ -38,7 +38,7 @@ internal sealed class ServiceConfiguration
     public ServiceConfiguration(IConfiguration rawAppSettings)
         : this(rawAppSettings,
             rawAppSettings.GetSection(ConfigRoot).Get<KernelMemoryConfig>()
-            ?? throw new ConfigurationException($"Unable to load Kernel Memory settings from the given configuration. " +
+            ?? throw new ConfigurationException("Unable to load Kernel Memory settings from the given configuration. " +
                                                 $"There should be a '{ConfigRoot}' root node, " +
                                                 $"with data mapping to '{nameof(KernelMemoryConfig)}'"))
     {

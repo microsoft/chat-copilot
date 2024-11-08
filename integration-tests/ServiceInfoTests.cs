@@ -13,9 +13,9 @@ public class ServiceInfoTests : ChatCopilotIntegrationTest
     [Fact]
     public async void GetServiceInfo()
     {
-        await this.SetUpAuth();
+        await this.SetUpAuthAsync();
 
-        HttpResponseMessage response = await this._httpClient.GetAsync("info/");
+        HttpResponseMessage response = await this.HTTPClient.GetAsync("info/");
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
@@ -29,7 +29,7 @@ public class ServiceInfoTests : ChatCopilotIntegrationTest
     [Fact]
     public async void GetAuthConfig()
     {
-        HttpResponseMessage response = await this._httpClient.GetAsync("authConfig/");
+        HttpResponseMessage response = await this.HTTPClient.GetAsync("authConfig/");
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
@@ -37,9 +37,8 @@ public class ServiceInfoTests : ChatCopilotIntegrationTest
 
         Assert.NotNull(objectFromResponse);
         Assert.Equal(ChatAuthenticationOptions.AuthenticationType.AzureAd.ToString(), objectFromResponse.AuthType);
-        Assert.Equal(this.configuration[AuthoritySettingName], objectFromResponse.AadAuthority);
-        Assert.Equal(this.configuration[ClientIdSettingName], objectFromResponse.AadClientId);
+        Assert.Equal(this.Configuration[AuthoritySettingName], objectFromResponse.AadAuthority);
+        Assert.Equal(this.Configuration[ClientIdSettingName], objectFromResponse.AadClientId);
         Assert.False(string.IsNullOrEmpty(objectFromResponse.AadApiScope));
     }
 }
-

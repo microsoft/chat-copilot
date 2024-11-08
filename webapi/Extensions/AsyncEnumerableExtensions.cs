@@ -8,7 +8,7 @@ namespace CopilotChat.WebApi.Extensions;
 /// <summary>
 /// Extension methods for enabling async LINQ operations on IAsyncEnumerable sequence.
 /// </summary>
-public static class IAsyncEnumerableExtensions
+public static class AsyncEnumerableExtensions
 {
     /// <summary>
     /// Creates a List<T> from an IAsyncEnumerable<T> by enumerating it asynchronously.

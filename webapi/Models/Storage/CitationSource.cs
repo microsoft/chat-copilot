@@ -39,7 +39,7 @@ public class CitationSource
     /// <summary>
     /// Converts a <see cref="Citation"/> to a <see cref="CitationSource"/>.
     /// </summary>
-    public static CitationSource FromSemanticMemoryCitation(Citation citation, string snippet, double relevanceScore)
+    public static CitationSource FromKernelMemoryCitation(Citation citation, string snippet, double relevanceScore)
     {
         var citationSource = new CitationSource
         {

@@ -22,12 +22,12 @@ The following material is under development and may not be complete or accurate.
 2. In Solution Explorer, right-click on `CopilotChatWebApi` and select `Set as Startup Project`.
 3. Start debugging by pressing `F5` or selecting the menu item `Debug`->`Start Debugging`.
 
-4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options for `SemanticMemory:ImageOcrType` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
+4. **(Optional)** To enable support for uploading image file formats such as png, jpg and tiff, there are two options for `KernelMemory:ImageOcrType` section of `./appsettings.json`, the Tesseract open source library and Azure Form Recognizer.
    - **Tesseract** we have included the [Tesseract](https://www.nuget.org/packages/Tesseract) nuget package.
-     - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `SemanticMemory:Services:Tesseract:FilePath` location in `./appsettings.json`.
+     - You will need to obtain one or more [tessdata language data files](https://github.com/tesseract-ocr/tessdata) such as `eng.traineddata` and add them to your `./data` directory or the location specified in the `KernelMemory:Services:Tesseract:FilePath` location in `./appsettings.json`.
      - Set the `Copy to Output Directory` value to `Copy if newer`.
    - **Azure AI Doc Intel** we have included the [Azure.AI.FormRecognizer](https://www.nuget.org/packages/Azure.AI.FormRecognizer) nuget package.
-     - You will need to obtain an [Azure AI Doc Intel](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence) resource and add the `SemanticMemory:Services:AzureAIDocIntel:Endpoint` and `SemanticMemory:Services:AzureAIDocIntel:Key` values to the `./appsettings.json` file.
+     - You will need to obtain an [Azure AI Doc Intel](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence) resource and add the `KernelMemory:Services:AzureAIDocIntel:Endpoint` and `KernelMemory:Services:AzureAIDocIntel:Key` values to the `./appsettings.json` file.
 
 ## Running [Memory Service](https://github.com/microsoft/kernel-memory)
 
@@ -45,30 +45,30 @@ No additional configuration is needed.
 
 Running the memory creation pipeline steps in different processes. This means the memory creation is asynchronous. This allows better scalability if you have many chat sessions active at the same time or you have big documents that require minutes to process.
 
-1. In [./webapi/appsettings.json](./appsettings.json), set `SemanticMemory:DataIngestion:OrchestrationType` to `Distributed`.
-2. In [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:OrchestrationType` to `Distributed`.
+1. In [./webapi/appsettings.json](./appsettings.json), set `KernelMemory:DataIngestion:OrchestrationType` to `Distributed`.
+2. In [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `KernelMemory:DataIngestion:OrchestrationType` to `Distributed`.
 3. Make sure the following settings in the [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json) respectively point to the same locations on your machine so that both processes can access the data:
-   - `SemanticMemory:Services:SimpleFileStorage:Directory`
-   - `SemanticMemory:Services:SimpleQueues:Directory`
-   - `SemanticMemory:Services:SimpleVectorDb:Directory`
+   - `KernelMemory:Services:SimpleFileStorage:Directory`
+   - `KernelMemory:Services:SimpleQueues:Directory`
+   - `KernelMemory:Services:SimpleVectorDb:Directory`
      > Do not configure SimpleVectorDb to use Volatile. Volatile storage cannot be shared across processes.
 4. You need to run both the [webapi](./README.md) and the [memorypipeline](../memorypipeline/README.md).
 
 ### (Optional) Use hosted resources: [Azure Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview), [Azure Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
 
-1. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DocumentStorageType` to `AzureBlobs`.
-2. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:DistributedOrchestration:QueueType` to `AzureQueue`.
-3. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:DataIngestion:MemoryDbTypes:0` to `AzureAISearch`.
-4. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `SemanticMemory:Retrieval:MemoryDbType` to `AzureAISearch`.
+1. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `KernelMemory:DocumentStorageType` to `AzureBlobs`.
+2. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `KernelMemory:DataIngestion:DistributedOrchestration:QueueType` to `AzureQueue`.
+3. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `KernelMemory:DataIngestion:MemoryDbTypes:0` to `AzureAISearch`.
+4. In [./webapi/appsettings.json](./appsettings.json) and [../memorypipeline/appsettings.json](../memorypipeline/appsettings.json), set `KernelMemory:Retrieval:MemoryDbType` to `AzureAISearch`.
 5. Run the following to set up the authentication to the resources:
 
    ```bash
-   dotnet user-secrets set SemanticMemory:Services:AzureBlobs:Auth ConnectionString
-   dotnet user-secrets set SemanticMemory:Services:AzureBlobs:ConnectionString [your secret]
-   dotnet user-secrets set SemanticMemory:Services:AzureQueue:Auth ConnectionString   # Only needed when running distributed processing
-   dotnet user-secrets set SemanticMemory:Services:AzureQueue:ConnectionString [your secret]   # Only needed when running distributed processing
-   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:Endpoint [your secret]
-   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:APIKey [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureBlobs:Auth ConnectionString
+   dotnet user-secrets set KernelMemory:Services:AzureBlobs:ConnectionString [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureQueue:Auth ConnectionString   # Only needed when running distributed processing
+   dotnet user-secrets set KernelMemory:Services:AzureQueue:ConnectionString [your secret]   # Only needed when running distributed processing
+   dotnet user-secrets set KernelMemory:Services:AzureAISearch:Endpoint [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureAISearch:APIKey [your secret]
    ```
 
 6. For more information and other options, please refer to the [memorypipeline](../memorypipeline/README.md).

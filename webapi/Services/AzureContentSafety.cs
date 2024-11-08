@@ -13,6 +13,7 @@ using CopilotChat.WebApi.Models.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.SemanticKernel;
 
+// ReSharper disable MissingLinebreak
 namespace CopilotChat.WebApi.Services;
 
 public record AnalysisResult(
@@ -117,6 +118,7 @@ public sealed class AzureContentSafety : IContentSafetyService
         {
             throw new KernelException($"[Content Safety] Failed to analyze image. Details: {body}");
         }
+
         return result;
     }
 
