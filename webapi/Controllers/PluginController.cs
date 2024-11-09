@@ -48,7 +48,7 @@ public class PluginController : ControllerBase
     /// <param name="manifestDomain">The domain of the manifest.</param>
     /// <returns>The plugin's manifest JSON.</returns>
     [HttpGet]
-    [Route("pluginManifests")] // TODO: Fix name and test
+    [Route("pluginManifests")] // TODO: Fix name and test - use singular?
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPluginManifestAsync([FromQuery] Uri manifestDomain)
     {
