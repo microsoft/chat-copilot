@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -44,8 +43,9 @@ public class PluginEndpoint
     /// <param name="req">The http request data.</param>
     /// <returns>The manifest in Json</returns>
     [Function("WellKnownAIPluginManifest")]
-    public async Task<HttpResponseData> WellKnownAIPluginManifest(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/ai-plugin.json")] HttpRequestData req)
+    public async Task<HttpResponseData> WellKnownAIPluginManifestAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/ai-plugin.json")]
+        HttpRequestData req)
     {
         var pluginManifest = new PluginManifest()
         {
@@ -76,8 +76,9 @@ public class PluginEndpoint
     /// <param name="req">The http request data.</param>
     /// <returns>The icon.</returns>
     [Function("Icon")]
-    public async Task<HttpResponseData> Icon(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/icon")] HttpRequestData req)
+    public async Task<HttpResponseData> IconAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/icon")]
+        HttpRequestData req)
     {
         if (!File.Exists("./Icons/bing.png"))
         {
@@ -107,7 +108,7 @@ public class PluginEndpoint
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "Returns a collection of search results with the name, URL and snippet for each.")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Description = "Invalid query")]
     [Function("WebSearch")]
-    public async Task<HttpResponseData> WebSearch([HttpTrigger(AuthorizationLevel.Function, "get", Route = "search")] HttpRequestData req)
+    public async Task<HttpResponseData> WebSearchAsync([HttpTrigger(AuthorizationLevel.Function, "get", Route = "search")] HttpRequestData req)
     {
         var queries = QueryHelpers.ParseQuery(req.Url.Query);
         var query = queries.ContainsKey("Query") ? queries["Query"].ToString() : string.Empty;
@@ -144,7 +145,6 @@ public class PluginEndpoint
             queryString += string.IsNullOrWhiteSpace(site) ? string.Empty : $"+site:{site}";
             queryString += $"&count={numResults}";
             queryString += $"&offset={offset}";
-
 
             var uri = new Uri($"{this._config.BingApiBaseUrl}{queryString}");
             this._logger.LogDebug("Sending request to {0}", uri);

@@ -48,9 +48,9 @@ public class PluginController : ControllerBase
     /// <param name="manifestDomain">The domain of the manifest.</param>
     /// <returns>The plugin's manifest JSON.</returns>
     [HttpGet]
-    [Route("pluginManifests")]
+    [Route("pluginManifests")] // TODO: Fix name and test - use singular?
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPluginManifest([FromQuery] Uri manifestDomain)
+    public async Task<IActionResult> GetPluginManifestAsync([FromQuery] Uri manifestDomain)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, PluginUtils.GetPluginManifestUri(manifestDomain));
         // Need to set the user agent to avoid 403s from some sites.

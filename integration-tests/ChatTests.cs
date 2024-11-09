@@ -16,11 +16,11 @@ public class ChatTests : ChatCopilotIntegrationTest
     [Fact]
     public async void ChatMessagePostSucceedsWithValidInput()
     {
-        await this.SetUpAuth();
+        await this.SetUpAuthAsync();
 
         // Create chat session
-        var createChatParams = new CreateChatParameters() { Title = nameof(ChatMessagePostSucceedsWithValidInput) };
-        HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("chats", createChatParams);
+        var createChatParams = new CreateChatParameters() { Title = nameof(this.ChatMessagePostSucceedsWithValidInput) };
+        HttpResponseMessage response = await this.HTTPClient.PostAsJsonAsync("chats", createChatParams);
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
@@ -33,7 +33,7 @@ public class ChatTests : ChatCopilotIntegrationTest
             Input = "Who is Satya Nadella?",
             Variables = new KeyValuePair<string, string>[] { new("MessageType", ChatMessageType.Message.ToString()) }
         };
-        response = await this._httpClient.PostAsJsonAsync($"chats/{createChatResponse.ChatSession.Id}/messages", ask);
+        response = await this.HTTPClient.PostAsJsonAsync($"chats/{createChatResponse.ChatSession.Id}/messages", ask);
         response.EnsureSuccessStatusCode();
 
         contentStream = await response.Content.ReadAsStreamAsync();
@@ -41,10 +41,8 @@ public class ChatTests : ChatCopilotIntegrationTest
         Assert.NotNull(askResult);
         Assert.False(string.IsNullOrEmpty(askResult.Value));
 
-
         // Clean up
-        response = await this._httpClient.DeleteAsync($"chats/{createChatResponse.ChatSession.Id}");
+        response = await this.HTTPClient.DeleteAsync($"chats/{createChatResponse.ChatSession.Id}");
         response.EnsureSuccessStatusCode();
     }
 }
-

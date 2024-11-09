@@ -19,14 +19,14 @@ namespace CopilotChat.WebApi.Extensions;
 /// <summary>
 /// Extension methods for <see cref="IKernelMemory"/> and service registration.
 /// </summary>
-internal static class ISemanticMemoryClientExtensions
+internal static class KernelMemoryClientExtensions
 {
-    private static readonly List<string> pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_records" };
+    private static readonly List<string> s_pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_records" };
 
     /// <summary>
     /// Inject <see cref="IKernelMemory"/>.
     /// </summary>
-    public static void AddSemanticMemoryServices(this WebApplicationBuilder appBuilder)
+    public static void AddKernelMemoryServices(this WebApplicationBuilder appBuilder)
     {
         var serviceProvider = appBuilder.Services.BuildServiceProvider();
 
@@ -122,7 +122,7 @@ internal static class ISemanticMemoryClientExtensions
                 DocumentId = documentId,
                 Files = new List<DocumentUploadRequest.UploadedFile> { new(fileName, fileContent) },
                 Index = indexName,
-                Steps = pipelineSteps,
+                Steps = s_pipelineSteps,
             };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
@@ -167,7 +167,7 @@ internal static class ISemanticMemoryClientExtensions
                     // Document file name not relevant, but required.
                     new DocumentUploadRequest.UploadedFile("memory.txt", stream)
                 },
-            Steps = pipelineSteps,
+            Steps = s_pipelineSteps,
         };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);

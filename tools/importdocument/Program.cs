@@ -113,7 +113,8 @@ public static class Program
                 Console.WriteLine("Error: Failed to acquire access token.");
                 return;
             }
-            Console.WriteLine($"Successfully acquired access token. Continuing...");
+
+            Console.WriteLine("Successfully acquired access token. Continuing...");
         }
 
         using var formContent = new MultipartFormDataContent();
@@ -122,7 +123,6 @@ public static class Program
         {
             formContent.Add(filesContent[i], "formFiles", files.ElementAt(i).Name);
         }
-
 
         if (chatCollectionId != Guid.Empty)
         {
@@ -163,9 +163,7 @@ public static class Program
             }
 
             string uriPath =
-                chatId.HasValue ?
-                $"chats/{chatId}/documents" :
-                "documents";
+                chatId.HasValue ? $"chats/{chatId}/documents" : "documents";
 
             try
             {

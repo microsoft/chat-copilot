@@ -14,7 +14,7 @@ using Microsoft.SemanticKernel;
 namespace CopilotChat.WebApi.Services;
 
 /// <summary>
-/// Middleware for determining is site is undergoing maintenance.
+/// Middleware for determining if site is undergoing maintenance.
 /// </summary>
 public class MaintenanceMiddleware
 {
@@ -41,7 +41,7 @@ public class MaintenanceMiddleware
         this._logger = logger;
     }
 
-    public async Task Invoke(HttpContext ctx, Kernel kernel)
+    public async Task InvokeAsync(HttpContext ctx, Kernel kernel)
     {
         // Skip inspection if _isInMaintenance explicitly false.
         if (this._isInMaintenance == null || this._isInMaintenance.Value)

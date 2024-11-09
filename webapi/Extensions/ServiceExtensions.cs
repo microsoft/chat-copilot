@@ -109,6 +109,7 @@ public static class CopilotChatServiceExtensions
                 {
                     throw new InvalidOperationException($"Plugin '{plugin.Name}' at '{pluginManifestUrl}' returned status code '{response.StatusCode}'.");
                 }
+
                 validatedPlugins.Add(plugin.Name, plugin);
                 logger.LogInformation("Added plugin: {0}.", plugin.Name);
             }

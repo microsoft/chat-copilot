@@ -120,6 +120,7 @@ public sealed class MsGraphOboPlugin
                 }
             }
         }
+
         return graphResponseContent;
     }
 
@@ -132,14 +133,14 @@ public sealed class MsGraphOboPlugin
             using (var request = new HttpRequestMessage(HttpMethod.Post, this._authority + "/" + this._tenantId + "/oauth2/v2.0/token"))
             {
                 var keyValues = new List<KeyValuePair<string, string>>
-            {
-                new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                new("client_id", this._clientId),
-                new("client_secret", this._clientSecret),
-                new("assertion", this._bearerToken),
-                new("scope", graphScopes),
-                new("requested_token_use", "on_behalf_of")
-            };
+                {
+                    new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                    new("client_id", this._clientId),
+                    new("client_secret", this._clientSecret),
+                    new("assertion", this._bearerToken),
+                    new("scope", graphScopes),
+                    new("requested_token_use", "on_behalf_of")
+                };
 
                 request.Content = new FormUrlEncodedContent(keyValues);
                 var response = await client.SendAsync(request, cancellationToken);

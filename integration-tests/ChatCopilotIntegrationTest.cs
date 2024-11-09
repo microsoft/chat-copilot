@@ -24,25 +24,25 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
     protected const string PasswordSettingName = "TestPassword";
     protected const string ScopesSettingName = "Scopes";
 
-    protected readonly HttpClient _httpClient;
-    protected readonly IConfigurationRoot configuration;
+    protected readonly HttpClient HTTPClient;
+    protected readonly IConfigurationRoot Configuration;
 
     protected ChatCopilotIntegrationTest()
     {
         // Load configuration
-        this.configuration = new ConfigurationBuilder()
+        this.Configuration = new ConfigurationBuilder()
             .AddJsonFile(path: "testsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile(path: "testsettings.development.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .AddUserSecrets<HealthzTests>()
             .Build();
 
-        string? baseUrl = this.configuration[BaseUrlSettingName];
+        string? baseUrl = this.Configuration[BaseUrlSettingName];
         Assert.False(string.IsNullOrEmpty(baseUrl));
         Assert.True(baseUrl.EndsWith('/'));
 
-        this._httpClient = new HttpClient();
-        this._httpClient.BaseAddress = new Uri(baseUrl);
+        this.HTTPClient = new HttpClient();
+        this.HTTPClient.BaseAddress = new Uri(baseUrl);
     }
 
     public void Dispose()
@@ -55,25 +55,25 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
     {
         if (disposing)
         {
-            this._httpClient.Dispose();
+            this.HTTPClient.Dispose();
         }
     }
 
-    protected async Task SetUpAuth()
+    protected async Task SetUpAuthAsync()
     {
-        string accesstoken = await this.GetUserTokenByPassword();
+        string accesstoken = await this.GetUserTokenByPasswordAsync();
         Assert.True(!string.IsNullOrEmpty(accesstoken));
 
-        this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accesstoken);
+        this.HTTPClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accesstoken);
     }
 
-    protected async Task<string> GetUserTokenByPassword()
+    protected async Task<string> GetUserTokenByPasswordAsync()
     {
-        IPublicClientApplication app = PublicClientApplicationBuilder.Create(this.configuration[ClientIdSettingName])
-                                                                     .WithAuthority(this.configuration[AuthoritySettingName])
-                                                                     .Build();
+        IPublicClientApplication app = PublicClientApplicationBuilder.Create(this.Configuration[ClientIdSettingName])
+            .WithAuthority(this.Configuration[AuthoritySettingName])
+            .Build();
 
-        string? scopeString = this.configuration[ScopesSettingName];
+        string? scopeString = this.Configuration[ScopesSettingName];
         Assert.NotNull(scopeString);
 
         string[] scopes = scopeString.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -88,7 +88,7 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
         }
         else
         {
-            result = await app.AcquireTokenByUsernamePassword(scopes, this.configuration[UsernameSettingName], this.configuration[PasswordSettingName]).ExecuteAsync();
+            result = await app.AcquireTokenByUsernamePassword(scopes, this.Configuration[UsernameSettingName], this.Configuration[PasswordSettingName]).ExecuteAsync();
         }
 
         return result?.AccessToken ?? string.Empty;

@@ -203,27 +203,27 @@ public class ChatController : ControllerBase, IDisposable
         var tasks = new List<Task>();
 
         // GitHub
-        if (authHeaders.TryGetValue("GITHUB", out string? GithubAuthHeader))
+        if (authHeaders.TryGetValue("GITHUB", out string? githubAuthHeader))
         {
-            tasks.Add(this.RegisterGithubPlugin(kernel, GithubAuthHeader));
+            tasks.Add(this.RegisterGithubPluginAsync(kernel, githubAuthHeader));
         }
 
         // Jira
-        if (authHeaders.TryGetValue("JIRA", out string? JiraAuthHeader))
+        if (authHeaders.TryGetValue("JIRA", out string? jiraAuthHeader))
         {
-            tasks.Add(this.RegisterJiraPlugin(kernel, JiraAuthHeader, variables));
+            tasks.Add(this.RegisterJiraPluginAsync(kernel, jiraAuthHeader, variables));
         }
 
         // Microsoft Graph
-        if (authHeaders.TryGetValue("GRAPH", out string? GraphAuthHeader))
+        if (authHeaders.TryGetValue("GRAPH", out string? graphAuthHeader))
         {
-            tasks.Add(this.RegisterMicrosoftGraphPlugins(kernel, GraphAuthHeader));
+            tasks.Add(this.RegisterMicrosoftGraphPlugins(kernel, graphAuthHeader));
         }
 
         // Microsoft Graph OBO
-        if (authHeaders.TryGetValue("MSGRAPHOBO", out string? GraphOboAuthHeader))
+        if (authHeaders.TryGetValue("MSGRAPHOBO", out string? graphOboAuthHeader))
         {
-            tasks.Add(this.RegisterMicrosoftGraphOBOPlugins(kernel, GraphOboAuthHeader));
+            tasks.Add(this.RegisterMicrosoftGraphOBOPlugins(kernel, graphOboAuthHeader));
         }
 
         if (variables.TryGetValue("customPlugins", out object? customPluginsString))
@@ -234,10 +234,10 @@ public class ChatController : ControllerBase, IDisposable
         await Task.WhenAll(tasks);
     }
 
-    private async Task RegisterGithubPlugin(Kernel kernel, string GithubAuthHeader)
+    private async Task RegisterGithubPluginAsync(Kernel kernel, string githubAuthHeader)
     {
         this._logger.LogInformation("Enabling GitHub plugin.");
-        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GithubAuthHeader));
+        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(githubAuthHeader));
         await kernel.ImportPluginFromOpenApiAsync(
             pluginName: "GitHubPlugin",
             filePath: GetPluginFullPath("GitHubPlugin/openapi.json"),
@@ -247,10 +247,10 @@ public class ChatController : ControllerBase, IDisposable
             });
     }
 
-    private async Task RegisterJiraPlugin(Kernel kernel, string JiraAuthHeader, KernelArguments variables)
+    private async Task RegisterJiraPluginAsync(Kernel kernel, string jiraAuthHeader, KernelArguments variables)
     {
         this._logger.LogInformation("Registering Jira plugin");
-        var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(JiraAuthHeader); });
+        var authenticationProvider = new BasicAuthenticationProvider(() => { return Task.FromResult(jiraAuthHeader); });
         var hasServerUrlOverride = variables.TryGetValue("jira-server-url", out object? serverUrlOverride);
 
         await kernel.ImportPluginFromOpenApiAsync(
@@ -260,13 +260,15 @@ public class ChatController : ControllerBase, IDisposable
             {
                 AuthCallback = authenticationProvider.AuthenticateRequestAsync,
                 ServerUrlOverride = hasServerUrlOverride ? new Uri(serverUrlOverride!.ToString()!) : null,
-            }); ; ;
+            });
+        ;
+        ;
     }
 
-    private Task RegisterMicrosoftGraphPlugins(Kernel kernel, string GraphAuthHeader)
+    private Task RegisterMicrosoftGraphPlugins(Kernel kernel, string graphAuthHeader)
     {
         this._logger.LogInformation("Enabling Microsoft Graph plugin(s).");
-        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(GraphAuthHeader));
+        BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(graphAuthHeader));
         GraphServiceClient graphServiceClient = this.CreateGraphServiceClient(authenticationProvider.GraphClientAuthenticateRequestAsync);
 
         kernel.ImportPluginFromObject(new TaskListPlugin(new MicrosoftToDoConnector(graphServiceClient)), "todo");
@@ -275,11 +277,11 @@ public class ChatController : ControllerBase, IDisposable
         return Task.CompletedTask;
     }
 
-    private Task RegisterMicrosoftGraphOBOPlugins(Kernel kernel, string GraphOboAuthHeader)
+    private Task RegisterMicrosoftGraphOBOPlugins(Kernel kernel, string graphOboAuthHeader)
     {
         this._logger.LogInformation("Enabling Microsoft Graph OBO plugin(s).");
         kernel.ImportPluginFromObject(
-            new MsGraphOboPlugin(GraphOboAuthHeader, this._httpClientFactory, this._msGraphOboPluginOptions, this._promptsOptions.FunctionCallingTokenLimit, this._logger),
+            new MsGraphOboPlugin(graphOboAuthHeader, this._httpClientFactory, this._msGraphOboPluginOptions, this._promptsOptions.FunctionCallingTokenLimit, this._logger),
             "msGraphObo");
         return Task.CompletedTask;
     }
@@ -292,16 +294,17 @@ public class ChatController : ControllerBase, IDisposable
         {
             foreach (CustomPlugin plugin in customPlugins)
             {
-                if (authHeaders.TryGetValue(plugin.AuthHeaderTag.ToUpperInvariant(), out string? PluginAuthValue))
+                if (authHeaders.TryGetValue(plugin.AuthHeaderTag.ToUpperInvariant(), out string? pluginAuthValue))
                 {
                     // Register the ChatGPT plugin with the kernel.
                     this._logger.LogInformation("Enabling {0} plugin.", plugin.NameForHuman);
 
                     // TODO: [Issue #44] Support other forms of auth. Currently, we only support user PAT or no auth.
                     var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
-                    Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
+
+                    Task AuthCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
                     {
-                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", PluginAuthValue);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", pluginAuthValue);
 
                         return Task.CompletedTask;
                     }
@@ -313,7 +316,7 @@ public class ChatController : ControllerBase, IDisposable
                         {
                             HttpClient = this._httpClientFactory.CreateClient(),
                             IgnoreNonCompliantErrors = true,
-                            AuthCallback = requiresAuth ? authCallback : null
+                            AuthCallback = requiresAuth ? AuthCallback : null
                         });
                 }
             }
@@ -352,7 +355,7 @@ public class ChatController : ControllerBase, IDisposable
             {
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
-                Task authCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
+                Task AuthCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
                 {
                     request.Headers.Add("X-Functions-Key", plugin.Key);
 
@@ -367,7 +370,7 @@ public class ChatController : ControllerBase, IDisposable
                     {
                         HttpClient = this._httpClientFactory.CreateClient(),
                         IgnoreNonCompliantErrors = true,
-                        AuthCallback = authCallback
+                        AuthCallback = AuthCallback
                     });
             }
             else

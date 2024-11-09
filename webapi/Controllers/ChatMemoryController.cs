@@ -49,7 +49,7 @@ public class ChatMemoryController : ControllerBase
     /// <summary>
     /// Gets the kernel memory for the chat session.
     /// </summary>
-    /// <param name="semanticTextMemory">The semantic text memory instance.</param>
+    /// <param name="memoryClient">The kernel memory client.</param>
     /// <param name="chatId">The chat id.</param>
     /// <param name="type">Type of memory. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
     [HttpGet]

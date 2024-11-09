@@ -15,6 +15,7 @@ extend-exclude = [
     "GPT3TokenizerTests.cs",
     "CodeTokenizerTests.cs",
     "test_code_tokenizer.py",
+    "CopilotChat.sln.DotSettings"
 ]
 
 [default.extend-words]

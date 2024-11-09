@@ -39,6 +39,7 @@ app.MapGet("/", () =>
     {
         message += $" Environment: {environment}";
     }
+
     return Results.Ok(message);
 });
 

@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
+
 using CopilotChat.Shared.Ocr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.KernelMemory;

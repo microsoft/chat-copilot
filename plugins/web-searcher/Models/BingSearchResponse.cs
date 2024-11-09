@@ -22,7 +22,7 @@ internal sealed class WebPage
     public string Url { get; set; } = string.Empty;
 
     /// <summary>
-    /// A snippet of text from the webpage that describes its contents.	
+    /// A snippet of text from the webpage that describes its contents.
     /// </summary>
     [JsonPropertyName("snippet")]
     public string Snippet { get; set; } = string.Empty;

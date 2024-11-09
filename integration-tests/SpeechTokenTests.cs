@@ -12,9 +12,9 @@ public class SpeechTokenTests : ChatCopilotIntegrationTest
     [Fact]
     public async void GetSpeechToken()
     {
-        await this.SetUpAuth();
+        await this.SetUpAuthAsync();
 
-        HttpResponseMessage response = await this._httpClient.GetAsync("speechToken/");
+        HttpResponseMessage response = await this.HTTPClient.GetAsync("speechToken/");
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
@@ -22,6 +22,6 @@ public class SpeechTokenTests : ChatCopilotIntegrationTest
 
         Assert.NotNull(speechTokenResponse);
         Assert.True((speechTokenResponse.IsSuccess == true && !string.IsNullOrEmpty(speechTokenResponse.Token)) ||
-                     speechTokenResponse.IsSuccess == false);
+                    speechTokenResponse.IsSuccess == false);
     }
 }
