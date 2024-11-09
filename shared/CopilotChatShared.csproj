@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.66.240709.1" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.91.241101.1" />
     <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Redis" Version="0.66.240709.1" />
     <PackageReference Include="Microsoft.KernelMemory.Orchestration.RabbitMQ" Version="0.66.240709.1" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20">
