@@ -52,7 +52,7 @@ You will need the following items to run the sample:
    .\Install.ps1
    ```
 
-   > NOTE: This script will install `Chocolatey`, `dotnet-7.0-sdk`, `nodejs`, and `yarn`.
+   > NOTE: This script will install `Chocolatey`, `dotnet-8.0-sdk`, `nodejs`, and `yarn`.
 
    > NOTE: If you receive an error that the script is not digitally signed or cannot execute on the system, you may need to [change the execution policy](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#change-the-execution-policy) (see list of [policies](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#powershell-execution-policies) and [scopes](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.3#execution-policy-scope)) or [unblock the script](https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-executionpolicy?view=powershell-7.3#example-4-unblock-a-script-to-run-it-without-changing-the-execution-policy).
 
@@ -111,7 +111,7 @@ You will need the following items to run the sample:
    ./install-apt.sh
    ```
 
-   > NOTE: This script uses `apt` to install `dotnet-sdk-7.0`, `nodejs`, and `yarn`.
+   > NOTE: This script uses `apt` to install `dotnet-sdk-8.0`, `nodejs`, and `yarn`.
 
    **macOS**
 
@@ -362,7 +362,7 @@ Backend authentication via Azure AD must be enabled. Detailed instructions for e
 
    # Update and install dotnet
    sudo apt update;
-   sudo apt install --assume-yes dotnet-sdk-7.0;
+   sudo apt install --assume-yes dotnet-sdk-8.0;
    ```
 
 # A note on branches
