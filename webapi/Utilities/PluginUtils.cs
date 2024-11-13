@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using CopilotChat.WebApi.Models.Request;
-
 namespace CopilotChat.WebApi.Utilities;
 
 /// <summary>
@@ -28,10 +25,12 @@ internal static class PluginUtils
     /// <returns>The plugin manifest URI.</returns>
     public static Uri GetPluginManifestUri(Uri manifestDomain)
     {
-        UriBuilder uriBuilder = new(manifestDomain);
+        UriBuilder uriBuilder = new(manifestDomain)
+        {
+            // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
+            Path = "/.well-known/ai-plugin.json"
+        };
 
-        // Expected manifest path as defined by OpenAI: https://platform.openai.com/docs/plugins/getting-started/plugin-manifest
-        uriBuilder.Path = "/.well-known/ai-plugin.json";
         return uriBuilder.Uri;
     }
 

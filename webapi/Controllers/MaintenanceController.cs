@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Threading;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace CopilotChat.WebApi.Controllers;

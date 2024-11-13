@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using CopilotChat.Shared;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.Diagnostics;
 
@@ -18,7 +13,6 @@ var builder = WebApplication.CreateBuilder();
 IKernelMemory memory =
     new KernelMemoryBuilder(builder.Services)
         .FromAppSettings()
-        .WithCustomOcr(builder.Configuration)
         .Build();
 
 builder.Services.AddSingleton(memory);

@@ -7,10 +7,8 @@ namespace CopilotChat.Shared.Ocr.Tesseract;
 /// <summary>
 /// Configuration options for Tesseract OCR support.
 /// </summary>
-public sealed class TesseractOptions
+public sealed class TesseractConfig
 {
-    public const string SectionName = "Tesseract";
-
     /// <summary>
     /// The file path where the Tesseract language file is stored (e.g. "./data")
     /// </summary>

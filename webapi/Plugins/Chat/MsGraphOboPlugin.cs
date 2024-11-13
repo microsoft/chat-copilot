@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
@@ -107,7 +102,7 @@ public sealed class MsGraphOboPlugin
         {
             using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiToCall))
             {
-                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", oboAccessToken);
+                graphRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", oboAccessToken);
                 var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
 
                 if (graphResponse.IsSuccessStatusCode)

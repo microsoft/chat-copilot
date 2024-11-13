@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Collections.Generic;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using Microsoft.KernelMemory;

@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Utils;
-using Microsoft.Extensions.Logging;
 using Microsoft.KernelMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -64,9 +59,9 @@ internal static class SemanticChatMemoryExtractor
             }
         }
 
-        /// <summary>
-        /// Extracts the semantic chat memory from the chat session.
-        /// </summary>
+        // <summary>
+        // Extracts the semantic chat memory from the chat session.
+        // </summary>
         async Task<SemanticChatMemory> ExtractCognitiveMemoryAsync(string memoryType, string memoryName, ILogger logger)
         {
             if (!options.MemoryMap.TryGetValue(memoryName, out var memoryPrompt))
@@ -116,10 +111,10 @@ internal static class SemanticChatMemoryExtractor
             return memory;
         }
 
-        /// <summary>
-        /// Create a memory item in the memory collection.
-        /// If there is already a memory item that has a high similarity score with the new item, it will be skipped.
-        /// </summary>
+        // <summary>
+        // Create a memory item in the memory collection.
+        // If there is already a memory item that has a high similarity score with the new item, it will be skipped.
+        // </summary>
         async Task CreateMemoryAsync(string memoryName, string memory)
         {
             try

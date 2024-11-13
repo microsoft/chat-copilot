@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using CopilotChat.WebApi.Options;
 
 namespace CopilotChat.WebApi.Models.Request;

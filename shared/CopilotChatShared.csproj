@@ -3,33 +3,22 @@
   <PropertyGroup>
     <RootNamespace>CopilotChat.Shared</RootNamespace>
     <TargetFramework>net8.0</TargetFramework>
-    <RollForward>LatestMajor</RollForward>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Redis" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.KernelMemory.Orchestration.RabbitMQ" Version="0.66.240709.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Roslynator.Analyzers" Version="4.12.9">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.9">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.9">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="Microsoft.KernelMemory.AI.AzureOpenAI" />
+    <PackageReference Include="Microsoft.KernelMemory.AI.Ollama" />
+    <PackageReference Include="Microsoft.KernelMemory.AI.OpenAI" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" />
+    <PackageReference Include="Microsoft.KernelMemory.DataFormats.AzureAIDocIntel" />
+    <PackageReference Include="Microsoft.KernelMemory.DocumentStorage.AzureBlobs" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.AzureAISearch" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Postgres" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.Qdrant" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.SQLServer" />
+    <PackageReference Include="Microsoft.KernelMemory.Orchestration.AzureQueues" />
+    <PackageReference Include="Microsoft.KernelMemory.Orchestration.RabbitMQ" />
+    <PackageReference Include="Tesseract" />
   </ItemGroup>
 
 </Project>

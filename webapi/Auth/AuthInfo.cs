@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using Azure.Identity;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Identity.Web;
 
 namespace CopilotChat.WebApi.Auth;

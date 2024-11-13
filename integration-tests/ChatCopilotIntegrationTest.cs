@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
 using Xunit;
@@ -15,6 +11,7 @@ namespace ChatCopilotIntegrationTests;
 /// Base class for Chat Copilot integration tests
 /// </summary>
 [Trait("Category", "Integration Tests")]
+#pragma warning disable CA1051
 public abstract class ChatCopilotIntegrationTest : IDisposable
 {
     protected const string BaseUrlSettingName = "BaseServerUrl";
@@ -76,7 +73,7 @@ public abstract class ChatCopilotIntegrationTest : IDisposable
         string? scopeString = this.Configuration[ScopesSettingName];
         Assert.NotNull(scopeString);
 
-        string[] scopes = scopeString.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] scopes = scopeString.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
 
         var accounts = await app.GetAccountsAsync();
 

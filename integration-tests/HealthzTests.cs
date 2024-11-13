@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Net.Http;
 using Xunit;
 
 namespace ChatCopilotIntegrationTests;

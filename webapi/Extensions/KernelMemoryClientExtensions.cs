@@ -1,18 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.Shared;
+using CopilotChat.Shared.Ocr.Tesseract;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
+using Microsoft.KernelMemory.DataFormats.AzureAIDocIntel;
 
 namespace CopilotChat.WebApi.Extensions;
 
@@ -50,7 +44,29 @@ internal static class KernelMemoryClientExtensions
         {
             if (hasOcr)
             {
-                memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+                // Image OCR
+                switch (ocrType)
+                {
+                    case string x when x.Equals("AzureAIDocIntel", StringComparison.OrdinalIgnoreCase):
+                    {
+                        AzureAIDocIntelConfig? cfg = appBuilder.Configuration
+                            .GetSection($"{MemoryConfiguration.KernelMemorySection}:{MemoryConfiguration.ServicesSection}:AzureAIDocIntel")
+                            .Get<AzureAIDocIntelConfig>() ?? throw new ConfigurationException("Missing Azure AI Document Intelligence configuration");
+                        memoryBuilder.Services.AddSingleton(cfg);
+                        memoryBuilder.WithCustomImageOcr<AzureAIDocIntelEngine>();
+                        break;
+                    }
+
+                    case string x when x.Equals("Tesseract", StringComparison.OrdinalIgnoreCase):
+                    {
+                        TesseractConfig? cfg = appBuilder.Configuration
+                            .GetSection($"{MemoryConfiguration.KernelMemorySection}:{MemoryConfiguration.ServicesSection}:Tesseract")
+                            .Get<TesseractConfig>() ?? throw new ConfigurationException("Missing Tesseract configuration");
+                        memoryBuilder.Services.AddSingleton(cfg);
+                        memoryBuilder.WithCustomImageOcr<TesseractOcrEngine>();
+                        break;
+                    }
+                }
             }
         }
 
