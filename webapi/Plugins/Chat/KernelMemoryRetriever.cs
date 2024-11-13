@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Storage;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 
@@ -98,9 +93,9 @@ public class KernelMemoryRetriever
             FormatMemories();
             FormatSnippets();
 
-            /// <summary>
-            /// Format long term and working memories.
-            /// </summary>
+            // <summary>
+            // Format long term and working memories.
+            // </summary>
             void FormatMemories()
             {
                 foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
@@ -121,9 +116,9 @@ public class KernelMemoryRetriever
                 }
             }
 
-            /// <summary>
-            /// Format document snippets.
-            /// </summary>
+            // <summary>
+            // Format document snippets.
+            // </summary>
             void FormatSnippets()
             {
                 if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories) || memories.Count == 0)
@@ -145,9 +140,9 @@ public class KernelMemoryRetriever
 
         return (builderMemory.Length == 0 ? string.Empty : builderMemory.ToString(), citationMap);
 
-        /// <summary>
-        /// Search the memory for relevant memories by memory name.
-        /// </summary>
+        // <summary>
+        // Search the memory for relevant memories by memory name.
+        // </summary>
         async Task SearchMemoryAsync(string memoryName, bool isGlobalMemory = false)
         {
             var searchResult =
@@ -164,10 +159,10 @@ public class KernelMemoryRetriever
             }
         }
 
-        /// <summary>
-        /// Process the relevant memories and return a map of memories with citations for each memory name.
-        /// </summary>
-        /// <returns>A map of memories for each memory name and a map of citations for documents.</returns>
+        // <summary>
+        // Process the relevant memories and return a map of memories with citations for each memory name.
+        // </summary>
+        // <returns>A map of memories for each memory name and a map of citations for documents.</returns>
         (IDictionary<string, List<(string, CitationSource)>>, IDictionary<string, CitationSource>) ProcessMemories()
         {
             var memoryMap = new Dictionary<string, List<(string, CitationSource)>>(StringComparer.OrdinalIgnoreCase);

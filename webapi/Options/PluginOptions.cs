@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-
 namespace CopilotChat.WebApi.Options;
 
 /// <summary>

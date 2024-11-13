@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using SharpToken;
 
 namespace CopilotChat.WebApi.Plugins.Utils;
 
@@ -15,7 +13,7 @@ namespace CopilotChat.WebApi.Plugins.Utils;
 /// </summary>
 public static class TokenUtils
 {
-    private static readonly SharpToken.GptEncoding s_tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
+    private static readonly GptEncoding s_tokenizer = GptEncoding.GetEncoding("cl100k_base");
 
     /// <summary>
     /// Semantic dependencies of ChatPlugin.

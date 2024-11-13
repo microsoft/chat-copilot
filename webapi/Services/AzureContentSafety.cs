@@ -1,16 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
-using Microsoft.AspNetCore.Http;
 using Microsoft.SemanticKernel;
 
 // ReSharper disable MissingLinebreak

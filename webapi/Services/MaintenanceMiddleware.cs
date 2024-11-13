@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Controllers;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 

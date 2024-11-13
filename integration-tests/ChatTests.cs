@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using CopilotChat.WebApi.Models.Request;
@@ -13,6 +11,8 @@ namespace ChatCopilotIntegrationTests;
 
 public class ChatTests : ChatCopilotIntegrationTest
 {
+    private static readonly JsonSerializerOptions jsOpts = new() { PropertyNameCaseInsensitive = true };
+
     [Fact]
     public async void ChatMessagePostSucceedsWithValidInput()
     {
@@ -24,7 +24,7 @@ public class ChatTests : ChatCopilotIntegrationTest
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
-        var createChatResponse = await JsonSerializer.DeserializeAsync<CreateChatResponse>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var createChatResponse = await JsonSerializer.DeserializeAsync<CreateChatResponse>(contentStream, jsOpts);
         Assert.NotNull(createChatResponse);
 
         // Ask something to the bot
@@ -37,12 +37,12 @@ public class ChatTests : ChatCopilotIntegrationTest
         response.EnsureSuccessStatusCode();
 
         contentStream = await response.Content.ReadAsStreamAsync();
-        var askResult = await JsonSerializer.DeserializeAsync<AskResult>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var askResult = await JsonSerializer.DeserializeAsync<AskResult>(contentStream, jsOpts);
         Assert.NotNull(askResult);
         Assert.False(string.IsNullOrEmpty(askResult.Value));
 
         // Clean up
-        response = await this.HTTPClient.DeleteAsync($"chats/{createChatResponse.ChatSession.Id}");
+        response = await this.HTTPClient.DeleteAsync($"chats/{createChatResponse.ChatSession.Id}").ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
     }
 }

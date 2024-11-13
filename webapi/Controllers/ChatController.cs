@@ -1,17 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Hubs;
 using CopilotChat.WebApi.Models.Request;
@@ -21,11 +14,8 @@ using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Chat;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-using CopilotChat.WebApi.Utilities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.SemanticKernel;
@@ -240,7 +230,7 @@ public class ChatController : ControllerBase, IDisposable
         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(githubAuthHeader));
         await kernel.ImportPluginFromOpenApiAsync(
             pluginName: "GitHubPlugin",
-            filePath: GetPluginFullPath("GitHubPlugin/openapi.json"),
+            filePath: GetPluginFullPath("OpenApi/GitHubPlugin/openapi.json"),
             new OpenApiFunctionExecutionParameters
             {
                 AuthCallback = authenticationProvider.AuthenticateRequestAsync,
@@ -286,6 +276,26 @@ public class ChatController : ControllerBase, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Create a Microsoft Graph service client.
+    /// </summary>
+    /// <param name="authenticateRequestAsyncDelegate">The delegate to authenticate the request.</param>
+    private GraphServiceClient CreateGraphServiceClient(AuthenticateRequestAsyncDelegate authenticateRequestAsyncDelegate)
+    {
+        MsGraphClientLoggingHandler graphLoggingHandler = new(this._logger);
+        this._disposables.Add(graphLoggingHandler);
+
+        IList<DelegatingHandler> graphMiddlewareHandlers =
+            GraphClientFactory.CreateDefaultHandlers(new DelegateAuthenticationProvider(authenticateRequestAsyncDelegate));
+        graphMiddlewareHandlers.Add(graphLoggingHandler);
+
+        HttpClient graphHttpClient = GraphClientFactory.Create(graphMiddlewareHandlers);
+        this._disposables.Add(graphHttpClient);
+
+        GraphServiceClient graphServiceClient = new(graphHttpClient);
+        return graphServiceClient;
+    }
+
     private IEnumerable<Task> RegisterCustomPlugins(Kernel kernel, object? customPluginsString, Dictionary<string, string> authHeaders)
     {
         CustomPlugin[]? customPlugins = JsonSerializer.Deserialize<CustomPlugin[]>(customPluginsString!.ToString()!);
@@ -296,6 +306,9 @@ public class ChatController : ControllerBase, IDisposable
             {
                 if (authHeaders.TryGetValue(plugin.AuthHeaderTag.ToUpperInvariant(), out string? pluginAuthValue))
                 {
+                    this._logger.LogError("ChatGPT plugins are deprecated. Skipping plugin: {0}", plugin.NameForHuman);
+
+                    /*
                     // Register the ChatGPT plugin with the kernel.
                     this._logger.LogInformation("Enabling {0} plugin.", plugin.NameForHuman);
 
@@ -318,6 +331,7 @@ public class ChatController : ControllerBase, IDisposable
                             IgnoreNonCompliantErrors = true,
                             AuthCallback = requiresAuth ? AuthCallback : null
                         });
+                    */
                 }
             }
         }
@@ -325,34 +339,19 @@ public class ChatController : ControllerBase, IDisposable
         {
             this._logger.LogDebug("Failed to deserialize custom plugin details: {0}", customPluginsString);
         }
+
+        yield return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Create a Microsoft Graph service client.
-    /// </summary>
-    /// <param name="authenticateRequestAsyncDelegate">The delegate to authenticate the request.</param>
-    private GraphServiceClient CreateGraphServiceClient(AuthenticateRequestAsyncDelegate authenticateRequestAsyncDelegate)
-    {
-        MsGraphClientLoggingHandler graphLoggingHandler = new(this._logger);
-        this._disposables.Add(graphLoggingHandler);
-
-        IList<DelegatingHandler> graphMiddlewareHandlers =
-            GraphClientFactory.CreateDefaultHandlers(new DelegateAuthenticationProvider(authenticateRequestAsyncDelegate));
-        graphMiddlewareHandlers.Add(graphLoggingHandler);
-
-        HttpClient graphHttpClient = GraphClientFactory.Create(graphMiddlewareHandlers);
-        this._disposables.Add(graphHttpClient);
-
-        GraphServiceClient graphServiceClient = new(graphHttpClient);
-        return graphServiceClient;
-    }
-
-    private async Task RegisterHostedFunctionsAsync(Kernel kernel, HashSet<string> enabledPlugins)
+    private Task RegisterHostedFunctionsAsync(Kernel kernel, HashSet<string> enabledPlugins)
     {
         foreach (string enabledPlugin in enabledPlugins)
         {
             if (this._plugins.TryGetValue(enabledPlugin, out Plugin? plugin))
             {
+                this._logger.LogError("ChatGPT plugins are deprecated. Skipping plugin {0}", enabledPlugin);
+
+                /*
                 this._logger.LogDebug("Enabling hosted plugin {0}.", plugin.Name);
 
                 Task AuthCallback(HttpRequestMessage request, string _, OpenAIAuthenticationConfig __, CancellationToken ___ = default)
@@ -372,6 +371,7 @@ public class ChatController : ControllerBase, IDisposable
                         IgnoreNonCompliantErrors = true,
                         AuthCallback = AuthCallback
                     });
+                */
             }
             else
             {
@@ -379,7 +379,7 @@ public class ChatController : ControllerBase, IDisposable
             }
         }
 
-        return;
+        return Task.CompletedTask;
     }
 
     private static KernelArguments GetContextVariables(Ask ask, IAuthInfo authInfo, string chatId)
@@ -495,14 +495,5 @@ public class BearerAuthenticationProvider
     public async Task GraphClientAuthenticateRequestAsync(HttpRequestMessage request)
     {
         await this.AuthenticateRequestAsync(request);
-    }
-
-    /// <summary>
-    /// Applies the token to the provided HTTP request message.
-    /// </summary>
-    /// <param name="request">The HTTP request message.</param>
-    public async Task OpenAIAuthenticateRequestAsync(HttpRequestMessage request, string pluginName, OpenAIAuthenticationConfig openAIAuthConfig, CancellationToken cancellationToken = default)
-    {
-        await this.AuthenticateRequestAsync(request, cancellationToken);
     }
 }
