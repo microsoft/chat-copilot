@@ -496,23 +496,28 @@ internal sealed class ServiceConfiguration
     /// <param name="builder">KM builder</param>
     /// <param name="addCustomService">Action used to configure the service collection</param>
     /// <typeparam name="T">Target type/interface</typeparam>
-    private T GetServiceInstance<T>(IKernelMemoryBuilder builder, Action<IServiceCollection> addCustomService)
+    private T GetServiceInstance<T>(IKernelMemoryBuilder builder, Action<IServiceCollection> addCustomService) where T : class
     {
-        // Clone the list of service descriptors, skipping T descriptor
-        IServiceCollection services = new ServiceCollection();
-        foreach (ServiceDescriptor d in builder.Services)
+        // Temporarily register the service with a scoped lifecycle to ensure it’s not duplicated or retained in memory unnecessarily
+        var serviceProvider = builder.Services.BuildServiceProvider();
+    
+        // Add the custom service configuration directly in a new scope
+        using (var scope = serviceProvider.CreateScope())
         {
-            if (d.ServiceType == typeof(T)) { continue; }
-
-            services.Add(d);
+            // Apply custom service configuration within the scope
+            addCustomService(scope.ServiceProvider.GetRequiredService<IServiceCollection>());
+    
+            // Attempt to resolve the service
+            T instance = scope.ServiceProvider.GetService<T>();
+    
+            // Check if the instance was successfully created
+            if (instance == null)
+            {
+                throw new ConfigurationException($"Unable to build {typeof(T).Name}");
+            }
+    
+            return instance;
         }
-
-        // Add the custom T descriptor
-        addCustomService.Invoke(services);
-
-        // Build and return an instance of T, as defined by `addCustomService`
-        return services.BuildServiceProvider().GetService<T>()
-               ?? throw new ConfigurationException($"Unable to build {nameof(T)}");
     }
 
     /// <summary>

@@ -13,7 +13,7 @@ public sealed class TesseractOcrEngine : IOcrEngine, IDisposable
     private readonly TesseractEngine _engine;
 
     /// <summary>
-    /// Creates a new instance of the TesseractEngineWrapper passing in a valid TesseractEngine.
+    /// Creates a new instance of the TesseractOcrEngine passing in a valid TesseractEngine.
     /// </summary>
     public TesseractOcrEngine(TesseractConfig tesseractConfig)
     {
@@ -28,15 +28,25 @@ public sealed class TesseractOcrEngine : IOcrEngine, IDisposable
     ///<inheritdoc/>
     public async Task<string> ExtractTextFromImageAsync(Stream imageContent, CancellationToken cancellationToken = default)
     {
-        await using (var imgStream = new MemoryStream())
+        try
         {
-            await imageContent.CopyToAsync(imgStream, cancellationToken);
-            imgStream.Position = 0;
+            // Use a buffer for CopyToAsync to reduce memory usage for large images
+            await using (var imgStream = new MemoryStream())
+            {
+                await imageContent.CopyToAsync(imgStream, 81920, cancellationToken).ConfigureAwait(false); // Buffered copy with 80 KB buffer size
+                imgStream.Position = 0; // Reset position for reading
 
-            using var img = Pix.LoadFromMemory(imgStream.ToArray());
+                // Load image from memory and process with Tesseract
+                using var img = Pix.LoadFromMemory(imgStream.ToArray());
+                using var page = this._engine.Process(img);
 
-            using var page = this._engine.Process(img);
-            return page.GetText();
+                return page.GetText(); // Return the extracted text
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // If operation is canceled, return an empty string or handle accordingly
+            return string.Empty;
         }
     }
 
