@@ -33,7 +33,7 @@ public sealed class TesseractOcrEngine : IOcrEngine, IDisposable
             // Use a buffer for CopyToAsync to reduce memory usage for large images
             await using (var imgStream = new MemoryStream())
             {
-                await imageContent.CopyToAsync(imgStream, 81920, cancellationToken); // Buffered copy with 80 KB buffer size
+                await imageContent.CopyToAsync(imgStream, 81920, cancellationToken).ConfigureAwait(false); // Buffered copy with 80 KB buffer size
                 imgStream.Position = 0; // Reset position for reading
 
                 // Load image from memory and process with Tesseract
