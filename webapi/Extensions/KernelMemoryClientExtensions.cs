@@ -1,32 +1,26 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.Shared;
+using CopilotChat.Shared.Ocr.Tesseract;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
+using Microsoft.KernelMemory.DataFormats.AzureAIDocIntel;
 
 namespace CopilotChat.WebApi.Extensions;
 
 /// <summary>
 /// Extension methods for <see cref="IKernelMemory"/> and service registration.
 /// </summary>
-internal static class ISemanticMemoryClientExtensions
+internal static class KernelMemoryClientExtensions
 {
-    private static readonly List<string> pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_records" };
+    private static readonly List<string> s_pipelineSteps = new() { "extract", "partition", "gen_embeddings", "save_records" };
 
     /// <summary>
     /// Inject <see cref="IKernelMemory"/>.
     /// </summary>
-    public static void AddSemanticMemoryServices(this WebApplicationBuilder appBuilder)
+    public static void AddKernelMemoryServices(this WebApplicationBuilder appBuilder)
     {
         var serviceProvider = appBuilder.Services.BuildServiceProvider();
 
@@ -50,7 +44,29 @@ internal static class ISemanticMemoryClientExtensions
         {
             if (hasOcr)
             {
-                memoryBuilder.WithCustomOcr(appBuilder.Configuration);
+                // Image OCR
+                switch (ocrType)
+                {
+                    case string x when x.Equals("AzureAIDocIntel", StringComparison.OrdinalIgnoreCase):
+                    {
+                        AzureAIDocIntelConfig? cfg = appBuilder.Configuration
+                            .GetSection($"{MemoryConfiguration.KernelMemorySection}:{MemoryConfiguration.ServicesSection}:AzureAIDocIntel")
+                            .Get<AzureAIDocIntelConfig>() ?? throw new ConfigurationException("Missing Azure AI Document Intelligence configuration");
+                        memoryBuilder.Services.AddSingleton(cfg);
+                        memoryBuilder.WithCustomImageOcr<AzureAIDocIntelEngine>();
+                        break;
+                    }
+
+                    case string x when x.Equals("Tesseract", StringComparison.OrdinalIgnoreCase):
+                    {
+                        TesseractConfig? cfg = appBuilder.Configuration
+                            .GetSection($"{MemoryConfiguration.KernelMemorySection}:{MemoryConfiguration.ServicesSection}:Tesseract")
+                            .Get<TesseractConfig>() ?? throw new ConfigurationException("Missing Tesseract configuration");
+                        memoryBuilder.Services.AddSingleton(cfg);
+                        memoryBuilder.WithCustomImageOcr<TesseractOcrEngine>();
+                        break;
+                    }
+                }
             }
         }
 
@@ -122,7 +138,7 @@ internal static class ISemanticMemoryClientExtensions
                 DocumentId = documentId,
                 Files = new List<DocumentUploadRequest.UploadedFile> { new(fileName, fileContent) },
                 Index = indexName,
-                Steps = pipelineSteps,
+                Steps = s_pipelineSteps,
             };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);
@@ -167,7 +183,7 @@ internal static class ISemanticMemoryClientExtensions
                     // Document file name not relevant, but required.
                     new DocumentUploadRequest.UploadedFile("memory.txt", stream)
                 },
-            Steps = pipelineSteps,
+            Steps = s_pipelineSteps,
         };
 
         uploadRequest.Tags.Add(MemoryTags.TagChatId, chatId);

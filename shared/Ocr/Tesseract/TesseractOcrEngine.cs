@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Microsoft.KernelMemory.DataFormats;
 using Tesseract;
 
@@ -11,17 +8,21 @@ namespace CopilotChat.Shared.Ocr.Tesseract;
 /// <summary>
 /// Wrapper for the TesseractEngine within the Tesseract OCR library.
 /// </summary>
-public class TesseractOcrEngine : IOcrEngine, IDisposable
+public sealed class TesseractOcrEngine : IOcrEngine, IDisposable
 {
     private readonly TesseractEngine _engine;
 
     /// <summary>
     /// Creates a new instance of the TesseractOcrEngine passing in a valid TesseractEngine.
     /// </summary>
-    public TesseractOcrEngine(TesseractOptions tesseractOptions)
+    public TesseractOcrEngine(TesseractConfig tesseractConfig)
     {
-        // Initialize TesseractEngine with provided options
-        this._engine = new TesseractEngine(tesseractOptions.FilePath, tesseractOptions.Language);
+        if (!Directory.Exists(tesseractConfig.FilePath))
+        {
+            throw new DirectoryNotFoundException($"{tesseractConfig.FilePath} dir not found");
+        }
+
+        this._engine = new TesseractEngine(tesseractConfig.FilePath, tesseractConfig.Language);
     }
 
     ///<inheritdoc/>
@@ -32,7 +33,7 @@ public class TesseractOcrEngine : IOcrEngine, IDisposable
             // Use a buffer for CopyToAsync to reduce memory usage for large images
             await using (var imgStream = new MemoryStream())
             {
-                await imageContent.CopyToAsync(imgStream, 81920, cancellationToken);  // Buffered copy with 80 KB buffer size
+                await imageContent.CopyToAsync(imgStream, 81920, cancellationToken); // Buffered copy with 80 KB buffer size
                 imgStream.Position = 0; // Reset position for reading
 
                 // Load image from memory and process with Tesseract
@@ -49,12 +50,9 @@ public class TesseractOcrEngine : IOcrEngine, IDisposable
         }
     }
 
-    /// <summary>
-    /// Dispose the TesseractEngine resources.
-    /// </summary>
+    ///<inheritdoc/>
     public void Dispose()
     {
-        // Dispose of the TesseractEngine to free up resources
-        _engine.Dispose();
+        this._engine.Dispose();
     }
 }

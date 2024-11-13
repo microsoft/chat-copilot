@@ -1,0 +1,3 @@
+[**/**.cs]
+resharper_inconsistent_naming_highlighting = none
+dotnet_diagnostic.IDE1006.severity = none # No need for Async suffix on test names

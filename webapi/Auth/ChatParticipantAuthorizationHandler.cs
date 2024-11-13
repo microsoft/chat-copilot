@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Threading.Tasks;
+using Azure.Identity;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace CopilotChat.WebApi.Auth;
 
@@ -61,7 +59,7 @@ public class ChatParticipantAuthorizationHandler : AuthorizationHandler<ChatPart
 
             context.Succeed(requirement);
         }
-        catch (Azure.Identity.CredentialUnavailableException ex)
+        catch (CredentialUnavailableException ex)
         {
             context.Fail(new AuthorizationFailureReason(this, ex.Message));
         }

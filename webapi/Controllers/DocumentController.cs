@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Hubs;
@@ -15,10 +10,8 @@ using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Services;
 using CopilotChat.WebApi.Storage;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 
@@ -143,7 +136,7 @@ public class DocumentController : ControllerBase
 
         var importResults = await this.ImportDocumentsAsync(memoryClient, chatId, documentImportForm, documentMessageContent);
 
-        var chatMessage = await this.TryCreateDocumentUploadMessage(chatId, documentMessageContent);
+        var chatMessage = await this.TryCreateDocumentUploadMessageAsync(chatId, documentMessageContent);
 
         if (chatMessage == null)
         {
@@ -295,7 +288,7 @@ public class DocumentController : ControllerBase
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
         if (scope == DocumentScopes.Chat
-                && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, chatId)))
+            && !(await this.UserHasAccessToChatAsync(this._authInfo.UserId, chatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -369,7 +362,7 @@ public class DocumentController : ControllerBase
     {
         // Make sure the user has access to the chat session if the document is uploaded to a chat session.
         if (documentStatusForm.DocumentScope == DocumentScopes.Chat
-                && !(await this.UserHasAccessToChatAsync(documentStatusForm.UserId, documentStatusForm.ChatId)))
+            && !(await this.UserHasAccessToChatAsync(documentStatusForm.UserId, documentStatusForm.ChatId)))
         {
             throw new ArgumentException("User does not have access to the chat session.");
         }
@@ -455,7 +448,7 @@ public class DocumentController : ControllerBase
     /// <param name="chatId">The target chat-id</param>
     /// <param name="messageContent">The document message content</param>
     /// <returns>A ChatMessage object if successful, null otherwise</returns>
-    private async Task<CopilotChatMessage?> TryCreateDocumentUploadMessage(
+    private async Task<CopilotChatMessage?> TryCreateDocumentUploadMessageAsync(
         Guid chatId,
         DocumentMessageContent messageContent)
     {

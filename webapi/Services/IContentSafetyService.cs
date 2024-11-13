@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Response;
-using Microsoft.AspNetCore.Http;
 
 namespace CopilotChat.WebApi.Services;
 

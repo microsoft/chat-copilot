@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using SharpToken;
 
 namespace CopilotChat.WebApi.Plugins.Utils;
 
@@ -15,18 +13,18 @@ namespace CopilotChat.WebApi.Plugins.Utils;
 /// </summary>
 public static class TokenUtils
 {
-    private static SharpToken.GptEncoding tokenizer = SharpToken.GptEncoding.GetEncoding("cl100k_base");
+    private static readonly GptEncoding s_tokenizer = GptEncoding.GetEncoding("cl100k_base");
 
     /// <summary>
     /// Semantic dependencies of ChatPlugin.
     ///  If you add a new semantic dependency, please add it here.
     /// </summary>
-    internal static readonly Dictionary<string, string> semanticFunctions = new()
+    internal static readonly Dictionary<string, string> SemanticFunctions = new()
     {
         { "SystemAudienceExtraction", "audienceExtraction" },
         { "SystemIntentExtraction", "userIntentExtraction" },
         { "SystemMetaPrompt", "metaPromptTemplate" },
-        { "SystemCompletion", "responseCompletion"},
+        { "SystemCompletion", "responseCompletion" },
         { "SystemCognitive_WorkingMemory", "workingMemoryExtraction" },
         { "SystemCognitive_LongTermMemory", "longTermMemoryExtraction" }
     };
@@ -37,7 +35,7 @@ public static class TokenUtils
     /// </summary>
     internal static Dictionary<string, int> EmptyTokenUsages()
     {
-        return semanticFunctions.Values.ToDictionary(v => v, v => 0);
+        return SemanticFunctions.Values.ToDictionary(v => v, v => 0);
     }
 
     /// <summary>
@@ -47,10 +45,12 @@ public static class TokenUtils
     /// <returns>The key corresponding to the semantic function name, or null if the function name is unknown.</returns>
     internal static string GetFunctionKey(string? functionName)
     {
-        if (functionName == null || !semanticFunctions.TryGetValue(functionName, out string? key))
+        if (functionName == null || !SemanticFunctions.TryGetValue(functionName, out string? key))
         {
             throw new KeyNotFoundException($"Unknown token dependency {functionName}. Please define function as semanticFunctions entry in TokenUtils.cs");
-        };
+        }
+
+        ;
 
         return $"{key}TokenUsage";
     }
@@ -93,7 +93,7 @@ public static class TokenUtils
     /// <param name="text">The string to calculate the number of tokens in.</param>
     internal static int TokenCount(string text)
     {
-        var tokens = tokenizer.Encode(text);
+        var tokens = s_tokenizer.Encode(text);
         return tokens.Count;
     }
 

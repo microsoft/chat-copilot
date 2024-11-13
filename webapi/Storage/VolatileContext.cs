@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Storage;
@@ -20,7 +16,7 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
     /// Using a concurrent dictionary to store entities in memory.
     /// </summary>
 #pragma warning disable CA1051 // Do not declare visible instance fields
-    protected readonly ConcurrentDictionary<string, T> _entities;
+    protected readonly ConcurrentDictionary<string, T> Entities;
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
     /// <summary>
@@ -28,13 +24,13 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
     /// </summary>
     public VolatileContext()
     {
-        this._entities = new ConcurrentDictionary<string, T>();
+        this.Entities = new ConcurrentDictionary<string, T>();
     }
 
     /// <inheritdoc/>
     public Task<IEnumerable<T>> QueryEntitiesAsync(Func<T, bool> predicate)
     {
-        return Task.FromResult(this._entities.Values.Where(predicate));
+        return Task.FromResult(this.Entities.Values.Where(predicate));
     }
 
     /// <inheritdoc/>
@@ -45,7 +41,7 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        this._entities.TryAdd(entity.Id, entity);
+        this.Entities.TryAdd(entity.Id, entity);
 
         return Task.CompletedTask;
     }
@@ -58,7 +54,7 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        this._entities.TryRemove(entity.Id, out _);
+        this.Entities.TryRemove(entity.Id, out _);
 
         return Task.CompletedTask;
     }
@@ -71,7 +67,7 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entityId), "Entity Id cannot be null or empty.");
         }
 
-        if (this._entities.TryGetValue(entityId, out T? entity))
+        if (this.Entities.TryGetValue(entityId, out T? entity))
         {
             return Task.FromResult(entity);
         }
@@ -87,7 +83,7 @@ public class VolatileContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        this._entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity);
+        this.Entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity);
 
         return Task.CompletedTask;
     }
@@ -107,7 +103,7 @@ public class VolatileCopilotChatMessageContext : VolatileContext<CopilotChatMess
     public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-                () => this._entities.Values
-                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
+            () => this.Entities.Values
+                .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
     }
 }

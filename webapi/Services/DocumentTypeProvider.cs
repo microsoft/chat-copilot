@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.KernelMemory.Pipeline;
 
 namespace CopilotChat.WebApi.Services;
@@ -11,7 +9,7 @@ namespace CopilotChat.WebApi.Services;
 /// </summary>
 public class DocumentTypeProvider
 {
-    private readonly Dictionary<string, bool> supportedTypes;
+    private readonly Dictionary<string, bool> _supportedTypes;
 
     /// <summary>
     /// Construct provider based on if images are supported, or not.
@@ -19,7 +17,7 @@ public class DocumentTypeProvider
     /// <param name="allowImageOcr">Flag indicating if image ocr is supported</param>
     public DocumentTypeProvider(bool allowImageOcr)
     {
-        this.supportedTypes =
+        this._supportedTypes =
             new(StringComparer.OrdinalIgnoreCase)
             {
                 { FileExtensions.MarkDown, false },
@@ -44,6 +42,6 @@ public class DocumentTypeProvider
     /// <returns></returns>
     public bool IsSupported(string extension, out bool isSafetyTarget)
     {
-        return this.supportedTypes.TryGetValue(extension, out isSafetyTarget);
+        return this._supportedTypes.TryGetValue(extension, out isSafetyTarget);
     }
 }

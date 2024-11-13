@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace CopilotChat.WebApi.Models.Request;
 
 /// <summary>

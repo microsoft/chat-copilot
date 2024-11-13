@@ -33,7 +33,7 @@ Please refer to the [webapi README](../webapi/README.md).
 
 #### Memorypipeline
 
-The memorypipeline is only needed when `SemanticMemory:DataIngestion:OrchestrationType` is set to `Distributed` in [../webapi/appsettings.json](./appsettings.json).
+The memorypipeline is only needed when `KernelMemory:DataIngestion:OrchestrationType` is set to `Distributed` in [../webapi/appsettings.json](./appsettings.json).
 
 - Content Storage: storage solution to save the original contents. Available options:
   - AzureBlobs
@@ -48,7 +48,7 @@ The memorypipeline is only needed when `SemanticMemory:DataIngestion:Orchestrati
   - SimpleVectorDb
     - TextFile: stores vectors on your local file system.
     - Volatile: stores vectors in RAM.
-      > Note that do not configure the memory pipeline to use Volatile. Use volatile in the webapi only when its `SemanticMemory:DataIngestion:OrchestrationType` is set to `InProcess`.
+      > Note that do not configure the memory pipeline to use Volatile. Use volatile in the webapi only when its `KernelMemory:DataIngestion:OrchestrationType` is set to `InProcess`.
 
 ##### AzureBlobs & AzureQueue
 
@@ -58,10 +58,10 @@ The memorypipeline is only needed when `SemanticMemory:DataIngestion:Orchestrati
 2. Find the **connection string** under **Access keys** on the portal.
 3. Run the following to set up the authentication to the resources:
    ```bash
-   dotnet user-secrets set SemanticMemory:Services:AzureBlobs:Auth ConnectionString
-   dotnet user-secrets set SemanticMemory:Services:AzureBlobs:ConnectionString [your secret]
-   dotnet user-secrets set SemanticMemory:Services:AzureQueue:Auth ConnectionString
-   dotnet user-secrets set SemanticMemory:Services:AzureQueue:ConnectionString [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureBlobs:Auth ConnectionString
+   dotnet user-secrets set KernelMemory:Services:AzureBlobs:ConnectionString [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureQueue:Auth ConnectionString
+   dotnet user-secrets set KernelMemory:Services:AzureQueue:ConnectionString [your secret]
    ```
 
 ##### [Azure Cognitive Search](https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search)
@@ -72,8 +72,8 @@ The memorypipeline is only needed when `SemanticMemory:DataIngestion:Orchestrati
 2. Find the **Url** under **Overview** and the **key** under **Keys** on the portal.
 3. Run the following to set up the authentication to the resources:
    ```bash
-   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:Endpoint [your secret]
-   dotnet user-secrets set SemanticMemory:Services:AzureAISearch:APIKey [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureAISearch:Endpoint [your secret]
+   dotnet user-secrets set KernelMemory:Services:AzureAISearch:APIKey [your secret]
    ```
 
 ##### RabbitMQ

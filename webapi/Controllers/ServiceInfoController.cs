@@ -1,17 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 
@@ -24,13 +18,11 @@ namespace CopilotChat.WebApi.Controllers;
 public class ServiceInfoController : ControllerBase
 {
     private readonly ILogger<ServiceInfoController> _logger;
-
-    private readonly IConfiguration Configuration;
-
-    private readonly KernelMemoryConfig memoryOptions;
+    private readonly IConfiguration _configuration;
+    private readonly KernelMemoryConfig _memoryOptions;
     private readonly ChatAuthenticationOptions _chatAuthenticationOptions;
     private readonly FrontendOptions _frontendOptions;
-    private readonly IEnumerable<Plugin> availablePlugins;
+    private readonly IEnumerable<Plugin> _availablePlugins;
     private readonly ContentSafetyOptions _contentSafetyOptions;
 
     public ServiceInfoController(
@@ -43,11 +35,11 @@ public class ServiceInfoController : ControllerBase
         IOptions<ContentSafetyOptions> contentSafetyOptions)
     {
         this._logger = logger;
-        this.Configuration = configuration;
-        this.memoryOptions = memoryOptions.Value;
+        this._configuration = configuration;
+        this._memoryOptions = memoryOptions.Value;
         this._chatAuthenticationOptions = chatAuthenticationOptions.Value;
         this._frontendOptions = frontendOptions.Value;
-        this.availablePlugins = this.SanitizePlugins(availablePlugins);
+        this._availablePlugins = this.SanitizePlugins(availablePlugins);
         this._contentSafetyOptions = contentSafetyOptions.Value;
     }
 
@@ -64,9 +56,9 @@ public class ServiceInfoController : ControllerBase
             MemoryStore = new MemoryStoreInfoResponse()
             {
                 Types = Enum.GetNames(typeof(MemoryStoreType)),
-                SelectedType = this.memoryOptions.GetMemoryStoreType(this.Configuration).ToString(),
+                SelectedType = this._memoryOptions.GetMemoryStoreType(this._configuration).ToString(),
             },
-            AvailablePlugins = this.availablePlugins,
+            AvailablePlugins = this._availablePlugins,
             Version = GetAssemblyFileVersion(),
             IsContentSafetyEnabled = this._contentSafetyOptions.Enabled
         };

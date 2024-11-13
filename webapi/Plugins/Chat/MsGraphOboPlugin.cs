@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Options;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
 namespace CopilotChat.WebApi.Plugins.Chat;
@@ -107,7 +102,7 @@ public sealed class MsGraphOboPlugin
         {
             using (var graphRequest = new HttpRequestMessage(HttpMethod.Get, apiToCall))
             {
-                graphRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", oboAccessToken);
+                graphRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", oboAccessToken);
                 var graphResponse = await client.SendAsync(graphRequest, cancellationToken);
 
                 if (graphResponse.IsSuccessStatusCode)
@@ -120,6 +115,7 @@ public sealed class MsGraphOboPlugin
                 }
             }
         }
+
         return graphResponseContent;
     }
 
@@ -132,14 +128,14 @@ public sealed class MsGraphOboPlugin
             using (var request = new HttpRequestMessage(HttpMethod.Post, this._authority + "/" + this._tenantId + "/oauth2/v2.0/token"))
             {
                 var keyValues = new List<KeyValuePair<string, string>>
-            {
-                new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                new("client_id", this._clientId),
-                new("client_secret", this._clientSecret),
-                new("assertion", this._bearerToken),
-                new("scope", graphScopes),
-                new("requested_token_use", "on_behalf_of")
-            };
+                {
+                    new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                    new("client_id", this._clientId),
+                    new("client_secret", this._clientSecret),
+                    new("assertion", this._bearerToken),
+                    new("scope", graphScopes),
+                    new("requested_token_use", "on_behalf_of")
+                };
 
                 request.Content = new FormUrlEncodedContent(keyValues);
                 var response = await client.SendAsync(request, cancellationToken);

@@ -11,6 +11,8 @@ dotnet/.config
 *.user
 *.userosscache
 *.sln.docstates
+webapi/data/*.json
+__dev/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

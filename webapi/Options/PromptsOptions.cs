@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using CopilotChat.WebApi.Models.Request;
 
@@ -40,13 +38,13 @@ public class PromptsOptions
     /// Upper bound of relevance score of a kernel memory to be included in the final prompt.
     /// The actual relevancy score is determined by the memory balance.
     /// </summary>
-    internal float SemanticMemoryRelevanceUpper { get; } = 0.9F;
+    internal float KernelMemoryRelevanceUpper { get; } = 0.9F;
 
     /// <summary>
     /// Lower bound of relevance score of a kernel memory to be included in the final prompt.
     /// The actual relevancy score is determined by the memory balance.
     /// </summary>
-    internal float SemanticMemoryRelevanceLower { get; } = 0.6F;
+    internal float KernelMemoryRelevanceLower { get; } = 0.6F;
 
     /// <summary>
     /// Minimum relevance of a document memory to be included in the final prompt.

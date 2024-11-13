@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Storage;
@@ -80,7 +77,7 @@ public class CopilotChatMessageRepository : Repository<CopilotChatMessage>
     private readonly ICopilotChatMessageStorageContext _messageStorageContext;
 
     public CopilotChatMessageRepository(ICopilotChatMessageStorageContext storageContext)
-    : base(storageContext)
+        : base(storageContext)
     {
         this._messageStorageContext = storageContext;
     }

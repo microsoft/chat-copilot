@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 using Microsoft.Azure.Cosmos;
 
@@ -24,7 +20,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
     /// CosmosDB container.
     /// </summary>
 #pragma warning disable CA1051 // Do not declare visible instance fields
-    protected readonly Container _container;
+    protected readonly Container Container;
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
     /// <summary>
@@ -44,14 +40,14 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
             },
         };
         this._client = new CosmosClient(connectionString, options);
-        this._container = this._client.GetContainer(database, container);
+        this.Container = this._client.GetContainer(database, container);
     }
 
     /// <inheritdoc/>
     public async Task<IEnumerable<T>> QueryEntitiesAsync(Func<T, bool> predicate)
     {
         return await Task.Run<IEnumerable<T>>(
-            () => this._container.GetItemLinqQueryable<T>(true).Where(predicate).AsEnumerable());
+            () => this.Container.GetItemLinqQueryable<T>(true).Where(predicate).AsEnumerable());
     }
 
     /// <inheritdoc/>
@@ -62,7 +58,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        await this._container.CreateItemAsync(entity, new PartitionKey(entity.Partition));
+        await this.Container.CreateItemAsync(entity, new PartitionKey(entity.Partition));
     }
 
     /// <inheritdoc/>
@@ -73,7 +69,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        await this._container.DeleteItemAsync<T>(entity.Id, new PartitionKey(entity.Partition));
+        await this.Container.DeleteItemAsync<T>(entity.Id, new PartitionKey(entity.Partition));
     }
 
     /// <inheritdoc/>
@@ -86,7 +82,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
 
         try
         {
-            var response = await this._container.ReadItemAsync<T>(entityId, new PartitionKey(partitionKey));
+            var response = await this.Container.ReadItemAsync<T>(entityId, new PartitionKey(partitionKey));
             return response.Resource;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -103,7 +99,7 @@ public class CosmosDbContext<T> : IStorageContext<T>, IDisposable where T : ISto
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        await this._container.UpsertItemAsync(entity, new PartitionKey(entity.Partition));
+        await this.Container.UpsertItemAsync(entity, new PartitionKey(entity.Partition));
     }
 
     public void Dispose()
@@ -141,7 +137,7 @@ public class CosmosDbCopilotChatMessageContext : CosmosDbContext<CopilotChatMess
     public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-                () => this._container.GetItemLinqQueryable<CopilotChatMessage>(true)
-                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count).AsEnumerable());
+            () => this.Container.GetItemLinqQueryable<CopilotChatMessage>(true)
+                .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count).AsEnumerable());
     }
 }

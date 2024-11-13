@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Net.Http;
 using Xunit;
 
 namespace ChatCopilotIntegrationTests;
@@ -13,7 +12,7 @@ public class HealthzTests : ChatCopilotIntegrationTest
     [Fact]
     public async void HealthzSuccessfullyReturns()
     {
-        HttpResponseMessage response = await this._httpClient.GetAsync("healthz");
+        HttpResponseMessage response = await this.HTTPClient.GetAsync("healthz");
 
         response.EnsureSuccessStatusCode();
     }

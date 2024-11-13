@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
+using CopilotChat.Shared.Ocr.Tesseract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.AI;
+using Microsoft.KernelMemory.AI.Ollama;
+using Microsoft.KernelMemory.AI.OpenAI;
 using Microsoft.KernelMemory.DocumentStorage.DevTools;
+using Microsoft.KernelMemory.MemoryDb.SQLServer;
 using Microsoft.KernelMemory.MemoryStorage;
 using Microsoft.KernelMemory.MemoryStorage.DevTools;
 using Microsoft.KernelMemory.Pipeline.Queue.DevTools;
@@ -24,9 +26,6 @@ internal sealed class ServiceConfiguration
     // appsettings.json root node name
     private const string ConfigRoot = "KernelMemory";
 
-    // ASP.NET env var
-    private const string AspnetEnvVar = "ASPNETCORE_ENVIRONMENT";
-
     // OpenAI env var
     private const string OpenAIEnvVar = "OPENAI_API_KEY";
 
@@ -38,7 +37,7 @@ internal sealed class ServiceConfiguration
     public ServiceConfiguration(IConfiguration rawAppSettings)
         : this(rawAppSettings,
             rawAppSettings.GetSection(ConfigRoot).Get<KernelMemoryConfig>()
-            ?? throw new ConfigurationException($"Unable to load Kernel Memory settings from the given configuration. " +
+            ?? throw new ConfigurationException("Unable to load Kernel Memory settings from the given configuration. " +
                                                 $"There should be a '{ConfigRoot}' root node, " +
                                                 $"with data mapping to '{nameof(KernelMemoryConfig)}'"))
     {
@@ -74,7 +73,7 @@ internal sealed class ServiceConfiguration
         }
 
         // Required by ctors expecting KernelMemoryConfig via DI
-        builder.AddSingleton(this._memoryConfiguration);
+        builder.AddSingleton<KernelMemoryConfig>(this._memoryConfiguration);
 
         this.ConfigureMimeTypeDetectionDependency(builder);
 
@@ -125,15 +124,18 @@ internal sealed class ServiceConfiguration
         {
             switch (this._memoryConfiguration.DataIngestion.DistributedOrchestration.QueueType)
             {
-                case string y1 when y1.Equals("AzureQueue", StringComparison.OrdinalIgnoreCase):
-                case string y2 when y2.Equals("AzureQueues", StringComparison.OrdinalIgnoreCase):
-                    // Check 2 keys for backward compatibility
-                    builder.Services.AddAzureQueuesOrchestration(this.GetServiceConfig<AzureQueuesConfig>("AzureQueue"));
+                case string x when x.Equals("AzureQueue", StringComparison.Ordinal):
+                    throw new ConfigurationException("The configuration key 'AzureQueue' has been deprecated. Please use 'AzureQueues' instead.'");
+
+                case string x when x.Equals("RabbitMq", StringComparison.Ordinal):
+                    throw new ConfigurationException("The configuration key 'RabbitMq' has been deprecated. Please use 'RabbitMQ' instead.'");
+
+                case string x when x.Equals("AzureQueues", StringComparison.OrdinalIgnoreCase):
+                    builder.Services.AddAzureQueuesOrchestration(this.GetServiceConfig<AzureQueuesConfig>("AzureQueues"));
                     break;
 
                 case string y when y.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase):
-                    // Check 2 keys for backward compatibility
-                    builder.Services.AddRabbitMQOrchestration(this.GetServiceConfig<RabbitMqConfig>("RabbitMq"));
+                    builder.Services.AddRabbitMQOrchestration(this.GetServiceConfig<RabbitMQConfig>("RabbitMQ"));
                     break;
 
                 case string y when y.Equals("SimpleQueues", StringComparison.OrdinalIgnoreCase):
@@ -151,15 +153,15 @@ internal sealed class ServiceConfiguration
     {
         switch (this._memoryConfiguration.DocumentStorageType)
         {
-            case string x1 when x1.Equals("AzureBlob", StringComparison.OrdinalIgnoreCase):
-            case string x2 when x2.Equals("AzureBlobs", StringComparison.OrdinalIgnoreCase):
-                // Check 2 keys for backward compatibility
-                builder.WithAzureBlobsDocumentStorage(this.GetServiceConfig<AzureBlobsConfig>("AzureBlobs")
-                                                      ?? this.GetServiceConfig<AzureBlobsConfig>("AzureBlob"));
+            case string x when x.Equals("AzureBlob", StringComparison.OrdinalIgnoreCase):
+                throw new ConfigurationException("The configuration key 'AzureBlob' has been deprecated. Please use 'AzureBlobs' instead.'");
+
+            case string x when x.Equals("AzureBlobs", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddAzureBlobsAsDocumentStorage(this.GetServiceConfig<AzureBlobsConfig>("AzureBlobs"));
                 break;
 
             case string x when x.Equals("SimpleFileStorage", StringComparison.OrdinalIgnoreCase):
-                builder.WithSimpleFileStorage(this.GetServiceConfig<SimpleFileStorageConfig>("SimpleFileStorage"));
+                builder.Services.AddSimpleFileStorageAsDocumentStorage(this.GetServiceConfig<SimpleFileStorageConfig>("SimpleFileStorage"));
                 break;
 
             default:
@@ -201,7 +203,9 @@ internal sealed class ServiceConfiguration
                 case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
                 {
                     var instance = this.GetServiceInstance<ITextEmbeddingGenerator>(builder,
-                        s => s.AddAzureOpenAIEmbeddingGeneration(this.GetServiceConfig<AzureOpenAIConfig>("AzureOpenAIEmbedding")));
+                        s => s.AddAzureOpenAIEmbeddingGeneration(
+                            config: this.GetServiceConfig<AzureOpenAIConfig>("AzureOpenAIEmbedding"),
+                            textTokenizer: new GPT4oTokenizer()));
                     builder.AddIngestionEmbeddingGenerator(instance);
                     break;
                 }
@@ -209,7 +213,19 @@ internal sealed class ServiceConfiguration
                 case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
                 {
                     var instance = this.GetServiceInstance<ITextEmbeddingGenerator>(builder,
-                        s => s.AddOpenAITextEmbeddingGeneration(this.GetServiceConfig<OpenAIConfig>("OpenAI")));
+                        s => s.AddOpenAITextEmbeddingGeneration(
+                            config: this.GetServiceConfig<OpenAIConfig>("OpenAI"),
+                            textTokenizer: new GPT4oTokenizer()));
+                    builder.AddIngestionEmbeddingGenerator(instance);
+                    break;
+                }
+
+                case string x when x.Equals("Ollama", StringComparison.OrdinalIgnoreCase):
+                {
+                    var instance = this.GetServiceInstance<ITextEmbeddingGenerator>(builder,
+                        s => s.AddOllamaTextEmbeddingGeneration(
+                            config: this.GetServiceConfig<OllamaConfig>("Ollama"),
+                            textTokenizer: new GPT4oTokenizer()));
                     builder.AddIngestionEmbeddingGenerator(instance);
                     break;
                 }
@@ -246,15 +262,6 @@ internal sealed class ServiceConfiguration
                     break;
                 }
 
-                case string x when x.Equals("Qdrant", StringComparison.OrdinalIgnoreCase):
-                {
-                    var instance = this.GetServiceInstance<IMemoryDb>(builder,
-                        s => s.AddQdrantAsMemoryDb(this.GetServiceConfig<QdrantConfig>("Qdrant"))
-                    );
-                    builder.AddIngestionMemoryDb(instance);
-                    break;
-                }
-
                 case string x when x.Equals("Postgres", StringComparison.OrdinalIgnoreCase):
                 {
                     var instance = this.GetServiceInstance<IMemoryDb>(builder,
@@ -264,10 +271,10 @@ internal sealed class ServiceConfiguration
                     break;
                 }
 
-                case string x when x.Equals("Redis", StringComparison.OrdinalIgnoreCase):
+                case string x when x.Equals("Qdrant", StringComparison.OrdinalIgnoreCase):
                 {
                     var instance = this.GetServiceInstance<IMemoryDb>(builder,
-                        s => s.AddRedisAsMemoryDb(this.GetServiceConfig<RedisConfig>("Redis"))
+                        s => s.AddQdrantAsMemoryDb(this.GetServiceConfig<QdrantConfig>("Qdrant"))
                     );
                     builder.AddIngestionMemoryDb(instance);
                     break;
@@ -282,10 +289,10 @@ internal sealed class ServiceConfiguration
                     break;
                 }
 
-                case string x when x.Equals("SimpleTextDb", StringComparison.OrdinalIgnoreCase):
+                case string x when x.Equals("SqlServer", StringComparison.OrdinalIgnoreCase):
                 {
                     var instance = this.GetServiceInstance<IMemoryDb>(builder,
-                        s => s.AddSimpleTextDbAsMemoryDb(this.GetServiceConfig<SimpleTextDbConfig>("SimpleTextDb"))
+                        s => s.AddSqlServerAsMemoryDb(this.GetServiceConfig<SqlServerConfig>("SqlServer"))
                     );
                     builder.AddIngestionMemoryDb(instance);
                     break;
@@ -307,11 +314,21 @@ internal sealed class ServiceConfiguration
         {
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIEmbedding", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddAzureOpenAIEmbeddingGeneration(this.GetServiceConfig<AzureOpenAIConfig>("AzureOpenAIEmbedding"));
+                builder.Services.AddAzureOpenAIEmbeddingGeneration(
+                    config: this.GetServiceConfig<AzureOpenAIConfig>("AzureOpenAIEmbedding"),
+                    textTokenizer: new GPT4oTokenizer());
                 break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddOpenAITextEmbeddingGeneration(this.GetServiceConfig<OpenAIConfig>("OpenAI"));
+                builder.Services.AddOpenAITextEmbeddingGeneration(
+                    config: this.GetServiceConfig<OpenAIConfig>("OpenAI"),
+                    textTokenizer: new GPT4oTokenizer());
+                break;
+
+            case string x when x.Equals("Ollama", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddOllamaTextEmbeddingGeneration(
+                    config: this.GetServiceConfig<OllamaConfig>("Ollama"),
+                    textTokenizer: new GPT4oTokenizer());
                 break;
 
             default:
@@ -329,24 +346,20 @@ internal sealed class ServiceConfiguration
                 builder.Services.AddAzureAISearchAsMemoryDb(this.GetServiceConfig<AzureAISearchConfig>("AzureAISearch"));
                 break;
 
-            case string x when x.Equals("Qdrant", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddQdrantAsMemoryDb(this.GetServiceConfig<QdrantConfig>("Qdrant"));
-                break;
-
             case string x when x.Equals("Postgres", StringComparison.OrdinalIgnoreCase):
                 builder.Services.AddPostgresAsMemoryDb(this.GetServiceConfig<PostgresConfig>("Postgres"));
                 break;
 
-            case string x when x.Equals("Redis", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddRedisAsMemoryDb(this.GetServiceConfig<RedisConfig>("Redis"));
+            case string x when x.Equals("Qdrant", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddQdrantAsMemoryDb(this.GetServiceConfig<QdrantConfig>("Qdrant"));
                 break;
 
             case string x when x.Equals("SimpleVectorDb", StringComparison.OrdinalIgnoreCase):
                 builder.Services.AddSimpleVectorDbAsMemoryDb(this.GetServiceConfig<SimpleVectorDbConfig>("SimpleVectorDb"));
                 break;
 
-            case string x when x.Equals("SimpleTextDb", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddSimpleTextDbAsMemoryDb(this.GetServiceConfig<SimpleTextDbConfig>("SimpleTextDb"));
+            case string x when x.Equals("SqlServer", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddSqlServerAsMemoryDb(this.GetServiceConfig<SqlServerConfig>("SqlServer"));
                 break;
 
             default:
@@ -362,11 +375,21 @@ internal sealed class ServiceConfiguration
         {
             case string x when x.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase):
             case string y when y.Equals("AzureOpenAIText", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddAzureOpenAITextGeneration(this.GetServiceConfig<AzureOpenAIConfig>("AzureOpenAIText"));
+                builder.Services.AddAzureOpenAITextGeneration(
+                    config: this.GetServiceConfig<AzureOpenAIConfig>("AzureOpenAIText"),
+                    textTokenizer: new GPT4oTokenizer());
                 break;
 
             case string x when x.Equals("OpenAI", StringComparison.OrdinalIgnoreCase):
-                builder.Services.AddOpenAITextGeneration(this.GetServiceConfig<OpenAIConfig>("OpenAI"));
+                builder.Services.AddOpenAITextGeneration(
+                    config: this.GetServiceConfig<OpenAIConfig>("OpenAI"),
+                    textTokenizer: new GPT4oTokenizer());
+                break;
+
+            case string x when x.Equals("Ollama", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddOllamaTextGeneration(
+                    config: this.GetServiceConfig<OllamaConfig>("Ollama"),
+                    textTokenizer: new GPT4oTokenizer());
                 break;
 
             default:
@@ -386,6 +409,11 @@ internal sealed class ServiceConfiguration
 
             case string x when x.Equals("AzureAIDocIntel", StringComparison.OrdinalIgnoreCase):
                 builder.Services.AddAzureAIDocIntel(this.GetServiceConfig<AzureAIDocIntelConfig>("AzureAIDocIntel"));
+                break;
+
+            case string x when x.Equals("Tesseract", StringComparison.OrdinalIgnoreCase):
+                builder.Services.AddSingleton<TesseractConfig>(this.GetServiceConfig<TesseractConfig>("Tesseract"));
+                builder.WithCustomImageOcr<TesseractOcrEngine>();
                 break;
 
             default:

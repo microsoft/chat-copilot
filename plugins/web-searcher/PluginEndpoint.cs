@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.OpenApi.Models;
 using Plugins.PluginShared;
 using Plugins.WebSearcher.Models;
@@ -44,8 +39,9 @@ public class PluginEndpoint
     /// <param name="req">The http request data.</param>
     /// <returns>The manifest in Json</returns>
     [Function("WellKnownAIPluginManifest")]
-    public async Task<HttpResponseData> WellKnownAIPluginManifest(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/ai-plugin.json")] HttpRequestData req)
+    public async Task<HttpResponseData> WellKnownAIPluginManifestAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/ai-plugin.json")]
+        HttpRequestData req)
     {
         var pluginManifest = new PluginManifest()
         {
@@ -76,8 +72,9 @@ public class PluginEndpoint
     /// <param name="req">The http request data.</param>
     /// <returns>The icon.</returns>
     [Function("Icon")]
-    public async Task<HttpResponseData> Icon(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/icon")] HttpRequestData req)
+    public async Task<HttpResponseData> IconAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = ".well-known/icon")]
+        HttpRequestData req)
     {
         if (!File.Exists("./Icons/bing.png"))
         {
@@ -98,7 +95,7 @@ public class PluginEndpoint
     /// </summary>
     /// <param name="req">The http request data.</param>
     /// <returns>A string representing the search result.</returns>
-    [OpenApiOperation(operationId: "Search", tags: new[] { "WebSearchfunction" }, Description = "Searches the web for the given query.")]
+    [OpenApiOperation(operationId: "Search", tags: ["WebSearchfunction"], Description = "Searches the web for the given query.")]
     [OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "x-functions-key", In = OpenApiSecurityLocationType.Header)]
     [OpenApiParameter(name: "Query", In = ParameterLocation.Query, Required = true, Type = typeof(string), Description = "The query")]
     [OpenApiParameter(name: "NumResults", In = ParameterLocation.Query, Required = true, Type = typeof(int), Description = "The maximum number of results to return")]
@@ -107,28 +104,25 @@ public class PluginEndpoint
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "Returns a collection of search results with the name, URL and snippet for each.")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Description = "Invalid query")]
     [Function("WebSearch")]
-    public async Task<HttpResponseData> WebSearch([HttpTrigger(AuthorizationLevel.Function, "get", Route = "search")] HttpRequestData req)
+    public async Task<HttpResponseData> WebSearchAsync([HttpTrigger(AuthorizationLevel.Function, "get", Route = "search")] HttpRequestData req)
     {
-        var queries = QueryHelpers.ParseQuery(req.Url.Query);
-        var query = queries.ContainsKey("Query") ? queries["Query"].ToString() : string.Empty;
+        var queryParams = QueryHelpers.ParseQuery(req.Url.Query);
+
+        string query = queryParams.TryGetValue("Query", out StringValues q1) ? q1.ToString() : string.Empty;
+        int numResults = queryParams.TryGetValue("NumResults", out StringValues q2) && int.TryParse(q2, out int q2Value) ? q2Value : 0;
+        int offset = queryParams.TryGetValue("Offset", out StringValues q3) && int.TryParse(q3, out var q3Value) ? q3Value : 0;
+        string site = queryParams.TryGetValue("Site", out StringValues q4) ? q4.ToString() : string.Empty;
+
         if (string.IsNullOrWhiteSpace(query))
         {
             return await this.CreateBadRequestResponseAsync(req, "Empty query.");
         }
 
-        var numResults = queries.ContainsKey("NumResults") ? int.Parse(queries["NumResults"]!) : 0;
         if (numResults <= 0)
         {
             return await this.CreateBadRequestResponseAsync(req, "Invalid number of results.");
         }
 
-        int offset = 0;
-        if (queries.TryGetValue("Offset", out var offsetValue))
-        {
-            int.TryParse(offsetValue, out offset);
-        }
-
-        var site = queries.ContainsKey("Site") ? queries["Site"].ToString() : string.Empty;
         if (string.IsNullOrWhiteSpace(site))
         {
             this._logger.LogDebug("Searching the web for '{0}'", query);
@@ -144,7 +138,6 @@ public class PluginEndpoint
             queryString += string.IsNullOrWhiteSpace(site) ? string.Empty : $"+site:{site}";
             queryString += $"&count={numResults}";
             queryString += $"&offset={offset}";
-
 
             var uri = new Uri($"{this._config.BingApiBaseUrl}{queryString}");
             this._logger.LogDebug("Sending request to {0}", uri);

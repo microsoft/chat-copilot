@@ -1,18 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Auth;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Request;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Storage;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 
@@ -49,7 +43,7 @@ public class ChatMemoryController : ControllerBase
     /// <summary>
     /// Gets the kernel memory for the chat session.
     /// </summary>
-    /// <param name="semanticTextMemory">The semantic text memory instance.</param>
+    /// <param name="memoryClient">The kernel memory client.</param>
     /// <param name="chatId">The chat id.</param>
     /// <param name="type">Type of memory. Must map to a member of <see cref="SemanticMemoryType"/>.</param>
     [HttpGet]

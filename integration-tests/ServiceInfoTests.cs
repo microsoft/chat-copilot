@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System.Net.Http;
 using System.Text.Json;
 using CopilotChat.WebApi.Models.Response;
 using CopilotChat.WebApi.Options;
@@ -10,16 +9,18 @@ namespace ChatCopilotIntegrationTests;
 
 public class ServiceInfoTests : ChatCopilotIntegrationTest
 {
+    private static readonly JsonSerializerOptions jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     [Fact]
     public async void GetServiceInfo()
     {
-        await this.SetUpAuth();
+        await this.SetUpAuthAsync();
 
-        HttpResponseMessage response = await this._httpClient.GetAsync("info/");
+        HttpResponseMessage response = await this.HTTPClient.GetAsync("info/");
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
-        var objectFromResponse = await JsonSerializer.DeserializeAsync<ServiceInfoResponse>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var objectFromResponse = await JsonSerializer.DeserializeAsync<ServiceInfoResponse>(contentStream, jsonOptions);
 
         Assert.NotNull(objectFromResponse);
         Assert.False(string.IsNullOrEmpty(objectFromResponse.MemoryStore.SelectedType));
@@ -29,17 +30,16 @@ public class ServiceInfoTests : ChatCopilotIntegrationTest
     [Fact]
     public async void GetAuthConfig()
     {
-        HttpResponseMessage response = await this._httpClient.GetAsync("authConfig/");
+        HttpResponseMessage response = await this.HTTPClient.GetAsync("authConfig/");
         response.EnsureSuccessStatusCode();
 
         var contentStream = await response.Content.ReadAsStreamAsync();
-        var objectFromResponse = await JsonSerializer.DeserializeAsync<FrontendAuthConfig>(contentStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var objectFromResponse = await JsonSerializer.DeserializeAsync<FrontendAuthConfig>(contentStream, jsonOptions);
 
         Assert.NotNull(objectFromResponse);
         Assert.Equal(ChatAuthenticationOptions.AuthenticationType.AzureAd.ToString(), objectFromResponse.AuthType);
-        Assert.Equal(this.configuration[AuthoritySettingName], objectFromResponse.AadAuthority);
-        Assert.Equal(this.configuration[ClientIdSettingName], objectFromResponse.AadClientId);
+        Assert.Equal(this.Configuration[AuthoritySettingName], objectFromResponse.AadAuthority);
+        Assert.Equal(this.Configuration[ClientIdSettingName], objectFromResponse.AadClientId);
         Assert.False(string.IsNullOrEmpty(objectFromResponse.AadApiScope));
     }
 }
-

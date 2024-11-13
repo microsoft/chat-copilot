@@ -1,17 +1,12 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Extensions;
 using CopilotChat.WebApi.Models.Storage;
 using CopilotChat.WebApi.Options;
 using CopilotChat.WebApi.Plugins.Utils;
 using CopilotChat.WebApi.Storage;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.KernelMemory;
 
@@ -20,7 +15,7 @@ namespace CopilotChat.WebApi.Plugins.Chat;
 /// <summary>
 /// This class provides the functions to query kernel memory.
 /// </summary>
-public class SemanticMemoryRetriever
+public class KernelMemoryRetriever
 {
     private readonly PromptsOptions _promptOptions;
 
@@ -36,9 +31,9 @@ public class SemanticMemoryRetriever
     private readonly ILogger _logger;
 
     /// <summary>
-    /// Create a new instance of SemanticMemoryRetriever.
+    /// Create a new instance of KernelMemoryRetriever.
     /// </summary>
-    public SemanticMemoryRetriever(
+    public KernelMemoryRetriever(
         IOptions<PromptsOptions> promptOptions,
         ChatSessionRepository chatSessionRepository,
         IKernelMemory memoryClient,
@@ -49,7 +44,8 @@ public class SemanticMemoryRetriever
         this._memoryClient = memoryClient;
         this._logger = logger;
 
-        this._memoryNames = new List<string> {
+        this._memoryNames = new List<string>
+        {
             this._promptOptions.DocumentMemoryName,
             this._promptOptions.LongTermMemoryName,
             this._promptOptions.WorkingMemoryName
@@ -62,8 +58,10 @@ public class SemanticMemoryRetriever
     /// <returns>A string containing the relevant memories.</returns>
     public async Task<(string, IDictionary<string, CitationSource>)> QueryMemoriesAsync(
         [Description("Query to match.")] string query,
-        [Description("Chat ID to query history from")] string chatId,
-        [Description("Maximum number of tokens")] int tokenLimit)
+        [Description("Chat ID to query history from")]
+        string chatId,
+        [Description("Maximum number of tokens")]
+        int tokenLimit)
     {
         ChatSession? chatSession = null;
         if (!await this._chatSessionRepository.TryFindByIdAsync(chatId, callback: v => chatSession = v))
@@ -80,6 +78,7 @@ public class SemanticMemoryRetriever
         {
             tasks.Add(SearchMemoryAsync(memoryName));
         }
+
         // Global document memory.
         tasks.Add(SearchMemoryAsync(this._promptOptions.DocumentMemoryName, isGlobalMemory: true));
         // Wait for all tasks to complete.
@@ -94,9 +93,9 @@ public class SemanticMemoryRetriever
             FormatMemories();
             FormatSnippets();
 
-            /// <summary>
-            /// Format long term and working memories.
-            /// </summary>
+            // <summary>
+            // Format long term and working memories.
+            // </summary>
             void FormatMemories()
             {
                 foreach (var memoryName in this._promptOptions.MemoryMap.Keys)
@@ -117,9 +116,9 @@ public class SemanticMemoryRetriever
                 }
             }
 
-            /// <summary>
-            /// Format document snippets.
-            /// </summary>
+            // <summary>
+            // Format document snippets.
+            // </summary>
             void FormatSnippets()
             {
                 if (!memoryMap.TryGetValue(this._promptOptions.DocumentMemoryName, out var memories) || memories.Count == 0)
@@ -141,9 +140,9 @@ public class SemanticMemoryRetriever
 
         return (builderMemory.Length == 0 ? string.Empty : builderMemory.ToString(), citationMap);
 
-        /// <summary>
-        /// Search the memory for relevant memories by memory name.
-        /// </summary>
+        // <summary>
+        // Search the memory for relevant memories by memory name.
+        // </summary>
         async Task SearchMemoryAsync(string memoryName, bool isGlobalMemory = false)
         {
             var searchResult =
@@ -160,10 +159,10 @@ public class SemanticMemoryRetriever
             }
         }
 
-        /// <summary>
-        /// Process the relevant memories and return a map of memories with citations for each memory name.
-        /// </summary>
-        /// <returns>A map of memories for each memory name and a map of citations for documents.</returns>
+        // <summary>
+        // Process the relevant memories and return a map of memories with citations for each memory name.
+        // </summary>
+        // <returns>A map of memories for each memory name and a map of citations for documents.</returns>
         (IDictionary<string, List<(string, CitationSource)>>, IDictionary<string, CitationSource>) ProcessMemories()
         {
             var memoryMap = new Dictionary<string, List<(string, CitationSource)>>(StringComparer.OrdinalIgnoreCase);
@@ -177,7 +176,7 @@ public class SemanticMemoryRetriever
                     if (result.Memory.Tags.TryGetValue(MemoryTags.TagMemory, out var tag) && tag.Count > 0)
                     {
                         var memoryName = tag.Single()!;
-                        var citationSource = CitationSource.FromSemanticMemoryCitation(
+                        var citationSource = CitationSource.FromKernelMemoryCitation(
                             result.Citation,
                             result.Memory.Text,
                             result.Memory.Relevance
@@ -232,8 +231,8 @@ public class SemanticMemoryRetriever
     /// <exception cref="ArgumentException">Thrown when the memory name is invalid.</exception>
     private float CalculateRelevanceThreshold(string memoryName, float memoryBalance)
     {
-        var upper = this._promptOptions.SemanticMemoryRelevanceUpper;
-        var lower = this._promptOptions.SemanticMemoryRelevanceLower;
+        var upper = this._promptOptions.KernelMemoryRelevanceUpper;
+        var lower = this._promptOptions.KernelMemoryRelevanceLower;
 
         if (memoryBalance < 0.0 || memoryBalance > 1.0)
         {

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -58,7 +56,7 @@ public static class JsonUtils
                     resultsDescriptor = string.Format(CultureInfo.InvariantCulture, "{0}: ", odataContextVal);
                 }
 
-                // Extract object to be truncated  
+                // Extract object to be truncated
                 var valueDocument = JsonDocument.Parse(valueElement.GetRawText());
                 document = valueDocument;
             }

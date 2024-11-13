@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,7 +13,7 @@ namespace CopilotChat.WebApi.Models.Storage;
 /// </summary>
 public class CopilotChatMessage : IStorageEntity
 {
-    private static readonly JsonSerializerOptions SerializerSettings = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions s_serializerSettings = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     /// <summary>
     /// Role of the author of a chat message.
@@ -190,7 +188,7 @@ public class CopilotChatMessage : IStorageEntity
 
                 return $"{messagePrefix} {this.UserName} uploaded: {documentMessageContent}";
 
-            case ChatMessageType.Plan:    // Fall through
+            case ChatMessageType.Plan: // Fall through
             case ChatMessageType.Message:
                 return $"{messagePrefix} {this.UserName} said: {this.Content}";
 
@@ -206,7 +204,7 @@ public class CopilotChatMessage : IStorageEntity
     /// <returns>A serialized json string</returns>
     public override string ToString()
     {
-        return JsonSerializer.Serialize(this, SerializerSettings);
+        return JsonSerializer.Serialize(this, s_serializerSettings);
     }
 
     /// <summary>
@@ -216,6 +214,6 @@ public class CopilotChatMessage : IStorageEntity
     /// <returns>A ChatMessage object</returns>
     public static CopilotChatMessage? FromString(string json)
     {
-        return JsonSerializer.Deserialize<CopilotChatMessage>(json, SerializerSettings);
+        return JsonSerializer.Deserialize<CopilotChatMessage>(json, s_serializerSettings);
     }
 }

@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using CopilotChat.WebApi.Models.Storage;
 
 namespace CopilotChat.WebApi.Storage;
@@ -24,13 +19,13 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     {
         this._fileStorage = filePath;
 
-        this._entities = this.Load(this._fileStorage);
+        this.Entities = this.Load(this._fileStorage);
     }
 
     /// <inheritdoc/>
     public Task<IEnumerable<T>> QueryEntitiesAsync(Func<T, bool> predicate)
     {
-        return Task.FromResult(this._entities.Values.Where(predicate));
+        return Task.FromResult(this.Entities.Values.Where(predicate));
     }
 
     /// <inheritdoc/>
@@ -41,9 +36,9 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        if (this._entities.TryAdd(entity.Id, entity))
+        if (this.Entities.TryAdd(entity.Id, entity))
         {
-            this.Save(this._entities, this._fileStorage);
+            this.Save(this.Entities, this._fileStorage);
         }
 
         return Task.CompletedTask;
@@ -57,9 +52,9 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        if (this._entities.TryRemove(entity.Id, out _))
+        if (this.Entities.TryRemove(entity.Id, out _))
         {
-            this.Save(this._entities, this._fileStorage);
+            this.Save(this.Entities, this._fileStorage);
         }
 
         return Task.CompletedTask;
@@ -73,7 +68,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entityId), "Entity Id cannot be null or empty.");
         }
 
-        if (this._entities.TryGetValue(entityId, out T? entity))
+        if (this.Entities.TryGetValue(entityId, out T? entity))
         {
             return Task.FromResult(entity);
         }
@@ -89,9 +84,9 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
             throw new ArgumentOutOfRangeException(nameof(entity), "Entity Id cannot be null or empty.");
         }
 
-        if (this._entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity) != null)
+        if (this.Entities.AddOrUpdate(entity.Id, entity, (key, oldValue) => entity) != null)
         {
-            this.Save(this._entities, this._fileStorage);
+            this.Save(this.Entities, this._fileStorage);
         }
 
         return Task.CompletedTask;
@@ -108,7 +103,7 @@ public class FileSystemContext<T> : IStorageContext<T> where T : IStorageEntity
     /// Using a concurrent dictionary to store entities in memory.
     /// </summary>
 #pragma warning disable CA1051 // Do not declare visible instance fields
-    protected readonly EntityDictionary _entities;
+    protected readonly EntityDictionary Entities;
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
     /// <summary>
@@ -188,7 +183,7 @@ public class FileSystemCopilotChatMessageContext : FileSystemContext<CopilotChat
     public Task<IEnumerable<CopilotChatMessage>> QueryEntitiesAsync(Func<CopilotChatMessage, bool> predicate, int skip, int count)
     {
         return Task.Run<IEnumerable<CopilotChatMessage>>(
-                () => this._entities.Values
-                        .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
+            () => this.Entities.Values
+                .Where(predicate).OrderByDescending(m => m.Timestamp).Skip(skip).Take(count));
     }
 }

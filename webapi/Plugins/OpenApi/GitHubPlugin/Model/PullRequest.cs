@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace CopilotChat.WebApi.Plugins.OpenApi.GitHubPlugin.Model;
@@ -15,7 +13,7 @@ public class PullRequest
     /// Gets or sets the URL of the pull request
     /// </summary>
     [JsonPropertyName("url")]
-    public System.Uri Url { get; set; }
+    public Uri Url { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier of the pull request
@@ -92,7 +90,7 @@ public class PullRequest
     /// <param name="closedAt">The date and time when the pull request was closed, or null if it is not closed.</param>
     /// <param name="mergedAt">The date and time when the pull request was merged, or null if it is not merged.</param>
     public PullRequest(
-        System.Uri url,
+        Uri url,
         int id,
         int number,
         string state,
