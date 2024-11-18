@@ -13,7 +13,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.66.2" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="2.21.1" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="3.4.0" />
     <PackageVersion Include="SharpToken" Version="2.0.3" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
