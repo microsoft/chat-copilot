@@ -28,7 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.SemanticKernel" Version="1.28.0" />
-    <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.28.0" />
+    <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="1.30.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.28.0-preview" />
