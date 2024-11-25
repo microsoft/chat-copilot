@@ -18,7 +18,7 @@
     "@azure/msal-browser": "^3.27.0",
     "@azure/msal-react": "^2.2.0",
     "@fluentui/react-components": "^9.55.1",
-    "@fluentui/react-icons": "^2.0.265",
+    "@fluentui/react-icons": "^2.0.266",
     "@fluentui/react-northstar": "^0.66.5",
     "@microsoft/signalr": "^8.0.7",
     "@playwright/test": "^1.46.1",
