@@ -45,7 +45,7 @@
     <PackageVersion Include="Microsoft.KernelMemory.AI.AzureOpenAI" Version="0.92.241112.1" />
     <PackageVersion Include="Microsoft.KernelMemory.AI.Ollama" Version="0.92.241112.1" />
     <PackageVersion Include="Microsoft.KernelMemory.AI.OpenAI" Version="0.92.241112.1" />
-    <PackageVersion Include="Microsoft.KernelMemory.Abstractions" Version="0.92.241112.1" />
+    <PackageVersion Include="Microsoft.KernelMemory.Abstractions" Version="0.93.241118.1" />
     <PackageVersion Include="Microsoft.KernelMemory.Core" Version="0.92.241112.1" />
     <PackageVersion Include="Microsoft.KernelMemory.DataFormats.AzureAIDocIntel" Version="0.92.241112.1" />
     <PackageVersion Include="Microsoft.KernelMemory.DocumentStorage.AzureBlobs" Version="0.92.241112.1" />
