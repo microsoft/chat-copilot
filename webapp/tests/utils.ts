@@ -76,7 +76,7 @@ export async function sendChatMessageAndWaitForResponse(page, message) {
     await page.locator('#chat-input').click();
     await page.locator('#chat-input').fill(message);
 
-    const responsePrompise = page.waitForResponse(
+    const responsePromise = page.waitForResponse(
         (response) => response.url().search('chats/.*/messages') !== -1 && response.status() === 200,
         { timeout: LLMresponsetimeout },
     );
@@ -84,7 +84,7 @@ export async function sendChatMessageAndWaitForResponse(page, message) {
     await page.locator('#chat-input').press('Enter');
 
     // Wait for LLM to respond to request by executing the plan
-    await responsePrompise;
+    await responsePromise;
 }
 
 export async function openPluginPopUp(page, pluginIdentifierText) {
@@ -113,7 +113,7 @@ export async function disablePluginAndClosePopUp(page) {
 export async function executePlanAndWaitForResponse(page) {
     await page.waitForTimeout(ChatStateChangeWait);
 
-    const responsePrompise = page.waitForResponse(
+    const responsePromise = page.waitForResponse(
         (response) => response.url().search('chats/.*/plan') !== -1 && response.status() === 200,
         { timeout: LLMresponsetimeout },
     );
@@ -123,7 +123,7 @@ export async function executePlanAndWaitForResponse(page) {
     buttonLocator.click();
 
     // Wait for LLM to respond to request by executing the plan
-    await responsePrompise;
+    await responsePromise;
 }
 
 export async function getLastChatMessageContentsAsStringWHistory(page, chatHistoryItems) {
