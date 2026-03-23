@@ -32,7 +32,7 @@ jobs:
       artifact: ${{steps.artifactoutput.outputs.artifactname}}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           clean: true
           fetch-depth: 0
